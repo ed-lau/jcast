@@ -1,15 +1,15 @@
 """
-Main Function
+PSQ Junction Mapper
 
 Usage:
-    main.py <rmats_folder_name> <output_fasta_file_name>
-    main.py -h | --help
+    main.py <species> <rmats_folder> <gtf_file> <fasta_name>
 
 Options:
-    -h --help   Show this screen.
+    -h --help       Show this screen.
+    -v --version    Show version.
 
 Example:
-    main.py mouse_rmats rmats_fasta
+    main.py mouse ~/rmats ~/Mus_musculus.GRCm38.85.gtf psq
 
 
 """
@@ -25,8 +25,10 @@ from get_rma import RmatsResults
 
 def main(args):
 
-    rmats_folder = args['<rmats_folder_name>']
-    out_file = args['<output_fasta_file_name>']
+    rmats_folder = args['<rmats_folder>']
+    gtf_loc = args['<gtf_file>']
+    out_file = args['<fasta_name>']
+    species = args['<species>']
 
     #
     # Open the rMATS output file (MXE) here, rename the columns
@@ -38,7 +40,7 @@ def main(args):
     # Read the gtf file using the gtfpase package.
     # Then write as a pandas data frame.
     #
-    gtf = Annotation("gtf", "Mus_musculus.GRCm38.84")
+    gtf = Annotation(gtf_loc)
     gtf.read_gtf()
 
 
@@ -65,7 +67,7 @@ def main(args):
                                 down_es=rma.down_es[i],
                                 down_ee=rma.down_ee[i],
                                 junction_type=rma.jxn_type[i],
-                                species='mouse',)
+                                species=species,)
 
             print(str(i) + ' of ' + str(len(rma)))
 
@@ -115,7 +117,7 @@ def main(args):
 from docopt import docopt
 
 if __name__ == "__main__":
-   args = docopt(__doc__)
+   args = docopt(__doc__, version='PSQJunctionMapper 0.1')
    print(args)
    main(args)
 

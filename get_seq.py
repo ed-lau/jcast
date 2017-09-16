@@ -42,7 +42,7 @@ def get_nuc(species, chr, es, ee):
 
         if len(sequence) > 0 :
             nuc = sequence[1]
-            print('Locally ached sequence retrieved')
+            print('Locally cached sequence retrieved')
             con.close()
             return nuc
 

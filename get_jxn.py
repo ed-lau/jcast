@@ -11,15 +11,12 @@ class Annotation(object):
     Class holds the name and location of the GTF file, plus a pandas dataframe
     """
 
-    def __init__(self, dir, name):
+    def __init__(self, path):
         """
 
-        :param dir: Directory where the GTF files are located
-        :param name: Name of the GTF file
+        :param path: Path of the GTF file
         """
-        self.dir = os.path.join('data', dir)
-        self.name = name
-        self.path = os.path.join(self.dir, name) + ".gtf"
+        self.path = os.path.join(path)
         self.annot = 0
 
     def read_gtf(self):
