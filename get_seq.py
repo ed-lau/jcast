@@ -40,7 +40,7 @@ def get_nuc(species, chr, es, ee):
                     {'cache': cache})
         sequence = cur.fetchone()
 
-        if len(sequence) > 0 :
+        if len(sequence) > 0:
             nuc = sequence[1]
             print('Locally cached sequence retrieved')
             con.close()
@@ -175,6 +175,38 @@ def make_pep(nt, strand, phase):
 
     return pep
 
+def find_in_fasta(slice, fasta):
+    """
+    Given a translated junction sequence, look for the fasta entry that overlaps with it, then return the entry
+    and the coordinates. This will be used to extend said junction sequence to encompass the entire protein sequence.
+
+    :param seq:
+    :param fasta:
+    :return:
+    """
+    from Bio import SeqIO
+
+    # for edvelopment
+    # slice = sequence.slice1_aa
+    fasta_dct = {}
+    #for record in SeqIO.parse('data/fasta/20170918_Mm_Sp_16915.fasta', 'fasta'):
+    for record in SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta'):
+        #fasta_dct[record.id] = record.seq # id, name, seq, description
+        merge_start1 = record.seq.find(sequence.slice1_aa[:10])
+        merge_end1 = record.seq.find(sequence.slice1_aa[-10:])
+
+        merge_start2 = record.seq.find(sequence.slice2_aa[:10])
+        merge_end2 = record.seq.find(sequence.slice2_aa[-10:])
+
+        # see if you can find a FASTA entry that shares the first 10 amino acids of the slice, and the last 10
+        if (merge_start1 != -1 and merge_end1 != -1) or (merge_start2 != -1 and merge_start2 != -1):
+            print(record.id)
+            print(record.seq[:merge_start1] + sequence.slice1_aa + record.seq[merge_end1+10:])
+            print(record.seq[:merge_start2] + sequence.slice2_aa + record.seq[merge_end2+10:])
+
+    #slice1 = 'MLESMIKKPRPTRAEGSDVANAVLDGADCIMLSGETAKGDYPLEAVRMQHLIAREAEAAIYHLQLFEELRRLAPITSDPTEAAAVGAVEASFKCCSGAIIVLTKSGRSAHQVARYRPRAPIIAVTRNPQTARQAHLYRGIFPVLCKDAVLNAWAEDVDLRVNLAMDV'
+    # fasta_dct['sp|P52480|KPYM_MOUSE'].find(slice)
+    return True
 
 
 class Sequence(object):
@@ -184,7 +216,8 @@ class Sequence(object):
         :type junction: object
         :param junction: The splice junction object
 
-        Mostly copying properties of the junction object (already trimmed)
+        Mostly copying properties of the junction object (already trimmed) to start a new sequence object. This
+        sequence object will be used to make the nucleotide slices and translate into protein sequences.
 
         """
         self.anc_ee = junction.anc_ee
@@ -207,6 +240,9 @@ class Sequence(object):
         self.slice2_aa = ''
         self.gene_symbol = junction.gene_symbol
         self.name = junction.name
+
+    def __str__(self):
+        return "sequence object" + self.name
 
     def make_slice(self):
 
@@ -248,6 +284,7 @@ class Sequence(object):
 
         return True
 
+
     def write_to_fasta(self, output):
         """
         :param output: File name of the .fasta output.
@@ -265,6 +302,8 @@ class Sequence(object):
         import os
         import os.path
 
+        # Note to self, this condition should probably be moved to main to make this function more reusable.
+        # So the idea is to write out different files depending on whether translation was successful
         if len(self.slice1_aa) > 0 and len(self.slice2_aa) > 0:
 
             fa1 = SeqRecord(Seq(self.slice1_aa, IUPAC.protein),

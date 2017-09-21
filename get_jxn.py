@@ -111,9 +111,12 @@ class Junction(object):
         return True
 
     def get_translated_phase(self, gtf):
-        #
-        # 	Get the translation phase
-        #
+        """
+        Get the annotated translation phase from the GTF file
+        :param gtf:
+        :return:
+        """
+
         gtf0 = gtf.annot.query('gene_id == @self.gene_id').query('start == @self.anc_es').query('end == @self.anc_ee').query('feature == "CDS"')
 
         if len(gtf0) > 0:

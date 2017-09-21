@@ -9,10 +9,11 @@ Options:
     -v --version    Show version.
 
 Example:
-    main.py mouse ~/rmats ~/Mus_musculus.GRCm38.85.gtf psq
+    main.py mouse ./data/encode_mouse_heart ./data/gtf/Mus_musculus.GRCm38.89.gtf psqnew
 
 
 """
+
 
 from get_jxn import Junction, Annotation
 from get_seq import Sequence
@@ -24,6 +25,12 @@ from get_rma import RmatsResults
 #
 
 def main(args):
+    """
+    Take args
+
+    :param args:
+    :return:
+    """
 
     rmats_folder = args['<rmats_folder>']
     gtf_loc = args['<gtf_file>']
