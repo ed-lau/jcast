@@ -61,6 +61,8 @@ class RmatsResults(object):
         self.rmats_a5ss['alt2_ee'] = -1
 
         # Code for Alternative 3' Splice Sites (A3SS)
+        # Note this is the only splice type without the downstream exon.
+        # The slices are alt1-anc, and alt2-anc
         self.rmats_a3ss = pd.read_table(os.path.join(dir, 'A3SS.MATS.JC.txt'), sep='\t')
         self.rmats_a3ss.columns = ['id', 'gene_id', 'gene_symbol', 'chr', 'strand',
                                    'alt1_es', 'alt1_ee', 'alt2_es',

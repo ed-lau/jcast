@@ -3,188 +3,85 @@
 #
 
 
-def get_nuc(species, chr, es, ee):
-    """
-    :param species: Species, e.g., 'mouse
-    :param chr: Chromosome, e.g., 1
-    :param es: Exon start, e.g., 10000000
-    :param ee: Exon end, e.g., 10000100
-    :return:
-
-    Function to get nucleotide sequences by REST API
-    (anchor, alternative-1, alternative-2, downstream)
-
-    To cut down time, it will try to cache the sequence coordinates.
-
-    >>> get_nuc('mouse', 1, 10000000, 10000050)
-    'GTTTTCAATGCAGGAAATGCAATTGTTCTGTAGGTACAAGTGGGTCAGATT'
-
-    """
-
-    import requests as rq
-    import sqlite3 as sq
-
-    if es <= 0 or ee <= 0:
-        print("Skipping empty exon.")
-        return ''
-
-    cache = species + '-' + str(chr) + '-' + str(es) + '-' + str(ee)
-
-
-    con = sq.connect('seq-cache.db')
-    cur = con.cursor()
-    cur.execute('''CREATE TABLE IF NOT EXISTS sequences(pk INTEGER PRIMARY KEY, id TEXT, seq TEXT)''')
-
-    try:
-        cur.execute('''SELECT id, seq FROM sequences WHERE id=:cache''',
-                    {'cache': cache})
-        sequence = cur.fetchone()
-
-        if len(sequence) > 0:
-            nuc = sequence[1]
-            print('Locally cached sequence retrieved')
-            con.close()
-            return nuc
-
-        else:
-            print("Sequence not yet cached locally. 0")
-
-    except:
-        print("Sequence not yet cached locally. 1")
-
-
-    server = "http://rest.ensembl.org"
-    ext = "/sequence/region/" + species + "/" + str(chr) + ":" + str(es) + ".." + str(ee) + ":1?"
-
-    print(server+ext)
-
-
-    try:
-        ret = rq.get(server + ext, headers={"Content-Type": "text/plain"})
-
-        if ret.status_code == 200:
-            nuc = ret.text
-            cur.execute('''INSERT INTO sequences(id, seq) VALUES(:id, :seq)''', {'id': cache, 'seq': nuc})
-            print("Sequence retrieved from Uniprot and written into local cache.")
-            con.commit()
-            con.close()
-
-        else:
-            nuc = ''
-
-    except:
-        nuc = ''
-
-    return nuc
-
-
-def get_complementary(nt):
-    """
-    :param nt: Nucleotide string
-    :return: Complementary sequence
-
-    Function to get the complementary coding sequence on the reverse (-) DNA
-    strand of the coordinates being give. First reverses the input nucleotide
-    sequence, then get base-pairing nucleotide
-
-    >>> get_complementary('ATGCAA')
-    'TTGCAT'
-
-    """
-
-    nt = nt[::-1]
-    comp = ''
-
-    bp = {'A': 'T', 'T': 'A', 'G': 'C', 'C': 'G'}
-
-    for n in nt:
-        try:
-            comp += bp[n]
-        except:
-            comp += 'X'
-
-    return comp
-
-
-def make_pep(nt, strand, phase):
-    """
-    :param nt: Nucleotide sequence
-    :param strand: Strand (+ or -)
-    :param phase: Translation frame (0, 1, of 2)
-    :return: Amino acid sequence
-
-    Function to translate a nucleotide sequence into peptide,
-    taking into account the nucleotide sequence, strand, and phase.
-
-        >>> make_pep('ATTTTGCTT', '+', 0)
-        Translating on the + strand with phase 0
-        'ILL'
-
-    Phase shifts the starting position according to Ensembl convention.
-
-        >>> make_pep('ATTTTGCTT', '+', 1)
-        Translating on the + strand with phase 1
-        'FA'
-
-        >>> make_pep('ATTTTGCTT', '+', 2)
-        Translating on the + strand with phase 2
-        'FC'
-
-    If the phase of a sequence is on the negative strand, get
-    the complementary sequence then translate
-
-        >>> make_pep('ATTTTGCTT', '-', 0)
-        Translating on the - strand with phase 0
-        'KQN'
-    """
-
-    #
-    # Dictionary for genetic code
-    #
-    code = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'CTT': 'L', 'CTC': 'L', 'CTA': 'L', 'CTG': 'L',
-            'ATT': 'I', 'ATC': 'I', 'ATA': 'I', 'ATG': 'M', 'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V',
-            'TCT': 'S', 'TCC': 'S', 'TCA': 'S', 'TCG': 'S', 'CCT': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P',
-            'ACT': 'T', 'ACC': 'T', 'ACA': 'T', 'ACG': 'T', 'GCT': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A',
-            'TAT': 'Y', 'TAC': 'Y', 'TAA': 'X', 'TAG': 'X', 'CAT': 'H', 'CAC': 'H', 'CAA': 'Q', 'CAG': 'Q',
-            'AAT': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K', 'GAT': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E',
-            'TGT': 'C', 'TGC': 'C', 'TGA': 'X', 'TGG': 'W', 'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
-            'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R', 'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G'}
-
-    if strand == '-':
-        nt = get_complementary(nt)
-
-    #
-    # Get the starting position to translate, based on the phase
-    #
-    pos0 = (3 - phase) % 3
-
-    print('Translating on the ' + strand + ' strand with phase ' + str(phase))
-
-    pep = ''
-
-    for i in range(pos0, len(nt) - 2, 3):
-
-        aa = code[nt[i:i + 3]]
-
-        if aa == 'X':
-            print('Stop codon encountered')
-            pep = ''
-            break
-
-        pep += aa
-
-    return pep
 
 def find_in_fasta(slice, fasta):
     """
     Given a translated junction sequence, look for the fasta entry that overlaps with it, then return the entry
     and the coordinates. This will be used to extend said junction sequence to encompass the entire protein sequence.
 
+    Instead of reading from the fasta file, it should just read fetch the Uniprot directly via API.
+
+
     :param seq:
     :param fasta:
     :return:
     """
     from Bio import SeqIO
+    import request as rq
+    from io import StringIO
+    import sys
+
+    server = 'https://www.ebi.ac.uk'
+    ext = '/proteins/api/proteins/Ensembl:' + sequence.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
+
+    print(server + ext)
+
+    ret = rq.get(server + ext, headers={"Accept": "text/x-fasta"})
+
+    if not ret.ok:
+        ret.raise_for_status()
+        sys.exit()
+
+    # The UniProt API retrieves a retrieval object, with a text field inside ret.text
+    # Since Biopython SeqIO only works with file, use io.StringIO to turn the string into a file for parsing.
+    for record in SeqIO.parse(StringIO(ret.text), 'fasta'):
+
+        # Find out where the first 10 amino acids meets the UniProt canonical sequences..
+        merge_start1 = record.seq.find(sequence.slice1_aa[:10])
+        merge_end1 = record.seq.find(sequence.slice1_aa[-10:])
+
+        merge_start2 = record.seq.find(sequence.slice2_aa[:10])
+        merge_end2 = record.seq.find(sequence.slice2_aa[-10:])
+
+        if (merge_start1 != -1 and merge_end1 != -1) or (merge_start2 != -1 and merge_start2 != -1):
+
+            # Write the UniProt canonical first
+            canonical = record
+
+            # If the slice is not the same as the UniProt canonical, then also write it.
+            if not record.seq.find(sequence.slice1_aa) == -1:
+                record1 = record[:merge_start1] + sequence.slice1_aa + record[merge_end1+10:]
+
+            else:
+                # Change name of canonical to reflect that it is also slice 1.
+
+            # If the slice is not the same as the UniProt canonical, then also write it.
+                if not record.seq.find(sequence.slice2_aa) == -1:
+                    record1 = record[:merge_start2] + sequence.slice2_aa + record[merge_end2 + 10:]
+
+
+
+
+
+            fa1 = SeqRecord(Seq(self.slice1_aa, IUPAC.protein),
+                            id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-1-' +
+                                self.name + '-' + str(self.phase) + self.strand),
+                            name=self.gene_symbol,
+                            description='Slice 1')
+            fa2 = SeqRecord(Seq(self.slice2_aa, IUPAC.protein),
+                            id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-2-' +
+                                self.name + '-' + str(self.phase) + self.strand),
+                            name=self.gene_symbol,
+                            description='Slice 2')
+
+            print(record.id)
+            print(record.seq[:merge_start1] + sequence.slice1_aa + record.seq[merge_end1+10:])
+            print(record.seq[:merge_start2] + sequence.slice2_aa + record.seq[merge_end2+10:])
+
+    print(next(fasta).seq)
+
+
+
 
     # for edvelopment
     # slice = sequence.slice1_aa
@@ -204,6 +101,11 @@ def find_in_fasta(slice, fasta):
             print(record.seq[:merge_start1] + sequence.slice1_aa + record.seq[merge_end1+10:])
             print(record.seq[:merge_start2] + sequence.slice2_aa + record.seq[merge_end2+10:])
 
+        # We have to make it so that if the canonical is neither slice 1 or slice 2 (e.g., because it might contain
+        # both of the mutually exclusive exons, then the fasta should contain all three.
+
+        # Also we still need to combine all identical entries in the fasta file.
+
     #slice1 = 'MLESMIKKPRPTRAEGSDVANAVLDGADCIMLSGETAKGDYPLEAVRMQHLIAREAEAAIYHLQLFEELRRLAPITSDPTEAAAVGAVEASFKCCSGAIIVLTKSGRSAHQVARYRPRAPIIAVTRNPQTARQAHLYRGIFPVLCKDAVLNAWAEDVDLRVNLAMDV'
     # fasta_dct['sp|P52480|KPYM_MOUSE'].find(slice)
     return True
@@ -219,6 +121,7 @@ class Sequence(object):
         Mostly copying properties of the junction object (already trimmed) to start a new sequence object. This
         sequence object will be used to make the nucleotide slices and translate into protein sequences.
 
+        Change this so that sequence inherits junction class directly (have to think it through)
         """
         self.anc_ee = junction.anc_ee
         self.anc_es = junction.anc_es
@@ -238,18 +141,29 @@ class Sequence(object):
         self.slice2_nt = ''
         self.slice1_aa = ''
         self.slice2_aa = ''
+        self.frameshift = False
         self.gene_symbol = junction.gene_symbol
         self.name = junction.name
 
     def __str__(self):
         return "sequence object" + self.name
 
+    def set_frameshift_to_true(self):
+        """
+        Mark that there is a frameshift
+
+        :return:
+        """
+        self.frameshift = True
+
     def make_slice(self):
 
-        anc_nt = get_nuc(self.species, self.chr, self.anc_es, self.anc_ee)
-        alt1_nt = get_nuc(self.species, self.chr, self.alt1_es, self.alt1_ee)
-        alt2_nt = get_nuc(self.species, self.chr, self.alt2_es, self.alt2_ee)
-        down_nt = get_nuc(self.species, self.chr, self.down_es, self.down_ee)
+        import helpers as h
+
+        anc_nt = h.get_nuc(self.species, self.chr, self.anc_es, self.anc_ee)
+        alt1_nt = h.get_nuc(self.species, self.chr, self.alt1_es, self.alt1_ee)
+        alt2_nt = h.get_nuc(self.species, self.chr, self.alt2_es, self.alt2_ee)
+        down_nt = h.get_nuc(self.species, self.chr, self.down_es, self.down_ee)
 
         self.slice1_nt = anc_nt + alt1_nt + down_nt
         self.slice2_nt = anc_nt + alt2_nt + down_nt
@@ -263,16 +177,18 @@ class Sequence(object):
         :return: True
         """
 
+        import helpers as h
+
 
         if self.phase in [0, 1, 2]:
-            self.slice1_aa = make_pep(self.slice1_nt, self.strand, self.phase)
-            self.slice2_aa = make_pep(self.slice2_nt, self.strand, self.phase)
+            self.slice1_aa = h.make_pep(self.slice1_nt, self.strand, self.phase)
+            self.slice2_aa = h.make_pep(self.slice2_nt, self.strand, self.phase)
             print("Used Retrieved Phase")
 
         else:
             for i in range(3):
-                self.slice1_aa = make_pep(self.slice1_nt, self.strand, i)
-                self.slice2_aa = make_pep(self.slice2_nt, self.strand, i)
+                self.slice1_aa = h.make_pep(self.slice1_nt, self.strand, i)
+                self.slice2_aa = h.make_pep(self.slice2_nt, self.strand, i)
                 if len(self.slice1_aa) > 0 and len(self.slice2_aa) > 0:
                     break
                 else:
@@ -285,8 +201,53 @@ class Sequence(object):
         return True
 
 
-    def write_to_fasta(self, output):
+    def write_to_fasta(self, output, suffix):
         """
+
+
+        :param output: File name of the .fasta output.
+        :return: True
+
+        Create the /out directory if it does not exist, then write the translated splice junctions into the .fasta file
+
+        """
+
+        from Bio.Seq import Seq
+        from Bio import SeqIO
+        from Bio.SeqRecord import SeqRecord
+        from Bio.Alphabet import IUPAC
+        import os.path
+
+        # Note to self, this condition should probably be moved to main to make this function more reusable.
+        # So the idea is to write out different files depending on whether translation was successful
+
+
+        fa1 = SeqRecord(Seq(self.slice1_aa, IUPAC.protein),
+                        id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-1-' +
+                            self.name + '-' + str(self.phase) + self.strand),
+                        name=self.gene_symbol,
+                        description='Slice 1')
+        fa2 = SeqRecord(Seq(self.slice2_aa, IUPAC.protein),
+                        id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-2-' +
+                            self.name + '-' + str(self.phase) + self.strand),
+                        name=self.gene_symbol,
+                        description='Slice 2')
+
+        os.makedirs('out', exist_ok=True)
+        o = os.path.join('out', output + suffix + '.fasta')
+
+        output_handle = open(o, 'a')
+        SeqIO.write([fa1, fa2], output_handle, 'fasta')
+        output_handle.close()
+
+
+        return True
+
+    def write_to_fasta_old(self, output, suffix):
+        """
+
+        DEPRECATED - see write_to_fasta above
+
         :param output: File name of the .fasta output.
         :return: True
 
@@ -295,11 +256,10 @@ class Sequence(object):
 
         """
 
-
         from Bio.Seq import Seq
+        from Bio import SeqIO
         from Bio.SeqRecord import SeqRecord
         from Bio.Alphabet import IUPAC
-        import os
         import os.path
 
         # Note to self, this condition should probably be moved to main to make this function more reusable.
@@ -317,10 +277,8 @@ class Sequence(object):
                             name=self.gene_symbol,
                             description='Slice 2')
 
-            from Bio import SeqIO
-
             os.makedirs('out', exist_ok=True)
-            o = os.path.join('out', output + '.fasta')
+            o = os.path.join('out', output + suffix + '.fasta')
 
             output_handle = open(o, 'a')
             SeqIO.write([fa1, fa2], output_handle, 'fasta')

@@ -1,18 +1,7 @@
-"""
-PSQ Junction Mapper
-
-Usage:
-    main.py <species> <rmats_folder> <gtf_file> <fasta_name>
-
-Options:
-    -h --help       Show this screen.
-    -v --version    Show version.
-
-Example:
-    main.py mouse ./data/encode_mouse_heart ./data/gtf/Mus_musculus.GRCm38.89.gtf psqnew
-
-
-"""
+#
+# Splice Junction Mapper
+# Edward Lau
+#
 
 
 from get_jxn import Junction, Annotation
@@ -20,26 +9,29 @@ from get_seq import Sequence
 from get_rma import RmatsResults
 
 
-#
-# Define output file name, overwrite existing file
-#
-
-def main(args):
+def psqM(args):
     """
-    Take args
+    Main loop for ProteoSeqM
 
     :param args:
     :return:
     """
 
-    rmats_folder = args['<rmats_folder>']
-    gtf_loc = args['<gtf_file>']
-    out_file = args['<fasta_name>']
-    species = args['<species>']
+    import os
+
+    #
+    # Read arguments from ARg Parser
+    #
+    rmats_folder = args.rmats_folder
+    gtf_loc = args.gtf_file
+    out_file = args.out
+    species = args.species
 
     #
     # Open the rMATS output file (MXE) here, rename the columns
     #
+
+    assert os.path.exists(os.path.join(rmats_folder, 'MXE.MATS.JC.txt')), 'rMATS files not found, check directory.'
 
     rmats_results = RmatsResults(rmats_folder)
 
@@ -109,6 +101,13 @@ def main(args):
             #
             sequence.make_slice()
 
+
+            ## I think there should be a check here to see if there is a frameshift.
+            ## See if slice 1 nucleotides are different in length from slice 2 nucleotide by
+            ## multiples of 3
+            # (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 == 0
+            # We should only consider those without frameshift as tier 1.
+
             #
             # Translate into peptides
             #
@@ -117,16 +116,51 @@ def main(args):
             #
             # Write into fasta
             #
-            sequence.write_to_fasta(out_file)
+            if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
+                sequence.write_to_fasta(output=out_file,
+                                        suffix='tier1')
 
 
 
-from docopt import docopt
+#
+# Code for running main with parsed arguments from command line
+#
 
 if __name__ == "__main__":
-   args = docopt(__doc__, version='PSQJunctionMapper 0.1')
-   print(args)
-   main(args)
 
-# python3 main.py rmats out_file
+    import argparse
+
+    parser = argparse.ArgumentParser(description='ProteoSeqM retrieves splice junction information'
+                                                 'and translates into amino acid')
+
+
+
+
+    # Create a "translate_rmats" subparser and house its specific arguments
+    parser.add_argument('species', help='species (mouse or human)',
+                        choices=['mouse', 'human'],
+                        default='human')
+    parser.add_argument('rmats_folder', help='path to folder storing rMATS output')
+    parser.add_argument('gtf_file', help='path to ENSEMBL GTF file')
+
+    parser.add_argument('-o', '--out', help='name of the output files',
+                              default='psq_rmats')
+    parser.add_argument('-v', '--verbose', action='store_true', help='verbose error messages.')
+
+    parser.set_defaults(func=psqM)
+
+    # Print help  if no arguments givne
+    import sys
+    if len(sys.argv[1:]) == 0:
+        parser.print_help()
+        parser.exit()
+
+
+    # Parse all the arguments
+    args = parser.parse_args()
+
+
+    # Run the function in the argument
+    args.func(args)
+
 
