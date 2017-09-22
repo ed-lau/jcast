@@ -3,7 +3,6 @@
 # Edward Lau
 #
 
-
 from get_jxn import Junction, Annotation
 from get_seq import Sequence
 from get_rma import RmatsResults
@@ -11,7 +10,7 @@ from get_rma import RmatsResults
 
 def psqM(args):
     """
-    Main loop for ProteoSeqM
+    Main loop for ProteoSeqM that controls logic flow.
 
     :param args:
     :return:
@@ -101,11 +100,13 @@ def psqM(args):
             #
             sequence.make_slice()
 
-
             ## I think there should be a check here to see if there is a frameshift.
             ## See if slice 1 nucleotides are different in length from slice 2 nucleotide by
             ## multiples of 3
-            # (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 == 0
+            if (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 != 0:
+                print("Suspecting frameshifts between the two slices.")
+                sequence.set_frameshift_to_true()
+
             # We should only consider those without frameshift as tier 1.
 
             #
@@ -114,12 +115,31 @@ def psqM(args):
             sequence.translate()
 
             #
-            # Write into fasta
+            # Write the tier 1 results into fasta
             #
             if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
-                sequence.write_to_fasta(output=out_file,
-                                        suffix='tier1')
 
+                # Tier 1: both translated without stop codon, no frameshift
+                if not sequence.frameshift:
+
+                    # Do a function like this to extend with fasta, and then write if necessary.
+                    sequence.extend_and_write(species=species,
+                                            output=out_file,
+                                            suffix='tier1')
+
+
+                # Tier 2: both translated without stop codon, but with frameshift
+                elif sequence.frameshift:
+                    sequence.extend_and_write(species=species,
+                                              output=out_file,
+                                              suffix='tier2')
+
+                # Tier 3: One hits stop codon (select one that is longest, use semi-supervised learning later).
+
+            else:
+                pass
+
+    return True
 
 
 #
@@ -127,7 +147,6 @@ def psqM(args):
 #
 
 if __name__ == "__main__":
-
     import argparse
 
     parser = argparse.ArgumentParser(description='ProteoSeqM retrieves splice junction information'
@@ -149,16 +168,14 @@ if __name__ == "__main__":
 
     parser.set_defaults(func=psqM)
 
-    # Print help  if no arguments givne
+    # Print help message if no arguments are given
     import sys
     if len(sys.argv[1:]) == 0:
         parser.print_help()
         parser.exit()
 
-
     # Parse all the arguments
     args = parser.parse_args()
-
 
     # Run the function in the argument
     args.func(args)
