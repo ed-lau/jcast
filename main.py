@@ -11,6 +11,8 @@ from get_rma import RmatsResults
 def psqM(args):
     """
     Main loop for ProteoSeqM that controls logic flow.
+    python main.py human data/encode_human_liver/ data/gtf/Mus_musculus.GRCm38.89.gtf -o encode_human_liver_extended_retry
+
 
     :param args:
     :return:
@@ -67,7 +69,7 @@ def psqM(args):
                                 junction_type=rma.jxn_type[i],
                                 species=species,)
 
-            print(str(i) + ' of ' + str(len(rma)))
+            print('Analyzing' + rmats_result + str(i) + ' of ' + str(len(rma)))
 
 
             #

@@ -162,6 +162,9 @@ class Sequence(object):
         import requests as rq
         from io import StringIO
         import sys
+        import time
+
+
 
         server = 'https://www.ebi.ac.uk'
         ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
@@ -170,7 +173,16 @@ class Sequence(object):
 
         ret = rq.get(server + ext, headers={"Accept": "text/x-fasta"})
 
+        # retry 10 times
+        retry_counter = 0
+        while retry_counter < 20 and not ret.ok:
+            print("Network status not ok. Trying again in 10 sec for up to 20 times.", chr(retry_counter))
+            time.sleep(10)
+            ret = rq.get(server + ext, headers={"Accept": "text/x-fasta"})
+            retry_counter += 1
+
         if not ret.ok:
+            print("Network still not okay after 10 retries. Quitting.")
             ret.raise_for_status()
             sys.exit()
 
@@ -178,9 +190,15 @@ class Sequence(object):
         if len(ret.text) == 0:
             # Load local fasta (for now) based on species
             if species == 'mouse':
-                fasta_handle = SeqIO.parse('data/fasta/20170918_Mm_Sp_16915.fasta', 'fasta', IUPAC.extended_protein)
+                fasta_handle = SeqIO.parse('data/fasta/20170918_Mm_Sp_16915.fasta', 'fasta',
+                                           IUPAC.extended_protein)
             elif species == 'human':
-                fasta_handle = SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta', IUPAC.extended_protein)
+                fasta_handle = SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta',
+                                           IUPAC.extended_protein)
+                # Don't save sequence if it is from the fall-back fasta file.
+
+
+        # If ret.text is not empty, then get from online record.
         else:
             fasta_handle = SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein)
 
@@ -242,27 +260,32 @@ class Sequence(object):
                 print(record.seq[:merge_start1] + self.slice1_aa + record.seq[merge_end1 + 10:])
                 print(record.seq[:merge_start2] + self.slice2_aa + record.seq[merge_end2 + 10:])
 
-            # To do : if the slice is not matched to any of the FASTA entries,
-            # We want to find out why. Also, write the slices to an orphan fasta
-            else:
-                print("==== SLICE IS NOT FOUND IN THE FASTA ==== ")
-                print(self.slice1_aa)
-                print(self.slice2_aa)
-                print(record.seq)
 
-                orphan_slice1 = SeqRecord(Seq(self.slice1_aa, IUPAC.extended_protein),
-                                id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-1-' +
-                                    self.name + '-' + str(self.phase) + self.strand),
-                                name=self.gene_symbol,
-                                description='Orphan Slice 1')
-                orphan_slice2 = SeqRecord(Seq(self.slice2_aa, IUPAC.extended_protein),
-                                id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-2-' +
-                                    self.name + '-' + str(self.phase) + self.strand),
-                                name=self.gene_symbol,
-                                description='Orphan Slice 2')
 
-                write_seqrecord_to_fasta(orphan_slice1, output, suffix + '_orphan')
-                write_seqrecord_to_fasta(orphan_slice2, output, suffix + '_orphan')
+                # Once you found a match and wrote the sequence, quit.
+                return True
+
+        # If the slice is not matched to any of the FASTA entries,
+        # We want to find out why. Also, write the slices to an orphan fasta
+
+        print("==== SLICE IS NOT FOUND IN THE FASTA ==== ")
+        print(self.slice1_aa)
+        print(self.slice2_aa)
+        print(record.seq)
+
+        orphan_slice1 = SeqRecord(Seq(self.slice1_aa, IUPAC.extended_protein),
+                        id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-1-' +
+                            self.name + '-' + str(self.phase) + self.strand),
+                        name=self.gene_symbol,
+                        description='Orphan Slice 1')
+        orphan_slice2 = SeqRecord(Seq(self.slice2_aa, IUPAC.extended_protein),
+                        id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-2-' +
+                            self.name + '-' + str(self.phase) + self.strand),
+                        name=self.gene_symbol,
+                        description='Orphan Slice 2')
+
+        write_seqrecord_to_fasta(orphan_slice1, output, (suffix + '_orphan'))
+        write_seqrecord_to_fasta(orphan_slice2, output, (suffix + '_orphan'))
 
 
         return True
@@ -286,7 +309,7 @@ def write_seqrecord_to_fasta(seqrecord, output, suffix):
 
     os.makedirs('out', exist_ok=True)
     o = os.path.join('out', output + '_' + suffix + '.fasta')
-
+    print(o)
 
     # If the file already exists, open it and amend that record.
     existing_records = []
@@ -294,12 +317,12 @@ def write_seqrecord_to_fasta(seqrecord, output, suffix):
         for existing_record in SeqIO.parse(o, 'fasta', IUPAC.extended_protein):
             existing_records.append(existing_record)
 
-        # Test if the slice is already in the fasta, then do not write the new sequence into the fasta file.
-        for existing_record in existing_records:
-            if existing_record.seq == seqrecord.seq:
-                print(seqrecord.seq)
-                print("Already in fasta file - we will consider modifying the fasta entry name later on to reflect this")
-                #return True
+    # Test if the slice is already in the fasta, then do not write the new sequence into the fasta file.
+    for read_record in existing_records:
+        if read_record.seq == seqrecord.seq:
+            print(seqrecord.seq)
+            print("Already in fasta file - we will consider modifying the fasta entry name later on to reflect this")
+            return True
 
     output_handle = open(o, 'a')
     SeqIO.write(seqrecord, output_handle, 'fasta')
