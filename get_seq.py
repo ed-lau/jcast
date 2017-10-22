@@ -160,6 +160,8 @@ class Sequence(object):
         from Bio.SeqRecord import SeqRecord
         from Bio.Alphabet import IUPAC
         import requests as rq
+        from requests.adapters import HTTPAdapter
+        from requests.packages.urllib3.util.retry import Retry
         from io import StringIO
         import sys
         import time
@@ -171,15 +173,17 @@ class Sequence(object):
 
         print(server + ext)
 
-        ret = rq.get(server + ext, headers={"Accept": "text/x-fasta"})
+
 
         # retry 10 times
-        retry_counter = 0
-        while retry_counter < 20 and not ret.ok:
-            print("Network status not ok. Trying again in 10 sec for up to 20 times.", chr(retry_counter))
-            time.sleep(10)
-            ret = rq.get(server + ext, headers={"Accept": "text/x-fasta"})
-            retry_counter += 1
+
+        retries = Retry(total=10,
+                        backoff_factor=0.1,
+                        status_forcelist=[500, 502, 503, 504])
+
+        rqs = rq.Session()
+        rqs.mount('https://', HTTPAdapter(max_retries=retries))
+        ret = rqs.get(server + ext, headers={"Accept": "text/x-fasta"})
 
         if not ret.ok:
             print("Network still not okay after 10 retries. Quitting.")
@@ -244,7 +248,7 @@ class Sequence(object):
                 record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + 10:]
                 record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|'
                               + str(self.chr) + '_' + str(self.anc_ee) + '_' + str(self.alt2_ee) + '|'
-                              + '_' + str(self.alt2_ee) + self.strand + str(self.phase))
+                              + '_' + str(self.alt2_ee) + '|' + self.strand + str(self.phase))
 
                 # If the slice is not the same as the UniProt canonical, then also write it.
                 if record.seq.find(self.slice2_aa) == -1:

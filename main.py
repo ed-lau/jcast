@@ -11,7 +11,7 @@ from get_rma import RmatsResults
 def psqM(args):
     """
     Main loop for ProteoSeqM that controls logic flow.
-    python main.py human data/encode_human_liver/ data/gtf/Mus_musculus.GRCm38.89.gtf -o encode_human_liver_extended_retry
+    python main.py human data/encode_human_lung/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o encode_human_liver_extended_retry
 
 
     :param args:
