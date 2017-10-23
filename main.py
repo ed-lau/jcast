@@ -49,6 +49,7 @@ def psqM(args):
     #
 
     for rmats_result in rmats_results.__dict__:
+        # rmats_mxe, rmats_se, rmats_ri, rmats_a5ss, rmats_a3ss
 
         rma = rmats_results.__getattribute__(rmats_result)
         for i in range(len(rma)):
@@ -109,6 +110,8 @@ def psqM(args):
                 print("Suspecting frameshifts between the two slices.")
                 sequence.set_frameshift_to_true()
 
+                # Note it looks like some frameshift skipped exon peptides could nevertheless come back in frame
+
             # We should only consider those without frameshift as tier 1.
 
             #
@@ -127,14 +130,14 @@ def psqM(args):
                     # Do a function like this to extend with fasta, and then write if necessary.
                     sequence.extend_and_write(species=species,
                                             output=out_file,
-                                            suffix='tier1')
+                                            suffix='T1')
 
 
                 # Tier 2: both translated without stop codon, but with frameshift
                 elif sequence.frameshift:
                     sequence.extend_and_write(species=species,
                                               output=out_file,
-                                              suffix='tier2')
+                                              suffix='T2')
 
                 # Tier 3: One hits stop codon (select one that is longest, use semi-supervised learning later).
 

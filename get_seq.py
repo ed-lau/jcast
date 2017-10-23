@@ -210,7 +210,9 @@ class Sequence(object):
         # The UniProt API retrieves a retrieval object, with a text field inside ret.text
         # Since Biopython SeqIO only works with file, use io.StringIO to turn the string into a file for parsing.
 
-        for record in fasta_handle:
+        for loop in fasta_handle:
+
+            record = loop[:]
 
             # Find out where the first 10 amino acids meets the UniProt canonical sequences..
             merge_start1 = record.seq.find(self.slice1_aa[:10])
@@ -227,15 +229,15 @@ class Sequence(object):
             if (merge_start1 != -1 and merge_end1 != -1) or (merge_start2 != -1 and merge_start2 != -1):
 
                 # Write the UniProt canonical first
-                canonical = record
+                canonical = record[:]
 
                 # Format the name of the slice 1 record
                 record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + 10:]
-                record1.id += ('|' + self.gene_id + '|' + self.junction_type + '1|'
-                              + str(self.chr) + '_' + str(self.anc_ee) + '_' + str(self.alt1_ee)
-                              + '_' + str(self.alt2_ee) + '|' + self.strand + str(self.phase))
+                record1.id += ('|' + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
+                               + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                               + '|' + self.strand + str(self.phase)) + '|' + suffix
 
-                # If the slice is not the same as the UniProt canonical, then also write it.
+                # If the slice is different from the UniProt canonical, then also write it.
                 if record.seq.find(self.slice1_aa) == -1:
                     write_seqrecord_to_fasta(record1, output, suffix)
 
@@ -246,9 +248,9 @@ class Sequence(object):
 
                 # Format the name of the slice 2 record
                 record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + 10:]
-                record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|'
-                              + str(self.chr) + '_' + str(self.anc_ee) + '_' + str(self.alt2_ee) + '|'
-                              + '_' + str(self.alt2_ee) + '|' + self.strand + str(self.phase))
+                record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
+                               + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                               + '|' + self.strand + str(self.phase)) + '|' + suffix
 
                 # If the slice is not the same as the UniProt canonical, then also write it.
                 if record.seq.find(self.slice2_aa) == -1:
@@ -279,12 +281,12 @@ class Sequence(object):
 
         orphan_slice1 = SeqRecord(Seq(self.slice1_aa, IUPAC.extended_protein),
                         id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-1-' +
-                            self.name + '-' + str(self.phase) + self.strand),
+                            self.name + '-' + str(self.phase) + '|' + self.strand),
                         name=self.gene_symbol,
                         description='Orphan Slice 1')
         orphan_slice2 = SeqRecord(Seq(self.slice2_aa, IUPAC.extended_protein),
                         id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-2-' +
-                            self.name + '-' + str(self.phase) + self.strand),
+                            self.name + '-' + str(self.phase) + '|' + self.strand),
                         name=self.gene_symbol,
                         description='Orphan Slice 2')
 
