@@ -117,6 +117,7 @@ class Junction(object):
         :return:
         """
 
+        # Select the anchor exon from CDS and get the frame
         gtf0 = gtf.annot.query('gene_id == @self.gene_id').query('start == @self.anc_es').query('end == @self.anc_ee').query('feature == "CDS"')
 
         if len(gtf0) > 0:

@@ -36,6 +36,8 @@ class Sequence(object):
         self.frameshift = False
         self.gene_symbol = junction.gene_symbol
         self.name = junction.name
+        self.fate = 'Nothing done.'
+        self.translated_phase = -1      # Phase that was actually used for translation.
 
     # def __str__(self):
     #     return "sequence object" + self.name
@@ -63,28 +65,30 @@ class Sequence(object):
         print(self.slice1_nt)
         print(self.slice2_nt)
 
-    def translate(self):
+    def translate(self, use_phase=True):
         """
-        This is the translate function for tier 1 peptide. Calls make_pep with the to-be-implemented "forced" flag
+        This is the translate function for tier 1/2 peptide. Calls make_pep with the terminal option
         which will terminate when it runs into a stop codon. Later on we should make a force_translate that does
         three frame translation and just either return all frames or return the longest.
 
+        :param use_phase: T/F Whether to ue the stored phase or attempt to do three-frame translation
         :return: True
         """
 
         import helpers as h
 
-
-        if self.phase in [0, 1, 2]:
-            self.slice1_aa = h.make_pep(self.slice1_nt, self.strand, self.phase)
-            self.slice2_aa = h.make_pep(self.slice2_nt, self.strand, self.phase)
+        if self.phase in [0, 1, 2] and use_phase:
+            self.slice1_aa = h.make_pep(self.slice1_nt, self.strand, self.phase, terminate=True)
+            self.slice2_aa = h.make_pep(self.slice2_nt, self.strand, self.phase, terminate=True)
             print("Used Retrieved Phase")
+            self.translated_phase = self.phase
 
         else:
             for i in range(3):
-                self.slice1_aa = h.make_pep(self.slice1_nt, self.strand, i)
-                self.slice2_aa = h.make_pep(self.slice2_nt, self.strand, i)
+                self.slice1_aa = h.make_pep(self.slice1_nt, self.strand, i, terminate=True)
+                self.slice2_aa = h.make_pep(self.slice2_nt, self.strand, i, terminate=True)
                 if len(self.slice1_aa) > 0 and len(self.slice2_aa) > 0:
+                    self.translated_phase = i
                     break
                 else:
                     self.slice1_aa = ''
@@ -99,7 +103,8 @@ class Sequence(object):
     def write_to_fasta(self, output, suffix):
         """
 
-        Deprecated, see the new monstrous "extend and write" function
+        WARNING: Deprecated, see the new "extend and write" function below, which will first attempt to harmonize
+        the sequence to FASTA before writing the full-length sequence.
 
         :param output: File name of the .fasta output.
         :return: True
@@ -143,16 +148,21 @@ class Sequence(object):
     def extend_and_write(self, species, output, suffix):
         """
         Given a translated junction sequence, look for the fasta entry that overlaps with it, then return the entry
-        and the coordinates. This will be used to extend said junction sequence to encompass the entire protein sequence.
+        and the coordinates. This will be used to extend said junction sequence to encompass  entire protein sequence.
 
-        Instead of reading from the fasta file, it should just read fetch the Uniprot directly via API first. However
-        if the Uniprot API returns an empty SwissProt result (somehow the Ensembl gene ID linking to a trembl rather than
-        a Swissprot sequence), then we will fall back to a pre-loaded SwissProt only FASTA file.
+        While this does not help resolve junction sequences or isoforms, I think it is important to match the database
+        file as closely as possible to the actual spectra in a mass spectrometry experiment to strengthen the
+        hypotheses being tested in the database search.
+
+        Instead of reading from the FASTA file, it should just read fetch the Uniprot directly via API first. However
+        if the Uniprot API returns an empty SwissProt result (somehow the Ensembl gene ID linking to a TremBL but not
+        Swissprot sequence), then we will fall back to a pre-loaded SwissProt only FASTA file.
 
         After extension, write the SeqRecord objects created into fasta file...
 
-        :param seq:
-        :param fasta:
+        :param species: string  Specices (mouse or human) to determine which fasta to grab
+        :param output:  string  Output directory
+        :param: suffix: string  Additional suffix to add to the end of an output file
         :return:
         """
         from Bio import SeqIO
@@ -165,7 +175,7 @@ class Sequence(object):
         from io import StringIO
         import sys
         import time
-
+        import helpers as h
 
 
         server = 'https://www.ebi.ac.uk'
@@ -239,12 +249,12 @@ class Sequence(object):
 
                 # If the slice is different from the UniProt canonical, then also write it.
                 if record.seq.find(self.slice1_aa) == -1:
-                    write_seqrecord_to_fasta(record1, output, suffix)
+                    h.write_seqrecord_to_fasta(record1, output, suffix)
 
                 # If not, then change name of canonical to reflect that it is also slice 1.
                 else:
                     canonical.id = record1.id
-                    write_seqrecord_to_fasta(canonical, output, suffix)
+                    h.write_seqrecord_to_fasta(canonical, output, suffix)
 
                 # Format the name of the slice 2 record
                 record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + 10:]
@@ -254,12 +264,12 @@ class Sequence(object):
 
                 # If the slice is not the same as the UniProt canonical, then also write it.
                 if record.seq.find(self.slice2_aa) == -1:
-                    write_seqrecord_to_fasta(record2, output, suffix)
+                    h.write_seqrecord_to_fasta(record2, output, suffix)
 
                 # If not, then change name of canonical to reflect that it is also slice 2.
                 else:
                     canonical.id = record2.id
-                    write_seqrecord_to_fasta(canonical, output, suffix)
+                    h.write_seqrecord_to_fasta(canonical, output, suffix)
 
 
                 print(record.id)
@@ -272,7 +282,8 @@ class Sequence(object):
                 return True
 
         # If the slice is not matched to any of the FASTA entries,
-        # We want to find out why. Also, write the slices to an orphan fasta
+        # write the slices to an orphan fasta.
+        # NOTE: we are separating these out for now because we want to find out why they fall through.
 
         print("==== SLICE IS NOT FOUND IN THE FASTA ==== ")
         print(self.slice1_aa)
@@ -290,51 +301,60 @@ class Sequence(object):
                         name=self.gene_symbol,
                         description='Orphan Slice 2')
 
-        write_seqrecord_to_fasta(orphan_slice1, output, (suffix + '_orphan'))
-        write_seqrecord_to_fasta(orphan_slice2, output, (suffix + '_orphan'))
+        h.write_seqrecord_to_fasta(orphan_slice1, output, (suffix + '_orphan'))
+        h.write_seqrecord_to_fasta(orphan_slice2, output, (suffix + '_orphan'))
 
 
         return True
 
-def write_seqrecord_to_fasta(seqrecord, output, suffix):
-    """
-    Write Biopython SeqRecord to the fasta file after checking whether the SeqRecord is already inside the file.
+    def write_fate(self, fate, output):
+        """
+        Write out the outcome of the attempt to translate each junction into a reort file
 
-    :param seqrecord:   Biopython SeqRecord object
-    :param sequence:    Splice Sequence object
-    :param output:
-    :param suffix:
-    :return:
-    """
-    from Bio.Seq import Seq
-    from Bio import SeqIO
-    from Bio.SeqRecord import SeqRecord
-    from Bio.Alphabet import IUPAC
-    import os.path
+        :param fate:    int         Code for message to be writtebn
+        :param output:  string      Output directory
+        :return:
+        """
+
+        import os.path
+
+        os.makedirs('out', exist_ok=True)
+        o = os.path.join('out', output + '_' + 'fate' + '.txt')
+        print(o)
+
+        # Set the stored junction fate as the message
+        self.fate = fate
+
+        assert self.fate in [0, 1, 2, 3, 4], 'Junction fate code error.'
+
+        if self.fate == 0:
+            msg = ''
+
+        elif self.fate == 1:
+            msg = "SUCCESS 1. Retrieved phase: " + str(
+                        self.phase) + " Used phase: " + str(self.translated_phase) + ". No Frameshift."
+
+        elif self.fate == 2:
+            msg = "SUCCESS 2. Retrieved phase: " + str(
+                        self.phase) + " Used phase: " + str(self.translated_phase) + ". Frameshift."
+
+        elif self.fate == 3:
+            msg = "SUCCESS 3. The GTF frame appears to be wrong. Retrieved phase: " + str(
+            self.phase) + " Used phase: " + str(self.translated_phase)
+
+        elif self.fate == 4:
+            msg = 'FAILURE. No translation was done. At least one PTC at each frame.'
+
+        else:
+            raise AssertionError
+
+        f = open(o, 'a')
+        f.write(self.junction_type + ' ' + self.name + ' ' + self.gene_symbol + ' ' + msg + '\n')
+        f.close()
+
+        return True
 
 
-    os.makedirs('out', exist_ok=True)
-    o = os.path.join('out', output + '_' + suffix + '.fasta')
-    print(o)
-
-    # If the file already exists, open it and amend that record.
-    existing_records = []
-    if os.path.exists(o):
-        for existing_record in SeqIO.parse(o, 'fasta', IUPAC.extended_protein):
-            existing_records.append(existing_record)
-
-    # Test if the slice is already in the fasta, then do not write the new sequence into the fasta file.
-    for read_record in existing_records:
-        if read_record.seq == seqrecord.seq:
-            print(seqrecord.seq)
-            print("Already in fasta file - we will consider modifying the fasta entry name later on to reflect this")
-            return True
-
-    output_handle = open(o, 'a')
-    SeqIO.write(seqrecord, output_handle, 'fasta')
-    output_handle.close()
-
-    return True
 
 #
 # For doctest

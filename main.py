@@ -3,6 +3,7 @@
 # Edward Lau
 #
 
+
 from get_jxn import Junction, Annotation
 from get_seq import Sequence
 from get_rma import RmatsResults
@@ -11,7 +12,7 @@ from get_rma import RmatsResults
 def psqM(args):
     """
     Main loop for ProteoSeqM that controls logic flow.
-    python main.py human data/encode_human_lung/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o encode_human_liver_extended_retry
+    python main.py human data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_pancreas_extended_retry
 
 
     :param args:
@@ -40,6 +41,7 @@ def psqM(args):
     # Read the gtf file using the gtfpase package.
     # Then write as a pandas data frame.
     #
+
     gtf = Annotation(gtf_loc)
     gtf.read_gtf()
 
@@ -53,6 +55,10 @@ def psqM(args):
 
         rma = rmats_results.__getattribute__(rmats_result)
         for i in range(len(rma)):
+
+            # Set i to 1993 for rmats_mxe for PKM; PKM wasn't translated because the slice should have phase 0.
+            # So phase detection actually failed.
+            # Set i to 53 or 428 for rmats_mxe for an orphan slice
 
             junction = Junction(id=rma.id[i],
                                 gene_id=rma.gene_id[i],
@@ -117,7 +123,7 @@ def psqM(args):
             #
             # Translate into peptides
             #
-            sequence.translate()
+            sequence.translate(use_phase=True)
 
             #
             # Write the tier 1 results into fasta
@@ -132,17 +138,38 @@ def psqM(args):
                                             output=out_file,
                                             suffix='T1')
 
+                    fate_code = 1
 
+                #
                 # Tier 2: both translated without stop codon, but with frameshift
+                #
                 elif sequence.frameshift:
                     sequence.extend_and_write(species=species,
                                               output=out_file,
                                               suffix='T2')
 
-                # Tier 3: One hits stop codon (select one that is longest, use semi-supervised learning later).
+                    fate_code = 2
 
             else:
-                pass
+                #
+                # Tier 3 - retrieved phase is wrong.
+                #
+                sequence.translate(use_phase=False)
+                if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
+                    sequence.extend_and_write(species=species,
+                                              output=out_file,
+                                              suffix='T3')
+
+                    fate_code = 3
+
+
+            # Tier 4: One hits stop codon (select one that is longest, use semi-supervised learning later).
+                else:
+                    fate_code = 4
+
+                    pass
+
+            sequence.write_fate(fate=fate_code, output=out_file)
 
     return True
 
