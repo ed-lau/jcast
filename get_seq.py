@@ -67,7 +67,7 @@ class Sequence(object):
 
     def translate(self, use_phase=True):
         """
-        This is the translate function for tier 1/2 peptide. Calls make_pep with the terminal option
+        This is the translate function for tier 1/2/3 peptide. Calls make_pep with the terminal option
         which will terminate when it runs into a stop codon. Later on we should make a force_translate that does
         three frame translation and just either return all frames or return the longest.
 
@@ -98,6 +98,56 @@ class Sequence(object):
         print(self.slice2_aa)
 
         return True
+
+    def translate_forced(self, slice_to_translate):
+        """
+        This is the fallback translate function for tier 4/5 peptides. We will start by using the retrieved GTF phase
+        and attempt to translate as normal. If only slice_1 returns normal without stop codon but slice_2 runs into
+        a stop codon, then I think what we could do is to try all three phases for slice_2 and take the longest peptide.
+
+        This is intended to catch some suspected sequences where there *is* a biological premature stop codon, or that
+        the trimming of translation ends did not complete correctly. I am suspecting that this may be more frequent for
+        A5SS and RI sequences, which in the first three tiers did not perform as well as MXE and SI sequences.
+
+        :param slice_to_translate:  Int     Should be 1 or 2, depending on which slice we want to force
+        :return:
+        """
+
+        import helpers as h
+
+        assert slice_to_translate in [1, 2], 'Forced translation: slice must be either 1 or 2'
+
+        # Determine whether slice 1 or slice 2 nucleotides is being forced-translated
+        if slice_to_translate == 1:
+            nt_to_translate = self.slice1_nt
+        elif slice_to_translate == 2:
+            nt_to_translate = self.slice2_nt
+
+        for i in range(3):
+            best_seq = ''
+            best_phase = -1
+            seq = h.make_pep(nt_to_translate, self.strand, i, terminate=False)
+
+            # Not taking care of equal lengths for now - only taking first phase.
+            if len(seq) > len(best_seq):
+                best_seq = seq
+                best_phase = i
+
+        if len(best_seq) > 0:
+            self.translated_phase = best_phase
+            forced_translated_aa = best_seq
+
+        else:
+            forced_translated_aa = ''
+
+        # Determine whether to write the force_translated AA into slice 1 or slice 2
+        if slice_to_translate == 1:
+            self.slice1_aa = forced_translated_aa
+        elif slice_to_translate == 2:
+            self.slice2_aa = forced_translated_aa
+
+        print(self.slice1_aa)
+        print(self.slice2_aa)
 
 
     def write_to_fasta(self, output, suffix):
@@ -325,9 +375,15 @@ class Sequence(object):
         # Set the stored junction fate as the message
         self.fate = fate
 
-        assert self.fate in [0, 1, 2, 3, 4], 'Junction fate code error.'
+        assert type(self.fate) is int, 'Junction fate code error.'
 
-        if self.fate == 0:
+        if self.fate == -2:
+            msg = 'DELETED. Junction read counts too low.'
+
+        elif self.fate == -1:
+            msg = 'DELETED. Junction inconsistent across replicates.'
+
+        elif self.fate == 0:
             msg = ''
 
         elif self.fate == 1:
@@ -343,13 +399,19 @@ class Sequence(object):
             self.phase) + " Used phase: " + str(self.translated_phase)
 
         elif self.fate == 4:
+            msg = "WARNING 4. Slice 2 hit a stop codon. Used longest phase."
+
+        elif self.fate == 5:
+            msg = "WARNING 5. Slice 1 hit a stop codon. Used longest phase."
+
+        elif self.fate == 6:
             msg = 'FAILURE. No translation was done. At least one PTC at each frame.'
 
         else:
             raise AssertionError
 
         f = open(o, 'a')
-        f.write(self.junction_type + ' ' + self.name + ' ' + self.gene_symbol + ' ' + msg + '\n')
+        f.write(self.junction_type + '\t' + self.name + '\t' + self.gene_symbol + '\t' + msg + '\n')
         f.close()
 
         return True

@@ -14,6 +14,10 @@ def psqM(args):
     Main loop for ProteoSeqM that controls logic flow.
     python main.py human data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_pancreas_extended_retry
 
+    python main.py human data/encode_human_liver/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_liver_extended_v3 -r
+
+    python main.py human data/encode_human_heart/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_heart_extended_v4 -r -f
+
 
     :param args:
     :return:
@@ -22,7 +26,7 @@ def psqM(args):
     import os
 
     #
-    # Read arguments from ARg Parser
+    # Read arguments from ArgParser
     #
     rmats_folder = args.rmats_folder
     gtf_loc = args.gtf_file
@@ -34,7 +38,6 @@ def psqM(args):
     #
 
     assert os.path.exists(os.path.join(rmats_folder, 'MXE.MATS.JC.txt')), 'rMATS files not found, check directory.'
-
     rmats_results = RmatsResults(rmats_folder)
 
     #
@@ -44,6 +47,24 @@ def psqM(args):
 
     gtf = Annotation(gtf_loc)
     gtf.read_gtf()
+
+    #
+    # Attempt to read the fate file and then, if resume flag is on, skip the rmats_result that are already done
+    #
+    os.makedirs('out', exist_ok=True)
+    list_of_done_junctions = []
+
+    try:
+        rf = os.path.join('out', out_file + '_' + 'fate' + '.txt')
+        import csv
+        existing_fate_text = csv.reader(open(rf, 'r'), delimiter='\t')
+
+        for row in existing_fate_text:
+            list_of_done_junctions.append(row[0] + '_' + row[1])
+
+    except FileNotFoundError:
+        print('No existing partial fate file found.')
+
 
 
     #
@@ -59,6 +80,7 @@ def psqM(args):
             # Set i to 1993 for rmats_mxe for PKM; PKM wasn't translated because the slice should have phase 0.
             # So phase detection actually failed.
             # Set i to 53 or 428 for rmats_mxe for an orphan slice
+            # To access with pandas, rma.ix[:,'sjc_s1'], etc., rma.ix[i]
 
             junction = Junction(id=rma.id[i],
                                 gene_id=rma.gene_id[i],
@@ -76,8 +98,14 @@ def psqM(args):
                                 junction_type=rma.jxn_type[i],
                                 species=species,)
 
-            print('Analyzing' + rmats_result + str(i) + ' of ' + str(len(rma)))
-
+            #
+            # Code for checking and executing whether to resume run
+            #
+            if (str(rma.jxn_type[i]) + '_' + str(rma.id[i]) in list_of_done_junctions) and args.resume:
+                print('resume 1: skipping existing junction' + rmats_result + str(i) + '.')
+                continue
+            else:
+                print('Analyzing' + rmats_result + str(i) + ' of ' + str(len(rma)))
 
             #
             # Subset the gtf file by the current gene_id
@@ -113,8 +141,9 @@ def psqM(args):
             ## See if slice 1 nucleotides are different in length from slice 2 nucleotide by
             ## multiples of 3
             if (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 != 0:
-                print("Suspecting frameshifts between the two slices.")
                 sequence.set_frameshift_to_true()
+                if args.verbose:
+                    print("verbose 1: suspecting frameshifts between the two slices.")
 
                 # Note it looks like some frameshift skipped exon peptides could nevertheless come back in frame
 
@@ -126,7 +155,31 @@ def psqM(args):
             sequence.translate(use_phase=True)
 
             #
-            # Write the tier 1 results into fasta
+            # Code for filtering by rMATS results
+            #
+            if args.filter:
+
+                # Discard this junction if the read count is below 4 in BOTH splice junctions.
+                # This is intended to remove junctions that are very low in abundance.
+                if rma.sjc_s1[i] < 4 and rma.sjc_s2[i] < 4:
+                    fate_code = -2
+                    sequence.write_fate(fate=fate_code, output=out_file)
+                    if args.verbose:
+                        print('verbose 1: sequence skipped due to low coverage.')
+                    continue
+
+                # Discard this junction if the P value of this read count is < 0.05
+                # This is intended to remove junctions that aren't found on both replicates.
+                # This might not be a good idea, however.
+                if rma.p[i] < (0.05/len(rma)):
+                    fate_code = -1
+                    sequence.write_fate(fate=fate_code, output=out_file)
+                    if args.verbose:
+                        print('verbose 1: sequence skipped due to inconsistency across replicates.')
+                    continue
+
+            #
+            # Write the Tier 1 and Tier 2 results into fasta
             #
             if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
 
@@ -150,11 +203,16 @@ def psqM(args):
 
                     fate_code = 2
 
+            #
+            # Tier 3 - retrieved phase is wrong.
+            #
+
             else:
-                #
-                # Tier 3 - retrieved phase is wrong.
-                #
                 sequence.translate(use_phase=False)
+
+            #
+            # After Tier 3 translation, check if both slices are good
+            #
                 if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
                     sequence.extend_and_write(species=species,
                                               output=out_file,
@@ -163,11 +221,42 @@ def psqM(args):
                     fate_code = 3
 
 
-            # Tier 4: One hits stop codon (select one that is longest, use semi-supervised learning later).
-                else:
+            #
+            # If sequence is still not good, do Tier 4: One of the two slices hits stop codon.
+            # (select one that is longest, use semi-supervised learning later).
+            #
+
+            # Translate again after Tier 3 to reset to Tier 1/2 translation state
+            sequence.translate(use_phase=True)
+
+            # Do this if slice 2 hits PTC:
+            if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) == 0:
+                sequence.translate_forced(slice_to_translate=2)
+
+                if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
+                    sequence.extend_and_write(species=species,
+                                              output=out_file,
+                                              suffix='T4')
+
                     fate_code = 4
 
-                    pass
+            # Do this if slice 1 hits PTC:
+            elif len(sequence.slice2_aa) > 0 and len(sequence.slice1_aa) == 0:
+
+                sequence.translate_forced(slice_to_translate=1)
+
+                if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
+                    sequence.extend_and_write(species=species,
+                                              output=out_file,
+                                              suffix='T4')
+
+                    fate_code = 5
+
+            #
+            # If nothing works, write FAILURE fate
+            #
+            if len(sequence.slice1_aa) == 0 and len(sequence.slice2_aa) == 0:
+                fate_code = 6
 
             sequence.write_fate(fate=fate_code, output=out_file)
 
@@ -196,7 +285,11 @@ if __name__ == "__main__":
 
     parser.add_argument('-o', '--out', help='name of the output files',
                               default='psq_rmats')
+    parser.add_argument('-r', '--resume', action='store_true', help='attempt to resume run.')
+    parser.add_argument('-f', '--filter', action='store_true', help='filter junctions')
+
     parser.add_argument('-v', '--verbose', action='store_true', help='verbose error messages.')
+
 
     parser.set_defaults(func=psqM)
 
