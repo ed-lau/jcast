@@ -168,7 +168,7 @@ def psqM(args):
                         print('verbose 1: sequence skipped due to low coverage.')
                     continue
 
-                # Discard this junction if the P value of this read count is < 0.05
+                # Discard this junction if the Bonferroni P value of this read count is < 0.05
                 # This is intended to remove junctions that aren't found on both replicates.
                 # This might not be a good idea, however.
                 if rma.p[i] < (0.05/len(rma)):
@@ -179,7 +179,7 @@ def psqM(args):
                     continue
 
             #
-            # Write the Tier 1 and Tier 2 results into fasta
+            # Write the Tier 1 and Tier 2 results into fasta file
             #
             if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
 
@@ -285,10 +285,10 @@ if __name__ == "__main__":
 
     parser.add_argument('-o', '--out', help='name of the output files',
                               default='psq_rmats')
-    parser.add_argument('-r', '--resume', action='store_true', help='attempt to resume run.')
-    parser.add_argument('-f', '--filter', action='store_true', help='filter junctions')
+    parser.add_argument('-r', '--resume', action='store_true', help='attempt to resume interrupted runs')
+    parser.add_argument('-f', '--filter', action='store_true', help='filter junctions based on read counts')
 
-    parser.add_argument('-v', '--verbose', action='store_true', help='verbose error messages.')
+    parser.add_argument('-v', '--verbose', action='store_true', help='verbose error messages')
 
 
     parser.set_defaults(func=psqM)
