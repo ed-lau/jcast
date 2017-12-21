@@ -7,6 +7,7 @@
 from get_jxn import Junction, Annotation
 from get_seq import Sequence
 from get_rma import RmatsResults
+import numpy as np
 
 
 def psqM(args):
@@ -164,7 +165,19 @@ def psqM(args):
 
                 # Discard this junction if the read count is below 4 in BOTH splice junctions.
                 # This is intended to remove junctions that are very low in abundance.
-                if rma.sjc_s1[i] < 4 and rma.sjc_s2[i] < 4:
+
+                # If rMATS was run with only one sample, the count should be an integer, if not it should be a list
+                try:
+                    mean_count_sample1 = int(np.mean([int(x) for x in (str(rma.sjc_s1[i]).split(sep=','))]))
+                    mean_count_sample2 = int(np.mean([int(x) for x in (str(rma.sjc_s2[i]).split(sep=','))]))
+
+                except ValueError:
+                    mean_count_sample1 = 4
+                    mean_count_sample2 = 4
+                    if args.verbose:
+                        print('verbose 1: keeping sequence since unable to find read counts.')
+
+                if mean_count_sample1 < 4 and mean_count_sample2 < 4:
                     fate_code = -2
                     sequence.write_fate(fate=fate_code, output=out_file)
                     if args.verbose:
