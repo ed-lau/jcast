@@ -17,6 +17,9 @@ def psqM(args):
     python main.py human data/encode_human_liver/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_liver_extended_v3 -r
 
     python main.py human data/encode_human_heart/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_heart_extended_v4 -r -f
+    python main.py human data/encode_human_adrenalgland/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_adrenalgland_extended_v4 -r -f
+    python main.py human data/encode_human_transversecolon/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_transversecolon_extended_v4 -r -f
+    python main.py human data/encode_human_testis/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_testis_extended_v4 -r -f
 
 
     :param args:
@@ -272,8 +275,6 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='ProteoSeqM retrieves splice junction information'
                                                  'and translates into amino acid')
-
-
 
 
     # Create a "translate_rmats" subparser and house its specific arguments
