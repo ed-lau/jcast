@@ -166,7 +166,8 @@ def psqM(args):
                 # Discard this junction if the read count is below 4 in BOTH splice junctions.
                 # This is intended to remove junctions that are very low in abundance.
 
-                # If rMATS was run with only one sample, the count should be an integer, if not it should be a list
+                # If rMATS was run with one technical replicate, the count field is an int, otherwise it is a list
+                # The following should take care of both single integer and list of integers.
                 try:
                     mean_count_sample1 = int(np.mean([int(x) for x in (str(rma.sjc_s1[i]).split(sep=','))]))
                     mean_count_sample2 = int(np.mean([int(x) for x in (str(rma.sjc_s2[i]).split(sep=','))]))
