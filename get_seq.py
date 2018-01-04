@@ -123,12 +123,13 @@ class Sequence(object):
         elif slice_to_translate == 2:
             nt_to_translate = self.slice2_nt
 
+        # For each nucleotide sequence, do each of three phase then get the longest
         for i in range(3):
             best_seq = ''
             best_phase = -1
             seq = h.make_pep(nt_to_translate, self.strand, i, terminate=False)
 
-            # Not taking care of equal lengths for now - only taking first phase.
+            # Not taking care of equal lengths for now - only taking first phase if there are two with equal length.
             if len(seq) > len(best_seq):
                 best_seq = seq
                 best_phase = i
