@@ -111,6 +111,7 @@ def psqM(args):
             else:
                 print('Analyzing' + rmats_result + str(i) + ' of ' + str(len(rma)))
 
+
             #
             # Subset the gtf file by the current gene_id
             #
@@ -133,30 +134,6 @@ def psqM(args):
             # Initiate a sequence object that copies most of the junction information
             #
             sequence = Sequence(junction)
-
-            #
-            # Get nucleotide sequences of all slices by REST API
-            # (anchor, alternative-1, alternative-2, downstream)
-            # Conjoin alternative exons to make slice 1 and 2,
-            #
-            sequence.make_slice()
-
-            ## I think there should be a check here to see if there is a frameshift.
-            ## See if slice 1 nucleotides are different in length from slice 2 nucleotide by
-            ## multiples of 3
-            if (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 != 0:
-                sequence.set_frameshift_to_true()
-                if args.verbose:
-                    print("verbose 1: suspecting frameshifts between the two slices.")
-
-                # Note it looks like some frameshift skipped exon peptides could nevertheless come back in frame
-
-            # We should only consider those without frameshift as tier 1.
-
-            #
-            # Translate into peptides
-            #
-            sequence.translate(use_phase=True)
 
             #
             # Code for filtering by rMATS results
@@ -188,12 +165,50 @@ def psqM(args):
                 # Discard this junction if the Bonferroni P value of this read count is < 0.05
                 # This is intended to remove junctions that aren't found on both replicates.
                 # This might not be a good idea, however.
-                if rma.p[i] < (0.05/len(rma)):
+                if rma.p[i] < (0.05 / len(rma)):
                     fate_code = -1
                     sequence.write_fate(fate=fate_code, output=out_file)
                     if args.verbose:
                         print('verbose 1: sequence skipped due to inconsistency across replicates.')
                     continue
+
+            #
+            # Get nucleotide sequences of all slices by REST API
+            # (anchor, alternative-1, alternative-2, downstream)
+            # Conjoin alternative exons to make slice 1 and 2,
+            #
+            sequence.make_slice()
+
+            #
+            # The next section is the six-frame translational by-pass. If the --sixframe flag is on,
+            # Then do six-frame with all the qualifying junctions instead
+            #
+
+            if args.sixframe:
+                fate_code = 7
+
+                continue
+
+
+            ## I think there should be a check here to see if there is a frameshift.
+            ## See if slice 1 nucleotides are different in length from slice 2 nucleotide by
+            ## multiples of 3
+            if (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 != 0:
+                sequence.set_frameshift_to_true()
+                if args.verbose:
+                    print("verbose 1: suspecting frameshifts between the two slices.")
+
+                # Note it looks like some frameshift skipped exon peptides could nevertheless come back in frame
+                # We should only consider those without frameshift as tier 1.
+
+
+            #
+            # Translate into peptides
+            #
+            sequence.translate(use_phase=True)
+
+
+
 
             #
             # Write the Tier 1 and Tier 2 results into fasta file
@@ -302,6 +317,8 @@ if __name__ == "__main__":
                               default='psq_rmats')
     parser.add_argument('-r', '--resume', action='store_true', help='attempt to resume interrupted runs')
     parser.add_argument('-f', '--filter', action='store_true', help='filter junctions based on read counts')
+    parser.add_argument('-s', '--sixframe', action='store_true',
+                        help='do six-frame translation instead with the junctions')
 
     parser.add_argument('-v', '--verbose', action='store_true', help='verbose error messages')
 

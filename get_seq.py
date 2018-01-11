@@ -123,7 +123,7 @@ class Sequence(object):
         elif slice_to_translate == 2:
             nt_to_translate = self.slice2_nt
 
-        # For each nucleotide sequence, do each of three phase then get the longest
+        # For each nucleotide sequence, do each of three phases then get the longest translated product
         for i in range(3):
             best_seq = ''
             best_phase = -1
@@ -227,7 +227,6 @@ class Sequence(object):
         import sys
         import time
         import helpers as h
-
 
         server = 'https://www.ebi.ac.uk'
         ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
@@ -407,6 +406,9 @@ class Sequence(object):
 
         elif self.fate == 6:
             msg = 'FAILURE. No translation was done. At least one PTC at each frame.'
+
+        elif self.fate == 7:
+            msg = 'SUCCESS. Six frame translation done.'
 
         else:
             raise AssertionError
