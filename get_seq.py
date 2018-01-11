@@ -37,7 +37,8 @@ class Sequence(object):
         self.gene_symbol = junction.gene_symbol
         self.name = junction.name
         self.fate = 'Nothing done.'
-        self.translated_phase = -1      # Phase that was actually used for translation.
+        self.translated_phase = -1                  # Phase that was actually used for translation.
+        self.translated_strand = junction.strand    # Strand that was actually used for translation
 
     # def __str__(self):
     #     return "sequence object" + self.name
@@ -49,6 +50,7 @@ class Sequence(object):
         :return:
         """
         self.frameshift = True
+
 
     def make_slice(self):
 
@@ -150,6 +152,31 @@ class Sequence(object):
         print(self.slice1_aa)
         print(self.slice2_aa)
 
+    def translate_sixphase(self, given_strand, given_phase):
+        """
+         This is the most basic translate function which we will use for six-frame translation
+        It will just take the phase and strand being sent to it, and it will return the peptide even if it
+        runs into a stop codon.
+
+        :param given_strand:        chr strand to use for translation
+        :param given_phase:         chr phase to use for translation
+        :return:                    T
+        """"""
+        """
+
+        import helpers as h
+
+        assert given_strand in ['+', '-'], 'Given strand is not a valid string'
+        assert given_phase in [1, 2, 3], 'Given phase is not a valid integer'
+
+
+        self.slice1_aa = h.make_pep(self.slice1_nt, given_strand, given_phase, terminate=False)
+        self.slice2_aa = h.make_pep(self.slice2_nt, given_strand, given_phase, terminate=False)
+
+        self.translated_phase = given_phase
+        self.translated_strand = given_strand
+
+        return True
 
     def write_to_fasta(self, output, suffix):
         """
@@ -196,7 +223,7 @@ class Sequence(object):
 
         return True
 
-    def extend_and_write(self, species, output, suffix):
+    def extend_and_write(self, species, output='out', suffix='T0', merge_length=10):
         """
         Given a translated junction sequence, look for the fasta entry that overlaps with it, then return the entry
         and the coordinates. This will be used to extend said junction sequence to encompass  entire protein sequence.
@@ -211,9 +238,10 @@ class Sequence(object):
 
         After extension, write the SeqRecord objects created into fasta file...
 
-        :param species: string  Specices (mouse or human) to determine which fasta to grab
-        :param output:  string  Output directory
-        :param: suffix: string  Additional suffix to add to the end of an output file
+        :param species:         string  Specices (mouse or human) to determine which fasta to grab
+        :param output:          string  Output directory
+        :param merge_length:    int     The minimal number of amino acids needed for merging (default 10)
+        :param suffix:          string  Additional suffix to add to the end of an output file
         :return:
         """
         from Bio import SeqIO
@@ -228,11 +256,12 @@ class Sequence(object):
         import time
         import helpers as h
 
+        assert type(merge_length) is int and merge_length >= 6, 'Merge length must be integer and at least 6'
+
         server = 'https://www.ebi.ac.uk'
         ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
 
         print(server + ext)
-
 
 
         # retry 10 times
@@ -266,90 +295,99 @@ class Sequence(object):
         else:
             fasta_handle = SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein)
 
-
         # The UniProt API retrieves a retrieval object, with a text field inside ret.text
         # Since Biopython SeqIO only works with file, use io.StringIO to turn the string into a file for parsing.
 
-        for loop in fasta_handle:
 
-            record = loop[:]
+        # Check that the amino acid slices are at least as long as the merge length (default 10 amino acids)
+        # Otherwise there is no point doing the merging
 
-            # Find out where the first 10 amino acids meets the UniProt canonical sequences..
-            merge_start1 = record.seq.find(self.slice1_aa[:10])
-            merge_end1 = record.seq.find(self.slice1_aa[-10:])
+        if len(self.slice1_aa) >= merge_length and len(self.slice2_aa) >= merge_length:
 
-            merge_start2 = record.seq.find(self.slice2_aa[:10])
-            merge_end2 = record.seq.find(self.slice2_aa[-10:])
+            for loop in fasta_handle:
 
-            # Only proceed to write file if we can bridge the first and last 10 amino acids of either
-            # Slice 1 or slice 2 to the sequence.
+                record = loop[:]  # [:] needed to copy list rather than add new alias
 
-            # Later on we should catch whether the first 10 aa is matched to multiple entries if using
-            # the fallback protein fasta.
-            if (merge_start1 != -1 and merge_end1 != -1) or (merge_start2 != -1 and merge_start2 != -1):
+                # Find out where the first (10) amino acids meets the UniProt canonical sequences..
+                merge_start1 = record.seq.find(self.slice1_aa[:merge_length])
+                merge_end1 = record.seq.find(self.slice1_aa[-merge_length:])
 
-                # Write the UniProt canonical first
-                canonical = record[:]
+                merge_start2 = record.seq.find(self.slice2_aa[:merge_length])
+                merge_end2 = record.seq.find(self.slice2_aa[-merge_length:])
 
-                # Format the name of the slice 1 record
-                record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + 10:]
-                record1.id += ('|' + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
-                               + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
-                               + '|' + self.strand + str(self.phase)) + '|' + suffix
+                # Only proceed to write file if we can bridge the first and last 10 amino acids of either
+                # Slice 1 or slice 2 to the sequence.
 
-                # If the slice is different from the UniProt canonical, then also write it.
-                if record.seq.find(self.slice1_aa) == -1:
-                    h.write_seqrecord_to_fasta(record1, output, suffix)
+                # Later on we should catch whether the first 10 aa is matched to multiple entries if using
+                # the fallback protein fasta.
+                if (merge_start1 != -1 and merge_end1 != -1) or (merge_start2 != -1 and merge_start2 != -1):
 
-                # If not, then change name of canonical to reflect that it is also slice 1.
-                else:
-                    canonical.id = record1.id
-                    h.write_seqrecord_to_fasta(canonical, output, suffix)
+                    # Write the UniProt canonical first
+                    canonical = record[:]  # [:] needed to copy list rather than add new alias
 
-                # Format the name of the slice 2 record
-                record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + 10:]
-                record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
-                               + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
-                               + '|' + self.strand + str(self.phase)) + '|' + suffix
+                    # Format the name of the slice 1 record
+                    record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + merge_length:]
+                    record1.id += ('|' + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
+                                   + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                                   + '|' + self.translated_strand + str(self.translated_phase) + '|' + suffix)
 
-                # If the slice is not the same as the UniProt canonical, then also write it.
-                if record.seq.find(self.slice2_aa) == -1:
-                    h.write_seqrecord_to_fasta(record2, output, suffix)
+                    # If the slice is different from the UniProt canonical, then also write it.
+                    if record.seq.find(self.slice1_aa) == -1:
+                        h.write_seqrecord_to_fasta(record1, output, suffix)
 
-                # If not, then change name of canonical to reflect that it is also slice 2.
-                else:
-                    canonical.id = record2.id
-                    h.write_seqrecord_to_fasta(canonical, output, suffix)
+                    # If not, then change name of canonical to reflect that it is also slice 1.
+                    else:
+                        canonical.id = record1.id
+                        h.write_seqrecord_to_fasta(canonical, output, suffix)
 
+                    # Format the name of the slice 2 record
+                    record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + merge_length:]
+                    record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
+                                   + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                                   + '|' + self.translated_strand + str(self.translated_phase) + '|' + suffix)
 
-                print(record.id)
-                print(record.seq[:merge_start1] + self.slice1_aa + record.seq[merge_end1 + 10:])
-                print(record.seq[:merge_start2] + self.slice2_aa + record.seq[merge_end2 + 10:])
+                    # If the slice is not the same as the UniProt canonical, then also write it.
+                    if record.seq.find(self.slice2_aa) == -1:
+                        h.write_seqrecord_to_fasta(record2, output, suffix)
 
+                    # If not, then change name of canonical to reflect that it is also slice 2.
+                    else:
+                        canonical.id = record2.id
+                        h.write_seqrecord_to_fasta(canonical, output, suffix)
 
+                    print(record.id)
+                    print(record.seq[:merge_start1] + self.slice1_aa + record.seq[merge_end1 + merge_length:])
+                    print(record.seq[:merge_start2] + self.slice2_aa + record.seq[merge_end2 + merge_length:])
 
-                # Once you found a match and wrote the sequence, quit.
-                return True
+                    # Once you found a match and wrote the sequence, quit.
+                    return True
 
-        # If the slice is not matched to any of the FASTA entries,
+        # If the slice is not matched to any of the FASTA entries, or if the slices are too short,
         # write the slices to an orphan fasta.
         # NOTE: we are separating these out for now because we want to find out why they fall through.
 
-        print("==== SLICE IS NOT FOUND IN THE FASTA ==== ")
+        print("==== SLICES ARE NOT FOUND IN THE FASTA OR ARE TOO SHORT ==== ")
         print(self.slice1_aa)
         print(self.slice2_aa)
         print(record.seq)
 
+        # Format the name of the orphan slice 1 record
         orphan_slice1 = SeqRecord(Seq(self.slice1_aa, IUPAC.extended_protein),
-                        id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-1-' +
-                            self.name + '-' + str(self.phase) + '|' + self.strand),
-                        name=self.gene_symbol,
-                        description='Orphan Slice 1')
+                                  id=('xx|ORPHN|' + self.gene_symbol + '_' + str(self.species).upper() + '|'
+                                      + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
+                                      + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                                      + '|' + self.translated_strand + str(self.translated_phase) + '|' + suffix),
+                                  name='Protein name here',
+                                  description='Description',)
+
+        # Format the name of the orphan slice 2 record
         orphan_slice2 = SeqRecord(Seq(self.slice2_aa, IUPAC.extended_protein),
-                        id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-2-' +
-                            self.name + '-' + str(self.phase) + '|' + self.strand),
-                        name=self.gene_symbol,
-                        description='Orphan Slice 2')
+                                  id=('xx|ORPHN|' + self.gene_symbol + '_' + str(self.species).upper() + '|'
+                                      + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
+                                      + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                                      + '|' + self.translated_strand + str(self.translated_phase) + '|' + suffix),
+                                  name='Protein name here',
+                                  description='Description',)
 
         h.write_seqrecord_to_fasta(orphan_slice1, output, (suffix + '_orphan'))
         h.write_seqrecord_to_fasta(orphan_slice2, output, (suffix + '_orphan'))
@@ -359,7 +397,7 @@ class Sequence(object):
 
     def write_fate(self, fate, output):
         """
-        Write out the outcome of the attempt to translate each junction into a reort file
+        Write out the outcome of the attempt to translate each junction into a report file
 
         :param fate:    int         Code for message to be writtebn
         :param output:  string      Output directory
