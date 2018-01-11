@@ -185,6 +185,12 @@ def psqM(args):
             #
 
             if args.sixframe:
+                if args.verbose:
+                    print('verbose 1: using six-frame translation instead of reading frames from gtf.')
+
+
+
+
                 fate_code = 7
 
                 continue
@@ -209,7 +215,6 @@ def psqM(args):
 
 
 
-
             #
             # Write the Tier 1 and Tier 2 results into fasta file
             #
@@ -220,8 +225,9 @@ def psqM(args):
 
                     # Do a function like this to extend with fasta, and then write if necessary.
                     sequence.extend_and_write(species=species,
-                                            output=out_file,
-                                            suffix='T1')
+                                              output=out_file,
+                                              suffix='T1',
+                                              merge_length=10)
 
                     fate_code = 1
 
@@ -231,7 +237,8 @@ def psqM(args):
                 elif sequence.frameshift:
                     sequence.extend_and_write(species=species,
                                               output=out_file,
-                                              suffix='T2')
+                                              suffix='T2',
+                                              merge_length=10)
 
                     fate_code = 2
 
@@ -248,7 +255,8 @@ def psqM(args):
                 if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
                     sequence.extend_and_write(species=species,
                                               output=out_file,
-                                              suffix='T3')
+                                              suffix='T3',
+                                              merge_length=10)
 
                     fate_code = 3
 
@@ -268,7 +276,8 @@ def psqM(args):
                 if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
                     sequence.extend_and_write(species=species,
                                               output=out_file,
-                                              suffix='T4')
+                                              suffix='T4',
+                                              merge_length=10)
 
                     fate_code = 4
 
@@ -280,7 +289,8 @@ def psqM(args):
                 if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
                     sequence.extend_and_write(species=species,
                                               output=out_file,
-                                              suffix='T4')
+                                              suffix='T4',
+                                              merge_length=10)
 
                     fate_code = 5
 
