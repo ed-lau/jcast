@@ -111,11 +111,9 @@ def psqM(args):
             else:
                 print('Analyzing' + rmats_result + str(i) + ' of ' + str(len(rma)))
 
-
             #
             # Subset the gtf file by the current gene_id
             #
-
             junction.get_translated_region(gtf)
 
             #
@@ -188,17 +186,29 @@ def psqM(args):
                 if args.verbose:
                     print('verbose 1: using six-frame translation instead of reading frames from gtf.')
 
+                for sixframe_strand in ['+', '-']:
+                    for sixframe_phase in [0, 1, 2]:
 
+                        # Do six frame translation to get peptide
+                        sequence.translate_sixframe(sixframe_strand, sixframe_phase)
 
+                        # Check that the amino acid slices are at least as long as 10 amino acids)
+                        # Otherwise there is no point doing the merging
+                        if len(sequence.slice1_aa) >= 10 and len(sequence.slice2_aa) >= 10:
+
+                            # Extend with fasta, and then write if necessary.
+                            sequence.extend_and_write(species=species,
+                                                      output=out_file,
+                                                      suffix='6F',
+                                                      merge_length=10)
 
                 fate_code = 7
-
+                sequence.write_fate(fate=fate_code, output=out_file)
                 continue
 
-
-            ## I think there should be a check here to see if there is a frameshift.
-            ## See if slice 1 nucleotides are different in length from slice 2 nucleotide by
-            ## multiples of 3
+            # I think there should be a check here to see if there is a frameshift.
+            # See if slice 1 nucleotides are different in length from slice 2 nucleotide by
+            # multiples of 3
             if (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 != 0:
                 sequence.set_frameshift_to_true()
                 if args.verbose:
@@ -207,13 +217,10 @@ def psqM(args):
                 # Note it looks like some frameshift skipped exon peptides could nevertheless come back in frame
                 # We should only consider those without frameshift as tier 1.
 
-
             #
             # Translate into peptides
             #
             sequence.translate(use_phase=True)
-
-
 
             #
             # Write the Tier 1 and Tier 2 results into fasta file
@@ -259,7 +266,6 @@ def psqM(args):
                                               merge_length=10)
 
                     fate_code = 3
-
 
             #
             # If sequence is still not good, do Tier 4: One of the two slices hits stop codon.
