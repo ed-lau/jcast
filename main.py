@@ -10,32 +10,46 @@ from get_rma import RmatsResults
 import numpy as np
 
 
-
 def psqM(args):
     """
     Main loop for ProteoSeqM that controls logic flow.
+
+    Usage:
     python main.py human data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_pancreas_extended_retry
-
     python main.py human data/encode_human_liver/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_liver_extended_v3 -r
-
     python main.py human data/encode_human_heart/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_heart_extended_v4 -r -f
     python main.py human data/encode_human_adrenalgland/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_adrenalgland_extended_v4 -r -f
     python main.py human data/encode_human_transversecolon/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_transversecolon_extended_v4 -r -f
     python main.py human data/encode_human_testis/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_testis_extended_v4 -r -f
 
-    >>> rmats_folder = 'data/encode_human_heart/'
-    >>> gtf_loc = 'data/gtf/Homo_sapiens.GRCh38.89.gtf'
-
-    >>> gtf = Annotation(gtf_loc)
+    >>> gtf = Annotation('data/gtf/Homo_sapiens.GRCh38.89.gtf')
     >>> gtf.read_gtf()
-
-    >>> species = 'human'
-    >>> rmats_result = 'rmats_mxe'
-
-    >>> out_file = 'psqnew_encode_human_heart_v5'
-    >>> rmats_results = RmatsResults(rmats_folder)
-    >>>rma = rmats_results.__getattribute__(rmats_result)
+    True
+    >>> rmats_results = RmatsResults('data/encode_human_heart/')
+    >>> rma = rmats_results.__getattribute__('rmats_mxe')
     >>> i = 1993
+    >>> junction = Junction(id=rma.id[i],\
+                                gene_id=rma.gene_id[i],\
+                                strand=rma.strand[i],\
+                                gene_symbol=rma.gene_symbol[i],\
+                                chr=rma.chr[i],\
+                                anc_es=rma.anc_es[i],\
+                                anc_ee=rma.anc_ee[i],\
+                                alt1_es=rma.alt1_es[i],\
+                                alt1_ee=rma.alt1_ee[i],\
+                                alt2_es=rma.alt2_es[i],\
+                                alt2_ee=rma.alt2_ee[i],\
+                                down_es=rma.down_es[i],\
+                                down_ee=rma.down_ee[i],\
+                                junction_type=rma.jxn_type[i],\
+                                species='human',)
+    >>> junction.get_translated_region(gtf)
+    Anchor exon start: 72200474 Anchor exon end: 72200655
+    Transcription start: 72199652 Transcription end:72219097
+    True
+    >>> junction.trim()
+    True
+
 
     :param args:
     :return:
@@ -83,8 +97,6 @@ def psqM(args):
     except FileNotFoundError:
         print('No existing partial fate file found.')
 
-
-
     #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
     #
@@ -95,11 +107,46 @@ def psqM(args):
         rma = rmats_results.__getattribute__(rmats_result)
         for i in range(len(rma)):
 
-            # Set i to 1993 for rmats_mxe for PKM; PKM wasn't translated because the slice should have phase 0.
-            # So phase detection actually failed.
+            '''
+            ===================================================
+            INVESTIGATION OF WRONG DOCUMENTED PHASES
+            
+            # Set i to 1993 for rmats_mxe for PKM 
+            
+            For junction (i=1993, KPYM_PXE):
+             
+            The documented phase was somehow 1 which reached a PTC.
+            The slice should have phase 0 instead. So the sequence went from Tier 1 (translated using documented
+            phase) to Tier 3 (translated using another phase, same phase used for both slices, no PTC).
+            
+            This is currently translated but we should check why we are reading the GTF phases wrong.
+            ===================================================
+            
+            ===================================================
+            INVESTIGATION FOR FAILURE TO SPLICE BACK TO UNIPROT.
+            
             # Set i to 53 or 428 for rmats_mxe for an orphan slice.
+            
+            For junctions (i=53; DMKN_MXE_99) and (i=428; SLC11A2_MXE_734):
+            
+            I was unable to determine why the translated slice was not able to
+            be spliced back to the canonical entry. The sequence just does not exist. Is it possible that the
+            documented phase is wrong but did not lead to a PTC? Or could there be a frame-shift somewhere?
+            
+            For example, SLC11A2 MXE 734 had a retrieved phase of 0 and strand minus.
+            Slice 1 was: NHILRTQPLRYPPWCWVLNRRCQMSPGDSEEYFATYFNEKISIPEEEYSCFSFRKLWAFTGPGFLMSIAYLDPGNIESDLQSGAVAGFK
+            Slice 2 was: NHILRTQPLRYPPWCWVLNRRCQMTVFLEIMGSLPVLYSCFSFRKLWAFTGPGFLMSIAYLDPGNIESDLQSGAVAGFK
 
-            # When i is 53
+            
+            The first 24 AA (NHILRTQPLRYPPWCWVLNRRCQM) were not in the canonical sequence, but the rest was.
+            So the shared anchor sequence is wrong for some reason.
+            
+            I BLASTed this sequence but it does not exist anywhere. So this is wrong.
+            
+            We should check why ~20% of tier 1 MXE sequences were orphans.
+            ===================================================
+            '''
+
 
             # To access with pandas, rma.ix[:,'sjc_s1'], etc., rma.ix[i]
 

@@ -154,7 +154,7 @@ class Sequence(object):
 
     def translate_sixframe(self, given_strand, given_phase):
         """
-         This is the most basic translate function which we will use for six-frame translation
+        This is the most basic translate function which we will use for six-frame translation
         It will just take the phase and strand being sent to it, and it will return the peptide even if it
         runs into a stop codon.
 
@@ -296,7 +296,6 @@ class Sequence(object):
 
         # The UniProt API retrieves a retrieval object, with a text field inside ret.text
         # Since Biopython SeqIO only works with file, use io.StringIO to turn the string into a file for parsing.
-
 
         for loop in fasta_handle:
 
