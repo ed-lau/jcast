@@ -63,7 +63,7 @@ class Junction(object):
         self.phase = -1
 
     def __str__(self):
-        return self.name
+        return 'Splice junction object: ' + self.gene_id + ' ' + self.gene_symbol + ' ' + self.name
 
     def get_translated_region(self, gtf):
         """

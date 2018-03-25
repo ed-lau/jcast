@@ -10,6 +10,7 @@ from get_rma import RmatsResults
 import numpy as np
 
 
+
 def psqM(args):
     """
     Main loop for ProteoSeqM that controls logic flow.
@@ -22,6 +23,19 @@ def psqM(args):
     python main.py human data/encode_human_transversecolon/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_transversecolon_extended_v4 -r -f
     python main.py human data/encode_human_testis/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_testis_extended_v4 -r -f
 
+    >>> rmats_folder = 'data/encode_human_heart/'
+    >>> gtf_loc = 'data/gtf/Homo_sapiens.GRCh38.89.gtf'
+
+    >>> gtf = Annotation(gtf_loc)
+    >>> gtf.read_gtf()
+
+    >>> species = 'human'
+    >>> rmats_result = 'rmats_mxe'
+
+    >>> out_file = 'psqnew_encode_human_heart_v5'
+    >>> rmats_results = RmatsResults(rmats_folder)
+    >>>rma = rmats_results.__getattribute__(rmats_result)
+    >>> i = 1993
 
     :param args:
     :return:
@@ -83,8 +97,13 @@ def psqM(args):
 
             # Set i to 1993 for rmats_mxe for PKM; PKM wasn't translated because the slice should have phase 0.
             # So phase detection actually failed.
-            # Set i to 53 or 428 for rmats_mxe for an orphan slice
+            # Set i to 53 or 428 for rmats_mxe for an orphan slice.
+
+            # When i is 53
+
             # To access with pandas, rma.ix[:,'sjc_s1'], etc., rma.ix[i]
+
+            # Set i
 
             junction = Junction(id=rma.id[i],
                                 gene_id=rma.gene_id[i],

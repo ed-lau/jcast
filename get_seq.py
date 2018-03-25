@@ -40,8 +40,8 @@ class Sequence(object):
         self.translated_phase = -1                  # Phase that was actually used for translation.
         self.translated_strand = junction.strand    # Strand that was actually used for translation
 
-    # def __str__(self):
-    #     return "sequence object" + self.name
+    def __str__(self):
+        return 'Sequence object: ' + self.gene_id + ' ' + self.gene_symbol + ' ' + self.name
 
     def set_frameshift_to_true(self):
         """
