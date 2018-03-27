@@ -119,7 +119,37 @@ class Junction(object):
         """
 
         # Select the anchor exon from CDS and get the frame
-        gtf0 = gtf.annot.query('gene_id == @self.gene_id').query('start == @self.anc_es').query('end == @self.anc_ee').query('feature == "CDS"')
+        # Note 2018-03-24 this is probably not quite right. I think you should find out whether the anchor
+        # is really the one that determines the phase here.
+
+        # 2018-03-24: First define the exon we are looking for.
+        if self.junction_type in ['MXE', 'SE', 'RI']:
+            if self.strand == '+':
+                ph0 = self.anc_es
+                ph1 = self.anc_ee
+            if self.strand == '-':
+                ph0 = self.down_es
+                ph1 = self.down_ee
+
+        elif self.junction_type == 'A5SS':
+            if self.strand == '+':
+                ph0 = self.alt1_ee
+                ph1 = self.alt1_es # Might have to search also for alt2
+            if self.strand == '-':
+                ph0 = self.anc_es
+                ph1 = self.anc_ee
+
+        elif self.junction_type == 'A3SS':
+            if self.strand == '+':
+                ph0 = self.anc_ee
+                ph1 = self.anc_es  # Might have to search also for alt2
+            if self.strand == '-':
+                ph0 = self.alt1_es
+                ph1 = self.alt2_ee
+
+        # Get the frame of that coding exon from GTF.
+        gtf0 = gtf.annot.query('gene_id == @self.gene_id').query('start == @ph0').\
+            query('end == @ph1').query('feature == "CDS"')
 
         if len(gtf0) > 0:
 
@@ -218,8 +248,8 @@ class Junction(object):
 
         elif self.junction_type == 'A5SS':
             try:
-                if self.anc_ee > self.tx0 > self.anc_es:
-                    self.anc_es = self.tx0
+                if self.alt2_ee > self.tx0 > self.alt2_es:
+                    self.alt2_es = self.tx0
 
                 if self.alt1_ee > self.tx0 > self.alt1_es:
                     self.alt1_es = self.tx0
@@ -228,8 +258,8 @@ class Junction(object):
                 print('Trimming start failed.')
 
             try:
-                if self.down_ee > self.tx1 > self.down_es:
-                    self.down_ee = self.tx1
+                if self.anc_ee > self.tx1 > self.anc_es:
+                    self.anc_ee = self.tx1
 
             except:
                 print('Trimming end failed.')
@@ -252,6 +282,68 @@ class Junction(object):
 
             except:
                 print('Trimming end failed.')
+
+        return True
+
+    def write_fate(self, fate, output):
+        """
+        Write out the outcome of the attempt to translate each junction into a report file
+
+        :param fate:    int         Code for message to be writtebn
+        :param output:  string      Output directory
+        :return:
+        """
+
+        import os.path
+
+        os.makedirs('out', exist_ok=True)
+        o = os.path.join('out', output + '_' + 'fate' + '.txt')
+        print(o)
+
+        # Set the stored junction fate as the message
+        self.fate = fate
+
+        assert type(self.fate) is int, 'Junction fate code error.'
+
+        if self.fate == -2:
+            msg = 'DELETED. Junction read counts too low.'
+
+        elif self.fate == -1:
+            msg = 'DELETED. Junction inconsistent across replicates.'
+
+        elif self.fate == 0:
+            msg = ''
+
+        elif self.fate == 1:
+            msg = "SUCCESS 1. Retrieved phase: " + str(
+                        self.phase) + " Used phase: " + str(self.translated_phase) + ". No Frameshift."
+
+        elif self.fate == 2:
+            msg = "SUCCESS 2. Retrieved phase: " + str(
+                        self.phase) + " Used phase: " + str(self.translated_phase) + ". Frameshift."
+
+        elif self.fate == 3:
+            msg = "SUCCESS 3. The GTF frame appears to be wrong. Retrieved phase: " + str(
+            self.phase) + " Used phase: " + str(self.translated_phase)
+
+        elif self.fate == 4:
+            msg = "WARNING 4. Slice 2 hit a stop codon. Used longest phase."
+
+        elif self.fate == 5:
+            msg = "WARNING 5. Slice 1 hit a stop codon. Used longest phase."
+
+        elif self.fate == 6:
+            msg = 'FAILURE. No translation was done. At least one PTC at each frame.'
+
+        elif self.fate == 7:
+            msg = 'SUCCESS. Six frame translation done.'
+
+        else:
+            raise AssertionError
+
+        f = open(o, 'a')
+        f.write(self.junction_type + '\t' + self.name + '\t' + self.gene_symbol + '\t' + msg + '\n')
+        f.close()
 
         return True
 
