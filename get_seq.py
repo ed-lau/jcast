@@ -13,7 +13,8 @@ class Sequence(object):
         Mostly copying properties of the junction object (already trimmed) to start a new sequence object. This
         sequence object will be used to make the nucleotide slices and translate into protein sequences.
 
-        Change this so that sequence inherits junction class directly (have to think it through)
+        To do: Change this so that sequence inherits junction class directly (have to think it through)
+
         """
         self.anc_ee = junction.anc_ee
         self.anc_es = junction.anc_es
@@ -257,6 +258,11 @@ class Sequence(object):
 
         assert type(merge_length) is int and merge_length >= 6, 'Merge length must be integer and at least 6'
 
+
+
+        '''
+        Retrieve sequences from Ensembl.
+        
         server = 'https://www.ebi.ac.uk'
         ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
 
@@ -287,15 +293,25 @@ class Sequence(object):
             elif species == 'human':
                 fasta_handle = SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta',
                                            IUPAC.extended_protein)
-                # Don't save sequence if it is from the fall-back fasta file.
+
 
 
         # If ret.text is not empty, then get from online record.
         else:
             fasta_handle = SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein)
+               
 
         # The UniProt API retrieves a retrieval object, with a text field inside ret.text
         # Since Biopython SeqIO only works with file, use io.StringIO to turn the string into a file for parsing.
+        
+        '''
+        # Load local fasta (for now) based on species
+        if species == 'mouse':
+            fasta_handle = SeqIO.parse('data/fasta/20170918_Mm_Sp_16915.fasta', 'fasta',
+                                       IUPAC.extended_protein)
+        elif species == 'human':
+            fasta_handle = SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta',
+                                       IUPAC.extended_protein)
 
         for loop in fasta_handle:
 
