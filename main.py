@@ -1,9 +1,14 @@
-#
-# Splice Junction Mapper
-# Edward Lau
-#
+"""
+Splice Junction Mapper v.1.0.0
+Molecular Proteomics Laboratory
+http://maggielab.org
 
+Edward Lau 2017-2018
+lau1@stanford.edu
 
+"""
+
+# Import classes
 from get_jxn import Junction, Annotation
 from get_seq import Sequence
 from get_rma import RmatsResults
@@ -17,7 +22,7 @@ def psqM(args):
     Usage:
     python main.py human data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_pancreas_extended_retry
     python main.py human data/encode_human_liver/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_liver_extended_v3 -r
-    python main.py human data/encode_human_heart/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_heart_extended_v4 -r -f
+    python main.py human data/encode_human_heart/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_heart_v5 -r -f
     python main.py human data/encode_human_adrenalgland/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_adrenalgland_extended_v4 -r -f
     python main.py human data/encode_human_transversecolon/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_transversecolon_extended_v4 -r -f
     python main.py human data/encode_human_testis/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_testis_extended_v4 -r -f
@@ -107,50 +112,8 @@ def psqM(args):
         rma = rmats_results.__getattribute__(rmats_result)
         for i in range(len(rma)):
 
-            '''
-            ===================================================
-            INVESTIGATION OF WRONG DOCUMENTED PHASES
-            
-            # Set i to 1993 for rmats_mxe for PKM 
-            
-            For junction (i=1993, KPYM_PXE):
-             
-            The documented phase was somehow 1 which reached a PTC.
-            The slice should have phase 0 instead. So the sequence went from Tier 1 (translated using documented
-            phase) to Tier 3 (translated using another phase, same phase used for both slices, no PTC).
-            
-            This is currently translated but we should check why we are reading the GTF phases wrong.
-            ===================================================
-            
-            ===================================================
-            INVESTIGATION FOR FAILURE TO SPLICE BACK TO UNIPROT.
-            
-            # Set i to 53 or 428 for rmats_mxe for an orphan slice.
-            
-            For junctions (i=53; DMKN_MXE_99) and (i=428; SLC11A2_MXE_734):
-            
-            I was unable to determine why the translated slice was not able to
-            be spliced back to the canonical entry. The sequence just does not exist. Is it possible that the
-            documented phase is wrong but did not lead to a PTC? Or could there be a frame-shift somewhere?
-            
-            For example, SLC11A2 MXE 734 had a retrieved phase of 0 and strand minus.
-            Slice 1 was: NHILRTQPLRYPPWCWVLNRRCQMSPGDSEEYFATYFNEKISIPEEEYSCFSFRKLWAFTGPGFLMSIAYLDPGNIESDLQSGAVAGFK
-            Slice 2 was: NHILRTQPLRYPPWCWVLNRRCQMTVFLEIMGSLPVLYSCFSFRKLWAFTGPGFLMSIAYLDPGNIESDLQSGAVAGFK
-
-            
-            The first 24 AA (NHILRTQPLRYPPWCWVLNRRCQM) were not in the canonical sequence, but the rest was.
-            So the shared anchor sequence is wrong for some reason.
-            
-            I BLASTed this sequence but it does not exist anywhere. So this is wrong.
-            
-            We should check why ~20% of tier 1 MXE sequences were orphans.
-            ===================================================
-            '''
-
 
             # To access with pandas, rma.ix[:,'sjc_s1'], etc., rma.ix[i]
-
-            # Set i
 
             junction = Junction(id=rma.id[i],
                                 gene_id=rma.gene_id[i],
@@ -175,7 +138,53 @@ def psqM(args):
                 print('resume 1: skipping existing junction' + rmats_result + str(i) + '.')
                 continue
             else:
-                print('Analyzing' + rmats_result + str(i) + ' of ' + str(len(rma)))
+                print('Analyzing ' + rmats_result + str(i) + ' of ' + str(len(rma)))
+
+            #
+            # Code for filtering by rMATS results
+            #
+            if args.filter:
+
+                # Discard this junction if the read count is below 10 in both splice junctions.
+                # Maybe should change this to discard everything with read counts below 10 on EITHER junction
+                # This is intended to remove junctions that are very low in abundance.
+
+                # If rMATS was run with one technical replicate, the count field is an int, otherwise it is a list
+                # The following should take care of both single integer and list of integers.
+                try:
+                    mean_count_sample1 = int(np.mean([int(x) for x in (str(rma.sjc_s1[i]).split(sep=','))]))
+                    mean_count_sample2 = int(np.mean([int(x) for x in (str(rma.sjc_s2[i]).split(sep=','))]))
+
+                except ValueError:
+                    mean_count_sample1 = 4
+                    mean_count_sample2 = 4
+                    if args.verbose:
+                        print('verbose 1: discarding sequence since unable to find read counts.')
+
+                if mean_count_sample1 < 10 or mean_count_sample2 < 10:
+                    fate_code = -2
+                    sequence = Sequence(junction)
+                    # Initiate a dummy sequence just to write to the fate file
+                    # We probably want a better solution for this (decorator?)
+
+                    sequence.write_fate(fate=fate_code, output=out_file)
+                    if args.verbose:
+                        print('verbose 1: sequence discarded due to low coverage.')
+                    continue
+
+                # Discard this junction if the corrected P value of this read count is < 0.01
+                # This is intended to remove junctions that aren't found on both replicates.
+                # This might not be a good idea, however.
+                if rma.fdr[i] < 0.01:
+                    fate_code = -1
+
+                    # Initiate a dummy sequence just to write to the fate file
+                    # We probably want a better solution for this (decorator?)
+                    sequence = Sequence(junction)
+                    sequence.write_fate(fate=fate_code, output=out_file)
+                    if args.verbose:
+                        print('verbose 1: sequence discarded due to inconsistency across replicates.')
+                    continue
 
             #
             # Subset the gtf file by the current gene_id
@@ -198,43 +207,6 @@ def psqM(args):
             # Initiate a sequence object that copies most of the junction information
             #
             sequence = Sequence(junction)
-
-            #
-            # Code for filtering by rMATS results
-            #
-            if args.filter:
-
-                # Discard this junction if the read count is below 4 in BOTH splice junctions.
-                # This is intended to remove junctions that are very low in abundance.
-
-                # If rMATS was run with one technical replicate, the count field is an int, otherwise it is a list
-                # The following should take care of both single integer and list of integers.
-                try:
-                    mean_count_sample1 = int(np.mean([int(x) for x in (str(rma.sjc_s1[i]).split(sep=','))]))
-                    mean_count_sample2 = int(np.mean([int(x) for x in (str(rma.sjc_s2[i]).split(sep=','))]))
-
-                except ValueError:
-                    mean_count_sample1 = 4
-                    mean_count_sample2 = 4
-                    if args.verbose:
-                        print('verbose 1: keeping sequence since unable to find read counts.')
-
-                if mean_count_sample1 < 4 and mean_count_sample2 < 4:
-                    fate_code = -2
-                    sequence.write_fate(fate=fate_code, output=out_file)
-                    if args.verbose:
-                        print('verbose 1: sequence skipped due to low coverage.')
-                    continue
-
-                # Discard this junction if the Bonferroni P value of this read count is < 0.05
-                # This is intended to remove junctions that aren't found on both replicates.
-                # This might not be a good idea, however.
-                if rma.p[i] < (0.05 / len(rma)):
-                    fate_code = -1
-                    sequence.write_fate(fate=fate_code, output=out_file)
-                    if args.verbose:
-                        print('verbose 1: sequence skipped due to inconsistency across replicates.')
-                    continue
 
             #
             # Get nucleotide sequences of all slices by REST API
@@ -274,7 +246,7 @@ def psqM(args):
 
             # I think there should be a check here to see if there is a frameshift.
             # See if slice 1 nucleotides are different in length from slice 2 nucleotide by
-            # multiples of 3
+            # multiples of 3, which probably denotes frame shift (unless there are loose amino acids near the end)?
             if (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 != 0:
                 sequence.set_frameshift_to_true()
                 if args.verbose:
@@ -303,6 +275,8 @@ def psqM(args):
                                               merge_length=10)
 
                     fate_code = 1
+                    sequence.write_fate(fate=fate_code, output=out_file)
+                    continue
 
                 #
                 # Tier 2: both translated without stop codon, but with frameshift
@@ -314,6 +288,8 @@ def psqM(args):
                                               merge_length=10)
 
                     fate_code = 2
+                    sequence.write_fate(fate=fate_code, output=out_file)
+                    continue
 
             #
             # Tier 3 - retrieved phase is wrong.
@@ -332,6 +308,8 @@ def psqM(args):
                                               merge_length=10)
 
                     fate_code = 3
+                    sequence.write_fate(fate=fate_code, output=out_file)
+                    continue
 
             #
             # If sequence is still not good, do Tier 4: One of the two slices hits stop codon.
@@ -352,6 +330,8 @@ def psqM(args):
                                               merge_length=10)
 
                     fate_code = 4
+                    sequence.write_fate(fate=fate_code, output=out_file)
+                    continue
 
             # Do this if slice 1 hits PTC:
             elif len(sequence.slice2_aa) > 0 and len(sequence.slice1_aa) == 0:
@@ -365,14 +345,15 @@ def psqM(args):
                                               merge_length=10)
 
                     fate_code = 5
+                    sequence.write_fate(fate=fate_code, output=out_file)
+                    continue
 
             #
             # If nothing works, write FAILURE fate
             #
             if len(sequence.slice1_aa) == 0 and len(sequence.slice2_aa) == 0:
                 fate_code = 6
-
-            sequence.write_fate(fate=fate_code, output=out_file)
+                sequence.write_fate(fate=fate_code, output=out_file)
 
     return True
 
@@ -387,11 +368,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='ProteoSeqM retrieves splice junction information'
                                                  'and translates into amino acid')
 
-
     # Create a "translate_rmats" subparser and house its specific arguments
     parser.add_argument('species', help='species (mouse or human)',
                         choices=['mouse', 'human'],
                         default='human')
+
     parser.add_argument('rmats_folder', help='path to folder storing rMATS output')
     parser.add_argument('gtf_file', help='path to ENSEMBL GTF file')
 
@@ -418,5 +399,3 @@ if __name__ == "__main__":
 
     # Run the function in the argument
     args.func(args)
-
-
