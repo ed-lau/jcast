@@ -161,7 +161,7 @@ def psqM(args):
                     if args.verbose:
                         print('verbose 1: discarding sequence since unable to find read counts.')
 
-                if mean_count_sample1 < 10 or mean_count_sample2 < 10:
+                if mean_count_sample1 < 10 and mean_count_sample2 < 10:
                     fate_code = -2
                     sequence = Sequence(junction)
                     # Initiate a dummy sequence just to write to the fate file
