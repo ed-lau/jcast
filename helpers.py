@@ -194,6 +194,7 @@ def make_pep(nt, strand, phase, terminate=True):
 
     pep = ''
 
+    has_ptc = False
     #
     # After finding the phase, loop through every 3 nucleotides from the start
     # then use the dictionary to find the amino acid sequence.
@@ -204,17 +205,19 @@ def make_pep(nt, strand, phase, terminate=True):
 
         if aa == 'X':
             print('Stop codon encountered')
+            has_ptc = True
 
             # If the terminate flag is set to true, return an empty sequence
             if terminate:
                 pep = ''
+                
 
             # If terminate is set to false, return present sequence
             break
 
         pep += aa
 
-    return pep
+    return [pep, has_ptc]
 
 
 
