@@ -26,6 +26,7 @@ def psqM(args):
     python main.py human data/encode_human_adrenalgland/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_adrenalgland_extended_v4 -r -f
     python main.py human data/encode_human_transversecolon/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_transversecolon_extended_v4 -r -f
     python main.py human data/encode_human_testis/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_testis_extended_v4 -r -f
+    python main.py mouse data/encode_mouse_heart/ data/gtf/Mus_musculus.GRCm38.89.gtf -o psqnew_encode_mouse_heart_v5 -r -f
 
     >>> gtf = Annotation('data/gtf/Homo_sapiens.GRCh38.89.gtf')
     >>> gtf.read_gtf()

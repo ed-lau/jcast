@@ -248,12 +248,12 @@ class Sequence(object):
         from Bio.Seq import Seq
         from Bio.SeqRecord import SeqRecord
         from Bio.Alphabet import IUPAC
-        import requests as rq
-        from requests.adapters import HTTPAdapter
-        from requests.packages.urllib3.util.retry import Retry
-        from io import StringIO
-        import sys
-        import time
+        # import requests as rq
+        # from requests.adapters import HTTPAdapter
+        # from requests.packages.urllib3.util.retry import Retry
+        # from io import StringIO
+        # import sys
+        # import time
         import helpers as h
 
         assert type(merge_length) is int and merge_length >= 6, 'Merge length must be integer and at least 6'

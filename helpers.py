@@ -217,7 +217,7 @@ def make_pep(nt, strand, phase, terminate=True):
 
         pep += aa
 
-    return [pep, has_ptc]
+    return pep #[pep, has_ptc] 2018-09-08 not sure why this returns a list. Forgot what I wanted to do
 
 
 
