@@ -2,12 +2,11 @@ biopython==1.70
 certifi==2017.7.27.1
 chardet==3.0.4
 cycler==0.10.0
-docopt==0.6.2
 gtfparse==0.0.6
 idna==2.6
 matplotlib==2.1.0
-numpy==1.13.1
-pandas==0.20.3
+numpy==1.15.1
+pandas==0.23.4
 pyparsing==2.2.0
 python-dateutil==2.6.1
 pytz==2017.2
