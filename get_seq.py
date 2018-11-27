@@ -343,7 +343,7 @@ class Sequence(object):
                 record1.id += ('|' + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
                                + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
                                + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                               + 'r' + self.min_read_count + '|' + suffix)
+                               + 'r' + str(self.min_read_count) + '|' + suffix)
 
                 # If the slice is different from the UniProt canonical, then also write it.
                 if record.seq.find(self.slice1_aa) == -1:
@@ -359,7 +359,7 @@ class Sequence(object):
                 record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
                                + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
                                + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                               + 'r' + self.min_read_count + '|' + suffix)
+                               + 'r' + str(self.min_read_count) + '|' + suffix)
 
                 # If the slice is not the same as the UniProt canonical, then also write it.
                 if record.seq.find(self.slice2_aa) == -1:
@@ -392,7 +392,7 @@ class Sequence(object):
                                       + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
                                       + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
                                       + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                                      + 'r' + self.min_read_count + '|' + suffix),
+                                      + 'r' + str(self.min_read_count) + '|' + suffix),
                                   name='Protein name here',
                                   description='Description',)
 
@@ -402,7 +402,7 @@ class Sequence(object):
                                       + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
                                       + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
                                       + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                                      + 'r' + self.min_read_count + '|' + suffix),
+                                      + 'r' + str(self.min_read_count) + '|' + suffix),
                                   name='Protein name here',
                                   description='Description',)
 
