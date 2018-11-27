@@ -22,7 +22,7 @@ def psqM(args):
     Usage:
     python main.py human data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_pancreas_extended_retry
     python main.py human data/encode_human_liver/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_liver_extended_v3 -r
-    python main.py human data/encode_human_heart/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_heart_v5 -r -f
+    python main.py human data/encode_human_heart/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_heart_v7 -r -f
     python main.py human data/encode_human_adrenalgland/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_adrenalgland_extended_v4 -r -f
     python main.py human data/encode_human_transversecolon/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_transversecolon_extended_v4 -r -f
     python main.py human data/encode_human_testis/ data/gtf/Homo_sapiens.GRCh38.89.gtf -o psqnew_encode_human_testis_extended_v4 -r -f
@@ -130,7 +130,8 @@ def psqM(args):
                                 down_es=rma.down_es[i],
                                 down_ee=rma.down_ee[i],
                                 junction_type=rma.jxn_type[i],
-                                species=species,)
+                                species=species,
+                                )
 
             #
             # Code for checking and executing whether to resume run
@@ -144,25 +145,28 @@ def psqM(args):
             #
             # Code for filtering by rMATS results
             #
+
+
+            # Discard this junction if the read count is below 10 in both splice junctions.
+            # Maybe should change this to discard everything with read counts below 10 on EITHER junction
+            # This is intended to remove junctions that are very low in abundance.
+
+            # If rMATS was run with one technical replicate, the count field is an int, otherwise it is a list
+            # The following should take care of both single integer and list of integers.
+            try:
+                mean_count_sample1 = int(np.mean([int(x) for x in (str(rma.sjc_s1[i]).split(sep=','))]))
+                mean_count_sample2 = int(np.mean([int(x) for x in (str(rma.sjc_s2[i]).split(sep=','))]))
+
+            except ValueError:
+                mean_count_sample1 = 0
+                mean_count_sample2 = 0
+                if args.verbose:
+                    print('verbose 1: discarding sequence since unable to find read counts.')
+
+            junction.set_min_read_count(min([mean_count_sample1, mean_count_sample2]))
+
             if args.filter:
-
-                # Discard this junction if the read count is below 10 in both splice junctions.
-                # Maybe should change this to discard everything with read counts below 10 on EITHER junction
-                # This is intended to remove junctions that are very low in abundance.
-
-                # If rMATS was run with one technical replicate, the count field is an int, otherwise it is a list
-                # The following should take care of both single integer and list of integers.
-                try:
-                    mean_count_sample1 = int(np.mean([int(x) for x in (str(rma.sjc_s1[i]).split(sep=','))]))
-                    mean_count_sample2 = int(np.mean([int(x) for x in (str(rma.sjc_s2[i]).split(sep=','))]))
-
-                except ValueError:
-                    mean_count_sample1 = 3
-                    mean_count_sample2 = 3
-                    if args.verbose:
-                        print('verbose 1: discarding sequence since unable to find read counts.')
-
-                if mean_count_sample1 < 4 and mean_count_sample2 < 4:
+                if mean_count_sample1 < 1 and mean_count_sample2 < 1:
                     fate_code = -2
                     sequence = Sequence(junction)
                     # Initiate a dummy sequence just to write to the fate file
@@ -176,7 +180,7 @@ def psqM(args):
                 # Discard this junction if the corrected P value of this read count is < 0.01
                 # This is intended to remove junctions that aren't found on both replicates.
                 # This might not be a good idea, however.
-                if rma.fdr[i] < 0.01:
+                if rma.fdr[i] < 0.005:
                     fate_code = -1
 
                     # Initiate a dummy sequence just to write to the fate file

@@ -40,6 +40,7 @@ class Sequence(object):
         self.fate = 'Nothing done.'
         self.translated_phase = -1                  # Phase that was actually used for translation.
         self.translated_strand = junction.strand    # Strand that was actually used for translation
+        self.min_read_count = junction.min_read_count
 
     def __str__(self):
         return 'Sequence object: ' + self.gene_id + ' ' + self.gene_symbol + ' ' + self.name
@@ -282,7 +283,7 @@ class Sequence(object):
             ret.raise_for_status()
             sys.exit()
 
-        # If ret.text is empty, the fall back is to use a local fasta
+        # If ret.text is empty, the fall back is to use a local fasta or exit
         if len(ret.text) == 0:
             return True
 
@@ -341,7 +342,8 @@ class Sequence(object):
                 record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + merge_length:]
                 record1.id += ('|' + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
                                + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
-                               + '|' + self.translated_strand + str(self.translated_phase) + '|' + suffix)
+                               + '|' + self.translated_strand + str(self.translated_phase) + '|'
+                               + 'r' + self.min_read_count + '|' + suffix)
 
                 # If the slice is different from the UniProt canonical, then also write it.
                 if record.seq.find(self.slice1_aa) == -1:
@@ -356,7 +358,8 @@ class Sequence(object):
                 record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + merge_length:]
                 record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
                                + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
-                               + '|' + self.translated_strand + str(self.translated_phase) + '|' + suffix)
+                               + '|' + self.translated_strand + str(self.translated_phase) + '|'
+                               + 'r' + self.min_read_count + '|' + suffix)
 
                 # If the slice is not the same as the UniProt canonical, then also write it.
                 if record.seq.find(self.slice2_aa) == -1:
@@ -388,7 +391,8 @@ class Sequence(object):
                                   id=('xx|ORPHN|' + self.gene_symbol + '_' + str(self.species).upper() + '|'
                                       + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
                                       + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
-                                      + '|' + self.translated_strand + str(self.translated_phase) + '|' + suffix),
+                                      + '|' + self.translated_strand + str(self.translated_phase) + '|'
+                                      + 'r' + self.min_read_count + '|' + suffix),
                                   name='Protein name here',
                                   description='Description',)
 
@@ -397,7 +401,8 @@ class Sequence(object):
                                   id=('xx|ORPHN|' + self.gene_symbol + '_' + str(self.species).upper() + '|'
                                       + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
                                       + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
-                                      + '|' + self.translated_strand + str(self.translated_phase) + '|' + suffix),
+                                      + '|' + self.translated_strand + str(self.translated_phase) + '|'
+                                      + 'r' + self.min_read_count + '|' + suffix),
                                   name='Protein name here',
                                   description='Description',)
 

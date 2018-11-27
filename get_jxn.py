@@ -61,10 +61,21 @@ class Junction(object):
         self.tx1 = -1
         self.tx0 = -1
         self.phase = -1
+        self.min_read_count = 0
 
     def __str__(self):
         return 'Splice junction object: ' + self.gene_id + ' ' \
                + self.junction_type + ' ' + self.gene_symbol + ' ' + self.name
+
+    def set_min_read_count(self, count):
+        """
+        A setter to mark the minimum read count in the junction
+
+        :return:
+        """
+        self.min_read_count = count
+
+        return True
 
     def get_translated_region(self, gtf):
         """
