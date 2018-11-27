@@ -157,12 +157,12 @@ def psqM(args):
                     mean_count_sample2 = int(np.mean([int(x) for x in (str(rma.sjc_s2[i]).split(sep=','))]))
 
                 except ValueError:
-                    mean_count_sample1 = 4
-                    mean_count_sample2 = 4
+                    mean_count_sample1 = 3
+                    mean_count_sample2 = 3
                     if args.verbose:
                         print('verbose 1: discarding sequence since unable to find read counts.')
 
-                if mean_count_sample1 < 10 and mean_count_sample2 < 10:
+                if mean_count_sample1 < 4 and mean_count_sample2 < 4:
                     fate_code = -2
                     sequence = Sequence(junction)
                     # Initiate a dummy sequence just to write to the fate file
