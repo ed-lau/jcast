@@ -248,20 +248,19 @@ class Sequence(object):
         from Bio.Seq import Seq
         from Bio.SeqRecord import SeqRecord
         from Bio.Alphabet import IUPAC
-        # import requests as rq
-        # from requests.adapters import HTTPAdapter
-        # from requests.packages.urllib3.util.retry import Retry
-        # from io import StringIO
-        # import sys
-        # import time
+
         import helpers as h
 
         assert type(merge_length) is int and merge_length >= 6, 'Merge length must be integer and at least 6'
 
-
-
-        '''
-        Retrieve sequences from Ensembl.
+        #'''
+        #Retrieve sequences from Ensembl.
+        
+        import requests as rq
+        from requests.adapters import HTTPAdapter
+        from requests.packages.urllib3.util.retry import Retry
+        from io import StringIO
+        import sys
         
         server = 'https://www.ebi.ac.uk'
         ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
@@ -270,7 +269,6 @@ class Sequence(object):
 
 
         # retry 10 times
-
         retries = Retry(total=10,
                         backoff_factor=0.1,
                         status_forcelist=[500, 502, 503, 504])
@@ -286,13 +284,15 @@ class Sequence(object):
 
         # If ret.text is empty, the fall back is to use a local fasta
         if len(ret.text) == 0:
-            # Load local fasta (for now) based on species
-            if species == 'mouse':
-                fasta_handle = SeqIO.parse('data/fasta/20170918_Mm_Sp_16915.fasta', 'fasta',
-                                           IUPAC.extended_protein)
-            elif species == 'human':
-                fasta_handle = SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta',
-                                           IUPAC.extended_protein)
+            return True
+
+            # # Load local fasta (for now) based on species
+            # if species == 'mouse':
+            #     fasta_handle = SeqIO.parse('data/fasta/20170918_Mm_Sp_16915.fasta', 'fasta',
+            #                                IUPAC.extended_protein)
+            # elif species == 'human':
+            #     fasta_handle = SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta',
+            #                                IUPAC.extended_protein)
 
 
 
@@ -304,6 +304,8 @@ class Sequence(object):
         # The UniProt API retrieves a retrieval object, with a text field inside ret.text
         # Since Biopython SeqIO only works with file, use io.StringIO to turn the string into a file for parsing.
         
+        #'''
+
         '''
         # Load local fasta (for now) based on species
         if species == 'mouse':
@@ -312,6 +314,7 @@ class Sequence(object):
         elif species == 'human':
             fasta_handle = SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta',
                                        IUPAC.extended_protein)
+        '''
 
         for loop in fasta_handle:
 
@@ -329,7 +332,7 @@ class Sequence(object):
 
             # Later on we should catch whether the first 10 aa is matched to multiple entries if using
             # the fallback protein fasta.
-            if (merge_start1 != -1 and merge_end1 != -1) or (merge_start2 != -1 and merge_start2 != -1):
+            if (merge_start1 != -1 and merge_end1 != -1) or (merge_start2 != -1 and merge_end2 != -1):
 
                 # Write the UniProt canonical first
                 canonical = record[:]  # [:] needed to copy list rather than add new alias
