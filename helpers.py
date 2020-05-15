@@ -3,6 +3,33 @@
 #
 
 
+def get_local_nuc(genome_index, chromosome, es, ee):
+    """
+
+    :param genome_index: genome index
+    :param chr: chromosome
+    :param es: exon start
+    :param ee: exon end
+    :return: sequence
+
+    >>> idx = SeqIO.index("/Volumes/Gingko_Data/Data/Exosome_smRNAseq/ReferenceGenomes/Homo_sapiens.GRCh38.dna.primary_assembly.fa", 'fasta')
+    >>> len(get_local_nuc(idx, "chr17", 44091700, 44091831))
+    132
+    """
+
+    from Bio import Seq, Alphabet
+
+    # Skip empty exons
+    if es <= 0 or ee <= 0:
+        #print("Skipping empty exon.")
+        return Seq.Seq('', Alphabet.DNAAlphabet())
+
+    # Get numeric portion of chromosome
+    chromosome = chromosome[3:]
+
+    return genome_index[chromosome][es-1:ee]
+
+
 def get_nuc(species, chr, es, ee):
     """
     :param species: Species, e.g., 'mouse
@@ -34,7 +61,7 @@ def get_nuc(species, chr, es, ee):
     import sqlite3 as sq
 
     if es <= 0 or ee <= 0:
-        print("Skipping empty exon.")
+        #print("Skipping empty exon.")
         return ''
 
     cache = species + '-' + str(chr) + '-' + str(es) + '-' + str(ee)
@@ -190,7 +217,7 @@ def make_pep(nt, strand, phase, terminate=True):
     #
     pos0 = phase # (3 - phase) % 3
 
-    print('Translating on the ' + strand + ' strand with phase ' + str(phase))
+    #print('Translating on the ' + strand + ' strand with phase ' + str(phase))
 
     pep = ''
 
@@ -204,7 +231,7 @@ def make_pep(nt, strand, phase, terminate=True):
         aa = code[nt[i:i + 3]]
 
         if aa == 'X':
-            print('Stop codon encountered')
+            #print('Stop codon encountered')
             has_ptc = True
 
             # If the terminate flag is set to true, return an empty sequence
@@ -237,10 +264,8 @@ def write_seqrecord_to_fasta(seqrecord, output, suffix):
     from Bio.Alphabet import IUPAC
     import os.path
 
-
-    os.makedirs('out', exist_ok=True)
-    o = os.path.join('out', output + '_' + suffix + '.fasta')
-    print(o)
+    o = os.path.join(output, 'psq_' + suffix + '.fasta')
+    #print(o)
 
     # If the file already exists, open it and amend that record.
     existing_records = []
@@ -251,8 +276,8 @@ def write_seqrecord_to_fasta(seqrecord, output, suffix):
     # Test if the slice is already in the fasta, then do not write the new sequence into the fasta file.
     for read_record in existing_records:
         if read_record.seq == seqrecord.seq:
-            print(seqrecord.seq)
-            print("Already in fasta file - we will consider modifying the fasta entry name later on to reflect this")
+            #print(seqrecord.seq)
+            #print("Already in fasta file - we will consider modifying the fasta entry name later on to reflect this")
             return True
 
     output_handle = open(o, 'a')

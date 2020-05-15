@@ -5,6 +5,7 @@
 import os.path
 import pandas as pd
 import gtfparse as gp
+import logging
 
 class Annotation(object):
     """
@@ -56,7 +57,7 @@ class Junction(object):
         self.down_es = kwargs['down_es']+1
         self.down_ee = kwargs['down_ee']
         self.junction_type = kwargs['junction_type']
-        self.species = kwargs['species']
+        #self.species = kwargs['species']
         self.gene_symbol = kwargs['gene_symbol']
         self.tx1 = -1
         self.tx0 = -1
@@ -90,7 +91,7 @@ class Junction(object):
         # Subset the gtf file
         gtf0 = gtf.annot.query('gene_id == @self.gene_id')
 
-        print('Anchor exon start: ' + str(self.anc_es) + ' Anchor exon end: ' + str(self.anc_ee))
+
 
         #
         # 	Get the translation start and end positions
@@ -118,7 +119,6 @@ class Junction(object):
             self.tx1 = self.tx0
             self.tx0 = temp
 
-        print('Transcription start: ' + str(self.tx0) + ' Transcription end:' + str(self.tx1))
 
         return True
 
@@ -165,10 +165,10 @@ class Junction(object):
         if len(gtf0) > 0:
 
             self.phase = gtf0.loc[:, 'frame'].iloc[0]
-            print(self.phase)
+            # print(self.phase)
             if self.phase != '.':
                 self.phase = int(self.phase)
-                print('Retrieved phase: ' + str(self.phase))
+                #print('Retrieved phase: ' + str(self.phase))
 
         else:
             self.phase = -1

@@ -1,11 +1,14 @@
 #
 #   Classes that concern sequences - retrieving and cacheing nucleotide sequences, translating into amino acids
 #
+import logging
+import os
+
 
 
 class Sequence(object):
 
-    def __init__(self, junction):
+    def __init__(self, junction, directory_to_write):
         """
         :type junction: object
         :param junction: The splice junction object
@@ -24,7 +27,7 @@ class Sequence(object):
         self.alt2_ee = junction.alt2_ee
         self.down_es = junction.down_es
         self.down_ee = junction.down_ee
-        self.species = junction.species
+        #self.species = junction.species
         self.gene_id = junction.gene_id
         self.junction_type = junction.junction_type
         self.chr = junction.chr
@@ -42,6 +45,9 @@ class Sequence(object):
         self.translated_strand = junction.strand    # Strand that was actually used for translation
         self.min_read_count = junction.min_read_count
 
+        self.logger = logging.getLogger('psq.seq')
+
+
     def __str__(self):
         return 'Sequence object: ' + self.gene_id + ' ' + self.gene_symbol + ' ' + self.name
 
@@ -54,7 +60,32 @@ class Sequence(object):
         self.frameshift = True
 
 
+    def make_slice_localgenome(self, genome_index):
+        """
+        This gets the nucleotide sequence from the coordinates, using a local genome
+        :return:
+        """
+
+        import helpers as h
+
+        anc_nt = h.get_local_nuc(genome_index, self.chr, self.anc_es, self.anc_ee)
+        alt1_nt = h.get_local_nuc(genome_index, self.chr, self.alt1_es, self.alt1_ee)
+        alt2_nt = h.get_local_nuc(genome_index, self.chr, self.alt2_es, self.alt2_ee)
+        down_nt = h.get_local_nuc(genome_index, self.chr, self.down_es, self.down_ee)
+
+        self.slice1_nt = str((anc_nt + alt1_nt + down_nt).seq)
+        self.slice2_nt = str((anc_nt + alt2_nt + down_nt).seq)
+
+        self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice1_nt))
+        self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice2_nt))
+
+
+
     def make_slice(self):
+        """
+        This gets the nucleotide sequence from the coordinates, using a web API
+        :return:
+        """
 
         import helpers as h
 
@@ -84,7 +115,7 @@ class Sequence(object):
         if self.phase in [0, 1, 2] and use_phase:
             self.slice1_aa = h.make_pep(self.slice1_nt, self.strand, self.phase, terminate=True)
             self.slice2_aa = h.make_pep(self.slice2_nt, self.strand, self.phase, terminate=True)
-            print("Used Retrieved Phase")
+            self.logger.debug('Used retrieved phase for {0} {1}:'.format(self.name, self.gene_symbol))
             self.translated_phase = self.phase
 
         else:
@@ -98,8 +129,8 @@ class Sequence(object):
                     self.slice1_aa = ''
                     self.slice2_aa = ''
 
-        print(self.slice1_aa)
-        print(self.slice2_aa)
+        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice1_aa))
+        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice2_aa))
 
         return True
 
@@ -151,8 +182,10 @@ class Sequence(object):
         elif slice_to_translate == 2:
             self.slice2_aa = forced_translated_aa
 
-        print(self.slice1_aa)
-        print(self.slice2_aa)
+        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice1_aa))
+        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice2_aa))
+
+        return True
 
     def translate_sixframe(self, given_strand, given_phase):
         """
@@ -202,7 +235,6 @@ class Sequence(object):
         # Note to self, this condition should probably be moved to main to make this function more reusable.
         # So the idea is to write out different files depending on whether translation was successful
 
-
         fa1 = SeqRecord(Seq(self.slice1_aa, IUPAC.extended_protein),
                         id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-1-' +
                             self.name + '-' + str(self.phase) + self.strand),
@@ -224,7 +256,11 @@ class Sequence(object):
 
         return True
 
-    def extend_and_write(self, species, output='out', suffix='T0', merge_length=10):
+    def extend_and_write(self,
+                         # species,
+                         output='out',
+                         suffix='T0',
+                         merge_length=10):
         """
         Given a translated junction sequence, look for the fasta entry that overlaps with it, then return the entry
         and the coordinates. This will be used to extend said junction sequence to encompass  entire protein sequence.
@@ -256,17 +292,17 @@ class Sequence(object):
 
         #'''
         #Retrieve sequences from Ensembl.
-        
+
         import requests as rq
         from requests.adapters import HTTPAdapter
-        from requests.packages.urllib3.util.retry import Retry
+        from urllib3.util.retry import Retry
         from io import StringIO
         import sys
-        
+
         server = 'https://www.ebi.ac.uk'
         ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
 
-        print(server + ext)
+        self.logger.debug(server + ext)
 
 
         # retry 10 times
@@ -279,9 +315,8 @@ class Sequence(object):
         ret = rqs.get(server + ext, headers={"Accept": "text/x-fasta"})
 
         if not ret.ok:
-            print("Network still not okay after 10 retries. Quitting.")
-            ret.raise_for_status()
-            sys.exit()
+            self.logger.error("Network still not okay after 10 retries. Quit without writing.")
+            return True
 
         # If ret.text is empty, the fall back is to use a local fasta or exit
         if len(ret.text) == 0:
@@ -300,11 +335,11 @@ class Sequence(object):
         # If ret.text is not empty, then get from online record.
         else:
             fasta_handle = SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein)
-               
+
 
         # The UniProt API retrieves a retrieval object, with a text field inside ret.text
         # Since Biopython SeqIO only works with file, use io.StringIO to turn the string into a file for parsing.
-        
+
         #'''
 
         '''
@@ -339,14 +374,24 @@ class Sequence(object):
                 canonical = record[:]  # [:] needed to copy list rather than add new alias
 
                 # Format the name of the slice 1 record
-                record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + merge_length:]
-                record1.id += ('|' + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
-                               + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
-                               + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                               + 'r' + str(self.min_read_count) + '|' + suffix)
+                if merge_start1 != -1 and merge_end1 != -1:
+                    record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + merge_length:]
+                elif merge_start1 != -1 and merge_end1 == -1:
+                    record1 = record[:merge_start1] + self.slice1_aa
+                elif merge_start1 == -1 and merge_end1 != -1:
+                    record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + merge_length:]
+                elif merge_start1 == -1 and merge_end1 == -1:
+                    record1 = record[:0] + self.slice1_aa
 
                 # If the slice is different from the UniProt canonical, then also write it.
                 if record.seq.find(self.slice1_aa) == -1:
+
+                    record1.id += ('|' + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
+                                   + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                                   + '|' + self.translated_strand + str(self.translated_phase) + '|'
+                                   + 'r' + str(self.min_read_count) + '|' + suffix)
+
+
                     h.write_seqrecord_to_fasta(record1, output, suffix)
 
                 # If not, then change name of canonical to reflect that it is also slice 1.
@@ -355,14 +400,22 @@ class Sequence(object):
                     h.write_seqrecord_to_fasta(canonical, output, suffix)
 
                 # Format the name of the slice 2 record
-                record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + merge_length:]
-                record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
-                               + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
-                               + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                               + 'r' + str(self.min_read_count) + '|' + suffix)
+                if merge_start2 != -1 and merge_end2 != -1:
+                    record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + merge_length:]
+                elif merge_start2 != -1 and merge_end2 == -1:
+                    record2 = record[:merge_start2] + self.slice2_aa
+                elif merge_start2 == -1 and merge_end2 != -1:
+                    record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + merge_length:]
+                elif merge_start2 == -1 and merge_end2 == -1:
+                    record2 = record[:0] + self.slice2_aa
 
-                # If the slice is not the same as the UniProt canonical, then also write it.
+                    # If the slice is not the same as the UniProt canonical, then also write it.
                 if record.seq.find(self.slice2_aa) == -1:
+                    record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
+                                   + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                                   + '|' + self.translated_strand + str(self.translated_phase) + '|'
+                                   + 'r' + str(self.min_read_count) + '|' + suffix)
+
                     h.write_seqrecord_to_fasta(record2, output, suffix)
 
                 # If not, then change name of canonical to reflect that it is also slice 2.
@@ -370,9 +423,9 @@ class Sequence(object):
                     canonical.id = record2.id
                     h.write_seqrecord_to_fasta(canonical, output, suffix)
 
-                print(record.id)
-                print(record.seq[:merge_start1] + self.slice1_aa + record.seq[merge_end1 + merge_length:])
-                print(record.seq[:merge_start2] + self.slice2_aa + record.seq[merge_end2 + merge_length:])
+                #print(record.id)
+                #print(record.seq[:merge_start1] + self.slice1_aa + record.seq[merge_end1 + merge_length:])
+                #print(record.seq[:merge_start2] + self.slice2_aa + record.seq[merge_end2 + merge_length:])
 
                 # Once you found a match and wrote the sequence, quit.
                 return True
@@ -381,14 +434,14 @@ class Sequence(object):
         # write the slices to an orphan fasta.
         # NOTE: we are separating these out for now because we want to find out why they fall through.
 
-        print("==== SLICES ARE NOT FOUND IN THE FASTA OR ARE TOO SHORT ==== ")
-        print(self.slice1_aa)
-        print(self.slice2_aa)
-        print(record.seq)
+        self.logger.info("==== SLICES ARE NOT FOUND IN THE FASTA OR ARE TOO SHORT ==== ")
+        self.logger.info(self.slice1_aa)
+        self.logger.info(self.slice2_aa)
+        self.logger.info(record.seq)
 
         # Format the name of the orphan slice 1 record
         orphan_slice1 = SeqRecord(Seq(self.slice1_aa, IUPAC.extended_protein),
-                                  id=('xx|ORPHN|' + self.gene_symbol + '_' + str(self.species).upper() + '|'
+                                  id=('xx|ORPHN|' + self.gene_symbol + '|'
                                       + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
                                       + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
                                       + '|' + self.translated_strand + str(self.translated_phase) + '|'
@@ -398,7 +451,7 @@ class Sequence(object):
 
         # Format the name of the orphan slice 2 record
         orphan_slice2 = SeqRecord(Seq(self.slice2_aa, IUPAC.extended_protein),
-                                  id=('xx|ORPHN|' + self.gene_symbol + '_' + str(self.species).upper() + '|'
+                                  id=('xx|ORPHN|' + self.gene_symbol + '|'
                                       + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
                                       + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
                                       + '|' + self.translated_strand + str(self.translated_phase) + '|'
@@ -412,67 +465,67 @@ class Sequence(object):
 
         return True
 
-    def write_fate(self, fate, output):
-        """
-        Write out the outcome of the attempt to translate each junction into a report file
-
-        :param fate:    int         Code for message to be writtebn
-        :param output:  string      Output directory
-        :return:
-        """
-
-        import os.path
-
-        os.makedirs('out', exist_ok=True)
-        o = os.path.join('out', output + '_' + 'fate' + '.txt')
-        print(o)
-
-        # Set the stored junction fate as the message
-        self.fate = fate
-
-        assert type(self.fate) is int, 'Junction fate code error.'
-
-        if self.fate == -2:
-            msg = 'DELETED. Junction read counts too low.'
-
-        elif self.fate == -1:
-            msg = 'DELETED. Junction inconsistent across replicates.'
-
-        elif self.fate == 0:
-            msg = ''
-
-        elif self.fate == 1:
-            msg = "SUCCESS 1. Retrieved phase: " + str(
-                        self.phase) + " Used phase: " + str(self.translated_phase) + ". No Frameshift."
-
-        elif self.fate == 2:
-            msg = "SUCCESS 2. Retrieved phase: " + str(
-                        self.phase) + " Used phase: " + str(self.translated_phase) + ". Frameshift."
-
-        elif self.fate == 3:
-            msg = "SUCCESS 3. The GTF frame appears to be wrong. Retrieved phase: " + str(
-            self.phase) + " Used phase: " + str(self.translated_phase)
-
-        elif self.fate == 4:
-            msg = "WARNING 4. Slice 2 hit a stop codon. Used longest phase."
-
-        elif self.fate == 5:
-            msg = "WARNING 5. Slice 1 hit a stop codon. Used longest phase."
-
-        elif self.fate == 6:
-            msg = 'FAILURE. No translation was done. At least one PTC at each frame.'
-
-        elif self.fate == 7:
-            msg = 'SUCCESS. Six frame translation done.'
-
-        else:
-            raise AssertionError
-
-        f = open(o, 'a')
-        f.write(self.junction_type + '\t' + self.name + '\t' + self.gene_symbol + '\t' + msg + '\n')
-        f.close()
-
-        return True
+# def write_fate(self, fate, output):
+#     """
+#     Write out the outcome of the attempt to translate each junction into a report file
+#
+#     :param fate:    int         Code for message to be writtebn
+#     :param output:  string      Output directory
+#     :return:
+#     """
+#
+#     import os.path
+#
+#     os.makedirs('out', exist_ok=True)
+#     o = os.path.join('out', output + '_' + 'fate' + '.txt')
+#     print(o)
+#
+#     # Set the stored junction fate as the message
+#     self.fate = fate
+#
+#     assert type(self.fate) is int, 'Junction fate code error.'
+#
+#     if self.fate == -2:
+#         msg = 'DELETED. Junction read counts too low.'
+#
+#     elif self.fate == -1:
+#         msg = 'DELETED. Junction inconsistent across replicates.'
+#
+#     elif self.fate == 0:
+#         msg = ''
+#
+#     elif self.fate == 1:
+#         msg = "SUCCESS 1. Retrieved phase: " + str(
+#                     self.phase) + " Used phase: " + str(self.translated_phase) + ". No Frameshift."
+#
+#     elif self.fate == 2:
+#         msg = "SUCCESS 2. Retrieved phase: " + str(
+#                     self.phase) + " Used phase: " + str(self.translated_phase) + ". Frameshift."
+#
+#     elif self.fate == 3:
+#         msg = "SUCCESS 3. The GTF frame appears to be wrong. Retrieved phase: " + str(
+#         self.phase) + " Used phase: " + str(self.translated_phase)
+#
+#     elif self.fate == 4:
+#         msg = "WARNING 4. Slice 2 hit a stop codon. Used longest phase."
+#
+#     elif self.fate == 5:
+#         msg = "WARNING 5. Slice 1 hit a stop codon. Used longest phase."
+#
+#     elif self.fate == 6:
+#         msg = 'FAILURE. No translation was done. At least one PTC at each frame.'
+#
+#     elif self.fate == 7:
+#         msg = 'SUCCESS. Six frame translation done.'
+#
+#     else:
+#         raise AssertionError
+#
+#     f = open(o, 'a')
+#     f.write(self.junction_type + '\t' + self.name + '\t' + self.gene_symbol + '\t' + msg + '\n')
+#     f.close()
+#
+#     return True
 
 
 
