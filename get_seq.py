@@ -2,6 +2,23 @@
 #   Classes that concern sequences - retrieving and cacheing nucleotide sequences, translating into amino acids
 #
 import logging
+import os.path
+import doctest
+
+from Bio.Seq import Seq
+from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet import IUPAC
+
+import requests as rq
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
+from io import StringIO
+import sqlite3 as sq
+
+import helpers as h
+
+
 
 
 class Sequence(object):
@@ -64,7 +81,7 @@ class Sequence(object):
         :return:
         """
 
-        import helpers as h
+
 
         anc_nt = h.get_local_nuc(genome_index, self.chr, self.anc_es, self.anc_ee)
         alt1_nt = h.get_local_nuc(genome_index, self.chr, self.alt1_es, self.alt1_ee)
@@ -84,8 +101,6 @@ class Sequence(object):
         This gets the nucleotide sequence from the coordinates, using a web API
         :return:
         """
-
-        import helpers as h
 
         anc_nt = h.get_nuc(self.species, self.chr, self.anc_es, self.anc_ee)
         alt1_nt = h.get_nuc(self.species, self.chr, self.alt1_es, self.alt1_ee)
@@ -107,8 +122,6 @@ class Sequence(object):
         :param use_phase: T/F Whether to ue the stored phase or attempt to do three-frame translation
         :return: True
         """
-
-        import helpers as h
 
         if self.phase in [0, 1, 2] and use_phase:
             self.slice1_aa = h.make_pep(self.slice1_nt, self.strand, self.phase, terminate=True)
@@ -145,8 +158,6 @@ class Sequence(object):
         :param slice_to_translate:  Int     Should be 1 or 2, depending on which slice we want to force
         :return:
         """
-
-        import helpers as h
 
         assert slice_to_translate in [1, 2], 'Forced translation: slice must be either 1 or 2'
 
@@ -197,8 +208,6 @@ class Sequence(object):
         """"""
         """
 
-        import helpers as h
-
         assert given_strand in ['+', '-'], 'Given strand is not a valid string'
         assert given_phase in [0, 1, 2], 'Given phase is not a valid integer'
 
@@ -222,13 +231,6 @@ class Sequence(object):
         Create the /out directory if it does not exist, then write the translated splice junctions into the .fasta file
 
         """
-
-        from Bio.Seq import Seq
-        from Bio import SeqIO
-        from Bio.SeqRecord import SeqRecord
-        from Bio.Alphabet import IUPAC
-
-        import os.path
 
         # Note to self, this condition should probably be moved to main to make this function more reusable.
         # So the idea is to write out different files depending on whether translation was successful
@@ -279,24 +281,14 @@ class Sequence(object):
         :param suffix:          string  Additional suffix to add to the end of an output file
         :return:
         """
-        from Bio import SeqIO
-        from Bio.Seq import Seq
-        from Bio.SeqRecord import SeqRecord
-        from Bio.Alphabet import IUPAC
 
-        import helpers as h
 
         assert type(merge_length) is int and merge_length >= 6, 'Merge length must be integer and at least 6'
 
         #'''
         #Retrieve sequences from Ensembl.
 
-        import requests as rq
-        from requests.adapters import HTTPAdapter
-        from urllib3.util.retry import Retry
-        from io import StringIO
-        import sqlite3 as sq
-        import sys
+
 
         # server = 'https://www.ebi.ac.uk'
         # ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
@@ -578,11 +570,5 @@ class Sequence(object):
 #
 #     return True
 
-
-
-#
-# For doctest
-#
 if __name__ == '__main__':
-    import doctest
     doctest.testmod()

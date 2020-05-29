@@ -5,6 +5,8 @@
 import os.path
 import pandas as pd
 import gtfparse as gtp
+import doctest
+
 # import logging
 
 class Annotation(object):
@@ -362,5 +364,4 @@ class Junction(object):
 #   For doctest
 #
 if __name__ == '__main__':
-    import doctest
     doctest.testmod()

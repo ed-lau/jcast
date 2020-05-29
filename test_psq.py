@@ -1,4 +1,16 @@
 import unittest
+import tempfile
+import sys
+
+from io import StringIO
+
+from Bio import SeqIO
+from Bio.Alphabet import IUPAC
+
+import requests
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util import Retry
+
 from get_jxn import Junction, Annotation
 from get_seq import Sequence
 from get_rma import RmatsResults
@@ -55,20 +67,12 @@ class GenomeTest(unittest.TestCase):
         junction.get_translated_phase(gtf)
         junction.trim()
 
-        import tempfile
+
         sequence = Sequence(junction, directory_to_write=tempfile.tempdir)
         sequence.make_slice_localgenome(genome.genome)
         sequence.translate(use_phase=True)
 
-        from Bio import SeqIO
-        from Bio.Seq import Seq
-        from Bio.SeqRecord import SeqRecord
-        from Bio.Alphabet import IUPAC
-        import requests as rq
-        from requests.adapters import HTTPAdapter
-        from requests.packages.urllib3.util.retry import Retry
-        from io import StringIO
-        import sys
+
 
         server = 'https://www.ebi.ac.uk'
         ext = '/proteins/api/proteins/Ensembl:' + sequence.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
@@ -78,7 +82,7 @@ class GenomeTest(unittest.TestCase):
                         backoff_factor=0.1,
                         status_forcelist=[500, 502, 503, 504])
 
-        rqs = rq.Session()
+        rqs = requests.Session()
         rqs.mount('https://', HTTPAdapter(max_retries=retries))
         ret = rqs.get(server + ext, headers={"Accept": "text/x-fasta"})
 
