@@ -101,13 +101,16 @@ in virtually any shotgun proteomics database search engines (e.g., SEQUEST, Crux
     
 ### Prerequisites
 
-JCAST requires the following:
+JCAST is tested in Python 3.8 and requires the following packages:
 
 ```
-Python 3.5+
-biopython
-pandas
-numpy
+biopython>=1.77
+gtfparse>=1.2.0
+numpy>=1.18.4
+pandas>=1.0.4
+requests>=2.23.0
+urllib3>=1.25.9
+tqdm>=4.46.0
 ```
 
 
