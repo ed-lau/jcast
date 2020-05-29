@@ -2,8 +2,6 @@
 #   Classes that concern sequences - retrieving and cacheing nucleotide sequences, translating into amino acids
 #
 import logging
-import os
-
 
 
 class Sequence(object):
@@ -297,44 +295,45 @@ class Sequence(object):
         from requests.adapters import HTTPAdapter
         from urllib3.util.retry import Retry
         from io import StringIO
+        import sqlite3 as sq
         import sys
 
-        server = 'https://www.ebi.ac.uk'
-        ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
-
-        self.logger.debug(server + ext)
-
-
-        # retry 10 times
-        retries = Retry(total=10,
-                        backoff_factor=0.1,
-                        status_forcelist=[500, 502, 503, 504])
-
-        rqs = rq.Session()
-        rqs.mount('https://', HTTPAdapter(max_retries=retries))
-        ret = rqs.get(server + ext, headers={"Accept": "text/x-fasta"})
-
-        if not ret.ok:
-            self.logger.error("Network still not okay after 10 retries. Quit without writing.")
-            return True
-
-        # If ret.text is empty, the fall back is to use a local fasta or exit
-        if len(ret.text) == 0:
-            return True
-
-            # # Load local fasta (for now) based on species
-            # if species == 'mouse':
-            #     fasta_handle = SeqIO.parse('data/fasta/20170918_Mm_Sp_16915.fasta', 'fasta',
-            #                                IUPAC.extended_protein)
-            # elif species == 'human':
-            #     fasta_handle = SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta',
-            #                                IUPAC.extended_protein)
-
-
-
-        # If ret.text is not empty, then get from online record.
-        else:
-            fasta_handle = SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein)
+        # server = 'https://www.ebi.ac.uk'
+        # ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
+        #
+        # self.logger.debug(server + ext)
+        #
+        #
+        # # retry 10 times
+        # retries = Retry(total=10,
+        #                 backoff_factor=0.1,
+        #                 status_forcelist=[500, 502, 503, 504])
+        #
+        # rqs = rq.Session()
+        # rqs.mount('https://', HTTPAdapter(max_retries=retries))
+        # ret = rqs.get(server + ext, headers={"Accept": "text/x-fasta"})
+        #
+        # if not ret.ok:
+        #     self.logger.error("Network still not okay after 10 retries. Quit without writing.")
+        #     return True
+        #
+        # # If ret.text is empty, the fall back is to use a local fasta or exit
+        # if len(ret.text) == 0:
+        #     return True
+        #
+        #     # # Load local fasta (for now) based on species
+        #     # if species == 'mouse':
+        #     #     fasta_handle = SeqIO.parse('data/fasta/20170918_Mm_Sp_16915.fasta', 'fasta',
+        #     #                                IUPAC.extended_protein)
+        #     # elif species == 'human':
+        #     #     fasta_handle = SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta',
+        #     #                                IUPAC.extended_protein)
+        #
+        #
+        #
+        # # If ret.text is not empty, then get from online record.
+        # else:
+        #     fasta_handle = SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein)
 
 
         # The UniProt API retrieves a retrieval object, with a text field inside ret.text
@@ -352,92 +351,144 @@ class Sequence(object):
                                        IUPAC.extended_protein)
         '''
 
-        for loop in fasta_handle:
+        cache = self.gene_id
 
-            record = loop[:]  # [:] needed to copy list rather than add new alias
+        self.logger.info(cache)
 
-            # Find out where the first (10) amino acids meets the UniProt canonical sequences..
-            merge_start1 = record.seq.find(self.slice1_aa[:merge_length])
-            merge_end1 = record.seq.find(self.slice1_aa[-merge_length:])
+        con = sq.connect('uniprot-cache.db')
+        cur = con.cursor()
+        cur.execute('''CREATE TABLE IF NOT EXISTS sequences(pk INTEGER PRIMARY KEY, id TEXT, seq TEXT)''')
 
-            merge_start2 = record.seq.find(self.slice2_aa[:merge_length])
-            merge_end2 = record.seq.find(self.slice2_aa[-merge_length:])
+        # try:
 
-            # Only proceed to write file if we can bridge the first and last 10 amino acids of either
-            # Slice 1 or slice 2 to the sequence.
+        cur.execute('''SELECT id, seq FROM sequences WHERE id=:cache''',
+                    {'cache': cache})
+        read_fasta = cur.fetchone()
 
-            # Later on we should catch whether the first 10 aa is matched to multiple entries if using
-            # the fallback protein fasta.
-            if (merge_start1 != -1 and merge_end1 != -1) or (merge_start2 != -1 and merge_end2 != -1):
+        if read_fasta:
+            record = list(SeqIO.parse(StringIO(read_fasta[1]), 'fasta', IUPAC.extended_protein))[0]
+            self.logger.info('Locally cached sequence retrieved')
+            con.close()
+            # return nuc
 
-                # Write the UniProt canonical first
-                canonical = record[:]  # [:] needed to copy list rather than add new alias
+        else:
+            self.logger.info("Sequence not yet cached locally. 0")
 
-                # Format the name of the slice 1 record
-                if merge_start1 != -1 and merge_end1 != -1:
-                    record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + merge_length:]
-                elif merge_start1 != -1 and merge_end1 == -1:
-                    record1 = record[:merge_start1] + self.slice1_aa
-                elif merge_start1 == -1 and merge_end1 != -1:
-                    record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + merge_length:]
-                elif merge_start1 == -1 and merge_end1 == -1:
-                    record1 = record[:0] + self.slice1_aa
+            server = 'https://www.ebi.ac.uk'
+            ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
 
-                # If the slice is different from the UniProt canonical, then also write it.
-                if record.seq.find(self.slice1_aa) == -1:
+            self.logger.info(server + ext)
+            retries = Retry(total=10,
+                            backoff_factor=0.1,
+                            status_forcelist=[500, 502, 503, 504])
 
-                    record1.id += ('|' + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
-                                   + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
-                                   + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                                   + 'r' + str(self.min_read_count) + '|' + suffix)
+            rqs = rq.Session()
+            rqs.mount('https://', HTTPAdapter(max_retries=retries))
+            ret = rqs.get(server + ext, headers={"Accept": "text/x-fasta"})
 
-
-                    h.write_seqrecord_to_fasta(record1, output, suffix)
-
-                # If not, then change name of canonical to reflect that it is also slice 1.
-                else:
-                    canonical.id = record1.id
-                    h.write_seqrecord_to_fasta(canonical, output, suffix)
-
-                # Format the name of the slice 2 record
-                if merge_start2 != -1 and merge_end2 != -1:
-                    record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + merge_length:]
-                elif merge_start2 != -1 and merge_end2 == -1:
-                    record2 = record[:merge_start2] + self.slice2_aa
-                elif merge_start2 == -1 and merge_end2 != -1:
-                    record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + merge_length:]
-                elif merge_start2 == -1 and merge_end2 == -1:
-                    record2 = record[:0] + self.slice2_aa
-
-                    # If the slice is not the same as the UniProt canonical, then also write it.
-                if record.seq.find(self.slice2_aa) == -1:
-                    record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
-                                   + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
-                                   + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                                   + 'r' + str(self.min_read_count) + '|' + suffix)
-
-                    h.write_seqrecord_to_fasta(record2, output, suffix)
-
-                # If not, then change name of canonical to reflect that it is also slice 2.
-                else:
-                    canonical.id = record2.id
-                    h.write_seqrecord_to_fasta(canonical, output, suffix)
-
-                #print(record.id)
-                #print(record.seq[:merge_start1] + self.slice1_aa + record.seq[merge_end1 + merge_length:])
-                #print(record.seq[:merge_start2] + self.slice2_aa + record.seq[merge_end2 + merge_length:])
-
-                # Once you found a match and wrote the sequence, quit.
+            if not ret.ok:
+                self.logger.warning("Network still not okay after 10 retries. Skipped protein.")
                 return True
+
+            if ret.status_code == 200 and ret.text!='':
+                record = list(SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein))[0]
+
+                cur.execute('''INSERT INTO sequences(id, seq) VALUES(:id, :seq)''',
+                            {'id': cache, 'seq': record.format('fasta')})
+                con.commit()
+                con.close()
+                self.logger.info("Sequence retrieved from Uniprot and written into local cache.")
+
+            elif ret.status_code == 200 and ret.text == '':
+                self.logger.info('Retrieved empty fasta from Ensembl. Skipped protein.')
+                return True
+
+            elif ret.status_code != 200 :
+                self.logger.warning('Retrieval of protein sequence failed. Skipped protein.')
+                return True
+
+        # Find out where the first (10) amino acids meets the UniProt canonical sequences..
+        merge_start1 = record.seq.find(self.slice1_aa[:merge_length])
+        merge_end1 = record.seq.find(self.slice1_aa[-merge_length:])
+
+        merge_start2 = record.seq.find(self.slice2_aa[:merge_length])
+        merge_end2 = record.seq.find(self.slice2_aa[-merge_length:])
+
+        # Only proceed to write file if we can bridge the first and last 10 amino acids of either
+        # Slice 1 or slice 2 to the sequence.
+
+        # Later on we should catch whether the first 10 aa is matched to multiple entries if using
+        # the fallback protein fasta.
+        if (merge_start1 != -1 and merge_end1 != -1) or (merge_start2 != -1 and merge_end2 != -1):
+
+            # Write the UniProt canonical first
+            canonical = record[:]  # [:] needed to copy list rather than add new alias
+
+            # Format the name of the slice 1 record
+            if merge_start1 != -1 and merge_end1 != -1:
+                record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + merge_length:]
+            elif merge_start1 != -1 and merge_end1 == -1:
+                record1 = record[:merge_start1] + self.slice1_aa
+            elif merge_start1 == -1 and merge_end1 != -1:
+                record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + merge_length:]
+            elif merge_start1 == -1 and merge_end1 == -1:
+                record1 = record[:0] + self.slice1_aa
+
+            # If the slice is different from the UniProt canonical, then also write it.
+            if record.seq.find(self.slice1_aa) == -1:
+
+                record1.id += ('|' + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
+                               + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                               + '|' + self.translated_strand + str(self.translated_phase) + '|'
+                               + 'r' + str(self.min_read_count) + '|' + suffix)
+
+
+                h.write_seqrecord_to_fasta(record1, output, suffix)
+
+            # If not, then change name of canonical to reflect that it is also slice 1.
+            else:
+                canonical.id = record1.id
+                h.write_seqrecord_to_fasta(canonical, output, suffix)
+
+            # Format the name of the slice 2 record
+            if merge_start2 != -1 and merge_end2 != -1:
+                record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + merge_length:]
+            elif merge_start2 != -1 and merge_end2 == -1:
+                record2 = record[:merge_start2] + self.slice2_aa
+            elif merge_start2 == -1 and merge_end2 != -1:
+                record2 = record[:merge_start2] + self.slice2_aa + record[merge_end2 + merge_length:]
+            elif merge_start2 == -1 and merge_end2 == -1:
+                record2 = record[:0] + self.slice2_aa
+
+                # If the slice is not the same as the UniProt canonical, then also write it.
+            if record.seq.find(self.slice2_aa) == -1:
+                record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
+                               + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                               + '|' + self.translated_strand + str(self.translated_phase) + '|'
+                               + 'r' + str(self.min_read_count) + '|' + suffix)
+
+                h.write_seqrecord_to_fasta(record2, output, suffix)
+
+            # If not, then change name of canonical to reflect that it is also slice 2.
+            else:
+                canonical.id = record2.id
+                h.write_seqrecord_to_fasta(canonical, output, suffix)
+
+            #print(record.id)
+            #print(record.seq[:merge_start1] + self.slice1_aa + record.seq[merge_end1 + merge_length:])
+            #print(record.seq[:merge_start2] + self.slice2_aa + record.seq[merge_end2 + merge_length:])
+
+            # Once you found a match and wrote the sequence, quit.
+            return True
 
         # If the slice is not matched to any of the FASTA entries, or if the slices are too short,
         # write the slices to an orphan fasta.
         # NOTE: we are separating these out for now because we want to find out why they fall through.
 
-        self.logger.info("==== SLICES ARE NOT FOUND IN THE FASTA OR ARE TOO SHORT ==== ")
-        self.logger.info(self.slice1_aa)
-        self.logger.info(self.slice2_aa)
-        self.logger.info(record.seq)
+        self.logger.info('Slices are not stitchable to fasta. Writing to orphan file for reference.')
+        self.logger.info('Slice 1: {0}'.format(self.slice1_aa))
+        self.logger.info('Slice 2: {0}'.format(self.slice2_aa))
+        self.logger.info('Canonical: {0}'.format(record.seq))
 
         # Format the name of the orphan slice 1 record
         orphan_slice1 = SeqRecord(Seq(self.slice1_aa, IUPAC.extended_protein),
