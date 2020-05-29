@@ -11,16 +11,22 @@ __version_info__ = ('0', '2', '0')
 __version__ = '.'.join(__version_info__)
 
 # Import classes
+import datetime
+import os
+import logging
+
+import tqdm
+import numpy as np
+
 from get_jxn import Junction, Annotation
 from get_seq import Sequence
 from get_rma import RmatsResults
 from read_fa import ReadGenome
-import numpy as np
-import os
-import logging
-from Bio import SeqIO
-import tqdm
-import datetime
+
+
+
+
+
 
 
 def psqM(args):
