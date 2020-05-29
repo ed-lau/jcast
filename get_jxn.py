@@ -5,7 +5,7 @@
 import os.path
 import pandas as pd
 import gtfparse as gtp
-import logging
+# import logging
 
 class Annotation(object):
     """
@@ -29,7 +29,7 @@ class Annotation(object):
         ind = self.path[:-4] + 'indexed.txt'
 
         if os.path.isfile(ind) is False:
-            self.annot = gtp.read_gtf_as_dataframe(self.path)
+            self.annot = gtp.read_gtf(self.path)
             self.annot.to_csv(ind, encoding='utf-8', sep='\t')
 
         self.annot = pd.read_table(ind, sep='\t', low_memory=False)
