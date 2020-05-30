@@ -43,7 +43,6 @@ class GenomeTest(unittest.TestCase):
         pass
 
     def test_that_genome_loads(self):
-        pass
 
         i = 1993
 
@@ -124,3 +123,5 @@ class GenomeTest(unittest.TestCase):
 
         print(record1.seq)
         print(record2.seq)
+
+        return True

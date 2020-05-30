@@ -66,6 +66,7 @@ class Sequence(object):
     def __str__(self):
         return 'Sequence object: ' + self.gene_id + ' ' + self.gene_symbol + ' ' + self.name
 
+    # To do: redo this as @ property
     def set_frameshift_to_true(self):
         """
         A setter to mark that there is a frameshift; used to determine whether the slice should be tier 1 or tier 2
@@ -256,6 +257,7 @@ class Sequence(object):
 
         return True
 
+    # To do this needs to be redone
     def extend_and_write(self,
                          # species,
                          output='out',
