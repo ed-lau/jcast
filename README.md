@@ -7,11 +7,11 @@ JCAST (Junction Centric Alternative Splicing Translator) takes in alternative sp
 #### Requirements
 
 
-Install Python 3.5+ and pip. See instructions on Python website for specific instructions for your operating system.
+Install Python 3.6+ and pip. See instructions on Python website for specific instructions for your operating system.
 
 Set up virtual environment with venv at a designed path, e.g., ./venv/jcast
 		
-	$ python3.5 -m venv ./venv/jcast
+	$ python3.6 -m venv ./venv/jcast
 
 Activate the virtual environment
 	
@@ -34,12 +34,12 @@ Install the packages in the requirements.txt file
 Launch JCAST (Usage/Help)
 		
 	
-	$ python3 psq.py --help
+	$ python -m jcast
 
 Example command: 
 		
 	
-	$ python psq.py  data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_pancreas
+	$ python -m jcast  data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_pancreas
     
 Deactivate the Virtual Environment upon completion
 		
