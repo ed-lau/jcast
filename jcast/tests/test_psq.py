@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+
+""" Tests """
+
+
 import unittest
 import tempfile
 import sys

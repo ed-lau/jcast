@@ -2,7 +2,7 @@ from setuptools import setup
 from jcast import __version__
 
 setup(
-   name='Jcast',
+   name='jcast',
    version=__version__,
    description='Jcast retrieves splice junction information and translates into amino acid',
    author='Edward Lau',
