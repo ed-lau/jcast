@@ -1,7 +1,5 @@
 biopython>=1.77
 gtfparse>=1.2.0
-numpy>=1.18.4
 pandas>=1.0.4
 requests>=2.23.0
-urllib3>=1.25.9
 tqdm>=4.46.0

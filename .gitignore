@@ -5,6 +5,11 @@
 out/
 mzml/
 data/
+*.Rmd
+*.db
+
+# Pycharm
+.idea/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
