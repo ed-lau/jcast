@@ -1,5 +1,4 @@
 
-# Import classes
 import datetime
 import os
 import logging
@@ -21,7 +20,7 @@ def psqM(args):
     Main loop for JCast that controls logic flow.
 
     Usage:
-    python psq.py data/encode_human_heart/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa  -o 202005test -r 5
+    python jcast.py data/encode_human_heart/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa  -o 202005test -r 5
 
 
     >>> gtf = Annotation('../data/gtf/Homo_sapiens.GRCh38.89.gtf')
