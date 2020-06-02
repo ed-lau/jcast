@@ -1,6 +1,12 @@
+# -*- coding: utf-8 -*-
+
+
+"""jcast.main: Main function."""
+
+
+import os
 
 import datetime
-import os
 import logging
 
 import tqdm
@@ -20,7 +26,7 @@ def psqM(args):
     Main loop for JCast that controls logic flow.
 
     Usage:
-    python jcast.py data/encode_human_heart/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa  -o 202005test -r 5
+    python -m jcast /path/to/rmats_folder/ path/to/gtf path/to/genome.fa  -o path/to/out -r 5
 
 
     >>> gtf = Annotation('../data/gtf/Homo_sapiens.GRCh38.89.gtf')
@@ -59,16 +65,16 @@ def psqM(args):
     # Get timestamp for out files
     now = datetime.datetime.now()
 
-    directory_to_write = os.path.join(args.out, 'psq_' + now.strftime('%Y%m%d%H%M%S'))
+    directory_to_write = os.path.join(args.out, 'jcast_' + now.strftime('%Y%m%d%H%M%S'))
     os.makedirs(directory_to_write, exist_ok=True)
 
     # Main logger setup
-    main_log = logging.getLogger('psq')
+    main_log = logging.getLogger('jcast')
     main_log.propagate = False
     main_log.setLevel(logging.DEBUG)
 
     # create file handler which logs even debug messages
-    fh = logging.FileHandler(os.path.join(directory_to_write, 'psq_main.log'))
+    fh = logging.FileHandler(os.path.join(directory_to_write, 'jcast_main.log'))
     fh.setLevel(logging.DEBUG)
 
     # create formatter and add it to the handlers
@@ -396,7 +402,7 @@ def psqM(args):
 # Code for running main with parsed arguments from command line
 #
 
-if __name__ == "__main__":
+def main():
 
     import argparse
     import sys

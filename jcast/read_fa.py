@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+
+""" Methods to read genome fa file. """
+
 from Bio import SeqIO
 from Bio.Alphabet import generic_dna
 import logging
@@ -12,7 +16,7 @@ class ReadGenome(object):
         """
 
         self.f_loc = f_loc
-        self.logger = logging.getLogger('psq.genome')
+        self.logger = logging.getLogger('jcast.genome')
 
         self.genome = None
         self._read_fasta()

@@ -1,6 +1,16 @@
-#
-# Helper functions that translate nucleotides to amino acids, etc.
-#
+# -*- coding: utf-8 -*-
+
+""" Helper functions that translate nucleotides to amino acids, etc. """
+
+import requests as rq
+import sqlite3 as sq
+import os.path
+
+from Bio import Seq, Alphabet
+from Bio.Seq import Seq
+from Bio import SeqIO
+from Bio.SeqRecord import SeqRecord
+from Bio.Alphabet import IUPAC
 
 
 def get_local_nuc(genome_index, chromosome, es, ee):
@@ -16,8 +26,6 @@ def get_local_nuc(genome_index, chromosome, es, ee):
     >>> len(get_local_nuc(idx, "chr17", 44091700, 44091831))
     132
     """
-
-    from Bio import Seq, Alphabet
 
     # Skip empty exons
     if es <= 0 or ee <= 0:
@@ -57,8 +65,6 @@ def get_nuc(species, chr, es, ee):
 
     """
 
-    import requests as rq
-    import sqlite3 as sq
 
     if es <= 0 or ee <= 0:
         #print("Skipping empty exon.")
@@ -258,11 +264,7 @@ def write_seqrecord_to_fasta(seqrecord, output, suffix):
     :param suffix:
     :return:
     """
-    from Bio.Seq import Seq
-    from Bio import SeqIO
-    from Bio.SeqRecord import SeqRecord
-    from Bio.Alphabet import IUPAC
-    import os.path
+
 
     o = os.path.join(output, 'psq_' + suffix + '.fasta')
     #print(o)

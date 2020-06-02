@@ -1,9 +1,10 @@
-#
-#   Classes that concern sequences - retrieving and cacheing nucleotide sequences, translating into amino acids
-#
+# -*- coding: utf-8 -*-
+
+""" Methods that concern sequences - retrieving and cacheing nucleotide sequences, translating into amino acids """
+
+
 import logging
 import os.path
-import doctest
 
 from Bio.Seq import Seq
 from Bio import SeqIO
@@ -58,7 +59,7 @@ class Sequence(object):
         self.translated_strand = junction.strand    # Strand that was actually used for translation
         self.min_read_count = junction.min_read_count
 
-        self.logger = logging.getLogger('psq.seq')
+        self.logger = logging.getLogger('jcast.seq')
 
 
     def __str__(self):
@@ -569,6 +570,3 @@ class Sequence(object):
 #     f.close()
 #
 #     return True
-
-if __name__ == '__main__':
-    doctest.testmod()

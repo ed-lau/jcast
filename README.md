@@ -1,4 +1,4 @@
-# Junction Centric Alternative Splicing Translator v.0.2.0
+# Junction Centric Alternative Splicing Translator v.0.2.1
 
 JCAST (Junction Centric Alternative Splicing Translator) takes in alternative splicing events and returns custom protein sequence databases for isoform analysis.
 
@@ -93,7 +93,7 @@ Go back to the data directory and run the rMATS image. The -v flag mounts the ho
 Run the JCAST Python program specifying the directory of the rMATS output as well as the GTF annotation file:
 
  
-    $ python jcast.py  path/to/rMATS/output/encode_human_heart/ path/to/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_heart
+    $ python -m jcast path/to/rMATS/output/encode_human_heart/ path/to/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_heart
 
 #### FASTA output
 JCAST outputs FASTA databases which can be further filtered and combined using any scripting languages, or can be used directly for database search

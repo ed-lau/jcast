@@ -1,11 +1,11 @@
-#
-# 	Classes that concern junctions - getting their coordinates, transcription starts/ends, phases, and annotations.
-#
+# -*- coding: utf-8 -*-
+
+""" Classes that concern junctions - getting their coordinates, transcription starts/ends, phases, and annotations. """
+
 
 import os.path
 import pandas as pd
 import gtfparse as gtp
-import doctest
 
 # import logging
 
@@ -363,5 +363,3 @@ class Junction(object):
 #
 #   For doctest
 #
-if __name__ == '__main__':
-    doctest.testmod()

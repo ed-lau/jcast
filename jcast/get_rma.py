@@ -1,7 +1,7 @@
-#
-# 	Classes that concern RMATS results - reading the files and mapping the columns to exons
-#   (anc, alt1, alt2, down)
-#
+# -*- coding: utf-8 -*-
+
+""" Methods that concern RMATS results - reading the files and mapping the columns to exons. """
+
 
 import logging
 import os.path
@@ -26,7 +26,7 @@ class RmatsResults(object):
         self.rmats_a5ss = self._read_rmats_a5ss()
         self.rmats_a3ss = self._read_rmats_a3ss()
 
-        self.logger = logging.getLogger('psq.input')
+        self.logger = logging.getLogger('jcast.input')
 
     def _read_rmats_mxe(self):
         """
