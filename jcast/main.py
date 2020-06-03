@@ -12,7 +12,8 @@ import logging
 import tqdm
 import numpy as np
 
-from jcast.get_jxn import Junction, Annotation
+from jcast.get_jxn import Junction
+from jcast.get_gtf import ReadAnnotations
 from jcast.get_seq import Sequence
 from jcast.get_rma import RmatsResults
 from jcast.read_fa import ReadGenome
@@ -29,7 +30,7 @@ def psqM(args):
     python -m jcast /path/to/rmats_folder/ path/to/gtf path/to/genome.fa  -o path/to/out -r 5
 
 
-    >>> gtf = Annotation('../data/gtf/Homo_sapiens.GRCh38.89.gtf')
+    >>> gtf = ReadAnnotations('../data/gtf/Homo_sapiens.GRCh38.89.gtf')
     >>> gtf.read_gtf()
     True
     >>> rmats_results = RmatsResults(rmats_dir='../data/encode_human_heart/')
@@ -71,7 +72,7 @@ def psqM(args):
     # Main logger setup
     main_log = logging.getLogger('jcast')
     main_log.propagate = False
-    main_log.setLevel(logging.DEBUG)
+    main_log.setLevel(logging.INFO)
 
     # create file handler which logs even debug messages
     fh = logging.FileHandler(os.path.join(directory_to_write, 'jcast_main.log'))
@@ -109,7 +110,7 @@ def psqM(args):
     # Read the gtf file using the gtfpase package.
     # Then write as a pandas data frame.
     #
-    gtf = Annotation(args.gtf_file)
+    gtf = ReadAnnotations(args.gtf_file)
     gtf.read_gtf()
 
     #

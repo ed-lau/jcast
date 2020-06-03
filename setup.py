@@ -8,21 +8,20 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
     long_description = f.read()
 
-
 setup(
-   name='jcast',
-   version="0.2.2",
-   description='Jcast retrieves splice junction information and translates into amino acids',
+    name='jcast',
+    version="0.2.2",
+    description='Jcast retrieves splice junction information and translates into amino acids',
 
-   long_description=long_description,
-   long_description_content_type='text/markdown',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
 
-   url='https://github.com/ed-lau/jcast',
+    url='https://github.com/ed-lau/jcast',
 
-   author='Edward Lau, Maggie Lam',
-   author_email='edward.lau@cuanschutz.edu',
+    author='Edward Lau, Maggie Lam',
+    author_email='edward.lau@cuanschutz.edu',
 
-   classifiers=[  # Optional
+    classifiers=[  # Optional
         # How mature is this project? Common values are
         #   3 - Alpha
         #   4 - Beta
@@ -45,31 +44,35 @@ setup(
         'Programming Language :: Python :: 3 :: Only',
     ],
 
-   keywords='scientific multi-omics isoform mass-spectrometry',  # Optional
+    keywords='scientific multi-omics isoform mass-spectrometry',  # Optional
 
+    packages=find_packages(),
 
-   packages=find_packages(),
+    python_requires='>=3.6, <4',
 
-   python_requires='>=3.6, <4',
+    install_requires=['biopython',
+                      'gtfparse',
+                      'pandas',
+                      'requests',
+                      'tqdm'],  # external packages as dependencies
+    entry_points={
+        'console_scripts': ['jcast=jcast.__main__:main',
+                            ],
+    },
 
+    project_urls={
+        'Source': 'https://github.com/ed-lau/jcast',
+        'Maggie Lam Lab': 'http://www.maggielab.org',
+    },
 
-   install_requires=['biopython',
-                     'gtfparse',
-                     'pandas',
-                     'requests',
-                     'tqdm'], #external packages as dependencies
-   entry_points={
-      'console_scripts': ['jcast=jcast.__main__:main',
-                          ],
-   },
-
-   project_urls={
-      'Source': 'https://github.com/ed-lau/jcast',
-      'Maggie Lam Lab': 'http://www.maggielab.org',
-   },
-
-   # data_files=[('tests',
-   #              [os.path.join('tests', 'data', 'percolator', 'percolator.target.mzid'),
-   #               os.path.join('tests', 'data', 'percolator', 'percolator.target.psms.txt'), ]),
-   #             ],
+    data_files=[('tests',
+                 [os.path.join('tests', 'data', 'genome', 'Homo_sapiens.GRCh38.89.chromosome.15.gtf'),
+                  os.path.join('tests', 'data', 'genome', 'Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz'),
+                  os.path.join('tests', 'data', 'rmats', 'A3SS.MATS.JC.txt'),
+                  os.path.join('tests', 'data', 'rmats', 'A5SS.MATS.JC.txt'),
+                  os.path.join('tests', 'data', 'rmats', 'RI.MATS.JC.txt'),
+                  os.path.join('tests', 'data', 'rmats', 'SE.MATS.JC.txt'),
+                  os.path.join('tests', 'data', 'rmats', 'MXE.MATS.JC.txt'),
+                  ]),
+                ],
 )

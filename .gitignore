@@ -6,6 +6,7 @@ out/
 mzml/
 *.Rmd
 *.db
+*.cached
 
 # Pycharm
 .idea/

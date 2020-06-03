@@ -7,4 +7,5 @@ include *.md
 include LICENSE.md
 
 # Include the data files
-recursive-include tests/data/percolator *
+recursive-include tests/data/genome *
+recursive-include tests/data/rmats *

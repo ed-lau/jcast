@@ -6,7 +6,7 @@
 import unittest
 import tempfile
 import sys
-import os.path
+import os
 
 from io import StringIO
 
@@ -17,7 +17,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util import Retry
 
-from jcast.get_jxn import Junction, Annotation
+from jcast.get_jxn import Junction
+from jcast.get_gtf import ReadAnnotations
 from jcast.get_seq import Sequence
 from jcast.get_rma import RmatsResults
 from jcast.read_fa import ReadGenome
@@ -33,7 +34,7 @@ class GenomeTest(unittest.TestCase):
         :return:
         """
 
-        global gtf, rma, genome
+        global gtf, rma, genome, test_data_loc
 
         test_data_loc = os.path.join('tests', 'data')
         genome_loc = os.path.join(test_data_loc, 'genome', 'Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz')
@@ -42,7 +43,7 @@ class GenomeTest(unittest.TestCase):
 
         genome = ReadGenome(genome_loc)
 
-        gtf = Annotation(gtf_loc)
+        gtf = ReadAnnotations(gtf_loc)
         gtf.read_gtf()
 
         rmats_results = RmatsResults(rmats_loc)
@@ -51,6 +52,10 @@ class GenomeTest(unittest.TestCase):
         pass
 
     def tearDown(self):
+
+        # Remove the cached gtf file
+        os.remove(os.path.join(test_data_loc, 'genome', 'Homo_sapiens.GRCh38.89.chromosome.15.gtf.cached'))
+
         pass
 
     def test_that_genome_loads(self):

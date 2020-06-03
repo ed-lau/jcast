@@ -1,42 +1,7 @@
 # -*- coding: utf-8 -*-
 
-""" Classes that concern junctions - getting their coordinates, transcription starts/ends, phases, and annotations. """
+""" Methods that concern splice junctions - getting their coordinates, transcription starts/ends, phases. """
 
-
-import os.path
-import pandas as pd
-import gtfparse as gtp
-
-# import logging
-
-class Annotation(object):
-    """
-    Class holds the name and location of the GTF file, plus a pandas dataframe
-    """
-
-    def __init__(self, path):
-        """
-
-        :param path: Path of the GTF file
-        """
-        self.path = os.path.join(path)
-        self.annot = 0
-
-    def read_gtf(self):
-        """
-        Read gtf file based on the location and name supplied
-        :return:
-        """
-
-        ind = self.path[:-4] + 'indexed.txt'
-
-        if os.path.isfile(ind) is False:
-            self.annot = gtp.read_gtf(self.path)
-            self.annot.to_csv(ind, encoding='utf-8', sep='\t')
-
-        self.annot = pd.read_table(ind, sep='\t', low_memory=False)
-
-        return True
 
 class Junction(object):
     """
@@ -92,8 +57,6 @@ class Junction(object):
         """
         # Subset the gtf file
         gtf0 = gtf.annot.query('gene_id == @self.gene_id')
-
-
 
         #
         # 	Get the translation start and end positions
@@ -176,7 +139,6 @@ class Junction(object):
             self.phase = -1
 
         return True
-
 
     def trim(self):
         """
@@ -297,69 +259,3 @@ class Junction(object):
                 print('Trimming end failed.')
 
         return True
-
-    # def write_fate(self, fate, output):
-    #     """
-    #     Write out the outcome of the attempt to translate each junction into a report file
-    #
-    #     :param fate:    int         Code for message to be writtebn
-    #     :param output:  string      Output directory
-    #     :return:
-    #     """
-    #
-    #     import os.path
-    #
-    #     os.makedirs('out', exist_ok=True)
-    #     o = os.path.join('out', output + '_' + 'fate' + '.txt')
-    #     print(o)
-    #
-    #     # Set the stored junction fate as the message
-    #     self.fate = fate
-    #
-    #     assert type(self.fate) is int, 'Junction fate code error.'
-    #
-    #     if self.fate == -2:
-    #         msg = 'DELETED. Junction read counts too low.'
-    #
-    #     elif self.fate == -1:
-    #         msg = 'DELETED. Junction inconsistent across replicates.'
-    #
-    #     elif self.fate == 0:
-    #         msg = ''
-    #
-    #     elif self.fate == 1:
-    #         msg = "SUCCESS 1. Retrieved phase: " + str(
-    #                     self.phase) + " Used phase: " + str(self.translated_phase) + ". No Frameshift."
-    #
-    #     elif self.fate == 2:
-    #         msg = "SUCCESS 2. Retrieved phase: " + str(
-    #                     self.phase) + " Used phase: " + str(self.translated_phase) + ". Frameshift."
-    #
-    #     elif self.fate == 3:
-    #         msg = "SUCCESS 3. The GTF frame appears to be wrong. Retrieved phase: " + str(
-    #         self.phase) + " Used phase: " + str(self.translated_phase)
-    #
-    #     elif self.fate == 4:
-    #         msg = "WARNING 4. Slice 2 hit a stop codon. Used longest phase."
-    #
-    #     elif self.fate == 5:
-    #         msg = "WARNING 5. Slice 1 hit a stop codon. Used longest phase."
-    #
-    #     elif self.fate == 6:
-    #         msg = 'FAILURE. No translation was done. At least one PTC at each frame.'
-    #
-    #     elif self.fate == 7:
-    #         msg = 'SUCCESS. Six frame translation done.'
-    #
-    #     else:
-    #         raise AssertionError
-    #
-    #     f = open(o, 'a')
-    #     f.write(self.junction_type + '\t' + self.name + '\t' + self.gene_symbol + '\t' + msg + '\n')
-    #     f.close()
-    #
-    #     return True
-
-#
-#   For doctest
-#

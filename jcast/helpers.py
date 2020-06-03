@@ -6,11 +6,11 @@ import requests as rq
 import sqlite3 as sq
 import os.path
 
-from Bio import Seq, Alphabet
+from Bio import Seq
 from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
-from Bio.Alphabet import IUPAC
+from Bio.Alphabet import IUPAC, DNAAlphabet
 
 
 def get_local_nuc(genome_index, chromosome, es, ee):
@@ -30,7 +30,7 @@ def get_local_nuc(genome_index, chromosome, es, ee):
     # Skip empty exons
     if es <= 0 or ee <= 0:
         #print("Skipping empty exon.")
-        return Seq.Seq('', Alphabet.DNAAlphabet())
+        return Seq('', DNAAlphabet())
 
     # Get numeric portion of chromosome
     chromosome = chromosome[3:]
