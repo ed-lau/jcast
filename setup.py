@@ -50,11 +50,11 @@ setup(
 
     python_requires='>=3.6, <4',
 
-    install_requires=['biopython',
-                      'gtfparse',
-                      'pandas',
-                      'requests',
-                      'tqdm'],  # external packages as dependencies
+    install_requires=['biopython>=1.7,<2',
+                      'gtfparse>=1,<2',
+                      'pandas>=1,<2',
+                      'requests>=2,<3',
+                      'tqdm>=4,<5'],  # external packages as dependencies
     entry_points={
         'console_scripts': ['jcast=jcast.__main__:main',
                             ],

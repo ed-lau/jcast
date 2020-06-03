@@ -60,7 +60,7 @@ class GenomeTest(unittest.TestCase):
 
     def test_that_genome_loads(self):
 
-        i = 1993
+        i = 71 # PKM
 
         junction = Junction(id=rma.id[i], \
                             gene_id=rma.gene_id[i], \
