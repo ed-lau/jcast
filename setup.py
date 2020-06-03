@@ -1,13 +1,75 @@
-from setuptools import setup
-from jcast import __version__
+""" setup module """
+
+from setuptools import setup, find_packages
+import os.path
+
+# Get the long description from the README file
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
 
 setup(
    name='jcast',
-   version=__version__,
-   description='Jcast retrieves splice junction information and translates into amino acid',
-   author='Edward Lau',
-   url='https://www.laulab.net',
+   version="0.2.2",
+   description='Jcast retrieves splice junction information and translates into amino acids',
+
+   long_description=long_description,
+   long_description_content_type='text/markdown',
+
+   url='https://github.com/ed-lau/jcast',
+
+   author='Edward Lau, Maggie Lam',
    author_email='edward.lau@cuanschutz.edu',
-   packages=['jcast'],  #same as name
-   install_requires=['biopython', 'gtfparse', 'pandas', 'requests', 'tqdm'], #external packages as dependencies
+
+   classifiers=[  # Optional
+        # How mature is this project? Common values are
+        #   3 - Alpha
+        #   4 - Beta
+        #   5 - Production/Stable
+        'Development Status :: 3 - Alpha',
+
+        # Indicate who your project is intended for
+        'Intended Audience :: Developers',
+        'Topic :: Software Development :: Build Tools',
+
+        # Pick your license as you wish
+        'License :: OSI Approved :: MIT License',
+
+        # Specify the Python versions you support here. In particular, ensure
+        # that you indicate you support Python 3. These classifiers are *not*
+        # checked by 'pip install'. See instead 'python_requires' below.
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3 :: Only',
+    ],
+
+   keywords='scientific multi-omics isoform mass-spectrometry',  # Optional
+
+
+   packages=find_packages(),
+
+   python_requires='>=3.6, <4',
+
+
+   install_requires=['biopython',
+                     'gtfparse',
+                     'pandas',
+                     'requests',
+                     'tqdm'], #external packages as dependencies
+   entry_points={
+      'console_scripts': ['jcast=jcast.__main__:main',
+                          ],
+   },
+
+   project_urls={
+      'Source': 'https://github.com/ed-lau/jcast',
+      'Maggie Lam Lab': 'http://www.maggielab.org',
+   },
+
+   # data_files=[('tests',
+   #              [os.path.join('tests', 'data', 'percolator', 'percolator.target.mzid'),
+   #               os.path.join('tests', 'data', 'percolator', 'percolator.target.psms.txt'), ]),
+   #             ],
 )
