@@ -6,6 +6,7 @@
 import unittest
 import tempfile
 import sys
+import os.path
 
 from io import StringIO
 
@@ -34,12 +35,17 @@ class GenomeTest(unittest.TestCase):
 
         global gtf, rma, genome
 
-        genome = ReadGenome('jcast/tests/data/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz')
+        test_data_loc = os.path.join('tests', 'data')
+        genome_loc = os.path.join(test_data_loc, 'genome', 'Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz')
+        gtf_loc = os.path.join(test_data_loc, 'genome', 'Homo_sapiens.GRCh38.89.chromosome.15.gtf')
+        rmats_loc = os.path.join(test_data_loc, 'rmats')
 
-        gtf = Annotation('jcast/tests/data/Homo_sapiens.GRCh38.89.chromosome.15.gtf')
+        genome = ReadGenome(genome_loc)
+
+        gtf = Annotation(gtf_loc)
         gtf.read_gtf()
 
-        rmats_results = RmatsResults('jcast/tests/data/rmats/')
+        rmats_results = RmatsResults(rmats_loc)
         rma = rmats_results.__getattribute__('rmats_mxe')
 
         pass
@@ -75,7 +81,6 @@ class GenomeTest(unittest.TestCase):
         sequence = Sequence(junction, directory_to_write=tempfile.tempdir)
         sequence.make_slice_localgenome(genome.genome)
         sequence.translate(use_phase=True)
-
 
 
         server = 'https://www.ebi.ac.uk'
