@@ -6,7 +6,7 @@ JCAST (Junction Centric Alternative Splicing Translator) takes in alternative sp
 
 #### Requirements
 
-Install Python 3.6+ and pip. See instructions on Python website for specific instructions for your operating system.
+Install Python 3.7+ and pip. See instructions on Python website for specific instructions for your operating system.
 
 Jcast can be installed from PyPI via pip. We recommend using a virtual environment.
 
@@ -83,9 +83,9 @@ Run the JCAST Python program specifying the directory of the rMATS output as wel
 JCAST outputs FASTA databases which can be further filtered and combined using any scripting languages, or can be used directly for database search
 in virtually any shotgun proteomics database search engines (e.g., SEQUEST, Crux/Tide, MS-GF+)
     
-### Prerequisites
+### Dependencies
 
-JCAST is tested in Python 3.6, 3.7, and 3.8 and requires the following packages:
+JCAST is tested in Python 3.7 and 3.8 and uses the following packages:
 
 ```
 biopython>=1.77
