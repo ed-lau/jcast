@@ -19,7 +19,7 @@ import sqlite3 as sq
 
 from jcast import helpers as h
 
-
+# TODO: Sequence should really inherit directly from junction
 class Sequence(object):
 
     def __init__(self, junction, directory_to_write):
