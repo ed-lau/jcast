@@ -304,8 +304,7 @@ def psqM(args):
                 #
 
                 if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
-                    sequence.extend_and_write(#species=species,
-                                              output=directory_to_write,
+                    sequence.extend_and_write(output=directory_to_write,
                                               suffix='T3',
                                               merge_length=10)
 
@@ -316,7 +315,8 @@ def psqM(args):
 
             #
             # If sequence is still not good, do Tier 4: One of the two slices hits stop codon.
-            # (select one that is longest)
+            # (select one that is longest and translate if prior to the stop codon the short
+            # slice is at least half as long as the long slice)
             # TODO: Determine likely translated frame, or keep frame based on PTC location from protein end
             #
 
@@ -328,7 +328,8 @@ def psqM(args):
 
                 sequence.translate_forced(slice_to_translate=2)
 
-                if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
+                if len(sequence.slice2_aa)/len(sequence.slice1_aa) >= 0.5:
+
                     sequence.extend_and_write(output=directory_to_write,
                                               suffix='T4',
                                               merge_length=10)
@@ -341,7 +342,7 @@ def psqM(args):
 
                 sequence.translate_forced(slice_to_translate=1)
 
-                if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
+                if len(sequence.slice1_aa)/len(sequence.slice2_aa) >= 0.5:
                     sequence.extend_and_write(output=directory_to_write,
                                               suffix='T4',
                                               merge_length=10)
@@ -352,8 +353,19 @@ def psqM(args):
             #
             # If nothing works, write FAILURE fate
             #
-            elif len(sequence.slice1_aa) == 0 and len(sequence.slice2_aa) == 0:
-                main_log.info('FAILURE 6.  No translation was done. At least one PTC at each frame.\n\n')
+            else:
+                #
+                # Salvage the canonical sequence in the long slice if it matches Sp exactly.
+                # Note that this means if we identify a gene in RNA-seq, we will append the canonical
+                # Sp to the gene_canonical output even if none of the transcript slices are stitchable
+                # back to the canonical protein. This is to avoid not having any protein level representation
+                # of a gene potentially in the proteome.
+                #
+                if args.canonical:
+                    sequence.extend_and_write(output=directory_to_write,
+                                              merge_length=10,
+                                              canonical_only=True)
+                main_log.info('FAILURE 6.  No alternative translation. \n\n')
 
     return True
 
@@ -381,6 +393,11 @@ def main():
                         , help='minimum read counts to consider [default: 1]',
                         default=1,
                         type=int)
+
+    parser.add_argument('-c', '--canonical', help='write out canonical protein sequence even if none of the transcript'
+                                   'slices are translatable [default: True]',
+                        default=True,
+                        type=bool)
 
     parser.add_argument('-p', '--pvalue'
                         , help='discard junctions with rMATS pvalue below this threshold [default: 0.01]',

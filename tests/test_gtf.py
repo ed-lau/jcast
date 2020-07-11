@@ -72,6 +72,10 @@ class AnnotationTest(unittest.TestCase):
         tx0 = gtf0_start.iloc[0]
         self.assertGreater(tx0, 0)
 
+        # Get anchor frame
+        gtf0 = human_gtf.annot.query('gene_id == "ENSG00000259490"').query('start == "19987656"'). \
+            query('end == "19987968"').query('feature == "CDS"')
+
         pass
 
     def test_rat_tss(self):

@@ -253,10 +253,11 @@ class Sequence(object):
 
     # To do this needs to be redone
     def extend_and_write(self,
-                         # species,
                          output='out',
                          suffix='T0',
-                         merge_length=10):
+                         merge_length=10,
+                         canonical_only=False,
+                         ):
         """
         Given a translated junction sequence, look for the fasta entry that overlaps with it, then return the entry
         and the coordinates. This will be used to extend said junction sequence to encompass  entire protein sequence.
@@ -406,6 +407,12 @@ class Sequence(object):
         merge_start2 = record.seq.find(self.slice2_aa[:merge_length])
         merge_end2 = record.seq.find(self.slice2_aa[-merge_length:])
 
+        # If meant to salvage canonical only, write the record to the gene_canonical file and exit.
+        if canonical_only:
+            canonical = record[:]
+            h.write_seqrecord_to_fasta(canonical, output, 'gene_canonical')
+            return True
+
         # Only proceed to write file if we can bridge the first and last 10 amino acids of either
         # Slice 1 or slice 2 to the sequence.
 
@@ -462,7 +469,7 @@ class Sequence(object):
             # If not, then change name of canonical to reflect that it is also slice 2.
             else:
                 canonical.id = record2.id
-                h.write_seqrecord_to_fasta(canonical, output, suffix)
+                h.write_seqrecord_to_fasta(canonical, output, 'canonical')
 
             #print(record.id)
             #print(record.seq[:merge_start1] + self.slice1_aa + record.seq[merge_end1 + merge_length:])

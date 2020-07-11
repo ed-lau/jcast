@@ -55,7 +55,7 @@ class Junction(object):
         splice junction sequences extend BEYOND the translation starts and ends, trim them to avoid running into stop
         codons.
 
-        :param gtf: The annotation file
+        :param gtf: Genome annotation
         :return: True
         """
         # Subset the gtf file
@@ -103,7 +103,7 @@ class Junction(object):
     def get_translated_phase(self, gtf):
         """
         Get the annotated translation phase from the GTF file
-        :param gtf:
+        :param gtf:  genome annotation
         :return:
         """
 
@@ -114,36 +114,32 @@ class Junction(object):
         # 2018-03-24: First define the exon we are looking for.
         if self.junction_type in ['MXE', 'SE', 'RI']:
             if self.strand == '+':
-                ph0 = self.anc_es
-                ph1 = self.anc_ee
-            if self.strand == '-':
-                ph0 = self.down_es
-                ph1 = self.down_ee
+                ph0, ph1 = self.anc_es, self.anc_ee
+            elif self.strand == '-':
+                ph0, ph1 = self.down_es, self.down_ee
 
         elif self.junction_type == 'A5SS':
             if self.strand == '+':
-                ph0 = self.alt1_ee
-                ph1 = self.alt1_es  # Might have to search also for alt2
-            if self.strand == '-':
-                ph0 = self.anc_es
-                ph1 = self.anc_ee
+                ph0, ph1 = self.alt1_ee, self.alt1_es  # Might have to search also for alt2
+            elif self.strand == '-':
+                ph0, ph1 = self.anc_es, self.anc_ee
 
         elif self.junction_type == 'A3SS':
             if self.strand == '+':
-                ph0 = self.anc_ee
-                ph1 = self.anc_es  # Might have to search also for alt2
-            if self.strand == '-':
-                ph0 = self.alt1_es
-                ph1 = self.alt2_ee
+                ph0, ph1 = self.anc_ee, self.anc_es  # Might have to search also for alt2
+            elif self.strand == '-':
+                ph0, ph1 = self.alt1_es, self.alt2_ee
+
+        self.logger.info('Anchor start {0} end {1}'.format(ph0,
+                                                           ph1))
 
         # Get the frame of that coding exon from GTF.
         gtf0 = gtf.annot.query('gene_id == @self.gene_id').query('start == @ph0').\
             query('end == @ph1').query('feature == "CDS"')
 
+        # If phases retrieved, get the first value
         if len(gtf0) > 0:
-            self.phase = gtf0.loc[:, 'frame'].iloc[0]
-            if self.phase != '.':
-                self.phase = int(self.phase)
+            self.phase = int([x for x in gtf0.loc[:, 'frame'].iloc if x != '.'][0])
 
         else:
             self.phase = -1
