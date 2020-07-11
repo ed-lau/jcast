@@ -182,8 +182,8 @@ def psqM(args):
             # Code for filtering by rMATS results
             #
 
-            # Discard this junction if the read count is below 10 in both splice junctions.
-            # Maybe should change this to discard everything with read counts below 10 on EITHER junction
+            # Discard this junction if the read count is below threshold in both splice junctions.
+            # Maybe should change this to discard everything with read counts below threshold on EITHER junction
             # This is intended to remove junctions that are very low in abundance.
 
             # If rMATS was run with one technical replicate, the count field is an int, otherwise it is a list
@@ -411,19 +411,12 @@ def main():
     parser = argparse.ArgumentParser(description='Jcast retrieves splice junction information'
                                                  'and translates into amino acid')
 
-    # Create a "translate_rmats" subparser and house its specific arguments
-    # parser.add_argument('species', help='species (mouse or human)',
-    #                    choices=['mouse', 'human'],
-    #                    default='human')
-
     parser.add_argument('rmats_folder', help='path to folder storing rMATS output')
     parser.add_argument('gtf_file', help='path to ENSEMBL GTF file')
     parser.add_argument('genome', help='path to Genome file')
 
     parser.add_argument('-o', '--out', help='name of the output files [default: psq_out]',
-                        default='psq_out')
-
-    # parser.add_argument('-r', '--resume', action='store_true', help='attempt to resume interrupted runs')
+                        default='out')
 
     parser.add_argument('-r', '--read'
                         , help='minimum read counts to consider [default: 1]',

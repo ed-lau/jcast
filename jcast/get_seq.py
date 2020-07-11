@@ -343,6 +343,10 @@ class Sequence(object):
 
         self.logger.info(cache)
 
+        # Create cache folder if not exists
+        if not os.path.exists('cache'):
+            os.makedirs('cache')
+
         con = sq.connect(os.path.join('cache', 'uniprot-cache.db'))
         cur = con.cursor()
         cur.execute('''CREATE TABLE IF NOT EXISTS sequences(pk INTEGER PRIMARY KEY, id TEXT, seq TEXT)''')
@@ -366,7 +370,7 @@ class Sequence(object):
             ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
 
             self.logger.info(server + ext)
-            retries = Retry(total=10,
+            retries = Retry(total=15,
                             backoff_factor=0.1,
                             status_forcelist=[500, 502, 503, 504])
 
@@ -378,7 +382,7 @@ class Sequence(object):
                 self.logger.warning("Network still not okay after 10 retries. Skipped protein.")
                 return True
 
-            if ret.status_code == 200 and ret.text!='':
+            if ret.status_code == 200 and ret.text !='':
                 record = list(SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein))[0]
 
                 cur.execute('''INSERT INTO sequences(id, seq) VALUES(:id, :seq)''',
@@ -391,7 +395,7 @@ class Sequence(object):
                 self.logger.info('Retrieved empty fasta from Ensembl. Skipped protein.')
                 return True
 
-            elif ret.status_code != 200 :
+            elif ret.status_code != 200:
                 self.logger.warning('Retrieval of protein sequence failed. Skipped protein.')
                 return True
 
@@ -405,8 +409,6 @@ class Sequence(object):
         # Only proceed to write file if we can bridge the first and last 10 amino acids of either
         # Slice 1 or slice 2 to the sequence.
 
-        # Later on we should catch whether the first 10 aa is matched to multiple entries if using
-        # the fallback protein fasta.
         if (merge_start1 != -1 and merge_end1 != -1) or (merge_start2 != -1 and merge_end2 != -1):
 
             # Write the UniProt canonical first
@@ -436,7 +438,7 @@ class Sequence(object):
             # If not, then change name of canonical to reflect that it is also slice 1.
             else:
                 canonical.id = record1.id
-                h.write_seqrecord_to_fasta(canonical, output, suffix)
+                h.write_seqrecord_to_fasta(canonical, output, 'canonical')
 
             # Format the name of the slice 2 record
             if merge_start2 != -1 and merge_end2 != -1:
