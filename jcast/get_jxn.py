@@ -61,6 +61,7 @@ class Junction(object):
         #
         # 	Get the translation start and end positions
         #
+        # TODO: Make a bypass for the transcript support level in non-human/mouse Ensembl gtfs
         gtf0_start = gtf0.query('feature == "start_codon"').sort_values(['transcript_support_level']).sort_values(['ccds_id']).loc[:, 'start']
         if len(gtf0_start) > 0:
             self.tx0 = gtf0_start.iloc[0]
