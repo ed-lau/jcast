@@ -85,7 +85,6 @@ class AnnotationTest(unittest.TestCase):
 
         gtf0_start = gtf0.query('feature == "start_codon"').loc[:, 'start']
         self.assertGreater(len(gtf0_start), 0)
-        tx0 = gtf0_start.iloc[0]
 
         # Translation start site
         tx0 = gtf0_start.iloc[0]

@@ -281,7 +281,7 @@ def psqM(args):
             #     sequence.write_fate(fate=fate_code, output=out_file)
             #     continue
 
-            # I think there should be a check here to see if there is a frameshift.
+            # Check for frameshift.
             # See if slice 1 nucleotides are different in length from slice 2 nucleotide by
             # multiples of 3, which probably denotes frame shift (unless there are loose amino acids near the end)?
             if (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 != 0:
@@ -317,7 +317,7 @@ def psqM(args):
                     continue
 
                 #
-                # Tier 2: both translated without stop codon, but with frameshift
+                # Tier 2: both translated without stop codon, but with one frameshift
                 #
                 elif sequence.frameshift:
                     sequence.extend_and_write(#species=species,
@@ -331,9 +331,8 @@ def psqM(args):
                     continue
 
             #
-            # Tier 3 - retrieved phase is wrong.
+            # Tier 3 - retrieved phase is different from PTC-free frame.
             #
-
             else:
                 sequence.translate(use_phase=False)
 
@@ -354,35 +353,33 @@ def psqM(args):
 
             #
             # If sequence is still not good, do Tier 4: One of the two slices hits stop codon.
-            # (select one that is longest, use semi-supervised learning later).
+            # (select one that is longest)
+            # TODO: Determine likely translated frame, or keep frame based on PTC location from protein end
             #
 
             # Translate again after Tier 3 to reset to Tier 1/2 translation state
             sequence.translate(use_phase=True)
 
-            # Do this if slice 2 hits PTC:
+            # Force-translate slice 2 if slice 2 hits PTC:
             if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) == 0:
 
                 sequence.translate_forced(slice_to_translate=2)
 
                 if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
-                    sequence.extend_and_write(#species=species,
-                                              output=directory_to_write,
+                    sequence.extend_and_write(output=directory_to_write,
                                               suffix='T4',
                                               merge_length=10)
 
                     main_log.info('PARTIAL 4.  Slice 2 hit a stop codon. Used longest phase.\n\n')
                     continue
 
-            # Do this if slice 1 hits PTC:
+            # Force-translate slice 1 if slice 1 hits PTC:
             elif len(sequence.slice2_aa) > 0 and len(sequence.slice1_aa) == 0:
-
 
                 sequence.translate_forced(slice_to_translate=1)
 
                 if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
-                    sequence.extend_and_write(#species=species,
-                                              output=directory_to_write,
+                    sequence.extend_and_write(output=directory_to_write,
                                               suffix='T4',
                                               merge_length=10)
 
@@ -392,7 +389,6 @@ def psqM(args):
             #
             # If nothing works, write FAILURE fate
             #
-
             elif len(sequence.slice1_aa) == 0 and len(sequence.slice2_aa) == 0:
                 main_log.info('FAILURE 6.  No translation was done. At least one PTC at each frame.\n\n')
 
