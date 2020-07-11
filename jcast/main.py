@@ -95,14 +95,8 @@ def psqM(args):
     main_log.info(__version__)
 
     #
-    # Read arguments from ArgParser
-    #
-    # species = args.species
-
-    #
     # Open the rMATS output file (MXE) here, rename the columns
     #
-
     assert os.path.exists(os.path.join(args.rmats_folder, 'MXE.MATS.JC.txt')), 'rMATS files not found, check directory.'
     rmats_results = RmatsResults(rmats_dir=args.rmats_folder)
 
@@ -118,24 +112,9 @@ def psqM(args):
     #
     genome = ReadGenome(args.genome)
 
-    # For the decommissioned resume hack
-    #
-    # list_of_done_junctions = []
-    # try:
-    #     rf = os.path.join('out', out_file + '_' + 'fate' + '.txt')
-    #     import csv
-    #     existing_fate_text = csv.reader(open(rf, 'r'), delimiter='\t')
-    #
-    #     for row in existing_fate_text:
-    #         list_of_done_junctions.append(row[0] + '_' + row[1])
-    #
-    # except FileNotFoundError:
-    #    print('No existing partial fate file found.')
-
     #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
     #
-
     for rma in [rmats_results.rmats_mxe,
                 rmats_results.rmats_se,
                 rmats_results.rmats_ri,
@@ -145,8 +124,6 @@ def psqM(args):
 
         for i in tqdm.tqdm(range(len(rma)),
                            desc='Processing {0} Junctions'.format(rma.jxn_type[0])):
-
-            # To access with pandas, rma.ix[:,'sjc_s1'], etc., rma.ix[i]
 
             junction = Junction(id=rma.id[i],
                                 gene_id=rma.gene_id[i],
@@ -162,18 +139,7 @@ def psqM(args):
                                 down_es=rma.down_es[i],
                                 down_ee=rma.down_ee[i],
                                 junction_type=rma.jxn_type[i],
-                                #species=species,
-
                                 )
-
-            #
-            # Code for checking and executing whether to resume run
-            #
-            # if (str(rma.jxn_type[i]) + '_' + str(rma.id[i]) in list_of_done_junctions) and args.resume:
-            #     print('resume 1: skipping existing junction' + rmats_result + str(i) + '.')
-            #     continue
-            # else:
-            #     print('Analyzing ' + rmats_result + str(i) + ' of ' + str(len(rma)))
 
             main_log.info('>>>>>> Now doing junction {0} for gene {1}'.format(junction.name,
                                                                               junction.gene_symbol))
@@ -203,12 +169,13 @@ def psqM(args):
             except ValueError:
                 mean_count_sample1 = 0
                 mean_count_sample2 = 0
-
                 main_log.info('SKIPPED. Discarding sequence since unable to find read counts. \n\n')
 
             junction.set_min_read_count(min([mean_count_sample1, mean_count_sample2]))
 
+            #
             # Filter by minimal read counts
+            #
             if mean_count_sample1 < args.read or mean_count_sample2 < args.read:
                 main_log.info('SKIPPED. Sequence discarded due to low coverage. \n\n')
                 continue
@@ -217,8 +184,6 @@ def psqM(args):
             # This is intended to remove junctions that aren't found on both replicates.
             # This might not be a good idea, however.
             if rma.fdr[i] < args.pvalue:
-                # Initiate a dummy sequence just to write to the fate file
-                # We probably want a better solution for this (decorator?)
                 main_log.info('SKIPPED. Sequence discarded due to difference across replicates. \n\n')
 
             #

@@ -2,6 +2,7 @@
 
 """ Methods that concern splice junctions - getting their coordinates, transcription starts/ends, phases. """
 
+import logging
 
 class Junction(object):
     """
@@ -30,6 +31,8 @@ class Junction(object):
         self.tx0 = -1
         self.phase = -1
         self.min_read_count = 0
+
+        self.logger = logging.getLogger('jcast.junction')
 
     def __str__(self):
         return 'Splice junction object: ' + self.gene_id + ' ' \
@@ -61,10 +64,10 @@ class Junction(object):
         #
         # 	Get the translation start and end positions
         #
-        # TODO: Make a bypass for the transcript support level in non-human/mouse Ensembl gtfs
         try:
             gtf0_start = gtf0.query('feature == "start_codon"').sort_values(['transcript_support_level']).sort_values(['ccds_id']).loc[:, 'start']
 
+        # Bypass transcript support level in non-human/mouse Ensembl gtfs
         except KeyError:
             gtf0_start = gtf0.query('feature == "start_codon"').loc[:, 'start']
 
@@ -73,7 +76,13 @@ class Junction(object):
         else:
             self.tx0 = -1
 
-        gtf0_end = gtf0.query('feature == "stop_codon"').sort_values(['transcript_support_level']).loc[:, 'start']
+        try:
+            gtf0_end = gtf0.query('feature == "stop_codon"').sort_values(['transcript_support_level']).loc[:, 'start']
+
+        # Bypass transcript support level in non-human/mouse Ensembl gtfs
+        except KeyError:
+            gtf0_end = gtf0.query('feature == "stop_codon"').loc[:, 'start']
+
         if len(gtf0_end) > 0:
             self.tx1 = gtf0_end.iloc[0]
         else:
@@ -86,10 +95,8 @@ class Junction(object):
         if self.strand == '-' and self.tx1 > 0 and self.tx0 > 0:
             self.tx1 += 2
             self.tx0 += 2
-            temp = self.tx1
-            self.tx1 = self.tx0
-            self.tx0 = temp
-
+            # Swap transcript start and end
+            self.tx0, self.tx1 = self.tx1, self.tx0
 
         return True
 
@@ -116,7 +123,7 @@ class Junction(object):
         elif self.junction_type == 'A5SS':
             if self.strand == '+':
                 ph0 = self.alt1_ee
-                ph1 = self.alt1_es # Might have to search also for alt2
+                ph1 = self.alt1_es  # Might have to search also for alt2
             if self.strand == '-':
                 ph0 = self.anc_es
                 ph1 = self.anc_ee
@@ -134,12 +141,9 @@ class Junction(object):
             query('end == @ph1').query('feature == "CDS"')
 
         if len(gtf0) > 0:
-
             self.phase = gtf0.loc[:, 'frame'].iloc[0]
-            # print(self.phase)
             if self.phase != '.':
                 self.phase = int(self.phase)
-                #print('Retrieved phase: ' + str(self.phase))
 
         else:
             self.phase = -1
@@ -168,7 +172,7 @@ class Junction(object):
                     self.anc_ee = -1
                     self.alt2_es = self.tx0
             except:
-                print('Trimming start failed.')
+                self.logger.info('Trimming start failed.')
 
             try:
                 if self.down_ee > self.tx1 > self.down_es:
@@ -184,7 +188,7 @@ class Junction(object):
                     self.down_ee = -1
                     self.alt2_ee = self.tx1
             except:
-                print('Trimming end failed.')
+                self.logger.info('Trimming end failed.')
 
         elif self.junction_type == 'SE':
             try:
@@ -197,7 +201,7 @@ class Junction(object):
                     self.alt1_es = self.tx0
 
             except:
-                print('Trimming start failed.')
+                self.logger.info('Trimming start failed.')
 
             try:
                 if self.down_ee > self.tx1 > self.down_es:
@@ -209,7 +213,7 @@ class Junction(object):
                     self.alt1_ee = self.tx1
 
             except:
-                print('Trimming end failed.')
+                self.logger.info('Trimming end failed.')
 
         elif self.junction_type == 'RI':
             try:
@@ -217,15 +221,14 @@ class Junction(object):
                     self.anc_es = self.tx0
 
             except:
-                print('Trimming start failed.')
+                self.logger.info('Trimming start failed.')
 
             try:
                 if self.down_ee > self.tx1 > self.down_es:
                     self.down_ee = self.tx1
 
             except:
-                print('Trimming end failed.')
-
+                self.logger.info('Trimming end failed.')
 
         elif self.junction_type == 'A5SS':
             try:
@@ -236,14 +239,14 @@ class Junction(object):
                     self.alt1_es = self.tx0
 
             except:
-                print('Trimming start failed.')
+                self.logger.info('Trimming start failed.')
 
             try:
                 if self.anc_ee > self.tx1 > self.anc_es:
                     self.anc_ee = self.tx1
 
             except:
-                print('Trimming end failed.')
+                self.logger.info('Trimming end failed.')
 
 
         elif self.junction_type == 'A3SS':
@@ -252,7 +255,7 @@ class Junction(object):
                     self.anc_es = self.tx0
 
             except:
-                print('Trimming start failed.')
+                self.logger.info('Trimming start failed.')
 
             try:
                 if self.alt1_ee > self.tx1 > self.alt1_es:
@@ -262,6 +265,6 @@ class Junction(object):
                     self.alt2_ee = self.tx1
 
             except:
-                print('Trimming end failed.')
+                self.logger.info('Trimming end failed.')
 
         return True
