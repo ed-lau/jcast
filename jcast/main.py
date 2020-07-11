@@ -176,7 +176,7 @@ def psqM(args):
             #     print('Analyzing ' + rmats_result + str(i) + ' of ' + str(len(rma)))
 
             main_log.info('>>>>>> Now doing junction {0} for gene {1}'.format(junction.name,
-                                                                            junction.gene_symbol))
+                                                                              junction.gene_symbol))
 
             #
             # Code for filtering by rMATS results
@@ -225,7 +225,8 @@ def psqM(args):
             # Subset the gtf file by the current gene_id
             #
             junction.get_translated_region(gtf)
-            main_log.info('Anchor exon start: ' + str(junction.anc_es) + ' Anchor exon end: ' + str(junction.anc_ee))
+            main_log.info('Anchor exon start: {0} Anchor exon end: {1}'.format(junction.anc_es,
+                                                                               junction.anc_ee))
 
             #
             # Get translation phase from GTF file.
@@ -233,8 +234,9 @@ def psqM(args):
             # To do: look more closely into GTF file, or try translating from all frames
             #
             junction.get_translated_phase(gtf)
-            main_log.info('Transcription start: ' + str(junction.tx0) + ' Transcription end:' + str(junction.tx1))
-            main_log.info('Retrieved phase: ' + str(junction.phase))
+            main_log.info('Transcription start: {0} Transcript end: {1}'.format(junction.tx0,
+                                                                                junction.tx1))
+            main_log.info('Retrieved phase: {0}'.format(junction.phase))
             #
             # Trim slice coordinates by translation starts and ends
             #
@@ -243,9 +245,7 @@ def psqM(args):
             #
             # Initiate a sequence object that copies most of the junction information
             #
-            sequence = Sequence(junction,
-                                directory_to_write=directory_to_write,
-                                )
+            sequence = Sequence(junction)
 
             #
             # Get nucleotide sequences of all slices using genome in memory
@@ -277,11 +277,9 @@ def psqM(args):
             #                                           suffix='6F',
             #                                           merge_length=10)
             #
-            #     fate_code = 7
-            #     sequence.write_fate(fate=fate_code, output=out_file)
             #     continue
 
-            # Check for frameshift.
+            # Check for frame-shift.
             # See if slice 1 nucleotides are different in length from slice 2 nucleotide by
             # multiples of 3, which probably denotes frame shift (unless there are loose amino acids near the end)?
             if (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 != 0:

@@ -22,7 +22,7 @@ from jcast import helpers as h
 # TODO: Sequence should really inherit directly from junction
 class Sequence(object):
 
-    def __init__(self, junction, directory_to_write):
+    def __init__(self, junction):
         """
         :type junction: object
         :param junction: The splice junction object
@@ -65,7 +65,7 @@ class Sequence(object):
     def __str__(self):
         return 'Sequence object: ' + self.gene_id + ' ' + self.gene_symbol + ' ' + self.name
 
-    # To do: redo this as @ property
+    # TODO: make this a property
     def set_frameshift_to_true(self):
         """
         A setter to mark that there is a frameshift; used to determine whether the slice should be tier 1 or tier 2
