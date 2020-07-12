@@ -17,9 +17,9 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util import Retry
 
-from jcast.get_jxn import Junction
+from jcast.junctions import Junction
 from jcast.get_gtf import ReadAnnotations
-from jcast.get_seq import Sequence
+from jcast.sequences import Sequence
 from jcast.get_rma import RmatsResults
 from jcast.read_fa import ReadGenome
 
