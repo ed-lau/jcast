@@ -12,8 +12,11 @@ from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC, DNAAlphabet
 
-
-def get_local_nuc(genome_index, chromosome, es, ee):
+def get_local_nuc(genome_index,
+                  chromosome,
+                  es,
+                  ee,
+                  ):
     """
 
     :param genome_index: genome index
@@ -151,7 +154,11 @@ def get_complementary(nt):
     return comp
 
 
-def make_pep(nt, strand, phase, terminate=True):
+def make_pep(nt,
+             strand,
+             phase,
+             terminate=True,
+             ):
     """
 
     :param nt: Nucleotide sequence
@@ -221,13 +228,10 @@ def make_pep(nt, strand, phase, terminate=True):
     #
     # Get the starting position to translate, based on the phase. Will have to check this carefully.
     #
-    pos0 = phase # (3 - phase) % 3
-
-    #print('Translating on the ' + strand + ' strand with phase ' + str(phase))
+    pos0 = phase  # (3 - phase) % 3
 
     pep = ''
 
-    has_ptc = False
     #
     # After finding the phase, loop through every 3 nucleotides from the start
     # then use the dictionary to find the amino acid sequence.
@@ -237,8 +241,6 @@ def make_pep(nt, strand, phase, terminate=True):
         aa = code[nt[i:i + 3]]
 
         if aa == 'X':
-            #print('Stop codon encountered')
-            has_ptc = True
 
             # If the terminate flag is set to true, return an empty sequence
             if terminate:
@@ -250,11 +252,13 @@ def make_pep(nt, strand, phase, terminate=True):
 
         pep += aa
 
-    return pep #[pep, has_ptc] 2018-09-08 not sure why this returns a list. Forgot what I wanted to do
+    return pep  #[pep, has_ptc] 2018-09-08 not sure why this returns a list. Forgot what I wanted to do
 
 
-
-def write_seqrecord_to_fasta(seqrecord, output, suffix):
+def write_seqrecord_to_fasta(seqrecord,
+                             output,
+                             suffix,
+                             ):
     """
     Write Biopython SeqRecord to the fasta file after checking whether the SeqRecord is already inside the file.
 
@@ -278,8 +282,6 @@ def write_seqrecord_to_fasta(seqrecord, output, suffix):
     # Test if the slice is already in the fasta, then do not write the new sequence into the fasta file.
     for read_record in existing_records:
         if read_record.seq == seqrecord.seq:
-            #print(seqrecord.seq)
-            #print("Already in fasta file - we will consider modifying the fasta entry name later on to reflect this")
             return True
 
     output_handle = open(o, 'a')
