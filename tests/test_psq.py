@@ -60,7 +60,7 @@ class GenomeTest(unittest.TestCase):
 
     def test_that_genome_loads(self):
 
-        i = 71 # PKM
+        i = 71  # PKM
 
         junction = Junction(id=rma.id[i], \
                             gene_id=rma.gene_id[i], \
@@ -82,11 +82,9 @@ class GenomeTest(unittest.TestCase):
         junction.get_translated_phase(gtf)
         junction.trim()
 
-
-        sequence = Sequence(junction, directory_to_write=tempfile.tempdir)
+        sequence = Sequence(junction)
         sequence.make_slice_localgenome(genome.genome)
         sequence.translate(use_phase=True)
-
 
         server = 'https://www.ebi.ac.uk'
         ext = '/proteins/api/proteins/Ensembl:' + sequence.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
@@ -136,7 +134,29 @@ class GenomeTest(unittest.TestCase):
         elif merge_start2 == -1 and merge_end2 == -1:
             record2 = sequence.slice2_aa
 
-        print(record1.seq)
-        print(record2.seq)
+        #print(record1.seq)
+        #print(record2.seq)
 
-        return True
+        # Compare with Uniprot retrieved sequences
+        retrieved_pkm2 = ('MSKPHSEAGTAFIQTQQLHAAMADTFLEHMCRLDIDSPPITARNTGIICTIGPASRSVET'
+                          'LKEMIKSGMNVARLNFSHGTHEYHAETIKNVRTATESFASDPILYRPVAVALDTKGPEIR'
+                          'TGLIKGSGTAEVELKKGATLKITLDNAYMEKCDENILWLDYKNICKVVEVGSKIYVDDGL'
+                          'ISLQVKQKGADFLVTEVENGGSLGSKKGVNLPGAAVDLPAVSEKDIQDLKFGVEQDVDMV'
+                          'FASFIRKASDVHEVRKVLGEKGKNIKIISKIENHEGVRRFDEILEASDGIMVARGDLGIE'
+                          'IPAEKVFLAQKMMIGRCNRAGKPVICATQMLESMIKKPRPTRAEGSDVANAVLDGADCIM'
+                          'LSGETAKGDYPLEAVRMQHLIAREAEAAIYHLQLFEELRRLAPITSDPTEATAVGAVEAS'
+                          'FKCCSGAIIVLTKSGRSAHQVARYRPRAPIIAVTRNPQTARQAHLYRGIFPVLCKDPVQE'
+                          'AWAEDVDLRVNFAMNVGKARGFFKKGDVVIVLTGWRPGSGFTNTMRVVPVP')
+
+        retrieved_pkm1 = ('MSKPHSEAGTAFIQTQQLHAAMADTFLEHMCRLDIDSPPITARNTGIICTIGPASRSVET'
+                          'LKEMIKSGMNVARLNFSHGTHEYHAETIKNVRTATESFASDPILYRPVAVALDTKGPEIR'
+                          'TGLIKGSGTAEVELKKGATLKITLDNAYMEKCDENILWLDYKNICKVVEVGSKIYVDDGL'
+                          'ISLQVKQKGADFLVTEVENGGSLGSKKGVNLPGAAVDLPAVSEKDIQDLKFGVEQDVDMV'
+                          'FASFIRKASDVHEVRKVLGEKGKNIKIISKIENHEGVRRFDEILEASDGIMVARGDLGIE'
+                          'IPAEKVFLAQKMMIGRCNRAGKPVICATQMLESMIKKPRPTRAEGSDVANAVLDGADCIM'
+                          'LSGETAKGDYPLEAVRMQHLIAREAEAAMFHRKLFEELVRASSHSTDLMEAMAMGSVEAS'
+                          'YKCLAAALIVLTESGRSAHQVARYRPRAPIIAVTRNPQTARQAHLYRGIFPVLCKDPVQE'
+                          'AWAEDVDLRVNFAMNVGKARGFFKKGDVVIVLTGWRPGSGFTNTMRVVPVP')
+
+        self.assertEqual(record1.seq, retrieved_pkm2)
+        self.assertEqual(record2.seq, retrieved_pkm1)

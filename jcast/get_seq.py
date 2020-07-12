@@ -510,6 +510,4 @@ class Sequence(object):
         h.write_seqrecord_to_fasta(orphan_slice1, output, (suffix + '_orphan'))
         h.write_seqrecord_to_fasta(orphan_slice2, output, (suffix + '_orphan'))
 
-
         return True
-

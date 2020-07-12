@@ -2,15 +2,14 @@
 
 """ Helper functions that translate nucleotides to amino acids, etc. """
 
-import requests as rq
-import sqlite3 as sq
 import os.path
+import sqlite3 as sq
 
-from Bio import Seq
+import requests as rq
+from Bio import Seq, SeqIO
 from Bio.Seq import Seq
-from Bio import SeqIO
-from Bio.SeqRecord import SeqRecord
 from Bio.Alphabet import IUPAC, DNAAlphabet
+
 
 def get_local_nuc(genome_index,
                   chromosome,
@@ -25,9 +24,6 @@ def get_local_nuc(genome_index,
     :param ee: exon end
     :return: sequence
 
-    >>> idx = SeqIO.index("/Volumes/Gingko_Data/Data/Exosome_smRNAseq/ReferenceGenomes/Homo_sapiens.GRCh38.dna.primary_assembly.fa", 'fasta')
-    >>> len(get_local_nuc(idx, "chr17", 44091700, 44091831))
-    132
     """
 
     # Skip empty exons
@@ -36,7 +32,7 @@ def get_local_nuc(genome_index,
         return Seq('', DNAAlphabet())
 
     # Get numeric portion of chromosome
-    chromosome = chromosome[3:]
+    chromosome = chromosome[3:]  # skip 'chr'
 
     return genome_index[chromosome][es-1:ee]
 
@@ -148,17 +144,17 @@ def get_complementary(nt):
     for n in nt:
         try:
             comp += bp[n]
-        except:
+        except KeyError:
             comp += 'X'
 
     return comp
 
 
-def make_pep(nt,
-             strand,
-             phase,
-             terminate=True,
-             ):
+def make_pep(nt: str,
+             strand: str,
+             phase: int,
+             terminate: bool = True,
+             ) -> str:
     """
 
     :param nt: Nucleotide sequence
@@ -171,37 +167,28 @@ def make_pep(nt,
     Function to translate a nucleotide sequence into peptide,
     taking into account the nucleotide sequence, strand, and phase.
 
-    At the moment this will stop when you run into a stop codon (X)!
-    To-do: create a variant where the sequence till before the stop codon is returned.
+    If terminate flag is True (default), return empty string is there is a stop codon.
+    Otherwise return peptides up till codon.
 
         >>> rna_sequence = 'CTTAAATCCAGCCACTGCTCCAGACTGCAAATCGGATTCAATATTTCCTGGAT\\
         CCAGGTAGGCAATGCTCATAAGAAAACCTGGTCCGGTGAAAGCCCAGAGTTTACGAAAGCTAAAACAAGAGT\\
         ACTCCTCCTCAGGAATGGAGATCTTCTCATTAAAGTAAGTGGCGAAGTACTCCTCTGAGTCCCCAGGGGACATCT\\
         GACATCTTCTGTTCAGGACCCAGCACCATGGTGGATACCTGAGTGGCTGAGTTCTTAGAATATGATT'
         >>> make_pep(rna_sequence, '+', 0, False)
-        Translating on the + strand with phase 0
-        Stop codon encountered
         'LKSSHCSRLQIGFNISWIQVGNAHKKTWSGESPEFTKAKTRVLLLRNGDLLIKVSGEVLL'
 
     Phase shifts the starting position according to Ensembl convention.
 
         >>> make_pep(rna_sequence, '+', 1, False)
-        Translating on the + strand with phase 1
-        Stop codon encountered
         'LNPATAPDCKSDSIFPGSR'
 
-
         >>> make_pep(rna_sequence, '+', 2, True)
-        Translating on the + strand with phase 2
-        Stop codon encountered
         ''
 
     If the phase of a sequence is on the negative strand, get
     the complementary sequence then translate
 
         >>> make_pep(rna_sequence, '-', 1, False)
-        Translating on the - strand with phase 1
-        Stop codon encountered
         'IIF'
 
     """
@@ -242,17 +229,21 @@ def make_pep(nt,
 
         if aa == 'X':
 
-            # If the terminate flag is set to true, return an empty sequence
+            # If the terminate flag is set to true and this is not the last codon, return an empty sequence
             if terminate:
-                pep = ''
-                
+
+                if (len(nt)-2) - i < 3:
+                    return pep
+                else:
+                    return ''
 
             # If terminate is set to false, return present sequence
-            break
+            else:
+                return pep
 
         pep += aa
 
-    return pep  #[pep, has_ptc] 2018-09-08 not sure why this returns a list. Forgot what I wanted to do
+    return pep
 
 
 def write_seqrecord_to_fasta(seqrecord,
