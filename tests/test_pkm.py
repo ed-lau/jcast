@@ -60,6 +60,7 @@ class GenomeTest(unittest.TestCase):
 
     def test_that_genome_loads(self):
 
+        # TODO: test negative strand and trimming
         i = 71  # PKM
 
         junction = Junction(id=rma.id[i], \
@@ -103,11 +104,14 @@ class GenomeTest(unittest.TestCase):
             ret.raise_for_status()
             sys.exit()
 
-        fasta_handle = SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein)
-
         merge_length = 10
-        for loop in fasta_handle:
-            record = loop[:]  # [:] needed to copy list rather than add new alias
+
+        with StringIO(ret.text) as fas:
+            parsed = SeqIO.parse(fas, 'fasta', IUPAC.extended_protein)
+            for loop in parsed:
+                record = loop[:]  # [:] needed to copy list rather than add new alias
+
+        ret.close()
 
         # Find out where the first (10) amino acids meets the UniProt canonical sequences..
         merge_start1 = record.seq.find(sequence.slice1_aa[:merge_length])

@@ -30,16 +30,14 @@ class ReadGenome(object):
         """
 
         if self.f_loc.endswith('.gz'):
-            f = gzip.open(self.f_loc, 'rt')
-            self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta', generic_dna))
-
-            self.logger.info('Read from zipped genome')
-            f.close()
+            with gzip.open(self.f_loc, 'rt') as f:
+                self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta', generic_dna))
+                self.logger.info('Read from zipped genome.')
 
         else:
-            self.genome = SeqIO.to_dict(SeqIO.parse(self.f_loc, 'fasta', generic_dna))
-
-            self.logger.info('Read from genome.')
+            with open(self.f_loc, 'rt') as f:
+                self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta', generic_dna))
+                self.logger.info('Read from genome.')
 
         return True
 

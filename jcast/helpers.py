@@ -26,13 +26,12 @@ def get_local_nuc(genome_index,
 
     """
 
-    # Skip empty exons
-    if es <= 0 or ee <= 0:
-        #print("Skipping empty exon.")
-        return Seq('', DNAAlphabet())
-
     # Get numeric portion of chromosome
     chromosome = chromosome[3:]  # skip 'chr'
+
+    # Skip empty exons
+    if es <= 0 or ee <= 0:
+        return genome_index[chromosome][0:0]  # 2020-07-21 return SeqRecord rather than Seq
 
     return genome_index[chromosome][es-1:ee]
 

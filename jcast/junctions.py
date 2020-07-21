@@ -34,7 +34,14 @@ class Junction(object):
 
         self.logger = logging.getLogger('jcast.junction')
 
+
+    def __repr__(self):
+        """ repr """
+        return 'Splice junction object: ' + self.gene_id + ' ' \
+               + self.junction_type + ' ' + self.gene_symbol + ' ' + self.name
+
     def __str__(self):
+        """ str """
         return 'Splice junction object: ' + self.gene_id + ' ' \
                + self.junction_type + ' ' + self.gene_symbol + ' ' + self.name
 
@@ -93,10 +100,12 @@ class Junction(object):
         # then the upstream is near the end of tx
         #
         if self.strand == '-' and self.tx1 > 0 and self.tx0 > 0:
-            self.tx1 += 2
-            self.tx0 += 2
-            # Swap transcript start and end
             self.tx0, self.tx1 = self.tx1, self.tx0
+            self.tx1 += 2
+
+        elif self.strand == '+':
+            self.tx1 += 2
+
 
         return True
 
