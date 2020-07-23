@@ -18,9 +18,8 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util import Retry
 
 from jcast.junctions import Junction, RmatsResults
-from jcast.annot import ReadAnnotations
+from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
-from jcast.read_fa import ReadGenome
 
 class GenomeTest(unittest.TestCase):
     """

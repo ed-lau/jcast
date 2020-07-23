@@ -7,7 +7,7 @@ import unittest
 import tempfile
 import sys
 import os
-from jcast.annot import ReadAnnotations
+from jcast.annots import ReadAnnotations
 
 
 class AnnotationTest(unittest.TestCase):
