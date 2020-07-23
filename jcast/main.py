@@ -5,15 +5,17 @@
 
 
 import os
-
 import datetime
 import logging
+import statistics
+from functools import partial
+import multiprocessing
+import concurrent.futures
 
 import tqdm
-import numpy as np
 
 from jcast.junctions import Junction
-from jcast.get_gtf import ReadAnnotations
+from jcast.annot import ReadAnnotations
 from jcast.sequences import Sequence
 from jcast.get_rma import RmatsResults
 from jcast.read_fa import ReadGenome
@@ -22,44 +24,11 @@ from jcast import __version__
 
 
 
-def psqM(args):
+def jcast(args):
     """
-    Main loop for JCast that controls logic flow.
+    main look for jcast flow.
 
-    Usage:
-    python -m jcast /path/to/rmats_folder/ path/to/gtf path/to/genome.fa  -o path/to/out -r 5
-
-
-    >>> gtf = ReadAnnotations('../data/gtf/Homo_sapiens.GRCh38.89.gtf')
-    >>> gtf.read_gtf()
-    True
-    >>> rmats_results = RmatsResults(rmats_dir='../data/encode_human_heart/')
-    >>> rma = rmats_results.__getattribute__('rmats_mxe')
-    >>> i = 1993
-    >>> junction = Junction(id=rma.id[i],\
-                                gene_id=rma.gene_id[i],\
-                                strand=rma.strand[i],\
-                                gene_symbol=rma.gene_symbol[i],\
-                                chr=rma.chr[i],\
-                                anc_es=rma.anc_es[i],\
-                                anc_ee=rma.anc_ee[i],\
-                                alt1_es=rma.alt1_es[i],\
-                                alt1_ee=rma.alt1_ee[i],\
-                                alt2_es=rma.alt2_es[i],\
-                                alt2_ee=rma.alt2_ee[i],\
-                                down_es=rma.down_es[i],\
-                                down_ee=rma.down_ee[i],\
-                                junction_type=rma.jxn_type[i],\
-                                species='human',)
-    >>> junction.get_translated_region(gtf)
-    Anchor exon start: 72200474 Anchor exon end: 72200655
-    Transcription start: 72199652 Transcription end:72219097
-    True
-    >>> junction.trim()
-    True
-
-
-    :param args:
+    :param args: parsed arguments
     :return:
     """
 
@@ -112,6 +81,10 @@ def psqM(args):
     #
     genome = ReadGenome(args.genome)
 
+    # number of threads for concurrency
+    # cap it at cpu count -1 for now
+    threads = min(args.num_threads, multiprocessing.cpu_count()-1)
+
     #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
     #
@@ -122,253 +95,263 @@ def psqM(args):
                 rmats_results.rmats_a3ss,
                 ]:
 
-        for i in tqdm.tqdm(range(len(rma)),
-                           desc='Processing {0} Junctions'.format(rma.jxn_type[0])):
+        junctions = [Junction(**rma.iloc[i].to_dict()) for i in range(len(rma))]
 
-            junction = Junction(id=rma.id[i],
-                                gene_id=rma.gene_id[i],
-                                strand=rma.strand[i],
-                                gene_symbol=rma.gene_symbol[i],
-                                chr=rma.chr[i],
-                                anc_es=rma.anc_es[i],
-                                anc_ee=rma.anc_ee[i],
-                                alt1_es=rma.alt1_es[i],
-                                alt1_ee=rma.alt1_ee[i],
-                                alt2_es=rma.alt2_es[i],
-                                alt2_ee=rma.alt2_ee[i],
-                                down_es=rma.down_es[i],
-                                down_ee=rma.down_ee[i],
-                                junction_type=rma.jxn_type[i],
-                                )
+        translate_one_partial = partial(_translate_one,
+                                        gtf=gtf,
+                                        genome=genome,
+                                        args=args,
+                                        directory_to_write=directory_to_write,
+                                        )
 
-            main_log.info('>>>>>> Now doing junction {0} for gene {1}'.format(junction.name,
-                                                                              junction.gene_symbol))
-
-            #
-            # Code for filtering by rMATS results
-            #
-
-            # Discard this junction if the read count is below threshold in both splice junctions.
-            # Maybe should change this to discard everything with read counts below threshold on EITHER junction
-            # This is intended to remove junctions that are very low in abundance.
-
-            # If rMATS was run with one technical replicate, the count field is an int, otherwise it is a list
-            # The following should take care of both single integer and list of integers.
-
-            # First we mandate that there is a read spanning the junction (taking the rMTAS JC rather than JCEC
-            # files.
-
-            # We are taking the skipped junction count (SJC) as filtering criterion for now
-            # because the majority of translatable events are probably SE (skipped exon)
-            # Essentially this filters out alternative junctions that are very rarely skipped
-            # (high inclusion level of the exons) that are not likely to be translatable.
-            try:
-                mean_count_sample1 = int(np.mean([int(x) for x in (str(rma.sjc_s1[i]).split(sep=','))]))
-                mean_count_sample2 = int(np.mean([int(x) for x in (str(rma.sjc_s2[i]).split(sep=','))]))
-
-            except ValueError:
-                mean_count_sample1 = 0
-                mean_count_sample2 = 0
-                main_log.info('SKIPPED. Discarding sequence since unable to find read counts. \n\n')
-
-            junction.set_min_read_count(min([mean_count_sample1, mean_count_sample2]))
-
-            #
-            # Filter by minimal read counts
-            #
-            if mean_count_sample1 < args.read or mean_count_sample2 < args.read:
-                main_log.info('SKIPPED. Sequence discarded due to low coverage. \n\n')
-                continue
-
-            # Discard this junction if the corrected P value of this read count is < 0.01
-            # This is intended to remove junctions that aren't found on both replicates.
-            # This might not be a good idea, however.
-            if rma.fdr[i] < args.pvalue:
-                main_log.info('SKIPPED. Sequence discarded due to difference across replicates. \n\n')
-
-            #
-            # Subset the gtf file by the current gene_id
-            #
-            junction.get_translated_region(gtf)
-            main_log.info('Anchor exon start: {0} Anchor exon end: {1}'.format(junction.anc_es,
-                                                                               junction.anc_ee))
-
-            #
-            # Get translation phase from GTF file.
-            # If there is no phase found in the GTF, use phase -1 for now.
-            # To do: look more closely into GTF file, or try translating from all frames
-            #
-            junction.get_translated_phase(gtf)
-            main_log.info('Transcription start: {0} Transcript end: {1}'.format(junction.tx0,
-                                                                                junction.tx1))
-            main_log.info('Retrieved phase: {0}'.format(junction.phase))
-            #
-            # Trim slice coordinates by translation starts and ends
-            #
-            junction.trim()
-
-            #
-            # Initiate a sequence object that copies most of the junction information
-            #
-            sequence = Sequence(junction)
-
-            #
-            # Get nucleotide sequences of all slices using genome in memory
-            # (anchor, alternative-1, alternative-2, downstream)
-            # Conjoin alternative exons to make slice 1 and 2,
-            #
-            sequence.make_slice_localgenome(genome.genome)
-
-            #
-            # The next section is the six-frame translational by-pass. If the --sixframe flag is on,
-            # Then do six-frame with all the qualifying junctions instead
-            #
-            # if args.sixframe:
-            #     if args.verbose:
-            #         print('verbose 1: using six-frame translation instead of reading frames from gtf.')
-            #
-            #     for sixframe_strand in ['+', '-']:
-            #         for sixframe_phase in [0, 1, 2]:
-            #
-            #             # Do six frame translation to get peptide
-            #             sequence.translate_sixframe(sixframe_strand, sixframe_phase)
-            #
-            #             # Check that the amino acid slices are at least as long as 10 amino acids)
-            #             # Otherwise there is no point doing the merging
-            #             if len(sequence.slice1_aa) >= 10 and len(sequence.slice2_aa) >= 10:
-            #                 # Extend with fasta, and then write if necessary.
-            #                 sequence.extend_and_write(species=species,
-            #                                           output=out_file,
-            #                                           suffix='6F',
-            #                                           merge_length=10)
-            #
-            #     continue
-
-            # Check for frame-shift.
-            # See if slice 1 nucleotides are different in length from slice 2 nucleotide by
-            # multiples of 3, which probably denotes frame shift (unless there are loose amino acids near the end)?
-            if (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 != 0:
-                sequence.set_frameshift_to_true()
-                main_log.info("Frame-shift between the two slices (length difference not multiples of 3).")
-
-                # Note it looks like some frameshift skipped exon peptides could nevertheless come back in frame
-                # We should only consider those without frameshift as tier 1.
-
-            #
-            # Translate into peptides
-            #
-            sequence.translate(use_phase=True)
-
-            #
-            # Write the Tier 1 and Tier 2 results into fasta file
-            #
-            if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
-
-                # Tier 1: both translated without stop codon, no frameshift
-                if not sequence.frameshift:
-
-                    # Do a function like this to extend with fasta, and then write if necessary.
-                    sequence.extend_and_write(#species=species,
-                                              output=directory_to_write,
-                                              suffix='T1',
-                                              merge_length=10)
-
-                    main_log.info("SUCCESS 1. Retrieved phase: {0} \n\n"
-                                  "Used phase: {1}. No frameshift.".format(sequence.phase,
-                                                                           sequence.translated_phase))
-
-                    continue
-
-                #
-                # Tier 2: both translated without stop codon, but with one frameshift
-                #
-                elif sequence.frameshift:
-                    sequence.extend_and_write(#species=species,
-                                              output=directory_to_write,
-                                              suffix='T2',
-                                              merge_length=10)
-
-                    main_log.info("SUCCESS 2. Retrieved phase: {0} \n\n"
-                                  "Used phase: {1}. Frameshift.".format(sequence.phase,
-                                                                        sequence.translated_phase))
-                    continue
-
-            #
-            # Tier 3 - retrieved phase is different from PTC-free frame.
-            #
-            else:
-                sequence.translate(use_phase=False)
-
-                #
-                # After Tier 3 translation, check if both slices are good
-                #
-
-                if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
-                    sequence.extend_and_write(output=directory_to_write,
-                                              suffix='T3',
-                                              merge_length=10)
-
-                    main_log.info("SUCCESS 3. GTF phase mismatch. Retrieved phase: {0} \n\n"
-                                  "Used phase: {1}".format(sequence.phase,
-                                                           sequence.translated_phase))
-                    continue
-
-            #
-            # If sequence is still not good, do Tier 4: One of the two slices hits stop codon.
-            # (select one that is longest and translate if prior to the stop codon the short
-            # slice is at least half as long as the long slice)
-            # TODO: Determine likely translated frame, or keep frame based on PTC location from protein end
-            #
-
-            # Translate again after Tier 3 to reset to Tier 1/2 translation state
-            sequence.translate(use_phase=True)
-
-            # Force-translate slice 2 if slice 2 hits PTC:
-            if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) == 0:
-
-                sequence.translate_forced(slice_to_translate=2)
-
-                if len(sequence.slice2_aa)/len(sequence.slice1_aa) >= 0.5:
-
-                    sequence.extend_and_write(output=directory_to_write,
-                                              suffix='T4',
-                                              merge_length=10)
-
-                    main_log.info('PARTIAL 4.  Slice 2 hit a stop codon. Used longest phase.\n\n')
-                    continue
-
-            # Force-translate slice 1 if slice 1 hits PTC:
-            elif len(sequence.slice2_aa) > 0 and len(sequence.slice1_aa) == 0:
-
-                sequence.translate_forced(slice_to_translate=1)
-
-                if len(sequence.slice1_aa)/len(sequence.slice2_aa) >= 0.5:
-                    sequence.extend_and_write(output=directory_to_write,
-                                              suffix='T4',
-                                              merge_length=10)
-
-                    main_log.info('PARTIAL 5.  Slice 1 hit a stop codon. Used longest phase.\n\n')
-                    continue
-
-            #
-            # If nothing works, write FAILURE fate
-            #
-            else:
-                #
-                # Salvage the canonical sequence in the long slice if it matches Sp exactly.
-                # Note that this means if we identify a gene in RNA-seq, we will append the canonical
-                # Sp to the gene_canonical output even if none of the transcript slices are stitchable
-                # back to the canonical protein. This is to avoid not having any protein level representation
-                # of a gene potentially in the proteome.
-                #
-                if args.canonical:
-                    sequence.extend_and_write(output=directory_to_write,
-                                              merge_length=10,
-                                              canonical_only=True)
-                main_log.info('FAILURE 6.  No alternative translation. \n\n')
+        with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as pool:
+            for i, f in enumerate(tqdm.tqdm(pool.map(
+                    translate_one_partial,
+                    junctions,
+            ),
+                    total=len(junctions),
+                    desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
+            )):
+                main_log.info('>>>>>> Now doing junction {0} for gene {1}'.format(junctions[i].name,
+                                                                                  junctions[i].gene_symbol))
+                main_log.info(f)
 
     return True
 
+
+def _translate_one(junction,
+                   gtf,
+                  genome,
+                  args,
+                  directory_to_write,
+                    ):
+    """ get coordinate and translate one junction; arguments are passed through partial from main"""
+    #
+    # Code for filtering by rMATS results
+    #
+
+    # Discard this junction if the read count is below threshold in both splice junctions.
+    # Maybe should change this to discard everything with read counts below threshold on EITHER junction
+    # This is intended to remove junctions that are very low in abundance.
+
+    # If rMATS was run with one technical replicate, the count field is an int, otherwise it is a list
+    # The following should take care of both single integer and list of integers.
+
+    # First we mandate that there is a read spanning the junction (taking the rMTAS JC rather than JCEC
+    # files.
+
+    # We are taking the skipped junction count (SJC) as filtering criterion for now
+    # because the majority of translatable events are probably SE (skipped exon)
+    # Essentially this filters out alternative junctions that are very rarely skipped
+    # (high inclusion level of the exons) that are not likely to be translatable.
+    try:
+        mean_count_sample1 = int(statistics.mean([int(x) for x in (str(junction.sjc_s1).split(sep=','))]))
+        mean_count_sample2 = int(statistics.mean([int(x) for x in (str(junction.sjc_s2).split(sep=','))]))
+
+    except ValueError:
+        mean_count_sample1 = 0
+        mean_count_sample2 = 0
+        # main_log.info('SKIPPED. Discarding sequence since unable to find read counts. \n\n')
+
+    junction.set_min_read_count(min([mean_count_sample1, mean_count_sample2]))
+
+    #
+    # Filter by minimal read counts
+    #
+    if mean_count_sample1 < args.read or mean_count_sample2 < args.read:
+        callback_ = ('SKIPPED. Sequence discarded due to low coverage. \n\n')
+        return callback_
+
+    # Discard this junction if the corrected P value of this read count is < 0.01
+    # This is intended to remove junctions that aren't found on both replicates.
+    # This might not be a good idea, however.
+    if junction.fdr < args.pvalue:
+        callback_ = 'SKIPPED. Sequence discarded due to difference across replicates. \n\n'
+        return callback_
+
+    #
+    # Subset the gtf file by the current gene_id
+    #
+    junction.get_translated_region(gtf)
+    #main_log.info('Anchor exon start: {0} Anchor exon end: {1}'.format(junction.anc_es,
+    #                                                                   junction.anc_ee))
+
+    #
+    # Get translation phase from GTF file.
+    # If there is no phase found in the GTF, use phase -1 for now.
+    # To do: look more closely into GTF file, or try translating from all frames
+    #
+    junction.get_translated_phase(gtf)
+    #main_log.info('Transcription start: {0} Transcript end: {1}'.format(junction.tx0,
+    #                                                                   junction.tx1))
+    #main_log.info('Retrieved phase: {0}'.format(junction.phase))
+    #
+    # Trim slice coordinates by translation starts and ends
+    #
+    junction.trim()
+
+    #
+    # Initiate a sequence object that copies most of the junction information
+    #
+    sequence = Sequence(junction)
+
+    #
+    # Get nucleotide sequences of all slices using genome in memory
+    # (anchor, alternative-1, alternative-2, downstream)
+    # Conjoin alternative exons to make slice 1 and 2,
+    #
+    sequence.make_slice_localgenome(genome.genome)
+
+    #
+    # The next section is the six-frame translational by-pass. If the --sixframe flag is on,
+    # Then do six-frame with all the qualifying junctions instead
+    #
+    # if args.sixframe:
+    #     if args.verbose:
+    #         print('verbose 1: using six-frame translation instead of reading frames from gtf.')
+    #
+    #     for sixframe_strand in ['+', '-']:
+    #         for sixframe_phase in [0, 1, 2]:
+    #
+    #             # Do six frame translation to get peptide
+    #             sequence.translate_sixframe(sixframe_strand, sixframe_phase)
+    #
+    #             # Check that the amino acid slices are at least as long as 10 amino acids)
+    #             # Otherwise there is no point doing the merging
+    #             if len(sequence.slice1_aa) >= 10 and len(sequence.slice2_aa) >= 10:
+    #                 # Extend with fasta, and then write if necessary.
+    #                 sequence.extend_and_write(species=species,
+    #                                           output=out_file,
+    #                                           suffix='6F',
+    #                                           merge_length=10)
+    #
+    #     continue
+
+    # Check for frame-shift.
+    # See if slice 1 nucleotides are different in length from slice 2 nucleotide by
+    # multiples of 3, which probably denotes frame shift (unless there are loose amino acids near the end)?
+    if (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 != 0:
+        sequence.set_frameshift_to_true()
+        #main_log.info("Frame-shift between the two slices (length difference not multiples of 3).")
+
+        # Note it looks like some frameshift skipped exon peptides could nevertheless come back in frame
+        # We should only consider those without frameshift as tier 1.
+
+    #
+    # Translate into peptides
+    #
+    sequence.translate(use_phase=True)
+
+    #
+    # Write the Tier 1 and Tier 2 results into fasta file
+    #
+    if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
+
+        # Tier 1: both translated without stop codon, no frameshift
+        if not sequence.frameshift:
+
+            # Do a function like this to extend with fasta, and then write if necessary.
+            # TODO: instead of using SwissProt we should get the canonical exons from the GTF directly
+            sequence.extend_and_write(  # species=species,
+                output=directory_to_write,
+                suffix='T1',
+                merge_length=10)
+
+            callback_ = ('SUCCESS 1. Retrieved phase: {0} \n\n'
+                          'Used phase: {1}. No frameshift.'.format(sequence.phase,
+                                                                   sequence.translated_phase))
+
+            return callback_
+
+        #
+        # Tier 2: both translated without stop codon, but with one frameshift
+        #
+        elif sequence.frameshift:
+            sequence.extend_and_write(  # species=species,
+                output=directory_to_write,
+                suffix='T2',
+                merge_length=10)
+
+            callback_ = ('SUCCESS 2. Retrieved phase: {0} \n\n'
+                          'Used phase: {1}. Frameshift.'.format(sequence.phase,
+                                                                sequence.translated_phase))
+            return callback_
+
+    #
+    # Tier 3 - retrieved phase is different from PTC-free frame.
+    #
+    else:
+        sequence.translate(use_phase=False)
+
+        #
+        # After Tier 3 translation, check if both slices are good
+        #
+
+        if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
+            sequence.extend_and_write(output=directory_to_write,
+                                      suffix='T3',
+                                      merge_length=10)
+
+            callback_ = ('SUCCESS 3. GTF phase mismatch. Retrieved phase: {0} \n\n'
+                          'Used phase: {1}'.format(sequence.phase,
+                                                   sequence.translated_phase))
+            return callback_
+
+    #
+    # If sequence is still not good, do Tier 4: One of the two slices hits stop codon.
+    # (select one that is longest and translate if prior to the stop codon the short
+    # slice is at least half as long as the long slice)
+    # TODO: Determine likely translated frame, or keep frame based on PTC location from protein end
+    #
+
+    # Translate again after Tier 3 to reset to Tier 1/2 translation state
+    sequence.translate(use_phase=True)
+
+    # Force-translate slice 2 if slice 2 hits PTC:
+    if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) == 0:
+
+        sequence.translate_forced(slice_to_translate=2)
+
+        if len(sequence.slice2_aa) / len(sequence.slice1_aa) >= 0.5:
+            sequence.extend_and_write(output=directory_to_write,
+                                      suffix='T4',
+                                      merge_length=10)
+
+            callback_ = 'PARTIAL 4.  Slice 2 hit a stop codon. Used longest phase.\n\n'
+            return callback_
+
+    # Force-translate slice 1 if slice 1 hits PTC:
+    elif len(sequence.slice2_aa) > 0 and len(sequence.slice1_aa) == 0:
+
+        sequence.translate_forced(slice_to_translate=1)
+
+        if len(sequence.slice1_aa) / len(sequence.slice2_aa) >= 0.5:
+            sequence.extend_and_write(output=directory_to_write,
+                                      suffix='T4',
+                                      merge_length=10)
+
+            callback_ = 'PARTIAL 5.  Slice 1 hit a stop codon. Used longest phase.\n\n'
+            return callback_
+
+    #
+    # If nothing works, write FAILURE fate
+    #
+    else:
+        #
+        # Salvage the canonical sequence in the long slice if it matches Sp exactly.
+        # Note that this means if we identify a gene in RNA-seq, we will append the canonical
+        # Sp to the gene_canonical output even if none of the transcript slices are stitchable
+        # back to the canonical protein. This is to avoid not having any protein level representation
+        # of a gene potentially in the proteome.
+        #
+        if args.canonical:
+            sequence.extend_and_write(output=directory_to_write,
+                                      merge_length=10,
+                                      canonical_only=True)
+        callback_ = 'FAILURE 6.  No alternative translation. \n\n'
+        return callback_
+
+    return True
 
 #
 # Code for running main with parsed arguments from command line
@@ -379,12 +362,16 @@ def main():
     import argparse
     import sys
 
-    parser = argparse.ArgumentParser(description='Jcast retrieves splice junction information'
-                                                 'and translates into amino acid')
+    parser = argparse.ArgumentParser(description='jcast retrieves transcript splice junctions'
+                                                 'and translates them into amino acid sequences')
 
     parser.add_argument('rmats_folder', help='path to folder storing rMATS output')
-    parser.add_argument('gtf_file', help='path to ENSEMBL GTF file')
-    parser.add_argument('genome', help='path to Genome file')
+    parser.add_argument('gtf_file', help='path to Ensembl gtf file')
+    parser.add_argument('genome', help='path to genome file')
+
+    parser.add_argument('-n', '--num_threads', help='number of threads for concurrency [default: 6]',
+                        default=6,
+                        type=int)
 
     parser.add_argument('-o', '--out', help='name of the output files [default: psq_out]',
                         default='out')
@@ -394,8 +381,8 @@ def main():
                         default=1,
                         type=int)
 
-    parser.add_argument('-c', '--canonical', help='write out canonical protein sequence even if none of the transcript'
-                                   'slices are translatable [default: True]',
+    parser.add_argument('-c', '--canonical', help='write out canonical protein sequence even if transcript'
+                                   'slices are untranslatable [default: True]',
                         default=True,
                         type=bool)
 
@@ -408,7 +395,7 @@ def main():
     # parser.add_argument('-s', '--sixframe', action='store_true',
     #                     help='do six-frame translation instead with the junctions')
 
-    parser.set_defaults(func=psqM)
+    parser.set_defaults(func=jcast)
 
     # Print help message if no arguments are given
 

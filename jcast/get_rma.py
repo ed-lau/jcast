@@ -2,10 +2,10 @@
 
 """ Methods that concern RMATS results - reading the files and mapping the columns to exons. """
 
-
 import logging
 import os.path
 import pandas as pd
+
 
 class RmatsResults(object):
     """
@@ -17,7 +17,9 @@ class RmatsResults(object):
 
     """
 
-    def __init__(self, rmats_dir):
+    def __init__(self,
+                 rmats_dir,
+                 ):
 
         self.dir = rmats_dir
         self.rmats_mxe = self._read_rmats_mxe()

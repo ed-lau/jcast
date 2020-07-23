@@ -24,13 +24,15 @@ class Junction(object):
         self.alt2_ee = kwargs['alt2_ee']
         self.down_es = kwargs['down_es']+1
         self.down_ee = kwargs['down_ee']
-        self.junction_type = kwargs['junction_type']
-        #self.species = kwargs['species']
+        self.junction_type = kwargs['jxn_type']
         self.gene_symbol = kwargs['gene_symbol']
         self.tx1 = -1
         self.tx0 = -1
         self.phase = -1
         self.min_read_count = 0
+        self.fdr = kwargs['fdr']
+        self.sjc_s1 = kwargs['sjc_s1']
+        self.sjc_s2 = kwargs['sjc_s2']
 
         self.logger = logging.getLogger('jcast.junction')
 
