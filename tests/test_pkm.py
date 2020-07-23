@@ -17,10 +17,9 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util import Retry
 
-from jcast.junctions import Junction
+from jcast.junctions import Junction, RmatsResults
 from jcast.annot import ReadAnnotations
 from jcast.sequences import Sequence
-from jcast.get_rma import RmatsResults
 from jcast.read_fa import ReadGenome
 
 class GenomeTest(unittest.TestCase):

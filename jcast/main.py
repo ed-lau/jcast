@@ -14,10 +14,9 @@ import concurrent.futures
 
 import tqdm
 
-from jcast.junctions import Junction
+from jcast.junctions import Junction, RmatsResults
 from jcast.annot import ReadAnnotations
 from jcast.sequences import Sequence
-from jcast.get_rma import RmatsResults
 from jcast.read_fa import ReadGenome
 
 from jcast import __version__
