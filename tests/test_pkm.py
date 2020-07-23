@@ -61,21 +61,7 @@ class GenomeTest(unittest.TestCase):
         # TODO: test negative strand and trimming
         i = 71  # PKM
 
-        junction = Junction(id=rma.id[i], \
-                            gene_id=rma.gene_id[i], \
-                            strand=rma.strand[i], \
-                            gene_symbol=rma.gene_symbol[i], \
-                            chr=rma.chr[i], \
-                            anc_es=rma.anc_es[i], \
-                            anc_ee=rma.anc_ee[i], \
-                            alt1_es=rma.alt1_es[i], \
-                            alt1_ee=rma.alt1_ee[i], \
-                            alt2_es=rma.alt2_es[i], \
-                            alt2_ee=rma.alt2_ee[i], \
-                            down_es=rma.down_es[i], \
-                            down_ee=rma.down_ee[i], \
-                            junction_type=rma.jxn_type[i], \
-                            species='human', )
+        junction = Junction(**rma.iloc[i].to_dict())
 
         junction.get_translated_region(gtf)
         junction.get_translated_phase(gtf)
