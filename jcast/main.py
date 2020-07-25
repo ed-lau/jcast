@@ -119,9 +119,9 @@ def jcast(args):
 
 def _translate_one(junction,
                    gtf,
-                  genome,
-                  args,
-                  directory_to_write,
+                   genome,
+                   args,
+                   directory_to_write,
                     ):
     """ get coordinate and translate one junction; arguments are passed through partial from main"""
     #
@@ -142,21 +142,12 @@ def _translate_one(junction,
     # because the majority of translatable events are probably SE (skipped exon)
     # Essentially this filters out alternative junctions that are very rarely skipped
     # (high inclusion level of the exons) that are not likely to be translatable.
-    try:
-        mean_count_sample1 = int(statistics.mean([int(x) for x in (str(junction.sjc_s1).split(sep=','))]))
-        mean_count_sample2 = int(statistics.mean([int(x) for x in (str(junction.sjc_s2).split(sep=','))]))
 
-    except ValueError:
-        mean_count_sample1 = 0
-        mean_count_sample2 = 0
-        # main_log.info('SKIPPED. Discarding sequence since unable to find read counts. \n\n')
-
-    junction.set_min_read_count(min([mean_count_sample1, mean_count_sample2]))
 
     #
     # Filter by minimal read counts
     #
-    if mean_count_sample1 < args.read or mean_count_sample2 < args.read:
+    if junction.min_read_count < args.read:
         callback_ = ('SKIPPED. Sequence discarded due to low coverage. \n\n')
         return callback_
 
@@ -168,25 +159,15 @@ def _translate_one(junction,
         return callback_
 
     #
-    # Subset the gtf file by the current gene_id
-    #
-    junction.get_translated_region(gtf)
-    #main_log.info('Anchor exon start: {0} Anchor exon end: {1}'.format(junction.anc_es,
-    #                                                                   junction.anc_ee))
-
-    #
-    # Get translation phase from GTF file.
-    # If there is no phase found in the GTF, use phase -1 for now.
-    # To do: look more closely into GTF file, or try translating from all frames
-    #
-    junction.get_translated_phase(gtf)
-    #main_log.info('Transcription start: {0} Transcript end: {1}'.format(junction.tx0,
-    #                                                                   junction.tx1))
-    #main_log.info('Retrieved phase: {0}'.format(junction.phase))
-    #
     # Trim slice coordinates by translation starts and ends
     #
-    junction.trim()
+    junction.trim(gtf)
+
+    #
+    # Get translated phase from GTF. Note this should be done after trimming to get the
+    # right frame in case the exon in question is trimmed by the coding start
+    #
+    junction.get_translated_phase(gtf)
 
     #
     # Initiate a sequence object that copies most of the junction information
@@ -204,36 +185,21 @@ def _translate_one(junction,
     # The next section is the six-frame translational by-pass. If the --sixframe flag is on,
     # Then do six-frame with all the qualifying junctions instead
     #
-    # if args.sixframe:
-    #     if args.verbose:
-    #         print('verbose 1: using six-frame translation instead of reading frames from gtf.')
-    #
-    #     for sixframe_strand in ['+', '-']:
-    #         for sixframe_phase in [0, 1, 2]:
-    #
-    #             # Do six frame translation to get peptide
-    #             sequence.translate_sixframe(sixframe_strand, sixframe_phase)
-    #
-    #             # Check that the amino acid slices are at least as long as 10 amino acids)
-    #             # Otherwise there is no point doing the merging
-    #             if len(sequence.slice1_aa) >= 10 and len(sequence.slice2_aa) >= 10:
-    #                 # Extend with fasta, and then write if necessary.
-    #                 sequence.extend_and_write(species=species,
-    #                                           output=out_file,
-    #                                           suffix='6F',
-    #                                           merge_length=10)
-    #
-    #     continue
 
-    # Check for frame-shift.
-    # See if slice 1 nucleotides are different in length from slice 2 nucleotide by
-    # multiples of 3, which probably denotes frame shift (unless there are loose amino acids near the end)?
-    if (len(sequence.slice1_nt) - len(sequence.slice2_nt)) % 3 != 0:
-        sequence.set_frameshift_to_true()
-        #main_log.info("Frame-shift between the two slices (length difference not multiples of 3).")
+    if args.sixframe:
+        for strand, phase in [(strand, phase) for strand in ['+', '-'] for phase in [0, 1, 2]]:
 
-        # Note it looks like some frameshift skipped exon peptides could nevertheless come back in frame
-        # We should only consider those without frameshift as tier 1.
+            # Do six frame translation to get peptide
+            sequence.translate_sixframe(strand, phase)
+
+            # Check that the amino acid slices are at least as long as 10 amino acids)
+            # Otherwise there is no point doing the merging
+            if len(sequence.slice1_aa) >= 10 and len(sequence.slice2_aa) >= 10:
+                # Extend with fasta, and then write if necessary.
+                sequence.extend_and_write(output=directory_to_write,
+                                          suffix='sixframe',
+                                          merge_length=10)
+
 
     #
     # Translate into peptides
@@ -250,14 +216,15 @@ def _translate_one(junction,
 
             # Do a function like this to extend with fasta, and then write if necessary.
             # TODO: instead of using SwissProt we should get the canonical exons from the GTF directly
-            sequence.extend_and_write(  # species=species,
+            sequence.extend_and_write(
                 output=directory_to_write,
                 suffix='T1',
-                merge_length=10)
+                merge_length=10,
+            )
 
             callback_ = ('SUCCESS 1. Retrieved phase: {0} \n\n'
-                          'Used phase: {1}. No frameshift.'.format(sequence.phase,
-                                                                   sequence.translated_phase))
+                         'Used phase: {1}. No frameshift.'.format(sequence.j.phase,
+                                                                  sequence.translated_phase))
 
             return callback_
 
@@ -271,7 +238,7 @@ def _translate_one(junction,
                 merge_length=10)
 
             callback_ = ('SUCCESS 2. Retrieved phase: {0} \n\n'
-                          'Used phase: {1}. Frameshift.'.format(sequence.phase,
+                          'Used phase: {1}. Frameshift.'.format(sequence.j.phase,
                                                                 sequence.translated_phase))
             return callback_
 
@@ -291,7 +258,7 @@ def _translate_one(junction,
                                       merge_length=10)
 
             callback_ = ('SUCCESS 3. GTF phase mismatch. Retrieved phase: {0} \n\n'
-                          'Used phase: {1}'.format(sequence.phase,
+                          'Used phase: {1}'.format(sequence.j.phase,
                                                    sequence.translated_phase))
             return callback_
 
@@ -351,11 +318,9 @@ def _translate_one(junction,
 
     return True
 
-#
-# Code for running main with parsed arguments from command line
-#
 
 def main():
+    """ running main with parsed arguments from command line """
 
     import argparse
     import sys
@@ -390,8 +355,9 @@ def main():
                         type=float)
 
 
-    # parser.add_argument('-s', '--sixframe', action='store_true',
-    #                     help='do six-frame translation instead with the junctions')
+    parser.add_argument('-s', '--sixframe', action='store_true',
+                        help='also do six-frame translation instead with the junctions [default: False]',
+                        )
 
     parser.set_defaults(func=jcast)
 

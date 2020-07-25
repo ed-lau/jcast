@@ -6,7 +6,7 @@
 import logging
 import os.path
 import pandas as pd
-
+import statistics
 
 class RmatsResults(object):
     """
@@ -155,10 +155,10 @@ class Junction(object):
         self.down_ee = kwargs['down_ee']
         self.junction_type = kwargs['jxn_type']
         self.gene_symbol = kwargs['gene_symbol']
-        self.tx1 = -1
-        self.tx0 = -1
-        self.phase = -1
-        self.min_read_count = 0
+        self.tx1 = None
+        self.tx0 = None
+        self.phase = None
+        # self.min_read_count = 0
         self.fdr = kwargs['fdr']
         self.sjc_s1 = kwargs['sjc_s1']
         self.sjc_s2 = kwargs['sjc_s2']
@@ -176,17 +176,25 @@ class Junction(object):
         return 'Splice junction object: ' + self.gene_id + ' ' \
                + self.junction_type + ' ' + self.gene_symbol + ' ' + self.name
 
-    def set_min_read_count(self, count):
+    @property
+    def min_read_count(self):
         """
         A setter to mark the minimum read count in the junction
 
         :return:
         """
-        self.min_read_count = count
+        try:
+            mean_count_sample1 = int(statistics.mean([int(x) for x in (str(self.sjc_s1).split(sep=','))]))
+            mean_count_sample2 = int(statistics.mean([int(x) for x in (str(self.sjc_s2).split(sep=','))]))
 
-        return True
+        except ValueError:
+            mean_count_sample1 = 0
+            mean_count_sample2 = 0
 
-    def get_translated_region(self, gtf):
+        return min([mean_count_sample1, mean_count_sample2])
+
+
+    def _get_translated_region(self, gtf):
         """
         Read the genome annotation (.gtf) file, find the coding sequences (CDS) that share the gene name and coordinates
         of the anchor exon (anc) supplied, then find out where the annotated translation start and end sites are. If the
@@ -247,9 +255,20 @@ class Junction(object):
         :return:
         """
 
+        #
+        # Get translation phase from GTF file.
+        # If there is no phase found in the GTF, use phase -1 for now.
+        # To do: look more closely into GTF file, or try translating from all frames
+        #
+
+        # Subset the gtf file
+        gtf0 = gtf.annot.query('gene_id == @self.gene_id')
+
         # Select the anchor exon from CDS and get the frame
         # Note 2018-03-24 this is probably not quite right. I think you should find out whether the anchor
         # is really the one that determines the phase here.
+
+        ph0, ph1 = None, None
 
         # 2018-03-24: First define the exon we are looking for.
         if self.junction_type in ['MXE', 'SE', 'RI']:
@@ -270,29 +289,47 @@ class Junction(object):
             elif self.strand == '-':
                 ph0, ph1 = self.alt1_es, self.alt2_ee
 
+
         self.logger.info('Anchor start {0} end {1}'.format(ph0,
                                                            ph1))
 
+
         # Get the frame of that coding exon from GTF.
-        gtf0 = gtf.annot.query('gene_id == @self.gene_id').query('start == @ph0').\
+        coding_exon = gtf0.query('start == @ph0').\
             query('end == @ph1').query('feature == "CDS"')
 
+
         # If phases retrieved, get the first value
-        if len(gtf0) > 0:
-            self.phase = int([x for x in gtf0.loc[:, 'frame'].iloc if x != '.'][0])
+        if len(coding_exon) > 0:
+            self.phase = int([x for x in coding_exon.loc[:, 'frame'].iloc if x != '.'][0])
 
         else:
             self.phase = -1
 
-        return True
 
-    def trim(self):
+        self.logger.info('Transcription start: {0} Transcript end: {1}'.format(self.tx0,
+                                                                               self.tx1))
+        self.logger.info('Retrieved phase: {0}'.format(self.phase))
+
+
+
+    def trim(self, gtf):
         """
         :return: True
 
         Trims the junction based on transcription start and end:
 
         """
+
+        #
+        # Subset the gtf file by the current gene_id
+        #
+        if self.tx0 is None:
+            self._get_translated_region(gtf=gtf)
+            self.logger.info('Anchor exon start: {0} Anchor exon end: {1}'.format(self.anc_es,
+                                                                                  self.anc_ee))
+
+
         if self.junction_type == 'MXE':
             try:
                 if self.anc_ee > self.tx0 > self.anc_es:
@@ -384,7 +421,6 @@ class Junction(object):
             except:
                 self.logger.info('Trimming end failed.')
 
-
         elif self.junction_type == 'A3SS':
             try:
                 if self.anc_ee > self.tx0 > self.anc_es:
@@ -402,5 +438,6 @@ class Junction(object):
 
             except:
                 self.logger.info('Trimming end failed.')
+
 
         return True

@@ -63,9 +63,7 @@ class GenomeTest(unittest.TestCase):
 
         junction = Junction(**rma.iloc[i].to_dict())
 
-        junction.get_translated_region(gtf)
-        junction.get_translated_phase(gtf)
-        junction.trim()
+        junction.trim(gtf)
 
         sequence = Sequence(junction)
         sequence.make_slice_localgenome(genome.genome)

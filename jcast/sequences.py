@@ -18,11 +18,13 @@ from io import StringIO
 import sqlite3 as sq
 
 from jcast import helpers as h
+from jcast.junctions import Junction
 
 # TODO: Sequence should really inherit directly from junction
 class Sequence(object):
 
-    def __init__(self, junction):
+    def __init__(self,
+                 junction: Junction):
         """
         :type junction: object
         :param junction: The splice junction object
@@ -33,46 +35,41 @@ class Sequence(object):
         To do: Change this so that sequence inherits junction class directly (have to think it through)
 
         """
-        self.anc_ee = junction.anc_ee
-        self.anc_es = junction.anc_es
-        self.alt1_es = junction.alt1_es
-        self.alt1_ee = junction.alt1_ee
-        self.alt2_es = junction.alt2_es
-        self.alt2_ee = junction.alt2_ee
-        self.down_es = junction.down_es
-        self.down_ee = junction.down_ee
-        #self.species = junction.species
-        self.gene_id = junction.gene_id
-        self.junction_type = junction.junction_type
-        self.chr = junction.chr
-        self.phase = junction.phase
-        self.strand = junction.strand
+
+        self.j = junction
         self.slice1_nt = ''
         self.slice2_nt = ''
         self.slice1_aa = ''
         self.slice2_aa = ''
-        self.frameshift = False
-        self.gene_symbol = junction.gene_symbol
-        self.name = junction.name
-        self.fate = 'Nothing done.'
+
         self.translated_phase = -1                  # Phase that was actually used for translation.
-        self.translated_strand = junction.strand    # Strand that was actually used for translation
-        self.min_read_count = junction.min_read_count
+        self.translated_strand = self.j.strand    # Strand that was actually used for translation
 
         self.logger = logging.getLogger('jcast.seq')
 
 
-    def __str__(self):
-        return 'Sequence object: ' + self.gene_id + ' ' + self.gene_symbol + ' ' + self.name
+    def __repr__(self):
+        return 'Sequence object: ' + self.j.gene_id + ' ' + self.j.gene_symbol + ' ' + self.j.name
 
-    # TODO: make this a property
-    def set_frameshift_to_true(self):
+    def __str__(self):
+        return 'Sequence object: ' + self.j.gene_id + ' ' + self.j.gene_symbol + ' ' + self.j.name
+
+    @property
+    def frameshift(self) -> bool:
         """
         A setter to mark that there is a frameshift; used to determine whether the slice should be tier 1 or tier 2
 
         :return:
         """
-        self.frameshift = True
+        # Check for frame-shift.
+        # See if slice 1 nucleotides are different in length from slice 2 nucleotide by
+        # multiples of 3, which probably denotes frame shift (unless there are loose amino acids near the end)?
+        return ((len(self.slice1_nt) - len(self.slice2_nt)) % 3) != 0
+
+            # main_log.info("Frame-shift between the two slices (length difference not multiples of 3).")
+            # Note it looks like some frameshift skipped exon peptides could nevertheless come back in frame
+            # We should only consider those without frameshift as tier 1.
+
 
     def make_slice_localgenome(self, genome_index):
         """
@@ -80,33 +77,33 @@ class Sequence(object):
         :return:
         """
 
-        anc_nt = h.get_local_nuc(genome_index, self.chr, self.anc_es, self.anc_ee)
-        alt1_nt = h.get_local_nuc(genome_index, self.chr, self.alt1_es, self.alt1_ee)
-        alt2_nt = h.get_local_nuc(genome_index, self.chr, self.alt2_es, self.alt2_ee)
-        down_nt = h.get_local_nuc(genome_index, self.chr, self.down_es, self.down_ee)
+        anc_nt = h.get_local_nuc(genome_index, self.j.chr, self.j.anc_es, self.j.anc_ee)
+        alt1_nt = h.get_local_nuc(genome_index, self.j.chr, self.j.alt1_es, self.j.alt1_ee)
+        alt2_nt = h.get_local_nuc(genome_index, self.j.chr, self.j.alt2_es, self.j.alt2_ee)
+        down_nt = h.get_local_nuc(genome_index, self.j.chr, self.j.down_es, self.j.down_ee)
 
         self.slice1_nt = str((anc_nt + alt1_nt + down_nt).seq)
         self.slice2_nt = str((anc_nt + alt2_nt + down_nt).seq)
 
-        self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice1_nt))
-        self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice2_nt))
+        self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice1_nt))
+        self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice2_nt))
 
-    def make_slice(self):
-        """
-        This gets the nucleotide sequence from the coordinates, using a web API
-        :return:
-        """
-
-        anc_nt = h.get_nuc(self.species, self.chr, self.anc_es, self.anc_ee)
-        alt1_nt = h.get_nuc(self.species, self.chr, self.alt1_es, self.alt1_ee)
-        alt2_nt = h.get_nuc(self.species, self.chr, self.alt2_es, self.alt2_ee)
-        down_nt = h.get_nuc(self.species, self.chr, self.down_es, self.down_ee)
-
-        self.slice1_nt = anc_nt + alt1_nt + down_nt
-        self.slice2_nt = anc_nt + alt2_nt + down_nt
-
-        print(self.slice1_nt)
-        print(self.slice2_nt)
+    # def make_slice(self):
+    #     """
+    #     This gets the nucleotide sequence from the coordinates, using a web API
+    #     :return:
+    #     """
+    #
+    #     anc_nt = h.get_nuc('human', self.j.chr, self.j.anc_es, self.j.anc_ee)
+    #     alt1_nt = h.get_nuc('human', self.j.chr, self.j.alt1_es, self.j.alt1_ee)
+    #     alt2_nt = h.get_nuc('human', self.j.chr, self.j.alt2_es, self.j.alt2_ee)
+    #     down_nt = h.get_nuc('human', self.j.chr, self.j.down_es, self.j.down_ee)
+    #
+    #     self.slice1_nt = anc_nt + alt1_nt + down_nt
+    #     self.slice2_nt = anc_nt + alt2_nt + down_nt
+    #
+    #     print(self.slice1_nt)
+    #     print(self.slice2_nt)
 
     def translate(self, use_phase=True):
         """
@@ -118,16 +115,16 @@ class Sequence(object):
         :return: True
         """
 
-        if self.phase in [0, 1, 2] and use_phase:
-            self.slice1_aa = h.make_pep(self.slice1_nt, self.strand, self.phase, terminate=True)
-            self.slice2_aa = h.make_pep(self.slice2_nt, self.strand, self.phase, terminate=True)
-            self.logger.debug('Used retrieved phase for {0} {1}:'.format(self.name, self.gene_symbol))
-            self.translated_phase = self.phase
+        if self.j.phase in [0, 1, 2] and use_phase:
+            self.slice1_aa = h.make_pep(self.slice1_nt, self.j.strand, self.j.phase, terminate=True)
+            self.slice2_aa = h.make_pep(self.slice2_nt, self.j.strand, self.j.phase, terminate=True)
+            self.logger.debug('Used retrieved phase for {0} {1}:'.format(self.j.name, self.j.gene_symbol))
+            self.translated_phase = self.j.phase
 
         else:
             for i in range(3):
-                self.slice1_aa = h.make_pep(self.slice1_nt, self.strand, i, terminate=True)
-                self.slice2_aa = h.make_pep(self.slice2_nt, self.strand, i, terminate=True)
+                self.slice1_aa = h.make_pep(self.slice1_nt, self.j.strand, i, terminate=True)
+                self.slice2_aa = h.make_pep(self.slice2_nt, self.j.strand, i, terminate=True)
                 if len(self.slice1_aa) > 0 and len(self.slice2_aa) > 0:
                     self.translated_phase = i
                     break
@@ -135,8 +132,8 @@ class Sequence(object):
                     self.slice1_aa = ''
                     self.slice2_aa = ''
 
-        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice1_aa))
-        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice2_aa))
+        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice1_aa))
+        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice2_aa))
 
         return True
 
@@ -161,17 +158,21 @@ class Sequence(object):
             nt_to_translate = self.slice1_nt
         elif slice_to_translate == 2:
             nt_to_translate = self.slice2_nt
+        else:
+            nt_to_translate = None
 
         # For each nucleotide sequence, do each of three phases then get the longest translated product
         for i in range(3):
             best_seq = ''
             best_phase = -1
-            seq = h.make_pep(nt_to_translate, self.strand, i, terminate=False)
+            seq = h.make_pep(nt_to_translate, self.j.strand, i, terminate=False)
 
             # Not taking care of equal lengths for now - only taking first phase if there are two with equal length.
             if len(seq) > len(best_seq):
                 best_seq = seq
                 best_phase = i
+            else:
+                best_seq = ''
 
         if len(best_seq) > 0:
             self.translated_phase = best_phase
@@ -186,8 +187,8 @@ class Sequence(object):
         elif slice_to_translate == 2:
             self.slice2_aa = forced_translated_aa
 
-        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice1_aa))
-        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.name, self.gene_symbol, self.slice2_aa))
+        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice1_aa))
+        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice2_aa))
 
         return True
 
@@ -231,14 +232,14 @@ class Sequence(object):
         # So the idea is to write out different files depending on whether translation was successful
 
         fa1 = SeqRecord(Seq(self.slice1_aa, IUPAC.extended_protein),
-                        id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-1-' +
-                            self.name + '-' + str(self.phase) + self.strand),
-                        name=self.gene_symbol,
+                        id=(self.j.gene_symbol + '-' + self.j.gene_id + '-' + self.j.junction_type + '-1-' +
+                            self.j.name + '-' + str(self.j.phase) + self.j.strand),
+                        name=self.j.gene_symbol,
                         description='Slice 1')
         fa2 = SeqRecord(Seq(self.slice2_aa, IUPAC.extended_protein),
-                        id=(self.gene_symbol + '-' + self.gene_id + '-' + self.junction_type + '-2-' +
-                            self.name + '-' + str(self.phase) + self.strand),
-                        name=self.gene_symbol,
+                        id=(self.j.gene_symbol + '-' + self.j.gene_id + '-' + self.j.junction_type + '-2-' +
+                            self.j.name + '-' + str(self.j.phase) + self.j.strand),
+                        name=self.j.gene_symbol,
                         description='Slice 2')
 
         os.makedirs('../out', exist_ok=True)
@@ -340,7 +341,7 @@ class Sequence(object):
                                        IUPAC.extended_protein)
         '''
 
-        cache = self.gene_id
+        cache = self.j.gene_id
 
         self.logger.info(cache)
 
@@ -368,7 +369,7 @@ class Sequence(object):
             self.logger.info("Sequence not yet cached locally. 0")
 
             server = 'https://www.ebi.ac.uk'
-            ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
+            ext = '/proteins/api/proteins/Ensembl:' + self.j.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
 
             self.logger.info(server + ext)
             retries = Retry(total=15,
@@ -434,10 +435,10 @@ class Sequence(object):
             # If the slice is different from the UniProt canonical, then also write it.
             if record.seq.find(self.slice1_aa) == -1:
 
-                record1.id += ('|' + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
-                               + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                record1.id += ('|' + self.j.gene_id + '|' + self.j.junction_type + '1|' + self.j.name + '|'
+                               + str(self.j.chr) + '|' + str(self.j.anc_ee) + '|' + str(self.j.alt1_ee)
                                + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                               + 'r' + str(self.min_read_count) + '|' + suffix)
+                               + 'r' + str(self.j.min_read_count) + '|' + suffix)
 
 
                 h.write_seqrecord_to_fasta(record1, output, suffix)
@@ -459,10 +460,10 @@ class Sequence(object):
 
                 # If the slice is not the same as the UniProt canonical, then also write it.
             if record.seq.find(self.slice2_aa) == -1:
-                record2.id += ('|' + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
-                               + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                record2.id += ('|' + self.j.gene_id + '|' + self.j.junction_type + '2|' + self.j.name + '|'
+                               + str(self.j.chr) + '|' + str(self.j.anc_ee) + '|' + str(self.j.alt1_ee)
                                + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                               + 'r' + str(self.min_read_count) + '|' + suffix)
+                               + 'r' + str(self.j.min_read_count) + '|' + suffix)
 
                 h.write_seqrecord_to_fasta(record2, output, suffix)
 
@@ -489,21 +490,21 @@ class Sequence(object):
 
         # Format the name of the orphan slice 1 record
         orphan_slice1 = SeqRecord(Seq(self.slice1_aa, IUPAC.extended_protein),
-                                  id=('xx|ORPHN|' + self.gene_symbol + '|'
-                                      + self.gene_id + '|' + self.junction_type + '1|' + self.name + '|'
-                                      + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                                  id=('xx|ORPHN|' + self.j.gene_symbol + '|'
+                                      + self.j.gene_id + '|' + self.j.junction_type + '1|' + self.j.name + '|'
+                                      + str(self.j.chr) + '|' + str(self.j.anc_ee) + '|' + str(self.j.alt1_ee)
                                       + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                                      + 'r' + str(self.min_read_count) + '|' + suffix),
+                                      + 'r' + str(self.j.min_read_count) + '|' + suffix),
                                   name='Protein name here',
                                   description='Description',)
 
         # Format the name of the orphan slice 2 record
         orphan_slice2 = SeqRecord(Seq(self.slice2_aa, IUPAC.extended_protein),
-                                  id=('xx|ORPHN|' + self.gene_symbol + '|'
-                                      + self.gene_id + '|' + self.junction_type + '2|' + self.name + '|'
-                                      + str(self.chr) + '|' + str(self.anc_ee) + '|' + str(self.alt1_ee)
+                                  id=('xx|ORPHN|' + self.j.gene_symbol + '|'
+                                      + self.j.gene_id + '|' + self.j.junction_type + '2|' + self.j.name + '|'
+                                      + str(self.j.chr) + '|' + str(self.j.anc_ee) + '|' + str(self.j.alt1_ee)
                                       + '|' + self.translated_strand + str(self.translated_phase) + '|'
-                                      + 'r' + str(self.min_read_count) + '|' + suffix),
+                                      + 'r' + str(self.j.min_read_count) + '|' + suffix),
                                   name='Protein name here',
                                   description='Description',)
 
