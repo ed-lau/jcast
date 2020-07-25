@@ -82,3 +82,16 @@ class ReadGenome(object):
                 self.logger.info('Read from genome.')
 
         return True
+
+
+class AnnotatedTranscript(object):
+
+    def __init__(self, name):
+        """ init """
+        self.transcript_name = name
+        self.protein_id = None
+        self.exons = {}
+        self.start_codon = None
+        self.end_codon = None
+        self.is_canonical = False
+

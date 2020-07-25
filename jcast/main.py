@@ -161,7 +161,7 @@ def _translate_one(junction,
     #
     # Trim slice coordinates by translation starts and ends
     #
-    junction.trim(gtf)
+    junction.trim_cds(gtf)
 
     #
     # Get translated phase from GTF. Note this should be done after trimming to get the

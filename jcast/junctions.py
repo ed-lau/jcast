@@ -8,6 +8,9 @@ import os.path
 import pandas as pd
 import statistics
 
+from jcast import params
+from jcast.annots import AnnotatedTranscript
+
 class RmatsResults(object):
     """
     Container to hold the rMATS output folder and create individual objects based on the five splice types.
@@ -155,13 +158,17 @@ class Junction(object):
         self.down_ee = kwargs['down_ee']
         self.junction_type = kwargs['jxn_type']
         self.gene_symbol = kwargs['gene_symbol']
-        self.tx1 = None
-        self.tx0 = None
-        self.phase = None
-        # self.min_read_count = 0
         self.fdr = kwargs['fdr']
         self.sjc_s1 = kwargs['sjc_s1']
         self.sjc_s2 = kwargs['sjc_s2']
+
+
+        self.tx1 = None
+        self.tx0 = None
+        self.phase = None
+        self.num_start_codons = 0
+        # self.min_read_count = 0
+
 
         self.logger = logging.getLogger('jcast.junction')
 
@@ -194,14 +201,47 @@ class Junction(object):
         return min([mean_count_sample1, mean_count_sample2])
 
 
-    def _get_translated_region(self, gtf):
+    def get_annotated_transcripts(self, gtf):
+        """
+        prepping for future versions.
+        get the annotated transcripts of the gene under question
+
+        :param gtf: genome annotation
+
+        """
+
+        # first, subset the gtf by the gene under question
+        gtf_gene = gtf.annot.query('gene_id == @self.gene_id')
+
+        # then get a list of all transcripts that are protein_coding, has coding sequences,
+        # and has transcript support level equal to or below the threashold
+
+        tsl = params.tsl_threshold
+        filter_tx = gtf_gene.query('feature == "CDS" & '
+                                            'transcript_biotype == "protein_coding" & '
+                                            'transcript_support_level <= @tsl')
+        coding_tx = filter_tx[['transcript_name']].drop_duplicates().values.tolist()
+
+        # for each qualifying transcripts, get all the CDS
+
+        for tx in coding_tx:
+            pass
+
+
+
+
+    def _get_translated_region(self,
+                               gtf,
+                               startsite_index: int = 0,
+                               ):
         """
         Read the genome annotation (.gtf) file, find the coding sequences (CDS) that share the gene name and coordinates
         of the anchor exon (anc) supplied, then find out where the annotated translation start and end sites are. If the
         splice junction sequences extend BEYOND the translation starts and ends, trim them to avoid running into stop
         codons.
 
-        :param gtf: Genome annotation
+        :param gtf: genome annotation
+        :param startsite_index: the index of which start site to retrieve; default is 0 (most upstream TSS).
         :return: True
         """
         # Subset the gtf file
@@ -210,33 +250,44 @@ class Junction(object):
         #
         # 	Get the translation start and end positions
         #
+        tsl = params.tsl_threshold
+
+
+        # 2020-07-25 now getting the start codons of all protein coding transcripts at TSL threshold
+        gtf0_start = gtf0.query('feature == "start_codon" & '
+                                'transcript_biotype == "protein_coding" & '
+                                        'transcript_support_level <= @tsl').loc[:, 'start'].drop_duplicates()
+
+        # Number of start sites:
+        self.num_start_codons = len(gtf0_start)
+
+        # If there are retrievable start site:
+        if self.num_start_codons > 0:
+
+            # Get the start site for the longest transcript (lowest coordinates if strand is +)
+            gtf0_start = sorted(gtf0_start, reverse=self.strand == '-')
+
+            self.tx0 = gtf0_start[startsite_index]
+
+        # 2020-07-25 now getting end codons of all protein coding transcripts at TSL threshold
         try:
-            gtf0_start = gtf0.query('feature == "start_codon"').sort_values(['transcript_support_level']).sort_values(['ccds_id']).loc[:, 'start']
+            gtf0_end = gtf0.query('feature == "start_codon" & '
+                                'transcript_biotype == "protein_coding" & '
+                                  'transcript_support_level <= @tsl').loc[:, 'start'].drop_duplicates()
 
-        # Bypass transcript support level in non-human/mouse Ensembl gtfs
         except KeyError:
-            gtf0_start = gtf0.query('feature == "start_codon"').loc[:, 'start']
+            pass
 
-        if len(gtf0_start) > 0:
-            self.tx0 = gtf0_start.iloc[0]
-        else:
-            self.tx0 = -1
-
-        try:
-            gtf0_end = gtf0.query('feature == "stop_codon"').sort_values(['transcript_support_level']).loc[:, 'start']
-
-        # Bypass transcript support level in non-human/mouse Ensembl gtfs
-        except KeyError:
-            gtf0_end = gtf0.query('feature == "stop_codon"').loc[:, 'start']
-
+        # Get the longest transcripts (highest coordinates if strand is +)
         if len(gtf0_end) > 0:
-            self.tx1 = gtf0_end.iloc[0]
+            self.tx1 = sorted(gtf0_end, reverse=self.strand == '+')[0]
         else:
             self.tx1 = -1
 
         #
         # By rMATS convention, if strand is -ve
         # then the upstream is near the end of tx
+        # shift by 2 to get to the end of the end codon.
         #
         if self.strand == '-' and self.tx1 > 0 and self.tx0 > 0:
             self.tx0, self.tx1 = self.tx1, self.tx0
@@ -245,7 +296,10 @@ class Junction(object):
         elif self.strand == '+':
             self.tx1 += 2
 
-
+        self.logger.debug('Chosen start codon is {0}; end codon is {1}; tsl is {2}.'.format(self.tx0,
+                                                                                            self.tx1,
+                                                                                            tsl,
+                                                                                           ))
         return True
 
     def get_translated_phase(self, gtf):
@@ -279,15 +333,21 @@ class Junction(object):
 
         elif self.junction_type == 'A5SS':
             if self.strand == '+':
-                ph0, ph1 = self.alt1_ee, self.alt1_es  # Might have to search also for alt2
+                ph0, ph1 = self.alt1_es, self.alt1_ee  # Might have to search also for alt2
             elif self.strand == '-':
-                ph0, ph1 = self.anc_es, self.anc_ee
+                #
+                # 2020-07-25 changed to using the alt1 to retrieve phase because it is also upstream
+                # ph0, ph1 = self.anc_es, self.anc_ee #
+                ph0, ph1 = self.alt1_es, self.alt1_ee
 
         elif self.junction_type == 'A3SS':
             if self.strand == '+':
-                ph0, ph1 = self.anc_ee, self.anc_es  # Might have to search also for alt2
+                ph0, ph1 = self.anc_es, self.anc_ee
             elif self.strand == '-':
-                ph0, ph1 = self.alt1_es, self.alt2_ee
+                #
+                # 2020-07-25 changed to using the anc to retrieve phase because it is also upstream
+                # ph0, ph1 = self.alt1_es, self.alt1_ee
+                ph0, ph1 = self.anc_es, self.anc_ee
 
 
         self.logger.info('Anchor start {0} end {1}'.format(ph0,
@@ -296,15 +356,18 @@ class Junction(object):
 
         # Get the frame of that coding exon from GTF.
         coding_exon = gtf0.query('start == @ph0').\
-            query('end == @ph1').query('feature == "CDS"')
+            query('end == @ph1').query('feature == "CDS" & transcript_biotype == "protein_coding"')
+            # 2020-07-25 added protein coding filter in case a nonsense-mediated decay CDS comes first
 
 
         # If phases retrieved, get the first value
         if len(coding_exon) > 0:
             self.phase = int([x for x in coding_exon.loc[:, 'frame'].iloc if x != '.'][0])
+            # TODO: find the canonical transcript
 
         else:
-            self.phase = -1
+            self.phase = -1     # dummy value to trigger trying different phases for longest translation
+            # TODO: handle phase retrieval failure in a tidier manner
 
 
         self.logger.info('Transcription start: {0} Transcript end: {1}'.format(self.tx0,
@@ -313,8 +376,38 @@ class Junction(object):
 
 
 
-    def trim(self, gtf):
+    def trim_cds(self, gtf):
         """
+        Wrapper to trimming the exons by CDS; first retrieve the coordinates of the translation starts and ends,
+        then
+        """
+
+        if self.tx0 is None:
+            self._get_translated_region(gtf=gtf,
+                                        startsite_index=0)
+            self.logger.info('Anchor exon start: {0} Anchor exon end: {1}'.format(self.anc_es,
+                                                                                  self.anc_ee))
+
+        self._trim()
+
+        # 2020-07-25 Check if the newly trimmed exon is actually part of a cds
+        # TODO: only doing that for MXE and SE for now and only getting second start site for now
+        cds = gtf.annot.query('gene_id == @self.gene_id & '
+                              'feature == "CDS" & '
+                              'transcript_biotype == "protein_coding" &'
+                              'start == @self.anc_es & '
+                              'end == @self.anc_ee')
+
+        # 2020-07-25 If the newly trimmed anchor is not part of a CDS exon, this may suggest there is a second start site
+        if len(cds == 0) and self.num_start_codons > 1:
+            self._get_translated_region(gtf=gtf,
+                                        startsite_index=1)
+            self._trim()
+
+
+    def _trim(self):
+        """
+        core trim function that shaves off the UTRs
         :return: True
 
         Trims the junction based on transcription start and end:
@@ -324,10 +417,6 @@ class Junction(object):
         #
         # Subset the gtf file by the current gene_id
         #
-        if self.tx0 is None:
-            self._get_translated_region(gtf=gtf)
-            self.logger.info('Anchor exon start: {0} Anchor exon end: {1}'.format(self.anc_es,
-                                                                                  self.anc_ee))
 
 
         if self.junction_type == 'MXE':
