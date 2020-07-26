@@ -1,4 +1,4 @@
-# Junction Centric Alternative Splicing Translator v.0.2.4
+# Junction Centric Alternative Splicing Translator v.0.2.5
 
 JCAST (Junction Centric Alternative Splicing Translator) takes in alternative splicing events and returns custom protein sequence databases for isoform analysis.
 
