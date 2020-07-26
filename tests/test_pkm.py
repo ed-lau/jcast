@@ -56,21 +56,21 @@ class GenomeTest(unittest.TestCase):
 
         pass
 
-    def test_that_genome_loads(self):
+    def test_genome_loads(self):
 
         # TODO: test negative strand and trimming
         i = 71  # PKM
 
         junction = Junction(**rma.iloc[i].to_dict())
 
-        junction.trim(gtf)
+        junction.trim_cds(gtf)
 
         sequence = Sequence(junction)
         sequence.make_slice_localgenome(genome.genome)
         sequence.translate(use_phase=True)
 
         server = 'https://www.ebi.ac.uk'
-        ext = '/proteins/api/proteins/Ensembl:' + sequence.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
+        ext = '/proteins/api/proteins/Ensembl:' + sequence.j.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
 
         # retry 10 times
         retries = Retry(total=10,
