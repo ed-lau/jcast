@@ -399,7 +399,7 @@ class Junction(object):
                               'end == @self.anc_ee')
 
         # 2020-07-25 If the newly trimmed anchor is not part of a CDS exon, this may suggest there is a second start site
-        if len(cds == 0) and self.num_start_codons > 1:
+        if len(cds) == 0 and self.num_start_codons > 1:
             self._get_translated_region(gtf=gtf,
                                         startsite_index=1)
             self._trim()
