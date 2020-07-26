@@ -95,7 +95,9 @@ class RmatsResults(object):
         """
         Read input data frame for Alternative 5' Splice Sites (A5SS)
         Note this splice type is without the 'downstream' exon, but the anchor (flanking) is downstream.
-        The slices should be alt1-anc and alt2-anc
+        The slices should be alt1-anc and alt2-anc for
+        2020-07-235 A5SS may be treated differently here: I think for (-) strand, the slices are
+        anc-alt1 and anc-alt2
         Note if the strand is +, alt1_es and alt2_es should be identical and before anchor in genomic position.
         Note if the strand is -, alt1_ee and alt2_ee should be the same and after anchor in genomic position.
         :return:
@@ -118,6 +120,8 @@ class RmatsResults(object):
         Read input data frame for Alternative 3' Splice Sites (A3SS)
         Note this splice type is without the downstream exon, the anchor is the upstream.
         The slices are anc-alt1 and anc-alt2.
+        2020-07-235 A3SS may be treated differently here: I think for (-) strand, the slices are
+        alt1-anc and alt2-anc
         Note if the strand is +, alt1_ee and alt2_ee are identical and after anchor in genomic position.
         If the stand is -, alt1_es and alt2_es are the same, and they are both before anchor in genomic position.
         :return:

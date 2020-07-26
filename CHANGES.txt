@@ -1,0 +1,4 @@
+v0.2.6
+---
+- Fixed an issue where some A5SS minus-strand transcripts had incorrect phases retrieved from gtf
+- Fixed an issue where some transcripts using a secondary translation start sites are not trimmed

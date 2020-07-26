@@ -82,8 +82,26 @@ class Sequence(object):
         alt2_nt = h.get_local_nuc(genome_index, self.j.chr, self.j.alt2_es, self.j.alt2_ee)
         down_nt = h.get_local_nuc(genome_index, self.j.chr, self.j.down_es, self.j.down_ee)
 
-        self.slice1_nt = str((anc_nt + alt1_nt + down_nt).seq)
-        self.slice2_nt = str((anc_nt + alt2_nt + down_nt).seq)
+        if self.j.junction_type in ['MXE', 'SE', 'RI']:
+            self.slice1_nt = str((anc_nt + alt1_nt + down_nt).seq)
+            self.slice2_nt = str((anc_nt + alt2_nt + down_nt).seq)
+
+        # 2020-07-25 the flanking exons for A5SS and A3SS:
+        elif self.j.junction_type == 'A5SS':
+            if self.j.strand == '+':
+                self.slice1_nt = str((alt1_nt + anc_nt).seq)
+                self.slice2_nt = str((alt2_nt + anc_nt).seq)
+            elif self.j.strand == '-':
+                self.slice1_nt = str((anc_nt + alt1_nt).seq)
+                self.slice2_nt = str((anc_nt + alt2_nt).seq)
+
+        elif self.j.junction_type == 'A3SS':
+            if self.j.strand == '+':
+                self.slice1_nt = str((anc_nt + alt1_nt).seq)
+                self.slice2_nt = str((anc_nt + alt2_nt).seq)
+            elif self.j.strand == '-':
+                self.slice1_nt = str((alt1_nt + anc_nt).seq)
+                self.slice2_nt = str((alt2_nt + anc_nt).seq)
 
         self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice1_nt))
         self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice2_nt))
