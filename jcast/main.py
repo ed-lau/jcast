@@ -282,7 +282,7 @@ def _translate_one(junction,
                                       suffix='T4',
                                       merge_length=10)
 
-            callback_ = 'PARTIAL 4.  Slice 2 hit a stop codon. Used longest phase.\n\n'
+            callback_ = 'PARTIAL 4. Slice 2 hit a stop codon. Used longest phase.\n\n'
             return callback_
 
     # Force-translate slice 1 if slice 1 hits PTC:
