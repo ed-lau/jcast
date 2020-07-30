@@ -19,7 +19,6 @@ from jcast.sequences import Sequence
 from jcast import __version__
 
 
-
 def runjcast(args):
     """
     main look for jcast flow.
@@ -111,9 +110,9 @@ def runjcast(args):
                     total=len(junctions),
                     desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
             )):
-                main_log.info('>>>>>> Now doing junction {0} for gene {1}'.format(junctions[i].junction_type,
-                                                                                  junctions[i].name,
-                                                                                  junctions[i].gene_symbol,
+                main_log.info('>>>>>> Now doing {0} junction {1} for gene {2}'.format(junctions[i].junction_type,
+                                                                                      junctions[i].name,
+                                                                                      junctions[i].gene_symbol,
                                                                                   ))
                 main_log.info(f)
 
@@ -198,8 +197,7 @@ def _translate_one(junction,
     sequence.make_slice_localgenome(genome.genome)
 
     #
-    # The next section is the six-frame translational by-pass. If the --sixframe flag is on,
-    # Then do six-frame with all the qualifying junctions instead
+    # if the --sixframe flag is there, do six-frame translation with all qualifying junctions as well
     #
 
     if args.sixframe:
@@ -218,7 +216,7 @@ def _translate_one(junction,
 
 
     #
-    # Translate into peptides
+    # translate to peptides
     #
     sequence.translate(use_phase=True)
 
@@ -370,21 +368,19 @@ def main():
                         default=0.01,
                         type=float)
 
-
     parser.add_argument('-s', '--sixframe', action='store_true',
                         help='also do six-frame translation instead with the junctions [default: False]',
                         )
 
     parser.set_defaults(func=runjcast)
 
-    # Print help message if no arguments are given
-
+    # print help message if no arguments are given
     if len(sys.argv[1:]) == 0:
         parser.print_help()
         parser.exit()
 
-    # Parse all the arguments
+    # parse all the arguments
     args = parser.parse_args()
 
-    # Run the function in the argument
+    # run the function in the argument
     args.func(args)

@@ -56,7 +56,7 @@ class GenomeTest(unittest.TestCase):
 
         pass
 
-    def test_genome_loads(self):
+    def test_pkm_manual(self):
 
         # TODO: test negative strand and trimming
         i = 71  # PKM
