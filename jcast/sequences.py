@@ -19,6 +19,7 @@ import sqlite3 as sq
 
 from jcast import helpers as h
 from jcast.junctions import Junction
+from jcast import params
 
 # TODO: Sequence should really inherit directly from junction
 class Sequence(object):
@@ -157,12 +158,12 @@ class Sequence(object):
 
     def translate_forced(self, slice_to_translate):
         """
-        This is the fallback translate function for tier 4/5 peptides. We will start by using the retrieved GTF phase
+        This is the fallback translate function for tier 4 peptides. We will start by using the retrieved GTF phase
         and attempt to translate as normal. If only slice_1 returns normal without stop codon but slice_2 runs into
-        a stop codon, then I think what we could do is to try all three phases for slice_2 and take the longest peptide.
+        a stop codon, then force-translate slice_2 and take the peptide if it reaches a certain length.
 
-        This is intended to catch some suspected sequences where there *is* a biological premature stop codon, or that
-        the trimming of translation ends did not complete correctly. I am suspecting that this may be more frequent for
+        This is intended to catch some suspected sequences where there is a biological premature stop codon, or that
+        the trimming of translation ends did not complete correctly. This may be more frequent for
         A5SS and RI sequences, which in the first three tiers did not perform as well as MXE and SI sequences.
 
         :param slice_to_translate:  Int     Should be 1 or 2, depending on which slice we want to force
@@ -179,47 +180,38 @@ class Sequence(object):
         else:
             nt_to_translate = None
 
-        # For each nucleotide sequence, do each of three phases then get the longest translated product
-        for i in range(3):
-            best_seq = ''
-            best_phase = -1
-            seq = h.make_pep(nt_to_translate, self.j.strand, i, terminate=False)
+        # Translate without terminating at stop codon
+        seq = h.make_pep(nt_to_translate, self.j.strand, self.j.phase, terminate=False)
 
-            # Not taking care of equal lengths for now - only taking first phase if there are two with equal length.
-            if len(seq) > len(best_seq):
-                best_seq = seq
-                best_phase = i
-            else:
-                best_seq = ''
-
-        if len(best_seq) > 0:
-            self.translated_phase = best_phase
-            forced_translated_aa = best_seq
+        if len(seq) > 0:
+            self.translated_phase = self.j.phase
+            force_translated_aa = seq
 
         else:
-            forced_translated_aa = ''
+            force_translated_aa = ''
 
         # Determine whether to write the force_translated AA into slice 1 or slice 2
         if slice_to_translate == 1:
-            self.slice1_aa = forced_translated_aa
+            self.slice1_aa = force_translated_aa
         elif slice_to_translate == 2:
-            self.slice2_aa = forced_translated_aa
+            self.slice2_aa = force_translated_aa
 
         self.logger.info('Translated AA for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice1_aa))
         self.logger.info('Translated AA for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice2_aa))
 
         return True
 
-    def translate_sixframe(self, given_strand, given_phase):
+    def translate_threeframe(self,
+                             given_strand,
+                             given_phase):
         """
-        This is the most basic translate function which we will use for six-frame translation
+        This is the most basic translate function which we will use for three-frame translation
         It will just take the phase and strand being sent to it, and it will return the peptide even if it
         runs into a stop codon.
 
         :param given_strand:        chr strand to use for translation
         :param given_phase:         chr phase to use for translation
-        :return:                    T
-        """"""
+        :return:
         """
 
         assert given_strand in ['+', '-'], 'Given strand is not a valid string'
@@ -233,49 +225,12 @@ class Sequence(object):
 
         return True
 
-    def write_to_fasta(self, output, suffix):
-        """
-
-        WARNING: Deprecated, see the new "extend and write" function below, which will first attempt to harmonize
-        the sequence to FASTA before writing the full-length sequence.
-
-        :param output: File name of the .fasta output.
-        :return: True
-
-        Create the /out directory if it does not exist, then write the translated splice junctions into the .fasta file
-
-        """
-
-        # Note to self, this condition should probably be moved to main to make this function more reusable.
-        # So the idea is to write out different files depending on whether translation was successful
-
-        fa1 = SeqRecord(Seq(self.slice1_aa, IUPAC.extended_protein),
-                        id=(self.j.gene_symbol + '-' + self.j.gene_id + '-' + self.j.junction_type + '-1-' +
-                            self.j.name + '-' + str(self.j.phase) + self.j.strand),
-                        name=self.j.gene_symbol,
-                        description='Slice 1')
-        fa2 = SeqRecord(Seq(self.slice2_aa, IUPAC.extended_protein),
-                        id=(self.j.gene_symbol + '-' + self.j.gene_id + '-' + self.j.junction_type + '-2-' +
-                            self.j.name + '-' + str(self.j.phase) + self.j.strand),
-                        name=self.j.gene_symbol,
-                        description='Slice 2')
-
-        os.makedirs('../out', exist_ok=True)
-        o = os.path.join('../out', output + suffix + '.fasta')
-
-        output_handle = open(o, 'a')
-        SeqIO.write([fa1, fa2], output_handle, 'fasta')
-        output_handle.close()
-
-
-        return True
 
     # To do this needs to be redone
     def extend_and_write(self,
                          output='out',
                          suffix='T0',
-                         merge_length=10,
-                         canonical_only=False,
+                         canonical_only: bool = False,
                          ):
         """
         Given a translated junction sequence, look for the fasta entry that overlaps with it, then return the entry
@@ -291,76 +246,17 @@ class Sequence(object):
 
         After extension, write the SeqRecord objects created into fasta file...
 
-        :param species:         string  Specices (mouse or human) to determine which fasta to grab
-        :param output:          string  Output directory
-        :param merge_length:    int     The minimal number of amino acids needed for merging (default 10)
-        :param suffix:          string  Additional suffix to add to the end of an output file
+        :param output:          string  output directory
+        :param suffix:          string  additional suffix to add to the end of an output file
+        :param canonical_only:  bool    writes only the canonical sequence
         :return:
         """
 
-
+        merge_length = params.stitch_length
         assert type(merge_length) is int and merge_length >= 6, 'Merge length must be integer and at least 6'
 
-        #'''
-        #Retrieve sequences from Ensembl.
-
-
-
-        # server = 'https://www.ebi.ac.uk'
-        # ext = '/proteins/api/proteins/Ensembl:' + self.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
-        #
-        # self.logger.debug(server + ext)
-        #
-        #
-        # # retry 10 times
-        # retries = Retry(total=10,
-        #                 backoff_factor=0.1,
-        #                 status_forcelist=[500, 502, 503, 504])
-        #
-        # rqs = rq.Session()
-        # rqs.mount('https://', HTTPAdapter(max_retries=retries))
-        # ret = rqs.get(server + ext, headers={"Accept": "text/x-fasta"})
-        #
-        # if not ret.ok:
-        #     self.logger.error("Network still not okay after 10 retries. Quit without writing.")
-        #     return True
-        #
-        # # If ret.text is empty, the fall back is to use a local fasta or exit
-        # if len(ret.text) == 0:
-        #     return True
-        #
-        #     # # Load local fasta (for now) based on species
-        #     # if species == 'mouse':
-        #     #     fasta_handle = SeqIO.parse('data/fasta/20170918_Mm_Sp_16915.fasta', 'fasta',
-        #     #                                IUPAC.extended_protein)
-        #     # elif species == 'human':
-        #     #     fasta_handle = SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta',
-        #     #                                IUPAC.extended_protein)
-        #
-        #
-        #
-        # # If ret.text is not empty, then get from online record.
-        # else:
-        #     fasta_handle = SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein)
-
-
-        # The UniProt API retrieves a retrieval object, with a text field inside ret.text
-        # Since Biopython SeqIO only works with file, use io.StringIO to turn the string into a file for parsing.
-
-        #'''
-
-        '''
-        # Load local fasta (for now) based on species
-        if species == 'mouse':
-            fasta_handle = SeqIO.parse('data/fasta/20170918_Mm_Sp_16915.fasta', 'fasta',
-                                       IUPAC.extended_protein)
-        elif species == 'human':
-            fasta_handle = SeqIO.parse('data/fasta/20170918_Hs_Sp_20205.fasta', 'fasta',
-                                       IUPAC.extended_protein)
-        '''
-
+        # cache retrieved sequences if available, otherwise retrieve from Ensembl
         cache = self.j.gene_id
-
         self.logger.info(cache)
 
         # Create cache folder if not exists
@@ -371,8 +267,6 @@ class Sequence(object):
         cur = con.cursor()
         cur.execute('''CREATE TABLE IF NOT EXISTS sequences(pk INTEGER PRIMARY KEY, id TEXT, seq TEXT)''')
 
-        # try:
-
         cur.execute('''SELECT id, seq FROM sequences WHERE id=:cache''',
                     {'cache': cache})
         read_fasta = cur.fetchone()
@@ -381,7 +275,6 @@ class Sequence(object):
             record = list(SeqIO.parse(StringIO(read_fasta[1]), 'fasta', IUPAC.extended_protein))[0]
             self.logger.info('Locally cached sequence retrieved')
             con.close()
-            # return nuc
 
         else:
             self.logger.info("Sequence not yet cached locally. 0")
@@ -419,28 +312,27 @@ class Sequence(object):
                 self.logger.warning('Retrieval of protein sequence failed. Skipped protein.')
                 return True
 
-        # Find out where the first (10) amino acids meets the UniProt canonical sequences..
+        # find out where the first (stitch_length) amino acids meets the UniProt canonical sequences..
         merge_start1 = record.seq.find(self.slice1_aa[:merge_length])
         merge_end1 = record.seq.find(self.slice1_aa[-merge_length:])
 
         merge_start2 = record.seq.find(self.slice2_aa[:merge_length])
         merge_end2 = record.seq.find(self.slice2_aa[-merge_length:])
 
-        # If meant to salvage canonical only, write the record to the gene_canonical file and exit.
+        # if meant to salvage canonical only, write the record to the gene_canonical file and exit.
         if canonical_only:
             canonical = record[:]
             h.write_seqrecord_to_fasta(canonical, output, 'gene_canonical')
             return True
 
-        # Only proceed to write file if we can bridge the first and last 10 amino acids of either
-        # Slice 1 or slice 2 to the sequence.
-
+        # only proceed to write file if we can bridge the first and last (stitch_length) amino acids of either
+        # slice 1 or slice 2 to the sequence.
         if (merge_start1 != -1 and merge_end1 != -1) or (merge_start2 != -1 and merge_end2 != -1):
 
-            # Write the UniProt canonical first
+            # write the UniProt canonical first
             canonical = record[:]  # [:] needed to copy list rather than add new alias
 
-            # Format the name of the slice 1 record
+            # format the name of the slice 1 record
             if merge_start1 != -1 and merge_end1 != -1:
                 record1 = record[:merge_start1] + self.slice1_aa + record[merge_end1 + merge_length:]
             elif merge_start1 != -1 and merge_end1 == -1:
@@ -450,7 +342,8 @@ class Sequence(object):
             elif merge_start1 == -1 and merge_end1 == -1:
                 record1 = record[:0] + self.slice1_aa
 
-            # If the slice is different from the UniProt canonical, then also write it.
+            # if the slice is different from the UniProt canonical, then also write it.
+            # TODO: use format for this, unless redo canonical lookup from gtf
             if record.seq.find(self.slice1_aa) == -1:
 
                 record1.id += ('|' + self.j.gene_id + '|' + self.j.junction_type + '1|' + self.j.name + '|'
@@ -458,10 +351,9 @@ class Sequence(object):
                                + '|' + self.translated_strand + str(self.translated_phase) + '|'
                                + 'r' + str(self.j.min_read_count) + '|' + suffix)
 
-
                 h.write_seqrecord_to_fasta(record1, output, suffix)
 
-            # If not, then change name of canonical to reflect that it is also slice 1.
+            # otherwise change name of canonical to reflect that it is also slice 1.
             else:
                 canonical.id = record1.id
                 h.write_seqrecord_to_fasta(canonical, output, 'canonical')
@@ -476,7 +368,7 @@ class Sequence(object):
             elif merge_start2 == -1 and merge_end2 == -1:
                 record2 = record[:0] + self.slice2_aa
 
-                # If the slice is not the same as the UniProt canonical, then also write it.
+            # if the slice is not the same as the UniProt canonical, then also write it.
             if record.seq.find(self.slice2_aa) == -1:
                 record2.id += ('|' + self.j.gene_id + '|' + self.j.junction_type + '2|' + self.j.name + '|'
                                + str(self.j.chr) + '|' + str(self.j.anc_ee) + '|' + str(self.j.alt1_ee)
@@ -485,7 +377,7 @@ class Sequence(object):
 
                 h.write_seqrecord_to_fasta(record2, output, suffix)
 
-            # If not, then change name of canonical to reflect that it is also slice 2.
+            # otherwise change name of canonical to reflect that it is also slice 2.
             else:
                 canonical.id = record2.id
                 h.write_seqrecord_to_fasta(canonical, output, 'canonical')
@@ -497,16 +389,14 @@ class Sequence(object):
             # Once you found a match and wrote the sequence, quit.
             return True
 
-        # If the slice is not matched to any of the FASTA entries, or if the slices are too short,
+        # if the slice is not matched to any of the FASTA entries, or if the slices are too short,
         # write the slices to an orphan fasta.
-        # NOTE: we are separating these out for now because we want to find out why they fall through.
-
         self.logger.info('Slices are not stitchable to fasta. Writing to orphan file for reference.')
         self.logger.info('Slice 1: {0}'.format(self.slice1_aa))
         self.logger.info('Slice 2: {0}'.format(self.slice2_aa))
         self.logger.info('Canonical: {0}'.format(record.seq))
 
-        # Format the name of the orphan slice 1 record
+        # format the name of the orphan slice 1 record
         orphan_slice1 = SeqRecord(Seq(self.slice1_aa, IUPAC.extended_protein),
                                   id=('xx|ORPHN|' + self.j.gene_symbol + '|'
                                       + self.j.gene_id + '|' + self.j.junction_type + '1|' + self.j.name + '|'
@@ -516,7 +406,7 @@ class Sequence(object):
                                   name='Protein name here',
                                   description='Description',)
 
-        # Format the name of the orphan slice 2 record
+        # format the name of the orphan slice 2 record
         orphan_slice2 = SeqRecord(Seq(self.slice2_aa, IUPAC.extended_protein),
                                   id=('xx|ORPHN|' + self.j.gene_symbol + '|'
                                       + self.j.gene_id + '|' + self.j.junction_type + '2|' + self.j.name + '|'

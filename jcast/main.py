@@ -15,6 +15,7 @@ import tqdm
 from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
+from jcast import params
 
 from jcast import __version__
 
@@ -197,22 +198,21 @@ def _translate_one(junction,
     sequence.make_slice_localgenome(genome.genome)
 
     #
-    # if the --sixframe flag is there, do six-frame translation with all qualifying junctions as well
+    # if the --threeframe flag is there, do six-frame translation with all qualifying junctions as well
     #
 
-    if args.sixframe:
-        for strand, phase in [(strand, phase) for strand in ['+', '-'] for phase in [0, 1, 2]]:
+    if args.threeframe:
+        for phase in [0, 1, 2]:
 
-            # Do six frame translation to get peptide
-            sequence.translate_sixframe(strand, phase)
+            # Do three frame translation to get peptide
+            sequence.translate_threeframe(junction.strand, phase)
 
-            # Check that the amino acid slices are at least as long as 10 amino acids)
-            # Otherwise there is no point doing the merging
-            if len(sequence.slice1_aa) >= 10 and len(sequence.slice2_aa) >= 10:
+            # check that the amino acid slices are at least as long as the stitch length
+            # otherwise there is no point doing the stitching
+            if len(sequence.slice1_aa) >= params.stitch_length and len(sequence.slice2_aa) >= params.stitch_length:
                 # Extend with fasta, and then write if necessary.
                 sequence.extend_and_write(output=directory_to_write,
-                                          suffix='sixframe',
-                                          merge_length=10)
+                                          suffix='sixframe')
 
 
     #
@@ -233,7 +233,6 @@ def _translate_one(junction,
             sequence.extend_and_write(
                 output=directory_to_write,
                 suffix='T1',
-                merge_length=10,
             )
 
             callback_ = ('SUCCESS 1. Retrieved phase: {0} \n\n'
@@ -249,7 +248,7 @@ def _translate_one(junction,
             sequence.extend_and_write(  # species=species,
                 output=directory_to_write,
                 suffix='T2',
-                merge_length=10)
+            )
 
             callback_ = ('SUCCESS 2. Retrieved phase: {0} \n\n'
                           'Used phase: {1}. Frameshift.'.format(sequence.j.phase,
@@ -269,7 +268,7 @@ def _translate_one(junction,
         if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
             sequence.extend_and_write(output=directory_to_write,
                                       suffix='T3',
-                                      merge_length=10)
+                                      )
 
             callback_ = ('SUCCESS 3. GTF phase mismatch. Retrieved phase: {0} \n\n'
                           'Used phase: {1}'.format(sequence.j.phase,
@@ -278,8 +277,7 @@ def _translate_one(junction,
 
     #
     # If sequence is still not good, do Tier 4: One of the two slices hits stop codon.
-    # (select one that is longest and translate if prior to the stop codon the short
-    # slice is at least half as long as the long slice)
+    # write out the slice if it is at least half as long as the long slice.
     # TODO: Determine likely translated frame, or keep frame based on PTC location from protein end
     #
 
@@ -291,10 +289,10 @@ def _translate_one(junction,
 
         sequence.translate_forced(slice_to_translate=2)
 
-        if len(sequence.slice2_aa) / len(sequence.slice1_aa) >= 0.5:
+        if len(sequence.slice2_aa) / len(sequence.slice1_aa) >= params.ptc_threshold:
             sequence.extend_and_write(output=directory_to_write,
                                       suffix='T4',
-                                      merge_length=10)
+                                      )
 
             callback_ = 'PARTIAL 4. Slice 2 hit a stop codon. Used longest phase.\n\n'
             return callback_
@@ -304,10 +302,10 @@ def _translate_one(junction,
 
         sequence.translate_forced(slice_to_translate=1)
 
-        if len(sequence.slice1_aa) / len(sequence.slice2_aa) >= 0.5:
+        if len(sequence.slice1_aa) / len(sequence.slice2_aa) >= params.ptc_threshold:
             sequence.extend_and_write(output=directory_to_write,
                                       suffix='T4',
-                                      merge_length=10)
+                                      )
 
             callback_ = 'PARTIAL 5.  Slice 1 hit a stop codon. Used longest phase.\n\n'
             return callback_
@@ -325,8 +323,8 @@ def _translate_one(junction,
         #
         if args.canonical:
             sequence.extend_and_write(output=directory_to_write,
-                                      merge_length=10,
-                                      canonical_only=True)
+                                      canonical_only=True,
+                                      )
         callback_ = 'FAILURE 6.  No alternative translation. \n\n'
         return callback_
 
@@ -368,8 +366,8 @@ def main():
                         default=0.01,
                         type=float)
 
-    parser.add_argument('-s', '--sixframe', action='store_true',
-                        help='also do six-frame translation instead with the junctions [default: False]',
+    parser.add_argument('-t', '--threeframe', action='store_true',
+                        help='also do three-frame translation instead with the junctions [default: False]',
                         )
 
     parser.set_defaults(func=runjcast)
