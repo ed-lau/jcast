@@ -111,7 +111,7 @@ def runjcast(args):
                     total=len(junctions),
                     desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
             )):
-                main_log.info('>>>>>> Now doing junction {0} for gene {1}'.format(junction[i].junction_type,
+                main_log.info('>>>>>> Now doing junction {0} for gene {1}'.format(junctions[i].junction_type,
                                                                                   junctions[i].name,
                                                                                   junctions[i].gene_symbol,
                                                                                   ))
