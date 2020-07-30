@@ -2,7 +2,6 @@
 
 """ Methods that concern sequences - retrieving and cacheing nucleotide sequences, translating into amino acids """
 
-
 import logging
 import os.path
 
@@ -21,19 +20,18 @@ from jcast import helpers as h
 from jcast.junctions import Junction
 from jcast import params
 
-# TODO: Sequence should really inherit directly from junction
+
 class Sequence(object):
 
     def __init__(self,
-                 junction: Junction):
+                 junction: Junction,
+                 ):
         """
         :type junction: object
-        :param junction: The splice junction object
+        :param junction: the splice junction object
 
         Mostly copying properties of the junction object (already trimmed) to start a new sequence object. This
         sequence object will be used to make the nucleotide slices and translate into protein sequences.
-
-        To do: Change this so that sequence inherits junction class directly (have to think it through)
 
         """
 
@@ -48,33 +46,35 @@ class Sequence(object):
 
         self.logger = logging.getLogger('jcast.seq')
 
-
     def __repr__(self):
+        """ repr """
         return 'Sequence object: ' + self.j.gene_id + ' ' + self.j.gene_symbol + ' ' + self.j.name
 
     def __str__(self):
+        """ str """
         return 'Sequence object: ' + self.j.gene_id + ' ' + self.j.gene_symbol + ' ' + self.j.name
 
     @property
     def frameshift(self) -> bool:
         """
-        A setter to mark that there is a frameshift; used to determine whether the slice should be tier 1 or tier 2
+        check for frameshift; used to determine whether the slice should be tier 1 or tier 2
+        by checking if slice 1 nucleotides are different in length from slice 2 nucleotide by
+        multiples of 3, which probably denotes frame shift (unless there are loose amino acids near the end)?
 
         :return:
         """
-        # Check for frame-shift.
-        # See if slice 1 nucleotides are different in length from slice 2 nucleotide by
-        # multiples of 3, which probably denotes frame shift (unless there are loose amino acids near the end)?
+
+        #
         return ((len(self.slice1_nt) - len(self.slice2_nt)) % 3) != 0
 
-            # main_log.info("Frame-shift between the two slices (length difference not multiples of 3).")
-            # Note it looks like some frameshift skipped exon peptides could nevertheless come back in frame
-            # We should only consider those without frameshift as tier 1.
 
-
-    def make_slice_localgenome(self, genome_index):
+    def make_slice_localgenome(self,
+                               genome_index,
+                               ):
         """
         This gets the nucleotide sequence from the coordinates, using a local genome
+
+        :param genome_index: read genome file
         :return:
         """
 
@@ -107,24 +107,9 @@ class Sequence(object):
         self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice1_nt))
         self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice2_nt))
 
-    # def make_slice(self):
-    #     """
-    #     This gets the nucleotide sequence from the coordinates, using a web API
-    #     :return:
-    #     """
-    #
-    #     anc_nt = h.get_nuc('human', self.j.chr, self.j.anc_es, self.j.anc_ee)
-    #     alt1_nt = h.get_nuc('human', self.j.chr, self.j.alt1_es, self.j.alt1_ee)
-    #     alt2_nt = h.get_nuc('human', self.j.chr, self.j.alt2_es, self.j.alt2_ee)
-    #     down_nt = h.get_nuc('human', self.j.chr, self.j.down_es, self.j.down_ee)
-    #
-    #     self.slice1_nt = anc_nt + alt1_nt + down_nt
-    #     self.slice2_nt = anc_nt + alt2_nt + down_nt
-    #
-    #     print(self.slice1_nt)
-    #     print(self.slice2_nt)
-
-    def translate(self, use_phase=True):
+    def translate(self,
+                  use_phase=True,
+                  ):
         """
         This is the translate function for tier 1/2/3 peptide. Calls make_pep with the terminal option
         which will terminate when it runs into a stop codon. Later on we should make a force_translate that does
@@ -156,7 +141,9 @@ class Sequence(object):
 
         return True
 
-    def translate_forced(self, slice_to_translate):
+    def translate_forced(self,
+                         slice_to_translate: int,
+                         ):
         """
         This is the fallback translate function for tier 4 peptides. We will start by using the retrieved GTF phase
         and attempt to translate as normal. If only slice_1 returns normal without stop codon but slice_2 runs into
@@ -166,7 +153,7 @@ class Sequence(object):
         the trimming of translation ends did not complete correctly. This may be more frequent for
         A5SS and RI sequences, which in the first three tiers did not perform as well as MXE and SI sequences.
 
-        :param slice_to_translate:  Int     Should be 1 or 2, depending on which slice we want to force
+        :param slice_to_translate:  int     Should be 1 or 2, depending on which slice we want to force
         :return:
         """
 
@@ -180,7 +167,7 @@ class Sequence(object):
         else:
             nt_to_translate = None
 
-        # Translate without terminating at stop codon
+        # translate without terminating at stop codon
         seq = h.make_pep(nt_to_translate, self.j.strand, self.j.phase, terminate=False)
 
         if len(seq) > 0:
@@ -225,8 +212,7 @@ class Sequence(object):
 
         return True
 
-
-    # To do this needs to be redone
+    # TODO: save all sequences and write once
     def extend_and_write(self,
                          output='out',
                          suffix='T0',
