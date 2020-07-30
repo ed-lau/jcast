@@ -10,7 +10,7 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='jcast',
-    version="0.2.6",
+    version="0.2.7",
     description='Jcast retrieves splice junction information and translates into amino acids',
 
     long_description=long_description,
@@ -56,7 +56,7 @@ setup(
                       'requests>=2,<3',
                       'tqdm>=4,<5'],  # external packages as dependencies
     entry_points={
-        'console_scripts': ['jcast=jcast.__main__:main',
+        'console_scripts': ['jcast=jcast.main:main',
                             ],
     },
 
