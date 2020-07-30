@@ -7,9 +7,7 @@
 import os
 import datetime
 import logging
-import statistics
 from functools import partial
-import multiprocessing
 import concurrent.futures
 
 import tqdm
@@ -22,7 +20,7 @@ from jcast import __version__
 
 
 
-def jcast(args):
+def runjcast(args):
     """
     main look for jcast flow.
 
@@ -81,7 +79,7 @@ def jcast(args):
 
     # number of threads for concurrency
     # cap it at cpu count -1 for now
-    threads = min(args.num_threads, multiprocessing.cpu_count()-1)
+    threads = min(args.num_threads, os.cpu_count()-1)
 
     #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
@@ -102,6 +100,9 @@ def jcast(args):
                                         directory_to_write=directory_to_write,
                                         )
 
+        #
+        # Concurrent futures
+        #
         with concurrent.futures.ThreadPoolExecutor(max_workers=threads) as pool:
             for i, f in enumerate(tqdm.tqdm(pool.map(
                     translate_one_partial,
@@ -110,9 +111,24 @@ def jcast(args):
                     total=len(junctions),
                     desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
             )):
-                main_log.info('>>>>>> Now doing junction {0} for gene {1}'.format(junctions[i].name,
-                                                                                  junctions[i].gene_symbol))
+                main_log.info('>>>>>> Now doing junction {0} for gene {1}'.format(junction[i].junction_type,
+                                                                                  junctions[i].name,
+                                                                                  junctions[i].gene_symbol,
+                                                                                  ))
                 main_log.info(f)
+
+        #
+        # Single threaded for-loop
+        #
+        # for jx in tqdm.tqdm(junctions,
+        #                     total=len(junctions),
+        #                     desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
+        #                     ):
+        #     translate_one_partial(jx)
+        #     main_log.info('>>>>>> Now doing {0} junction {1} for gene {2}'.format(jx.junction_type,
+        #                                                                           jx.name,
+        #                                                                           jx.gene_symbol,
+        #                                                                           ))
 
     return True
 
@@ -359,7 +375,7 @@ def main():
                         help='also do six-frame translation instead with the junctions [default: False]',
                         )
 
-    parser.set_defaults(func=jcast)
+    parser.set_defaults(func=runjcast)
 
     # Print help message if no arguments are given
 
