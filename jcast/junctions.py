@@ -9,7 +9,7 @@ import pandas as pd
 import statistics
 
 from jcast import params
-from jcast.annots import AnnotatedTranscript
+# from jcast.annots import AnnotatedTranscript
 
 class RmatsResults(object):
     """
@@ -190,7 +190,11 @@ class Junction(object):
     @property
     def min_read_count(self):
         """
-        A setter to mark the minimum read count in the junction
+        Returns the minimum read count in the junction. if rMATS was run with one technical replicate,
+        the count field is an int, otherwise it is a list. Currently this takes the skipped junction count (SJC)
+        as filtering criterion because the majority of translatable events are probably SE (skipped exon).
+        Essentially this filters out alternative junctions that are very rarely skipped (high inclusion
+        level of the exons) that are not likely to be translatable.
 
         :return:
         """
@@ -204,11 +208,10 @@ class Junction(object):
 
         return min([mean_count_sample1, mean_count_sample2])
 
-
     def get_annotated_transcripts(self, gtf):
         """
-        prepping for future versions.
-        get the annotated transcripts of the gene under question
+        Placeholder for future get all annotated transcripts
+        Get the annotated transcripts of the gene under question
 
         :param gtf: genome annotation
 
@@ -230,9 +233,6 @@ class Junction(object):
 
         for tx in coding_tx:
             pass
-
-
-
 
     def _get_translated_region(self,
                                gtf,
@@ -256,7 +256,6 @@ class Junction(object):
         #
         tsl = params.tsl_threshold
 
-
         # 2020-07-25 now getting the start codons of all protein coding transcripts at TSL threshold
         gtf0_start = gtf0.query('feature == "start_codon" & '
                                 'transcript_biotype == "protein_coding" & '
@@ -276,11 +275,11 @@ class Junction(object):
         # 2020-07-25 now getting end codons of all protein coding transcripts at TSL threshold
         try:
             gtf0_end = gtf0.query('feature == "start_codon" & '
-                                'transcript_biotype == "protein_coding" & '
+                                  'transcript_biotype == "protein_coding" & '
                                   'transcript_support_level <= @tsl').loc[:, 'start'].drop_duplicates()
 
         except KeyError:
-            pass
+            gtf0_end = None
 
         # Get the longest transcripts (highest coordinates if strand is +)
         if len(gtf0_end) > 0:
@@ -289,7 +288,7 @@ class Junction(object):
             self.tx1 = -1
 
         #
-        # By rMATS convention, if strand is -ve
+        # by rMATS convention, if strand is -ve
         # then the upstream is near the end of tx
         # shift by 2 to get to the end of the end codon.
         #
@@ -303,7 +302,8 @@ class Junction(object):
         self.logger.debug('Chosen start codon is {0}; end codon is {1}; tsl is {2}.'.format(self.tx0,
                                                                                             self.tx1,
                                                                                             tsl,
-                                                                                           ))
+                                                                                            )
+                          )
         return True
 
     def get_translated_phase(self, gtf):
@@ -353,10 +353,8 @@ class Junction(object):
                 # ph0, ph1 = self.alt1_es, self.alt1_ee
                 ph0, ph1 = self.anc_es, self.anc_ee
 
-
         self.logger.info('Anchor start {0} end {1}'.format(ph0,
                                                            ph1))
-
 
         # Get the frame of that coding exon from GTF.
         coding_exon = gtf0.query('start == @ph0').\
@@ -377,8 +375,6 @@ class Junction(object):
         self.logger.info('Transcription start: {0} Transcript end: {1}'.format(self.tx0,
                                                                                self.tx1))
         self.logger.info('Retrieved phase: {0}'.format(self.phase))
-
-
 
     def trim_cds(self, gtf):
         """
@@ -411,7 +407,7 @@ class Junction(object):
 
     def _trim(self):
         """
-        core trim function that shaves off the UTRs
+        Core trim function that shaves off the UTRs
         :return: True
 
         Trims the junction based on transcription start and end:
@@ -437,7 +433,8 @@ class Junction(object):
                     self.anc_es = -1
                     self.anc_ee = -1
                     self.alt2_es = self.tx0
-            except:
+
+            except ValueError:
                 self.logger.info('Trimming start failed.')
 
             try:
@@ -453,7 +450,8 @@ class Junction(object):
                     self.down_es = -1
                     self.down_ee = -1
                     self.alt2_ee = self.tx1
-            except:
+
+            except ValueError:
                 self.logger.info('Trimming end failed.')
 
         elif self.junction_type == 'SE':
@@ -466,7 +464,7 @@ class Junction(object):
                     self.anc_ee = -1
                     self.alt1_es = self.tx0
 
-            except:
+            except ValueError:
                 self.logger.info('Trimming start failed.')
 
             try:
@@ -478,7 +476,7 @@ class Junction(object):
                     self.down_ee = -1
                     self.alt1_ee = self.tx1
 
-            except:
+            except ValueError:
                 self.logger.info('Trimming end failed.')
 
         elif self.junction_type == 'RI':
@@ -486,14 +484,14 @@ class Junction(object):
                 if self.anc_ee > self.tx0 > self.anc_es:
                     self.anc_es = self.tx0
 
-            except:
+            except ValueError:
                 self.logger.info('Trimming start failed.')
 
             try:
                 if self.down_ee > self.tx1 > self.down_es:
                     self.down_ee = self.tx1
 
-            except:
+            except ValueError:
                 self.logger.info('Trimming end failed.')
 
         elif self.junction_type == 'A5SS':
@@ -504,14 +502,14 @@ class Junction(object):
                 if self.alt1_ee > self.tx0 > self.alt1_es:
                     self.alt1_es = self.tx0
 
-            except:
+            except ValueError:
                 self.logger.info('Trimming start failed.')
 
             try:
                 if self.anc_ee > self.tx1 > self.anc_es:
                     self.anc_ee = self.tx1
 
-            except:
+            except ValueError:
                 self.logger.info('Trimming end failed.')
 
         elif self.junction_type == 'A3SS':

@@ -12,10 +12,10 @@ import concurrent.futures
 
 import tqdm
 
+from jcast import params, fates
 from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
-from jcast import params
 
 from jcast import __version__
 
@@ -31,8 +31,8 @@ def runjcast(args):
     # Get timestamp for out files
     now = datetime.datetime.now()
 
-    directory_to_write = os.path.join(args.out, 'jcast_' + now.strftime('%Y%m%d%H%M%S'))
-    os.makedirs(directory_to_write, exist_ok=True)
+    write_dir = os.path.join(args.out, 'jcast_' + now.strftime('%Y%m%d%H%M%S'))
+    os.makedirs(write_dir, exist_ok=True)
 
     # Main logger setup
     main_log = logging.getLogger('jcast')
@@ -40,7 +40,7 @@ def runjcast(args):
     main_log.setLevel(logging.INFO)
 
     # create file handler which logs even debug messages
-    fh = logging.FileHandler(os.path.join(directory_to_write, 'jcast_main.log'))
+    fh = logging.FileHandler(os.path.join(write_dir, 'jcast_main.log'))
     fh.setLevel(logging.DEBUG)
 
     # create formatter and add it to the handlers
@@ -97,7 +97,7 @@ def runjcast(args):
                                         gtf=gtf,
                                         genome=genome,
                                         args=args,
-                                        directory_to_write=directory_to_write,
+                                        write_dir=write_dir,
                                         )
 
         #
@@ -137,83 +137,45 @@ def _translate_one(junction,
                    gtf,
                    genome,
                    args,
-                   directory_to_write,
+                   write_dir,
                     ):
     """ get coordinate and translate one junction; arguments are passed through partial from main"""
-    #
-    # Code for filtering by rMATS results
-    #
-
-    # Discard this junction if the read count is below threshold in both splice junctions.
-    # Maybe should change this to discard everything with read counts below threshold on EITHER junction
-    # This is intended to remove junctions that are very low in abundance.
-
-    # If rMATS was run with one technical replicate, the count field is an int, otherwise it is a list
-    # The following should take care of both single integer and list of integers.
-
-    # First we mandate that there is a read spanning the junction (taking the rMTAS JC rather than JCEC
-    # files.
-
-    # We are taking the skipped junction count (SJC) as filtering criterion for now
-    # because the majority of translatable events are probably SE (skipped exon)
-    # Essentially this filters out alternative junctions that are very rarely skipped
-    # (high inclusion level of the exons) that are not likely to be translatable.
-
 
     #
-    # Filter by minimal read counts
+    # filter by junction read counts - discard junction if the min read count is below threshold
     #
     if junction.min_read_count < args.read:
-        callback_ = ('SKIPPED. Sequence discarded due to low coverage. \n\n')
-        return callback_
-
-    # Discard this junction if the corrected P value of this read count is < 0.01
-    # This is intended to remove junctions that aren't found on both replicates.
-    # This might not be a good idea, however.
-    if junction.fdr < args.pvalue:
-        callback_ = 'SKIPPED. Sequence discarded due to difference across replicates. \n\n'
-        return callback_
+        return fates.skipped_low
 
     #
-    # Trim slice coordinates by translation starts and ends
+    # discard junction if the corrected P value of this read count is < threshold
+    # this removes junctions that are inconsifound on both replicates.
+    #
+    if junction.fdr < args.pvalue:
+        return fates.skipped_low
+
+    #
+    # trim slice coordinates by translation starts and ends
     #
     junction.trim_cds(gtf)
 
     #
-    # Get translated phase from GTF. Note this should be done after trimming to get the
+    # get translated phase from GTF. Note this should be done after trimming to get the
     # right frame in case the exon in question is trimmed by the coding start
     #
     junction.get_translated_phase(gtf)
 
     #
-    # Initiate a sequence object that copies most of the junction information
+    # initiate a sequence object that copies most of the junction information
     #
     sequence = Sequence(junction)
 
     #
-    # Get nucleotide sequences of all slices using genome in memory
+    # get nucleotide sequences of all slices using genome in memory
     # (anchor, alternative-1, alternative-2, downstream)
-    # Conjoin alternative exons to make slice 1 and 2,
+    # conjoin alternative exons to make slice 1 and 2,
     #
     sequence.make_slice_localgenome(genome.genome)
-
-    #
-    # if the --threeframe flag is there, do six-frame translation with all qualifying junctions as well
-    #
-
-    if args.threeframe:
-        for phase in [0, 1, 2]:
-
-            # Do three frame translation to get peptide
-            sequence.translate_threeframe(junction.strand, phase)
-
-            # check that the amino acid slices are at least as long as the stitch length
-            # otherwise there is no point doing the stitching
-            if len(sequence.slice1_aa) >= params.stitch_length and len(sequence.slice2_aa) >= params.stitch_length:
-                # Extend with fasta, and then write if necessary.
-                sequence.extend_and_write(output=directory_to_write,
-                                          suffix='sixframe')
-
 
     #
     # translate to peptides
@@ -221,7 +183,7 @@ def _translate_one(junction,
     sequence.translate(use_phase=True)
 
     #
-    # Write the Tier 1 and Tier 2 results into fasta file
+    # write the Tier 1 and Tier 2 results into fasta file
     #
     if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
 
@@ -230,105 +192,112 @@ def _translate_one(junction,
 
             # Do a function like this to extend with fasta, and then write if necessary.
             # TODO: instead of using SwissProt we should get the canonical exons from the GTF directly
-            sequence.extend_and_write(
-                output=directory_to_write,
+
+            for slice_ in [1, 2]:
+                sequence.stitch_to_canonical(slice_to_stitch=slice_,
+                                             slice_has_ptc=False)
+
+            sequence.write_slices(
+                outdir=write_dir,
                 suffix='T1',
             )
 
-            callback_ = ('SUCCESS 1. Retrieved phase: {0} \n\n'
-                         'Used phase: {1}. No frameshift.'.format(sequence.j.phase,
-                                                                  sequence.translated_phase))
-
-            return callback_
+            return fates.tier1.format(sequence.j.phase,
+                                      sequence.translated_phase,
+                                      )
 
         #
         # Tier 2: both translated without stop codon, but with one frameshift
         #
         elif sequence.frameshift:
-            sequence.extend_and_write(  # species=species,
-                output=directory_to_write,
+
+            for slice_ in [1, 2]:
+                sequence.stitch_to_canonical(slice_to_stitch=slice_,
+                                             slice_has_ptc=False)
+
+            sequence.write_slices(
+                outdir=write_dir,
                 suffix='T2',
             )
 
-            callback_ = ('SUCCESS 2. Retrieved phase: {0} \n\n'
-                          'Used phase: {1}. Frameshift.'.format(sequence.j.phase,
-                                                                sequence.translated_phase))
-            return callback_
+            return fates.tier2.format(sequence.j.phase,
+                                      sequence.translated_phase,
+                                      )
 
     #
     # Tier 3 - retrieved phase is different from PTC-free frame.
     #
     else:
         sequence.translate(use_phase=False)
-
-        #
-        # After Tier 3 translation, check if both slices are good
-        #
-
+        # after tier 3 translation, check if both slices are good
         if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
-            sequence.extend_and_write(output=directory_to_write,
-                                      suffix='T3',
+            for slice_ in [1, 2]:
+                sequence.stitch_to_canonical(slice_to_stitch=slice_,
+                                             slice_has_ptc=False)
+
+            sequence.write_slices(outdir=write_dir,
+                                  suffix='T3',
+                                  )
+
+            return fates.tier3.format(sequence.j.phase,
+                                      sequence.translated_phase,
                                       )
 
-            callback_ = ('SUCCESS 3. GTF phase mismatch. Retrieved phase: {0} \n\n'
-                          'Used phase: {1}'.format(sequence.j.phase,
-                                                   sequence.translated_phase))
-            return callback_
-
     #
-    # If sequence is still not good, do Tier 4: One of the two slices hits stop codon.
-    # write out the slice if it is at least half as long as the long slice.
-    # TODO: Determine likely translated frame, or keep frame based on PTC location from protein end
+    # Tier 4: if sequence is still not good, do Tier 4: One of the two slices hits stop codon.
+    # write out the slice if it is at least a certain proportion (params.ptc_threshold) as long as the long slice.
     #
 
-    # Translate again after Tier 3 to reset to Tier 1/2 translation state
+    # translate again after tier 3 to reset to tier 1/2 translation state (using retrieved phase)
     sequence.translate(use_phase=True)
 
-    # Force-translate slice 2 if slice 2 hits PTC:
+    # force-translate through slice 2 if slice 2 hits PTC:
     if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) == 0:
-
-        sequence.translate_forced(slice_to_translate=2)
+        forced_slice = 2
+        sequence.stitch_to_canonical(slice_to_stitch=1)
+        sequence.translate_forced(slice_to_translate=forced_slice)
 
         if len(sequence.slice2_aa) / len(sequence.slice1_aa) >= params.ptc_threshold:
-            sequence.extend_and_write(output=directory_to_write,
-                                      suffix='T4',
-                                      )
+            sequence.stitch_to_canonical(slice_to_stitch=2,
+                                         slice_has_ptc=True)
 
-            callback_ = 'PARTIAL 4. Slice 2 hit a stop codon. Used longest phase.\n\n'
-            return callback_
+        sequence.write_slices(outdir=write_dir,
+                              suffix='T4',
+                              )
 
-    # Force-translate slice 1 if slice 1 hits PTC:
+        return fates.tier4.format(forced_slice)
+
+    # force-translate through slice 1 if slice 1 hits PTC:
     elif len(sequence.slice2_aa) > 0 and len(sequence.slice1_aa) == 0:
-
+        forced_slice = 1
+        sequence.stitch_to_canonical(slice_to_stitch=2)
         sequence.translate_forced(slice_to_translate=1)
 
         if len(sequence.slice1_aa) / len(sequence.slice2_aa) >= params.ptc_threshold:
-            sequence.extend_and_write(output=directory_to_write,
-                                      suffix='T4',
-                                      )
+            sequence.stitch_to_canonical(slice_to_stitch=1,
+                                         slice_has_ptc=True)
 
-            callback_ = 'PARTIAL 5.  Slice 1 hit a stop codon. Used longest phase.\n\n'
-            return callback_
+        sequence.write_slices(outdir=write_dir,
+                              suffix='T4',
+                              )
+
+        return fates.tier4.format(forced_slice)
 
     #
-    # If nothing works, write FAILURE fate
+    # if nothing works, write FAILURE fate
     #
     else:
         #
-        # Salvage the canonical sequence in the long slice if it matches Sp exactly.
-        # Note that this means if we identify a gene in RNA-seq, we will append the canonical
+        # salvage the canonical sequence in the long slice if it matches Sp exactly.
+        # note that this means if we identify a gene in RNA-seq, we will append the canonical
         # Sp to the gene_canonical output even if none of the transcript slices are stitchable
         # back to the canonical protein. This is to avoid not having any protein level representation
         # of a gene potentially in the proteome.
         #
         if args.canonical:
-            sequence.extend_and_write(output=directory_to_write,
-                                      canonical_only=True,
-                                      )
-        callback_ = 'FAILURE 6.  No alternative translation. \n\n'
-        return callback_
+            sequence.write_canonical(outdir=write_dir)
 
-    return True
+        return fates.fail
 
 
 def main():
@@ -365,10 +334,6 @@ def main():
                         , help='discard junctions with rMATS pvalue below this threshold [default: 0.01]',
                         default=0.01,
                         type=float)
-
-    parser.add_argument('-t', '--threeframe', action='store_true',
-                        help='also do three-frame translation instead with the junctions [default: False]',
-                        )
 
     parser.set_defaults(func=runjcast)
 

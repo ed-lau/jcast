@@ -12,7 +12,6 @@ from Bio import SeqIO
 from Bio.Alphabet import generic_dna
 
 
-
 class ReadAnnotations(object):
     """
     Class holds the name and location of the GTF file, plus a pandas dataframe
@@ -85,6 +84,7 @@ class ReadGenome(object):
 
 
 class AnnotatedTranscript(object):
+    """ Holds the transcripts read from GTF. """
 
     def __init__(self, name):
         """ init """
