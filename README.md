@@ -1,4 +1,4 @@
-![JCAST](https://github.com/ed-lau/jcast/blob/master/images/logo.png?raw=True)
+![JCAST](https://github.com/ed-lau/jcast/blob/master/images/logo2.png?raw=True)
 
 # Junction Centric Alternative Splicing Translator v.0.2.6
 
