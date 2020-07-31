@@ -108,7 +108,7 @@ class AnnotatedTranscript(object):
 
     def __str__(self):
         """ str """
-        return 'Annotated transcript from GTF {0}'.format(self.transcript_name)
+        return '{0}'.format(self.transcript_name)
 
     def __len__(self):
         """ get length of all exons """
