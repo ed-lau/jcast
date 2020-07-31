@@ -86,12 +86,30 @@ class ReadGenome(object):
 class AnnotatedTranscript(object):
     """ Holds the transcripts read from GTF. """
 
-    def __init__(self, name):
+    def __init__(self,
+                 transcript_name,
+                 protein_id,
+                 exons,
+                 start_codon,
+                 end_codon,
+                 starting_translation_phase,
+                 ):
         """ init """
-        self.transcript_name = name
-        self.protein_id = None
-        self.exons = {}
-        self.start_codon = None
-        self.end_codon = None
-        self.is_canonical = False
+        self.transcript_name = transcript_name
+        self.protein_id = protein_id
+        self.exons = exons
+        self.start_codon = start_codon
+        self.end_codon = end_codon
+        self.starting_translation_phase = starting_translation_phase
 
+    def __repr__(self):
+        """ repr """
+        return 'Annotated transcript from GTF {0}'.format(self.transcript_name)
+
+    def __str__(self):
+        """ str """
+        return 'Annotated transcript from GTF {0}'.format(self.transcript_name)
+
+    def __len__(self):
+        """ get length of all exons """
+        return sum([end-start+1 for (start, end) in self.exons])

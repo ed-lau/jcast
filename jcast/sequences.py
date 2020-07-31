@@ -20,6 +20,8 @@ from jcast import helpers as h
 from jcast.junctions import Junction
 from jcast import params
 
+from jcast.annots import AnnotatedTranscript
+
 
 class Sequence(object):
 
@@ -41,9 +43,14 @@ class Sequence(object):
         self.slice2_nt = None
         self.slice1_aa = ''
         self.slice2_aa = ''
-        self.canonical_aa = self.get_canonical_aa_uniprot()
+
+        self.canonical_aa = None
+
         self.slice1_stitched = None
         self.slice2_stitched = None
+
+        self.gtf_canonical_transcript = None
+        self.gtf_alternative_transcripts = None
 
         self.translated_phase = -1                  # Phase that was actually used for translation.
         self.translated_strand = self.j.strand    # Strand that was actually used for translation
@@ -213,6 +220,150 @@ class Sequence(object):
 
         return True
 
+    def get_annotated_transcripts_gtf(self, gtf):
+        """
+        get the annotated transcripts of the junction under question
+
+        :param gtf: genome annotation
+
+        """
+
+        # first, subset the gtf by the gene under question
+        gtf_gene = gtf.annot.query('gene_id == @self.j.gene_id')
+
+        # then get a list of all transcripts that are protein_coding, has coding sequences,
+        # and has transcript support level equal to or below the threashold
+
+        tsl = params.tsl_threshold
+        filter_tx = gtf_gene.query('feature == "CDS" & '
+                                            'transcript_biotype == "protein_coding" & '
+                                            'transcript_support_level <= @tsl')
+        coding_tx = sorted(filter_tx['transcript_name'].drop_duplicates())
+
+        # for each qualifying transcripts, get all the CDS
+
+        annotated_transcripts = []
+
+        for tx in coding_tx:
+            tx_tbl = filter_tx.query('transcript_name == @tx').sort_values(by=['exon_number'])
+            tx_exons = [ex for ex in zip(tx_tbl['start'], tx_tbl['end'])]
+            tx_protein_id = tx_tbl['protein_id'].drop_duplicates()
+
+
+            try:
+                tx_start_codon = gtf_gene.query('feature == "start_codon" & '
+                                                'transcript_name == @tx')[['start', 'end']].values.tolist()[0]
+                tx_end_codon = gtf_gene.query('feature == "stop_codon" & '
+                                                'transcript_name == @tx')[['start', 'end']].values.tolist()[0]
+                tx_frame = gtf_gene.query('feature == "start_codon" & '
+                                          'transcript_name == @tx')['frame'].drop_duplicates().values[0]
+
+            # some tsl-1 protein_coding CDS (from havana) have no start/stop codons in gtf. skip these for now.
+            # note that some have stop codon but not start codon. we should deal with these cases.
+            except IndexError:
+                # tx_start_codon = [None, None]
+                # tx_end_codon = [None, None]
+                # tx_frame = None
+                continue
+            # TODO: these pandas queries are ugly - any tidier way to get the cell values?
+
+            # check if the transcript is already the same as one with exactly the same exon arrangements
+            # if not then add the transcript to the pile
+            already_exists = False
+            if len(annotated_transcripts) > 0:
+                for at in annotated_transcripts:
+                    if tx_exons == at.exons:
+                        already_exists = True
+                        at.transcript_name += ', {0}'.format(tx)
+
+            if not already_exists:
+                annotated_transcripts += [AnnotatedTranscript(transcript_name=tx,
+                                                              protein_id=tx_protein_id,
+                                                              exons=tx_exons,
+                                                              start_codon=tx_start_codon,
+                                                              end_codon=tx_end_codon,
+                                                              starting_translation_phase=tx_frame,
+                                            )
+                ]
+
+        # the longest coding transcript is assumed to be canonical
+        longest_tx_length = max([len(tx) for tx in annotated_transcripts])
+        canonical_transcript = [tx for tx in annotated_transcripts if len(tx) == longest_tx_length][0]
+        alternative_transcripts = [tx for tx in annotated_transcripts if tx != canonical_transcript]
+
+        self.gtf_canonical_transcript = canonical_transcript
+        self.gtf_alternative_transcripts = alternative_transcripts
+
+        return True
+
+    def get_canonical_aa(self,
+                         gtf,
+                         genome_index,
+                         ):
+        """
+        decide whether to get canonical amino acids by GTF or by Uniprot
+        :param gtf: gtf annotation
+        :return: True
+        """
+
+        if params.use_gtf_only:
+            self.canonical_aa = self.get_canonical_aa_gtf(gtf,
+                                                          genome_index)
+        else:
+            self.canonical_aa = self.get_canonical_aa_uniprot()
+        return True
+
+
+    def translate_annotated_transcriptfrom_gtf(self,
+                                               annotated_transcript,
+                                               gtf,
+                                               genome_index):
+        """
+        translate a collection of exons from an annotated transcript
+        # TODO: should this be a method instead for AnnotatedTranscripts
+
+        """
+
+        # note that if the strand is '-', the exons should be reversed
+        # beware of this when inserting exons into transcripts later ...
+        if self.j.strand == '-':
+            exons = [ex for ex in reversed(annotated_transcript.exons)]
+        else:
+            exons = annotated_transcript.exons
+
+        canonical_nt = ''
+        for start, end in exons:
+            canonical_nt += h.get_local_nuc(genome_index, self.j.chr, start, end)
+
+        canonical_aa = h.make_pep(canonical_nt.seq,
+                                  strand=self.j.strand,
+                                  phase=self.gtf_canonical_transcript.starting_translation_phase,
+                                  terminate=True)
+
+        return canonical_aa
+
+        pass
+
+    def get_canonical_aa_gtf(self,
+                             gtf,
+                             genome_index,
+                             ) -> SeqRecord:
+        """
+        get the canonical amino acid sequence from gtf
+
+        :return: canonical aa str
+        """
+
+        if self.gtf_canonical_transcript is None:
+            self.get_annotated_transcripts_gtf(gtf)
+
+        canonical = self.translate_annotated_transcriptfrom_gtf(annotated_transcript=self.gtf_canonical_transcript,
+                                                           gtf=gtf,
+                                                           genome_index=genome_index)
+
+        return SeqRecord(canonical)
+
+
     def get_canonical_aa_uniprot(self,
                                  ) -> SeqRecord:
         """
@@ -252,7 +403,7 @@ class Sequence(object):
                 server + ext
             ))
 
-            retries = Retry(total=params.max_retries,
+            retries = Retry(total=params.uniprot_max_retries,
                             backoff_factor=0.1,
                             status_forcelist=[500, 502, 503, 504])
 
@@ -262,7 +413,7 @@ class Sequence(object):
 
             if not ret.ok:
                 self.logger.warning('Failed retrieval for {0} after {1} retries.'.format(self.j.gene_id,
-                                                                                         params.max_retries)
+                                                                                         params.uniprot_max_retries)
                                     )
 
             if ret.status_code == 200 and ret.text != '':
@@ -284,11 +435,11 @@ class Sequence(object):
 
         return record
 
-    # TODO: save all sequences and write once
-    def stitch_to_canonical(self,
-                            slice_to_stitch: int,
-                            slice_has_ptc: bool = False,
-                            ):
+
+    def stitch_to_canonical_aa(self,
+                                slice_to_stitch: int,
+                                slice_has_ptc: bool = False,
+                                ):
         """
         Given a translated junction sequence, look for the fasta entry that overlaps with it, then return the entry
         and the coordinates. This will be used to extend the junction sequence to encompass entire protein sequence.
@@ -308,7 +459,7 @@ class Sequence(object):
             canonical = self.canonical_aa[:]
 
         # stitch length
-        stitch_length = params.stitch_length
+        stitch_length = params.aa_stitch_length
         assert type(stitch_length) is int and stitch_length >= 6, 'Stitch length must be integer and at least 6'
 
         # which slice to stitch
@@ -320,7 +471,7 @@ class Sequence(object):
             raise Exception('slice must be 1 or 2.')
 
         # if the slice is too short, do not stitch
-        if len(slice_) < params.stitch_length:
+        if len(slice_) < stitch_length:
             return True
 
         # find out where the first (stitch_length) amino acids meets the UniProt canonical sequences

@@ -42,4 +42,6 @@ class GenomeTest(unittest.TestCase):
         self.assertEqual(h.make_pep(ins4_cdna, strand='+', phase=0, terminate=True),
                          ins4_protein)
 
+        # TODO: translate all phases/strands
+
         pass

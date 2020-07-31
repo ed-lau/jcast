@@ -8,7 +8,6 @@ import pandas as pd
 import statistics
 
 from jcast import params
-# from jcast.annots import AnnotatedTranscript
 
 class RmatsResults(object):
     """
@@ -206,32 +205,6 @@ class Junction(object):
             mean_count_sample2 = 0
 
         return min([mean_count_sample1, mean_count_sample2])
-
-    def get_annotated_transcripts(self, gtf):
-        """
-        Placeholder for future get all annotated transcripts
-        Get the annotated transcripts of the gene under question
-
-        :param gtf: genome annotation
-
-        """
-
-        # first, subset the gtf by the gene under question
-        gtf_gene = gtf.annot.query('gene_id == @self.gene_id')
-
-        # then get a list of all transcripts that are protein_coding, has coding sequences,
-        # and has transcript support level equal to or below the threashold
-
-        tsl = params.tsl_threshold
-        filter_tx = gtf_gene.query('feature == "CDS" & '
-                                            'transcript_biotype == "protein_coding" & '
-                                            'transcript_support_level <= @tsl')
-        coding_tx = filter_tx[['transcript_name']].drop_duplicates().values.tolist()
-
-        # for each qualifying transcripts, get all the CDS
-
-        for tx in coding_tx:
-            pass
 
     def _get_translated_region(self,
                                gtf,

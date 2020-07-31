@@ -177,6 +177,7 @@ def _translate_one(junction,
     #
     # translate to peptides
     #
+    sequence.get_canonical_aa(gtf=gtf, genome_index=genome.genome)
     sequence.translate(use_phase=True)
 
     #
@@ -191,8 +192,8 @@ def _translate_one(junction,
             # TODO: instead of using SwissProt we should get the canonical exons from the GTF directly
 
             for slice_ in [1, 2]:
-                sequence.stitch_to_canonical(slice_to_stitch=slice_,
-                                             slice_has_ptc=False)
+                sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
+                                                     slice_has_ptc=False)
 
             sequence.write_slices(
                 outdir=write_dir,
@@ -209,13 +210,13 @@ def _translate_one(junction,
         elif sequence.frameshift:
 
             for slice_ in [1, 2]:
-                sequence.stitch_to_canonical(slice_to_stitch=slice_,
+                sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
                                              slice_has_ptc=False)
 
                 # 2020-07-30 if slice runs into a frame shift,
                 # allows the opportunity to stitch N-temrinus only
                 if [sequence.slice1_stitched, sequence.slice2_stitched][slice_-1] is None:
-                    sequence.stitch_to_canonical(slice_to_stitch=slice_,
+                    sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
                                                  slice_has_ptc=True)
 
             sequence.write_slices(
@@ -235,7 +236,7 @@ def _translate_one(junction,
         # after tier 3 translation, check if both slices are good
         if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
             for slice_ in [1, 2]:
-                sequence.stitch_to_canonical(slice_to_stitch=slice_,
+                sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
                                              slice_has_ptc=False)
 
             sequence.write_slices(outdir=write_dir,
@@ -260,11 +261,11 @@ def _translate_one(junction,
     # force-translate through slice 2 if slice 2 hits PTC:
     if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) == 0:
         forced_slice = 2
-        sequence.stitch_to_canonical(slice_to_stitch=1)
+        sequence.stitch_to_canonical_aa(slice_to_stitch=1)
         sequence.translate_forced(slice_to_translate=forced_slice)
 
         if len(sequence.slice2_aa) / len(sequence.slice1_aa) >= params.ptc_threshold:
-            sequence.stitch_to_canonical(slice_to_stitch=2,
+            sequence.stitch_to_canonical_aa(slice_to_stitch=2,
                                          slice_has_ptc=True)
 
         sequence.write_slices(outdir=write_dir,
@@ -276,11 +277,11 @@ def _translate_one(junction,
     # force-translate through slice 1 if slice 1 hits PTC:
     elif len(sequence.slice2_aa) > 0 and len(sequence.slice1_aa) == 0:
         forced_slice = 1
-        sequence.stitch_to_canonical(slice_to_stitch=2)
+        sequence.stitch_to_canonical_aa(slice_to_stitch=2)
         sequence.translate_forced(slice_to_translate=1)
 
         if len(sequence.slice1_aa) / len(sequence.slice2_aa) >= params.ptc_threshold:
-            sequence.stitch_to_canonical(slice_to_stitch=1,
+            sequence.stitch_to_canonical_aa(slice_to_stitch=1,
                                          slice_has_ptc=True)
 
         sequence.write_slices(outdir=write_dir,
