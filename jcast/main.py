@@ -105,9 +105,10 @@ def runjcast(args):
         #             total=len(junctions),
         #             desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
         #     )):
-        #         main_log.info('>>>>>> Now doing {0} junction {1} for gene {2}'.format(junctions[i].junction_type,
+        #         main_log.info('>>>>>> Doing {0} junction {1} for gene {2} {3}'.format(junctions[i].junction_type,
         #                                                                               junctions[i].name,
         #                                                                               junctions[i].gene_symbol,
+        #                                                                               junctions[i].gene_id,
         #                                                                           ))
         #         main_log.info(f)
 
@@ -119,9 +120,10 @@ def runjcast(args):
                             desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
                             ):
 
-            main_log.info('>>>>>> Now doing {0} junction {1} for gene {2}'.format(jx.junction_type,
+            main_log.info('>>>>>> Doing {0} junction {1} for gene {2} {3}'.format(jx.junction_type,
                                                                                   jx.name,
                                                                                   jx.gene_symbol,
+                                                                                  jx.gene_id,
                                                                                   ))
             main_log.info(translate_one_partial(jx))
 
@@ -250,7 +252,9 @@ def _translate_one(junction,
     #
 
     # translate again after tier 3 to reset to tier 1/2 translation state (using retrieved phase)
-    sequence.translate(use_phase=True)
+    sequence.translate(use_phase=True,
+                       log=False,
+                       )
     # TODO: we should avoid translating twice.
 
     # force-translate through slice 2 if slice 2 hits PTC:

@@ -37,8 +37,8 @@ class Sequence(object):
         self.logger = logging.getLogger('jcast.seq')
 
         self.j = junction
-        self.slice1_nt = ''
-        self.slice2_nt = ''
+        self.slice1_nt = None
+        self.slice2_nt = None
         self.slice1_aa = ''
         self.slice2_aa = ''
         self.canonical_aa = self.get_canonical_aa_uniprot()
@@ -85,76 +85,78 @@ class Sequence(object):
         down_nt = h.get_local_nuc(genome_index, self.j.chr, self.j.down_es, self.j.down_ee)
 
         if self.j.junction_type in ['MXE', 'SE', 'RI']:
-            self.slice1_nt = str((anc_nt + alt1_nt + down_nt).seq)
-            self.slice2_nt = str((anc_nt + alt2_nt + down_nt).seq)
+            self.slice1_nt = anc_nt + alt1_nt + down_nt
+            self.slice2_nt = anc_nt + alt2_nt + down_nt
 
         # 2020-07-25 the flanking exons for A5SS and A3SS:
         elif self.j.junction_type == 'A5SS':
             if self.j.strand == '+':
-                self.slice1_nt = str((alt1_nt + anc_nt).seq)
-                self.slice2_nt = str((alt2_nt + anc_nt).seq)
+                self.slice1_nt = alt1_nt + anc_nt
+                self.slice2_nt = alt2_nt + anc_nt
             elif self.j.strand == '-':
-                self.slice1_nt = str((anc_nt + alt1_nt).seq)
-                self.slice2_nt = str((anc_nt + alt2_nt).seq)
+                self.slice1_nt = anc_nt + alt1_nt
+                self.slice2_nt = anc_nt + alt2_nt
 
         elif self.j.junction_type == 'A3SS':
             if self.j.strand == '+':
-                self.slice1_nt = str((anc_nt + alt1_nt).seq)
-                self.slice2_nt = str((anc_nt + alt2_nt).seq)
+                self.slice1_nt = anc_nt + alt1_nt
+                self.slice2_nt = anc_nt + alt2_nt
             elif self.j.strand == '-':
-                self.slice1_nt = str((alt1_nt + anc_nt).seq)
-                self.slice2_nt = str((alt2_nt + anc_nt).seq)
+                self.slice1_nt = alt1_nt + anc_nt
+                self.slice2_nt = alt2_nt + anc_nt
 
         for i_, s_ in enumerate([self.slice1_nt, self.slice2_nt]):
             self.logger.info('Retrieved nucleotide for {0} {1} {2} slice {3}: {4}'.format(self.j.junction_type,
                                                                                           self.j.name,
                                                                                           self.j.gene_symbol,
                                                                                           i_+1,
-                                                                                          s_))
+                                                                                          s_.seq))
 
     def translate(self,
-                  use_phase=True,
+                  use_phase: bool = True,
+                  log: bool = True,
                   ):
         """
         This is the translate function for tier 1/2/3 peptide. Calls make_pep with the terminal option
         which will terminate when it runs into a stop codon. Later on we should make a force_translate that does
         three frame translation and just either return all frames or return the longest.
 
-        :param use_phase: T/F Whether to ue the stored phase or attempt to do three-frame translation
+        :param use_phase: bool Whether to ue the stored phase or attempt to do three-frame translation
+        :param log: bool Whether to write results to log file
         :return: True
         """
 
         if self.j.phase in [0, 1, 2] and use_phase:
-            self.slice1_aa = h.make_pep(self.slice1_nt, self.j.strand, self.j.phase, terminate=True)
-            self.slice2_aa = h.make_pep(self.slice2_nt, self.j.strand, self.j.phase, terminate=True)
+            self.slice1_aa = h.make_pep(self.slice1_nt.seq, self.j.strand, self.j.phase, terminate=True)
+            self.slice2_aa = h.make_pep(self.slice2_nt.seq, self.j.strand, self.j.phase, terminate=True)
             self.logger.debug('Used retrieved phase for {0} {1}:'.format(self.j.name, self.j.gene_symbol))
             self.translated_phase = self.j.phase
 
         else:
             for i in range(3):
-                self.slice1_aa = h.make_pep(self.slice1_nt, self.j.strand, i, terminate=True)
-                self.slice2_aa = h.make_pep(self.slice2_nt, self.j.strand, i, terminate=True)
+                self.slice1_aa = h.make_pep(self.slice1_nt.seq, self.j.strand, i, terminate=True)
+                self.slice2_aa = h.make_pep(self.slice2_nt.seq, self.j.strand, i, terminate=True)
                 if len(self.slice1_aa) > 0 and len(self.slice2_aa) > 0:
                     self.translated_phase = i
                 else:
                     self.slice1_aa = ''
                     self.slice2_aa = ''
 
-        for i_, s_ in enumerate([self.slice1_aa, self.slice2_aa]):
-            if s_ != '':
-                self.logger.info(
-                    'Translated AA for {0} {1} {2} phase {3}{4} slice {5} (use_phase={6}): {7}'.format(
-                        self.j.junction_type,
-                        self.j.name,
-                        self.j.gene_symbol,
-                        self.j.strand,
-                        self.translated_phase,
-                        i_ + 1,
-                        use_phase,
-                        s_,
+        if log:
+            for i_, s_ in enumerate([self.slice1_aa, self.slice2_aa]):
+                if s_ != '':
+                    self.logger.info(
+                        'Translated AA for {0} {1} {2} phase {3}{4} slice {5} (use_phase={6}): {7}'.format(
+                            self.j.junction_type,
+                            self.j.name,
+                            self.j.gene_symbol,
+                            self.j.strand,
+                            self.translated_phase,
+                            i_ + 1,
+                            use_phase,
+                            s_,
+                        )
                     )
-                )
-
         return True
 
     def translate_forced(self,
@@ -184,7 +186,7 @@ class Sequence(object):
             nt_to_translate = None
 
         # translate without terminating at stop codon
-        seq = h.make_pep(nt_to_translate, self.j.strand, self.j.phase, terminate=False)
+        seq = h.make_pep(nt_to_translate.seq, self.j.strand, self.j.phase, terminate=False)
 
         if len(seq) > 0:
             self.translated_phase = self.j.phase
@@ -242,12 +244,14 @@ class Sequence(object):
             con.close()
 
         else:
-            self.logger.info("Sequence not yet cached locally. Retrieving from Uniprot.")
 
             server = 'https://www.ebi.ac.uk'
             ext = '/proteins/api/proteins/Ensembl:' + self.j.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
 
-            self.logger.info(server + ext)
+            self.logger.info('Sequence not cached locally. Attempting to get from Uniprot: {0}'.format(
+                server + ext
+            ))
+
             retries = Retry(total=params.max_retries,
                             backoff_factor=0.1,
                             status_forcelist=[500, 502, 503, 504])
@@ -271,11 +275,12 @@ class Sequence(object):
                 self.logger.info('Sequence retrieved from Uniprot and written into local cache.')
 
             elif ret.status_code == 200 and ret.text == '':
-                self.logger.warning('Retrieved empty fasta from Ensembl for {0}'.format(self.j.gene_id))
-
+                self.logger.info('Retrieved empty fasta from Ensembl for {0}'.format(self.j.gene_id))
+                # TODO: A known issue where Uniprot sequences do not exist for some Ensembl genes
+                # TODO: Rather than fix this we will simply use the GTF in future versions.
 
             elif ret.status_code != 200:
-                self.logger.warning('Retrieval of protein sequence failed. Skipped protein.')
+                self.logger.warning('Retrieval of protein sequence failed.')
 
         return record
 
