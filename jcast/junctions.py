@@ -352,8 +352,8 @@ class Junction(object):
                 # ph0, ph1 = self.alt1_es, self.alt1_ee
                 ph0, ph1 = self.anc_es, self.anc_ee
 
-        self.logger.info('Anchor exon start {0} end {1}'.format(ph0,
-                                                                ph1))
+        self.logger.info('Anchor exon start {0} Anchor exon end {1}'.format(ph0,
+                                                                            ph1))
 
         # Get the frame of that coding exon from GTF.
         coding_exon = gtf0.query('start == @ph0').\
