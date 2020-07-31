@@ -44,7 +44,7 @@ class Sequence(object):
         self.slice1_aa = ''
         self.slice2_aa = ''
 
-        self.canonical_aa = None
+        self.canonical_aa = SeqRecord(Seq('', IUPAC.extended_protein))
 
         self.slice1_stitched = None
         self.slice2_stitched = None
@@ -287,12 +287,13 @@ class Sequence(object):
                 ]
 
         # the longest coding transcript is assumed to be canonical
-        longest_tx_length = max([len(tx) for tx in annotated_transcripts])
-        canonical_transcript = [tx for tx in annotated_transcripts if len(tx) == longest_tx_length][0]
-        alternative_transcripts = [tx for tx in annotated_transcripts if tx != canonical_transcript]
+        if len(annotated_transcripts) > 0:
+            longest_tx_length = max([len(tx) for tx in annotated_transcripts])
+            canonical_transcript = [tx for tx in annotated_transcripts if len(tx) == longest_tx_length][0]
+            alternative_transcripts = [tx for tx in annotated_transcripts if tx != canonical_transcript]
 
-        self.gtf_canonical_transcript = canonical_transcript
-        self.gtf_alternative_transcripts = alternative_transcripts
+            self.gtf_canonical_transcript = canonical_transcript
+            self.gtf_alternative_transcripts = alternative_transcripts
 
         return True
 
@@ -309,14 +310,20 @@ class Sequence(object):
         if params.use_gtf_only:
             self.canonical_aa = self.get_canonical_aa_gtf(gtf,
                                                           genome_index)
+
+            # Uniprot fallback
+            # if len(self.canonical_aa) ==0:
+            #    self.canonical_aa = self.get_canonical_aa_uniprot()
+
         else:
             self.canonical_aa = self.get_canonical_aa_uniprot()
+
+
         return True
 
 
     def translate_annotated_transcriptfrom_gtf(self,
                                                annotated_transcript,
-                                               gtf,
                                                genome_index):
         """
         translate a collection of exons from an annotated transcript
@@ -340,9 +347,13 @@ class Sequence(object):
                                   phase=self.gtf_canonical_transcript.starting_translation_phase,
                                   terminate=True)
 
-        return canonical_aa
 
-        pass
+
+        canonical_aa = SeqRecord(Seq(canonical_aa, IUPAC.extended_protein))
+        canonical_aa.id = '{0}|{1}'.format(self.j.gene_id,
+                                           self.j.gene_symbol)
+
+        return canonical_aa
 
     def get_canonical_aa_gtf(self,
                              gtf,
@@ -357,11 +368,12 @@ class Sequence(object):
         if self.gtf_canonical_transcript is None:
             self.get_annotated_transcripts_gtf(gtf)
 
-        canonical = self.translate_annotated_transcriptfrom_gtf(annotated_transcript=self.gtf_canonical_transcript,
-                                                           gtf=gtf,
-                                                           genome_index=genome_index)
+        # if nothing from the gtf, return an empty record
+        if self.gtf_canonical_transcript is None:
+            return SeqRecord(Seq('', IUPAC.extended_protein))
 
-        return SeqRecord(canonical)
+        return self.translate_annotated_transcriptfrom_gtf(annotated_transcript=self.gtf_canonical_transcript,
+                                                           genome_index=genome_index)
 
 
     def get_canonical_aa_uniprot(self,
@@ -435,7 +447,6 @@ class Sequence(object):
 
         return record
 
-
     def stitch_to_canonical_aa(self,
                                 slice_to_stitch: int,
                                 slice_has_ptc: bool = False,
@@ -453,10 +464,12 @@ class Sequence(object):
         :return: True
         """
 
+
         canonical = self.canonical_aa[:]
+
+        # don't stitch if there is no canonical
         if len(canonical) == 0:
-            self.get_canonical_aa_uniprot()
-            canonical = self.canonical_aa[:]
+            return True
 
         # stitch length
         stitch_length = params.aa_stitch_length
