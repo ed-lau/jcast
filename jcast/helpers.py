@@ -6,20 +6,22 @@ import os.path
 import sqlite3 as sq
 
 import requests as rq
-from Bio import Seq, SeqIO
-from Bio.Seq import Seq
-from Bio.Alphabet import IUPAC, DNAAlphabet
+
+from Bio import SeqIO
+from Bio.Alphabet import IUPAC
+
+from jcast import constants
 
 
 def get_local_nuc(genome_index,
                   chromosome,
-                  es,
-                  ee,
+                  es: int,
+                  ee: int,
                   ):
     """
 
     :param genome_index: genome index
-    :param chr: chromosome
+    :param chromosome: chromosome
     :param es: exon start
     :param ee: exon end
     :return: sequence
@@ -36,7 +38,11 @@ def get_local_nuc(genome_index,
     return genome_index[chromosome][es-1:ee]
 
 
-def get_nuc(species, chr, es, ee):
+def get_rest_nuc(species,
+                 chr,
+                 es,
+                 ee,
+                 ):
     """
     :param species: Species, e.g., 'mouse
     :param chr: Chromosome, e.g., 1
@@ -63,13 +69,10 @@ def get_nuc(species, chr, es, ee):
 
     """
 
-
     if es <= 0 or ee <= 0:
-        #print("Skipping empty exon.")
         return ''
 
     cache = species + '-' + str(chr) + '-' + str(es) + '-' + str(ee)
-
 
     con = sq.connect('seq-cache.db')
     cur = con.cursor()
@@ -92,12 +95,10 @@ def get_nuc(species, chr, es, ee):
     except:
         print("Sequence not yet cached locally. 1")
 
-
     server = "http://rest.ensembl.org"
     ext = "/sequence/region/" + species + "/" + str(chr) + ":" + str(es) + ".." + str(ee) + ":1?"
 
     print(server+ext)
-
 
     try:
         ret = rq.get(server + ext, headers={"Content-Type": "text/plain"})
@@ -118,7 +119,8 @@ def get_nuc(species, chr, es, ee):
     return nuc
 
 
-def get_complementary(nt):
+def get_complementary(nt: str,
+                      ) -> str:
     """
     :param nt: Nucleotide string
     :return: Complementary sequence
@@ -193,33 +195,25 @@ def make_pep(nt: str,
     """
 
     #
-    # Dictionary for genetic code
+    # dictionary for genetic code
     #
-    code = {'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'CTT': 'L', 'CTC': 'L', 'CTA': 'L', 'CTG': 'L',
-            'ATT': 'I', 'ATC': 'I', 'ATA': 'I', 'ATG': 'M', 'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V',
-            'TCT': 'S', 'TCC': 'S', 'TCA': 'S', 'TCG': 'S', 'CCT': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P',
-            'ACT': 'T', 'ACC': 'T', 'ACA': 'T', 'ACG': 'T', 'GCT': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A',
-            'TAT': 'Y', 'TAC': 'Y', 'TAA': 'X', 'TAG': 'X', 'CAT': 'H', 'CAC': 'H', 'CAA': 'Q', 'CAG': 'Q',
-            'AAT': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K', 'GAT': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E',
-            'TGT': 'C', 'TGC': 'C', 'TGA': 'X', 'TGG': 'W', 'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
-            'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R', 'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G'}
+    code = constants.genetic_code
 
     #
-    # If rMATS says the strand is negative, get the complementary sequence, which is the Watson-Crick pairing of the
+    # if rMATS says the strand is negative, get the complementary sequence, which is the Watson-Crick pairing of the
     # original sequence in anti-parallel direction (5'-to-3' becomes 3'-to-5')
     #
     if strand == '-':
         nt = get_complementary(nt)
 
     #
-    # Get the starting position to translate, based on the phase. Will have to check this carefully.
+    # get the starting position to translate, based on the phase.
     #
     pos0 = phase  # (3 - phase) % 3
-
     pep = ''
 
     #
-    # After finding the phase, loop through every 3 nucleotides from the start
+    # after finding the phase, loop through every 3 nucleotides from the start
     # then use the dictionary to find the amino acid sequence.
     #
     for i in range(pos0, len(nt) - 2, 3):
@@ -228,9 +222,8 @@ def make_pep(nt: str,
 
         if aa == 'X':
 
-            # If the terminate flag is set to true and this is not the last codon, return an empty sequence
+            # if the terminate flag is set to true and this is not the last codon, return an empty sequence
             if terminate:
-
                 if (len(nt)-2) - i < 3:
                     return pep
                 else:
@@ -253,20 +246,17 @@ def write_seqrecord_to_fasta(seqrecord,
     Write Biopython SeqRecord to the fasta file after checking whether the SeqRecord is already inside the file.
 
     :param seqrecord:   Biopython SeqRecord object
-    :param sequence:    Splice Sequence object
     :param output:
     :param suffix:
     :return:
     """
 
+    outfile = os.path.join(output, 'psq_' + suffix + '.fasta')
 
-    o = os.path.join(output, 'psq_' + suffix + '.fasta')
-    #print(o)
-
-    # If the file already exists, open it and amend that record.
+    # if the file already exists, open it and amend that record.
     existing_records = []
-    if os.path.exists(o):
-        for existing_record in SeqIO.parse(o, 'fasta', IUPAC.extended_protein):
+    if os.path.exists(outfile):
+        for existing_record in SeqIO.parse(outfile, 'fasta', IUPAC.extended_protein):
             existing_records.append(existing_record)
 
     # Test if the slice is already in the fasta, then do not write the new sequence into the fasta file.
@@ -274,8 +264,7 @@ def write_seqrecord_to_fasta(seqrecord,
         if read_record.seq == seqrecord.seq:
             return True
 
-    output_handle = open(o, 'a')
-    SeqIO.write(seqrecord, output_handle, 'fasta')
-    output_handle.close()
+    with open(outfile, 'a') as output_handle:
+        SeqIO.write(seqrecord, output_handle, 'fasta')
 
     return True
