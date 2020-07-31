@@ -285,11 +285,11 @@ class Junction(object):
         :return:
         """
 
-        #
-        # Get translation phase from GTF file.
-        # If there is no phase found in the GTF, use phase -1 for now.
-        # To do: look more closely into GTF file, or try translating from all frames
-        #
+        """
+        Get translation phase from GTF file.
+        If there is no phase found in the GTF, use phase -1 for now.
+        # TODO: look more closely into GTF file, or try translating from all frames
+        """
 
         # Subset the gtf file
         gtf0 = gtf.annot.query('gene_id == @self.gene_id')
