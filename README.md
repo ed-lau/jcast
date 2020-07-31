@@ -1,4 +1,4 @@
-<img src="images/logo.png?raw=True" alt="JCAST" height="50"/>
+<img src="images/logo.png?raw=True" alt="JCAST" height="100" align="center"/>
 
 # Junction Centric Alternative Splicing Translator v.0.2.6
 
