@@ -4,8 +4,6 @@
 
 
 import unittest
-import tempfile
-import sys
 import os
 from jcast.annots import ReadAnnotations
 
