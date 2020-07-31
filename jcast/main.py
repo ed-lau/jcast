@@ -118,11 +118,12 @@ def runjcast(args):
                             total=len(junctions),
                             desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
                             ):
-            translate_one_partial(jx)
+
             main_log.info('>>>>>> Now doing {0} junction {1} for gene {2}'.format(jx.junction_type,
                                                                                   jx.name,
                                                                                   jx.gene_symbol,
                                                                                   ))
+            main_log.info(translate_one_partial(jx))
 
     return True
 
@@ -209,6 +210,12 @@ def _translate_one(junction,
                 sequence.stitch_to_canonical(slice_to_stitch=slice_,
                                              slice_has_ptc=False)
 
+                # 2020-07-30 if slice runs into a frame shift,
+                # allows the opportunity to stitch N-temrinus only
+                if [sequence.slice1_stitched, sequence.slice2_stitched][slice_-1] is None:
+                    sequence.stitch_to_canonical(slice_to_stitch=slice_,
+                                                 slice_has_ptc=True)
+
             sequence.write_slices(
                 outdir=write_dir,
                 suffix='T2',
@@ -244,6 +251,7 @@ def _translate_one(junction,
 
     # translate again after tier 3 to reset to tier 1/2 translation state (using retrieved phase)
     sequence.translate(use_phase=True)
+    # TODO: we should avoid translating twice.
 
     # force-translate through slice 2 if slice 2 hits PTC:
     if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) == 0:

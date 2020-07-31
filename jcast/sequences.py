@@ -105,8 +105,12 @@ class Sequence(object):
                 self.slice1_nt = str((alt1_nt + anc_nt).seq)
                 self.slice2_nt = str((alt2_nt + anc_nt).seq)
 
-        self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice1_nt))
-        self.logger.info('Retrieved nucleotide for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice2_nt))
+        for i_, s_ in enumerate([self.slice1_nt, self.slice2_nt]):
+            self.logger.info('Retrieved nucleotide for {0} {1} {2} slice {3}: {4}'.format(self.j.junction_type,
+                                                                                          self.j.name,
+                                                                                          self.j.gene_symbol,
+                                                                                          i_+1,
+                                                                                          s_))
 
     def translate(self,
                   use_phase=True,
@@ -132,13 +136,24 @@ class Sequence(object):
                 self.slice2_aa = h.make_pep(self.slice2_nt, self.j.strand, i, terminate=True)
                 if len(self.slice1_aa) > 0 and len(self.slice2_aa) > 0:
                     self.translated_phase = i
-                    break
                 else:
                     self.slice1_aa = ''
                     self.slice2_aa = ''
 
-        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice1_aa))
-        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, self.slice2_aa))
+        for i_, s_ in enumerate([self.slice1_aa, self.slice2_aa]):
+            if s_ != '':
+                self.logger.info(
+                    'Translated AA for {0} {1} {2} phase {3}{4} slice {5} (use_phase={6}): {7}'.format(
+                        self.j.junction_type,
+                        self.j.name,
+                        self.j.gene_symbol,
+                        self.j.strand,
+                        self.translated_phase,
+                        i_ + 1,
+                        use_phase,
+                        s_,
+                    )
+                )
 
         return True
 
@@ -184,7 +199,15 @@ class Sequence(object):
         elif slice_to_translate == 2:
             self.slice2_aa = force_translated_aa
 
-        self.logger.info('Translated AA for {0} {1}: {2}'.format(self.j.name, self.j.gene_symbol, force_translated_aa))
+        self.logger.info('Force-Translated AA for {0} {1} {2} phase {3}{4} slice {5}: {6}'.format(self.j.junction_type,
+                                                                                                  self.j.name,
+                                                                                                  self.j.gene_symbol,
+                                                                                                  self.j.strand,
+                                                                                                  self.translated_phase,
+                                                                                                  slice_to_translate,
+                                                                                                  force_translated_aa,
+                                                                                                  )
+                         )
 
         return True
 
@@ -200,7 +223,6 @@ class Sequence(object):
 
         # cache retrieved sequences if available, otherwise retrieve from Ensembl
         cache = self.j.gene_id
-        self.logger.info(cache)
 
         # Create cache folder if not exists
         if not os.path.exists('cache'):
@@ -216,11 +238,11 @@ class Sequence(object):
 
         if read_fasta:
             record = list(SeqIO.parse(StringIO(read_fasta[1]), 'fasta', IUPAC.extended_protein))[0]
-            self.logger.info('Locally cached sequence retrieved')
+            self.logger.info('Locally cached sequence retrieved for {0}.'.format(cache))
             con.close()
 
         else:
-            self.logger.info("Sequence not yet cached locally. 0")
+            self.logger.info("Sequence not yet cached locally. Retrieving from Uniprot.")
 
             server = 'https://www.ebi.ac.uk'
             ext = '/proteins/api/proteins/Ensembl:' + self.j.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
@@ -235,7 +257,9 @@ class Sequence(object):
             ret = rqs.get(server + ext, headers={"Accept": "text/x-fasta"})
 
             if not ret.ok:
-                self.logger.warning('Failed after {0} retries. Skipped protein.'.format(params.max_retries))
+                self.logger.warning('Failed retrieval for {0} after {1} retries.'.format(self.j.gene_id,
+                                                                                         params.max_retries)
+                                    )
 
             if ret.status_code == 200 and ret.text != '':
                 record = list(SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein))[0]
@@ -247,7 +271,7 @@ class Sequence(object):
                 self.logger.info('Sequence retrieved from Uniprot and written into local cache.')
 
             elif ret.status_code == 200 and ret.text == '':
-                self.logger.info('Retrieved empty fasta from Ensembl. Skipped protein.')
+                self.logger.warning('Retrieved empty fasta from Ensembl for {0}'.format(self.j.gene_id))
 
 
             elif ret.status_code != 200:
@@ -339,7 +363,7 @@ class Sequence(object):
         """
         write the translated SeqRecord objects created into fasta file
 
-        :param output:          string  output directory
+        :param outdir:          string  output directory
         :param suffix:          string  additional suffix to add to the end of an output file
 
         :return:
@@ -351,6 +375,11 @@ class Sequence(object):
             if stitched is None:
                 unstitched = [self.slice1_aa, self.slice2_aa][i]
                 if len(unstitched) > 0:
+
+                    self.logger.info('Slice {0} does not stitch to canonical sequence. Writing to orphan file.'.format(
+                        i+1
+                    ))
+
                     orphan = SeqRecord(Seq(unstitched, IUPAC.extended_protein),
                                        id='xx|ORPHN|{0}|{1}|{2}{3}|{4}|{5}|{6}:{7}|{8}:{9}|{10}{11}|r{12}|{13}'.format(
                                            self.j.gene_symbol,
@@ -377,7 +406,7 @@ class Sequence(object):
             elif stitched.seq == self.canonical_aa.seq:
                 self.write_canonical(outdir=outdir)
 
-            # otherwise write
+            # otherwise write alternative slice to fasta
             elif len(stitched) > 0:
                 stitched.id = self.canonical_aa.id + '|{0}|{1}{2}|{3}|{4}|{5}:{6}|{7}:{8}|{9}{10}|r{11}|{12}'.format(
                     self.j.gene_id,

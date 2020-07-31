@@ -352,8 +352,8 @@ class Junction(object):
                 # ph0, ph1 = self.alt1_es, self.alt1_ee
                 ph0, ph1 = self.anc_es, self.anc_ee
 
-        self.logger.info('Anchor start {0} end {1}'.format(ph0,
-                                                           ph1))
+        self.logger.info('Anchor exon start {0} end {1}'.format(ph0,
+                                                                ph1))
 
         # Get the frame of that coding exon from GTF.
         coding_exon = gtf0.query('start == @ph0').\
@@ -367,7 +367,7 @@ class Junction(object):
             # TODO: find the canonical transcript
 
         else:
-            self.phase = -1     # dummy value to trigger trying different phases for longest translation
+            self.phase = None     # dummy value to trigger trying different phases for longest translation
             # TODO: handle phase retrieval failure in a tidier manner
 
 
@@ -384,8 +384,6 @@ class Junction(object):
         if self.tx0 is None:
             self._get_translated_region(gtf=gtf,
                                         startsite_index=0)
-            self.logger.info('Anchor exon start: {0} Anchor exon end: {1}'.format(self.anc_es,
-                                                                                  self.anc_ee))
 
         self._trim()
 
