@@ -4,18 +4,8 @@
 
 
 import unittest
-import tempfile
-import sys
 import os
 
-from io import StringIO
-
-from Bio import SeqIO
-from Bio.Alphabet import IUPAC
-
-import requests
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util import Retry
 
 from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
@@ -64,6 +54,7 @@ class GenomeTest(unittest.TestCase):
         junction = Junction(**rma.iloc[i].to_dict())
 
         junction.trim_cds(gtf)
+        junction.get_translated_phase(gtf)
 
         sequence = Sequence(junction)
         sequence.make_slice_localgenome(genome.genome)
