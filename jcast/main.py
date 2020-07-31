@@ -189,11 +189,11 @@ def _translate_one(junction,
         if not sequence.frameshift:
 
             # Do a function like this to extend with fasta, and then write if necessary.
-            # TODO: instead of using SwissProt we should get the canonical exons from the GTF directly
+            # TODO: instead of using Uniprot we should get the canonical exons from the GTF directly
 
             for slice_ in [1, 2]:
                 sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
-                                                     slice_has_ptc=False)
+                                                slice_has_ptc=False)
 
             sequence.write_slices(
                 outdir=write_dir,
@@ -211,13 +211,13 @@ def _translate_one(junction,
 
             for slice_ in [1, 2]:
                 sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
-                                             slice_has_ptc=False)
+                                                slice_has_ptc=False)
 
                 # 2020-07-30 if slice runs into a frame shift,
-                # allows the opportunity to stitch N-temrinus only
+                # allows the opportunity to stitch N-terminus only
                 if [sequence.slice1_stitched, sequence.slice2_stitched][slice_-1] is None:
                     sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
-                                                 slice_has_ptc=True)
+                                                    slice_has_ptc=True)
 
             sequence.write_slices(
                 outdir=write_dir,
@@ -237,7 +237,7 @@ def _translate_one(junction,
         if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
             for slice_ in [1, 2]:
                 sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
-                                             slice_has_ptc=False)
+                                                slice_has_ptc=False)
 
             sequence.write_slices(outdir=write_dir,
                                   suffix='T3',
@@ -266,7 +266,7 @@ def _translate_one(junction,
 
         if len(sequence.slice2_aa) / len(sequence.slice1_aa) >= params.ptc_threshold:
             sequence.stitch_to_canonical_aa(slice_to_stitch=2,
-                                         slice_has_ptc=True)
+                                            slice_has_ptc=True)
 
         sequence.write_slices(outdir=write_dir,
                               suffix='T4',
@@ -282,7 +282,7 @@ def _translate_one(junction,
 
         if len(sequence.slice1_aa) / len(sequence.slice2_aa) >= params.ptc_threshold:
             sequence.stitch_to_canonical_aa(slice_to_stitch=1,
-                                         slice_has_ptc=True)
+                                            slice_has_ptc=True)
 
         sequence.write_slices(outdir=write_dir,
                               suffix='T4',
