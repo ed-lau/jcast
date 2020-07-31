@@ -26,10 +26,13 @@ Canonical transcript recognition
 
 Canonical can be chosen from the GTF (longest protein coding sequence) alone 
 which speeds up the analysis or through an API call to Uniprot. 
-Note that Uniprot has manual annotation on what is the canonical sequence
-through prevalence and homology to other species that are not apparent in the GTF file.
-Because of the prominence of Uniprot in proteomics work we have chosen to use Uniprot
-for now.
+This has the advantage of allowing splice graphs to determine which junctions
+map to which transcripts.
+However, note that Uniprot has manual annotation on what is the canonical sequence
+through prevalence and homology to other species that are not apparent in the GTF file without
+calling to other resources like APPRIS (e.g. see DET1_HUMAN). 
+Because of the prominence of Uniprot in proteomics work
+we have chosen to use Uniprot for now.
 
 """
 use_gtf_only = False  # use GTF but not Uniprot to get canonical transcripts
