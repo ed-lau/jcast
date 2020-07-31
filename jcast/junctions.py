@@ -2,7 +2,6 @@
 
 """ Methods that concern splice junctions - getting their coordinates, transcription starts/ends, phases. """
 
-
 import logging
 import os.path
 import pandas as pd
@@ -418,7 +417,6 @@ class Junction(object):
         # Subset the gtf file by the current gene_id
         #
 
-
         if self.junction_type == 'MXE':
             try:
                 if self.anc_ee > self.tx0 > self.anc_es:
@@ -434,7 +432,7 @@ class Junction(object):
                     self.anc_ee = -1
                     self.alt2_es = self.tx0
 
-            except ValueError:
+            except TypeError or ValueError:
                 self.logger.info('Trimming start failed.')
 
             try:
@@ -451,7 +449,7 @@ class Junction(object):
                     self.down_ee = -1
                     self.alt2_ee = self.tx1
 
-            except ValueError:
+            except TypeError or ValueError:
                 self.logger.info('Trimming end failed.')
 
         elif self.junction_type == 'SE':
@@ -464,7 +462,7 @@ class Junction(object):
                     self.anc_ee = -1
                     self.alt1_es = self.tx0
 
-            except ValueError:
+            except TypeError or ValueError:
                 self.logger.info('Trimming start failed.')
 
             try:
@@ -476,7 +474,7 @@ class Junction(object):
                     self.down_ee = -1
                     self.alt1_ee = self.tx1
 
-            except ValueError:
+            except TypeError or ValueError:
                 self.logger.info('Trimming end failed.')
 
         elif self.junction_type == 'RI':
@@ -484,14 +482,14 @@ class Junction(object):
                 if self.anc_ee > self.tx0 > self.anc_es:
                     self.anc_es = self.tx0
 
-            except ValueError:
+            except TypeError or ValueError:
                 self.logger.info('Trimming start failed.')
 
             try:
                 if self.down_ee > self.tx1 > self.down_es:
                     self.down_ee = self.tx1
 
-            except ValueError:
+            except TypeError or ValueError:
                 self.logger.info('Trimming end failed.')
 
         elif self.junction_type == 'A5SS':
@@ -502,14 +500,14 @@ class Junction(object):
                 if self.alt1_ee > self.tx0 > self.alt1_es:
                     self.alt1_es = self.tx0
 
-            except ValueError:
+            except TypeError or ValueError:
                 self.logger.info('Trimming start failed.')
 
             try:
                 if self.anc_ee > self.tx1 > self.anc_es:
                     self.anc_ee = self.tx1
 
-            except ValueError:
+            except TypeError or ValueError:
                 self.logger.info('Trimming end failed.')
 
         elif self.junction_type == 'A3SS':
@@ -517,7 +515,7 @@ class Junction(object):
                 if self.anc_ee > self.tx0 > self.anc_es:
                     self.anc_es = self.tx0
 
-            except:
+            except TypeError or ValueError:
                 self.logger.info('Trimming start failed.')
 
             try:
@@ -527,8 +525,7 @@ class Junction(object):
                 if self.alt2_ee > self.tx1 > self.alt2_es:
                     self.alt2_ee = self.tx1
 
-            except:
+            except TypeError or ValueError:
                 self.logger.info('Trimming end failed.')
-
 
         return True

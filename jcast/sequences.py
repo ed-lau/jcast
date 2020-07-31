@@ -34,6 +34,7 @@ class Sequence(object):
         sequence object will be used to make the nucleotide slices and translate into protein sequences.
 
         """
+        self.logger = logging.getLogger('jcast.seq')
 
         self.j = junction
         self.slice1_nt = ''
@@ -46,8 +47,6 @@ class Sequence(object):
 
         self.translated_phase = -1                  # Phase that was actually used for translation.
         self.translated_strand = self.j.strand    # Strand that was actually used for translation
-
-        self.logger = logging.getLogger('jcast.seq')
 
     def __repr__(self):
         """ repr """
@@ -69,7 +68,6 @@ class Sequence(object):
 
         #
         return ((len(self.slice1_nt) - len(self.slice2_nt)) % 3) != 0
-
 
     def make_slice_localgenome(self,
                                genome_index,
@@ -297,7 +295,7 @@ class Sequence(object):
             return True
 
         # find out where the first (stitch_length) amino acids meets the UniProt canonical sequences
-        merge0, merge1 = canonical.seq.find(slice_[:stitch_length]), canonical.seq.find(slice_[:stitch_length])
+        merge0, merge1 = canonical.seq.find(slice_[:stitch_length]), canonical.seq.find(slice_[-stitch_length:])
 
         # slice stitches to canonical at both ends:
         if merge0 != -1 and merge1 != -1:
@@ -311,9 +309,9 @@ class Sequence(object):
             stitched = None
 
         if stitched:
-            if slice_ == 1:
+            if slice_to_stitch == 1:
                 self.slice1_stitched = stitched[:]
-            elif slice_ == 2:
+            elif slice_to_stitch == 2:
                 self.slice2_stitched = stitched[:]
 
         return True
@@ -330,7 +328,7 @@ class Sequence(object):
         if len(self.canonical_aa[:]) == 0:
             self.get_canonical_aa_uniprot()
             canonical = self.canonical_aa[:]
-        h.write_seqrecord_to_fasta(canonical, outdir, 'gene_canonical')
+        h.write_seqrecord_to_fasta(canonical, outdir, 'canonical')
 
         return True
 
@@ -376,7 +374,7 @@ class Sequence(object):
                     h.write_seqrecord_to_fasta(orphan, outdir, (suffix + '_orphan'))
 
             # if the stitched is same as canonical, write canonical
-            elif stitched == self.canonical_aa.seq:
+            elif stitched.seq == self.canonical_aa.seq:
                 self.write_canonical(outdir=outdir)
 
             # otherwise write

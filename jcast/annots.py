@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" Methods that concern genome annotations. """
+""" Genome annotations. """
 
 import os.path
 import logging

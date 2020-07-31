@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" junction callback messages for different tiers """
+""" Junction callback messages for different tiers """
 
 skipped_low = 'SKIPPED. Sequence discarded due to low coverage. \n\n'
 skipped_p = 'SKIPPED. Sequence discarded due to difference across replicates. \n\n'
