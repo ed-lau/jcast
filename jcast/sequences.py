@@ -427,6 +427,7 @@ class Sequence(object):
                 self.logger.warning('Failed retrieval for {0} after {1} retries.'.format(self.j.gene_id,
                                                                                          params.uniprot_max_retries)
                                     )
+                con.close() # TODO: change to with statement
 
             if ret.status_code == 200 and ret.text != '':
                 record = list(SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein))[0]
@@ -441,9 +442,15 @@ class Sequence(object):
                 self.logger.info('Retrieved empty fasta from Ensembl for {0}'.format(self.j.gene_id))
                 # TODO: A known issue where Uniprot sequences do not exist for some Ensembl genes
                 # TODO: Rather than fix this we will simply use the GTF in future versions.
+                con.close()
 
             elif ret.status_code != 200:
                 self.logger.warning('Retrieval of protein sequence failed.')
+                con.close()
+
+            else:
+                con.close()
+                pass
 
         return record
 
