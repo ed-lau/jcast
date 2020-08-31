@@ -104,7 +104,7 @@ The vbar(|)-delimited parts denote the following:
 1. Knowledgebase name, from canonical SwissProt protein entry (sp)
 2. UniProt accession, from canonical SwissProt protein entry (Q91VW5)
 3. UniProt name, from canonical SwissProt protein entry (GOGA4_MOUSE)
-4. Ensembl gene name (ENSMUSG00000038708)
+4. Annotated gene name (ENSMUSG00000038708)
 5. rMATS junction type and order (MXE1)
 6. Input file row name (0)
 7. Chromosome (chr9)
