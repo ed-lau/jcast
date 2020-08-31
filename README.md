@@ -111,7 +111,7 @@ The vbar(|)-delimited parts denote the following:
 8. Anchor exon start and end (118560742:118560872)
 9. Alternative exon start and end (118565557:118565667)
 10. Translated strand and phase (+2)
-11. Minimal skipped junction count (sjc) in rMAST (r521)
+11. Minimal skipped junction count (sjc) in rMATS preceded by r (r521)
 12. Tier (T1) 
 
 
