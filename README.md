@@ -121,10 +121,10 @@ JCAST is tested in Python 3.7 and 3.8 and uses the following packages:
 
 ```
 biopython>=1.77
-gtfparse>=1.2.0
-pandas>=1.0.4
-requests>=2.23.0
-tqdm>=4.46.0
+gtfparse>=1.2.1
+pandas>=1.1.0
+requests>=2.24.0
+tqdm>=4.48.2
 ```
 
 
