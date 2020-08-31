@@ -18,7 +18,7 @@ Stop codon forced translation
 This threshold may be set to allow some stop codon transcripts to be translated to Tier 4
 
 """
-ptc_threshold = 0.33   # the PTC slice should be at least this portion of the long slice to be included
+ptc_threshold = 0.33  # the PTC slice should be at least this portion of the long slice to be included
 
 
 """
