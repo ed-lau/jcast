@@ -85,6 +85,36 @@ Run the JCAST Python program specifying the directory of the rMATS output as wel
 JCAST outputs FASTA databases which can be further filtered and combined using any scripting languages, or can be used directly for database search
 in virtually any shotgun proteomics database search engines (e.g., SEQUEST, Crux/Tide, MS-GF+)
     
+JCAST may output the following FASTA files (note depending on the used settings and input files, not all FASTA files may be present):
+
+* **xxx_canonical.fasta** -- This file contains protein sequences from splice junctions that are identical to SwissProt canonical sequences. The FASTA entries are named according to UniProt convention.    
+* **xxx_T1.fasta** -- This file contains noncanonical sequences translated from splice junctions. Tier 1 junctions are translated in frame according to annotated GTF frames, did not encounter frameshift or premature stop codon, and are successfully joined back to full-length SwissProt sequences.
+* **xxx_T2.fasta** -- Tier 2 junctions are translated in frame according to annotated GTF frames, did not encounter premature stop codon, and are successfully joined back to full-length SwissProt sequences, but have encountered a possible frameshift (length differences in exons not multiples of 3).
+* **xxx_T3.fasta** -- Tier 4 junctions did not encounter premature stop codon, and are successfully joined back to full-length SwissProt sequences, but using a translation frame different from that annotated in the supplied GTF (unusual).
+* **xxx_T4.fasta** -- Tier 4 junctions were forced translated when one of the two alternative junction slices encountered a premature stop codon but could be translated using one of three frames into a peptide fragment at least a certain proportion in length as the successfully translated slice (see _params.py_). These sequences should be either excluded from database search or interpreted with a great amount of caution.
+* **xxx_T#_orphan.fasta** -- These fragments were translated according to their tiers but could not be joined back to the canonical SwissProt sequence through the stitch length (see _params.py_ for defaults). These sequences should be either excluded from database search or interpreted with a great amount of caution.
+
+Noncanonical FASTA entries have the following naming conventions:
+
+```
+>sp|Q91VW5|GOGA4_MOUSE|ENSMUSG00000038708|MXE1|0|chr9|118560742:118560872|118565557:118565667|+2|r521|T1 sp|Q91VW5|GOGA4_MOUSE Golgin subfamily A member 4 OS=Mus musculus OX=10090 GN=Golga4 PE=1 SV=2
+```
+
+The | delimited entries denote the following:
+1. Knowledgebase name, from canonical SwissProt protein entry (sp)
+2. UniProt accession, from canonical SwissProt protein entry (Q91VW5)
+3. UniProt name, from canonical SwissProt protein entry (GOGA4_MOUSE)
+4. Ensembl gene name (ENSMUSG00000038708)
+5. rMATS junction type and order (MXE1)
+6. Input file row name (0)
+7. Chromosome (chr9)
+8. Anchor exon start and end (118560742:118560872)
+9. Alternative exon start and end (118565557:118565667)
+10. Translated strand and phase (+2)
+11. Minimal skipped junction count (sjc) in rMAST (r521)
+12. Tier (T1) 
+
+
 ### Dependencies
 
 JCAST is tested in Python 3.7 and 3.8 and uses the following packages:
