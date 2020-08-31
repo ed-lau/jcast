@@ -81,7 +81,7 @@ Go back to the data directory and run the rMATS image. The -v flag mounts the ho
 
 Note: Arguments including nThread, readLength, and anchorLength should be customized to suit your system and data files. Please refer to the rMATS documentations for details.
 
-Run the JCAST Python program specifying the directory of the rMATS output as well as the GTF annotation file:
+Run the JCAST Python program specifying the path to the rMATS output directory, the genome sequence, as well as the GTF annotation file:
  
     $ python -m jcast path/to/rMATS/output/encode_human_heart/ path/to/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_heart
 
