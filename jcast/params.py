@@ -37,4 +37,4 @@ we have chosen to use Uniprot for now.
 """
 use_gtf_only = False  # use GTF but not Uniprot to get canonical transcripts
 uniprot_max_retries = 10  # max number of retries if retrieving sequences from Uniprot
-aa_stitch_length = 9  # amino acid joint to stitch to canonical when using aa for joining
+aa_stitch_length = 10  # amino acid joint to stitch to canonical when using aa for joining
