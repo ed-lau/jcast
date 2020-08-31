@@ -94,7 +94,7 @@ JCAST may output the following FASTA files (note depending on the used settings 
 * **xxx_T4.fasta** -- Tier 4 junctions were forced translated when one of the two alternative junction slices encountered a premature stop codon but could be translated using one of three frames into a peptide fragment at least a certain proportion in length as the successfully translated slice (see _params.py_). These sequences should be either excluded from database search or interpreted with a great amount of caution.
 * **xxx_T#_orphan.fasta** -- These fragments were translated according to their tiers but could not be joined back to the canonical SwissProt sequence through the stitch length (see _params.py_ for defaults). These sequences should be either excluded from database search or interpreted with a great amount of caution.
 
-Noncanonical FASTA entries have the following naming conventions:
+Noncanonical FASTA entries have the following naming convention:
 
 ```
 >sp|Q91VW5|GOGA4_MOUSE|ENSMUSG00000038708|MXE1|0|chr9|118560742:118560872|118565557:118565667|+2|r521|T1 sp|Q91VW5|GOGA4_MOUSE Golgin subfamily A member 4 OS=Mus musculus OX=10090 GN=Golga4 PE=1 SV=2
