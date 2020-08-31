@@ -100,7 +100,7 @@ Noncanonical FASTA entries have the following naming convention:
 >sp|Q91VW5|GOGA4_MOUSE|ENSMUSG00000038708|MXE1|0|chr9|118560742:118560872|118565557:118565667|+2|r521|T1 sp|Q91VW5|GOGA4_MOUSE Golgin subfamily A member 4 OS=Mus musculus OX=10090 GN=Golga4 PE=1 SV=2
 ```
 
-The | delimited entries denote the following:
+The vbar(|)-delimited parts denote the following:
 1. Knowledgebase name, from canonical SwissProt protein entry (sp)
 2. UniProt accession, from canonical SwissProt protein entry (Q91VW5)
 3. UniProt name, from canonical SwissProt protein entry (GOGA4_MOUSE)
