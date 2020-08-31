@@ -10,7 +10,7 @@ JCAST (Junction Centric Alternative Splicing Translator) takes in alternative sp
 
 Install Python 3.7+ and pip. See instructions on Python website for specific instructions for your operating system.
 
-Jcast can be installed from PyPI via pip. We recommend using a virtual environment.
+JCAST can be installed from PyPI via pip. We recommend using a virtual environment.
 
     $ pip install jcast
 
@@ -33,11 +33,11 @@ To test that the installation can load test data files in tests/data (sample rMA
     $ pip install tox
     $ tox
 
-To run jcast using the test files and print the results to Desktop
+To run JCAST using the test files and print the results to Desktop
 
     $ python -m jcast {j}/tests/data/rmats {j}/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf  {j}/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz -o ~/Desktop
     
-where {j} is replaced by the path to jcast.
+where {j} is replaced by the path to JCAST.
 
 ## Example using JCAST to generate custom databases from ENCODE
 
