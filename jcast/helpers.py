@@ -8,7 +8,7 @@ import sqlite3 as sq
 import requests as rq
 
 from Bio import SeqIO
-from Bio.Alphabet import IUPAC
+# from Bio.Alphabet import IUPAC
 
 from jcast import constants
 
@@ -256,7 +256,7 @@ def write_seqrecord_to_fasta(seqrecord,
     # if the file already exists, open it and amend that record.
     existing_records = []
     if os.path.exists(outfile):
-        for existing_record in SeqIO.parse(outfile, 'fasta', IUPAC.extended_protein):
+        for existing_record in SeqIO.parse(outfile, 'fasta'):
             existing_records.append(existing_record)
 
     # Test if the slice is already in the fasta, then do not write the new sequence into the fasta file.

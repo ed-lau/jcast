@@ -9,7 +9,7 @@ import gzip
 import gtfparse
 import pandas as pd
 from Bio import SeqIO
-from Bio.Alphabet import generic_dna
+#from Bio.Alphabet import generic_dna
 
 
 class ReadAnnotations(object):
@@ -72,12 +72,12 @@ class ReadGenome(object):
 
         if self.f_loc.endswith('.gz'):
             with gzip.open(self.f_loc, 'rt') as f:
-                self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta', generic_dna))
+                self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta'))
                 self.logger.info('Read from zipped genome. \n\n')
 
         else:
             with open(self.f_loc, 'rt') as f:
-                self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta', generic_dna))
+                self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta'))
                 self.logger.info('Read from genome. \n\n')
 
         return True

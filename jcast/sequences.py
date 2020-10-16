@@ -8,7 +8,7 @@ import os.path
 from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
-from Bio.Alphabet import IUPAC
+# from Bio.Alphabet import IUPAC
 
 import requests as rq
 from requests.adapters import HTTPAdapter
@@ -44,7 +44,7 @@ class Sequence(object):
         self.slice1_aa = ''
         self.slice2_aa = ''
 
-        self.canonical_aa = SeqRecord(Seq('', IUPAC.extended_protein))
+        self.canonical_aa = SeqRecord(Seq(''), annotations={'molecule_type': 'extended_protein'})
 
         self.slice1_stitched = None
         self.slice2_stitched = None
@@ -349,7 +349,7 @@ class Sequence(object):
 
 
 
-        canonical_aa = SeqRecord(Seq(canonical_aa, IUPAC.extended_protein))
+        canonical_aa = SeqRecord(Seq(canonical_aa), annotations={'molecule_type': 'extended_protein'})
         canonical_aa.id = '{0}|{1}'.format(self.j.gene_id,
                                            self.j.gene_symbol)
 
@@ -370,7 +370,7 @@ class Sequence(object):
 
         # if nothing from the gtf, return an empty record
         if self.gtf_canonical_transcript is None:
-            return SeqRecord(Seq('', IUPAC.extended_protein))
+            return SeqRecord(Seq(''), annotations={'molecular_type': 'extended_protein'})
 
         return self.translate_annotated_transcriptfrom_gtf(annotated_transcript=self.gtf_canonical_transcript,
                                                            genome_index=genome_index)
@@ -384,7 +384,7 @@ class Sequence(object):
         :return: canonical aa seqrecord
         """
 
-        record = SeqRecord(Seq('', IUPAC.extended_protein))
+        record = SeqRecord(Seq(''), annotations={'molecule_type': 'extended_protein'})
 
         # cache retrieved sequences if available, otherwise retrieve from Ensembl
         cache = self.j.gene_id
@@ -402,7 +402,7 @@ class Sequence(object):
         read_fasta = cur.fetchone()
 
         if read_fasta:
-            record = list(SeqIO.parse(StringIO(read_fasta[1]), 'fasta', IUPAC.extended_protein))[0]
+            record = list(SeqIO.parse(StringIO(read_fasta[1]), 'fasta'))[0]
             self.logger.info('Locally cached sequence retrieved for {0}.'.format(cache))
             con.close()
 
@@ -430,7 +430,7 @@ class Sequence(object):
                 con.close() # TODO: change to with statement
 
             if ret.status_code == 200 and ret.text != '':
-                record = list(SeqIO.parse(StringIO(ret.text), 'fasta', IUPAC.extended_protein))[0]
+                record = list(SeqIO.parse(StringIO(ret.text), 'fasta'))[0]
 
                 cur.execute('''INSERT INTO sequences(id, seq) VALUES(:id, :seq)''',
                             {'id': cache, 'seq': record.format('fasta')})
@@ -556,7 +556,7 @@ class Sequence(object):
                         i+1
                     ))
 
-                    orphan = SeqRecord(Seq(unstitched, IUPAC.extended_protein),
+                    orphan = SeqRecord(Seq(unstitched),
                                        id='xx|ORPHN|{0}|{1}|{2}{3}|{4}|{5}|{6}:{7}|{8}:{9}|{10}{11}|r{12}|{13}'.format(
                                            self.j.gene_symbol,
                                            self.j.gene_id,
@@ -573,6 +573,7 @@ class Sequence(object):
                                            self.j.min_read_count,
                                            suffix,
                                        ),
+                                       annotations={'molecule_type': 'extended_protein'},
                                        name=self.j.gene_symbol,
                                        description='Orphan',
                                        )
