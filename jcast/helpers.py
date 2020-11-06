@@ -28,8 +28,12 @@ def get_local_nuc(genome_index,
 
     """
 
-    # Get numeric portion of chromosome
-    chromosome = chromosome[3:]  # skip 'chr'
+    # try Gencode chromosome nomenclature scheme ('chr1', etc.)
+    try:
+        genome_index[chromosome][0:1]
+    except KeyError:
+        # get numeric portion of chromosome if using Ensembl (removing chr)
+        chromosome = chromosome[3:]  # skip 'chr'
 
     # Skip empty exons
     if es <= 0 or ee <= 0:
