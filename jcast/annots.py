@@ -44,6 +44,12 @@ class ReadAnnotations(object):
 
         self.annot = pd.read_table(cached_gtf, sep='\t', low_memory=False)
 
+        # 2020-11-06 if Gencode GTF is used, column is transcript_type rather than transcript_biotype.
+        # This will make the transcript_biotype column manually
+
+        if not 'transcript_biotype' in self.annot.columns:
+            self.annot['transcript_biotype'] = self.annot['transcript_type']
+
         return True
 
 
