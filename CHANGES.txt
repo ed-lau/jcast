@@ -1,3 +1,9 @@
+v0.3.0
+---
+* Fixed issues where Gencode GTF files without transcript_biotype annotations could not be read
+* Fixed issues of retrieving Uniprot canonical sequences from Ensembl transcript versions
+* Compatibility with biopython>=1.78
+
 v0.2.8
 ---
 * Fixed an issue where jcast is called twice from the direct cli entry point
