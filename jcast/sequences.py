@@ -2,6 +2,7 @@
 
 """ Methods that concern sequences - retrieving and cacheing nucleotide sequences, translating into amino acids """
 
+import re
 import logging
 import os.path
 
@@ -409,7 +410,10 @@ class Sequence(object):
         else:
 
             server = 'https://www.ebi.ac.uk'
-            ext = '/proteins/api/proteins/Ensembl:' + self.j.gene_id + '?offset=0&size=1&reviewed=true&isoform=0'
+
+            # Uniprot does not support transcript version
+            ext = '/proteins/api/proteins/Ensembl:' + re.sub('\\..*', '', self.j.gene_id) + \
+                  '?offset=0&size=1&reviewed=true&isoform=0'
 
             self.logger.info('Sequence not cached locally. Attempting to get from Uniprot: {0}'.format(
                 server + ext
