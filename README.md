@@ -124,11 +124,11 @@ The vbar(|)-delimited parts denote the following:
 JCAST is tested in Python 3.7 and 3.8 and uses the following packages:
 
 ```
-biopython>=1.77
+biopython>=1.78
 gtfparse>=1.2.1
-pandas>=1.1.0
+pandas>=1.1.4
 requests>=2.24.0
-tqdm>=4.48.2
+tqdm>=4.51.0
 ```
 
 
