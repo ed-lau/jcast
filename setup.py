@@ -10,7 +10,7 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='jcast',
-    version="0.2.9",
+    version="0.3.0",
     description='Jcast retrieves splice junction information and translates into amino acids',
 
     long_description=long_description,
@@ -50,7 +50,7 @@ setup(
 
     python_requires='>=3.6, <4',
 
-    install_requires=['biopython>=1.7,<2',
+    install_requires=['biopython>=1.78,<2',
                       'gtfparse>=1,<2',
                       'pandas>=1.0,<2',
                       'requests>=2,<3',
