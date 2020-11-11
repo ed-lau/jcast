@@ -57,9 +57,9 @@ Note: Arguments including runThreadN and sjdbOverhang should be customized to su
 
 #### Identify transcript splice junctions 
 Splice junctions can be found using [rMATS](http://rnaseq-mats.sourceforge.net) with the .bam files following STAR. Please refer to the rMATS instructions for latest commands. The following
-example was tested using rmats-turbo-0.1. Support for [stringtie](https://ccb.jhu.edu/software/stringtie/) assembled transcripts will be implemented in a future version.
+example was tested using rmats-turbo-0.1 running in Docker and with rMATS v.4.1.0/Python 3.7. Support for [stringtie](https://ccb.jhu.edu/software/stringtie/) assembled transcripts will be implemented in a future version.
 
-#### Set up a Virtual Environment for rMATS in Python 2.7 (only if needed)
+#### Set up a Virtual Environment for rMATS turno 0.1 in Python 2.7 (only if needed)
 
 #### Install the rMATS image
 Follow instructions from rMATS and docker specific to your OS. E.g.:
