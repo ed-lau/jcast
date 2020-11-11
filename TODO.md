@@ -1,0 +1,3 @@
+- Support for gff3 file.
+- Support for reading APPRIS tag if available to determine canonical sequence.
+- If Uniprot retrieval fails, fallback to using longest sequence.
