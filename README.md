@@ -59,7 +59,7 @@ Note: Arguments including runThreadN and sjdbOverhang should be customized to su
 Splice junctions can be found using [rMATS](http://rnaseq-mats.sourceforge.net) with the .bam files following STAR. Please refer to the rMATS instructions for latest commands. The following
 example was tested using rmats-turbo-0.1 running in Docker and using rMATS v.4.1.0/Python 3.7. Support for [stringtie](https://ccb.jhu.edu/software/stringtie/) assembled transcripts will be implemented in a future version.
 
-#### Set up a Virtual Environment for rMATS turno 0.1 in Python 2.7 (only if needed)
+#### Set up a Virtual Environment for rMATS turbo 0.1 in Python 2.7 (only if needed)
 
 #### Install the rMATS image
 Follow instructions from rMATS and docker specific to your OS. E.g.:
@@ -87,7 +87,7 @@ Run the JCAST Python program specifying the path to the rMATS output directory, 
 
 #### FASTA output
 JCAST outputs FASTA databases which can be further filtered and combined using any scripting languages, or can be used directly for database search
-in virtually any shotgun proteomics database search engines (e.g., SEQUEST, Crux/Tide, MS-GF+)
+in virtually any shotgun proteomics database search engines (e.g., SEQUEST, Crux/Tide, Maxquant, MS-GF+).
     
 JCAST may output the following FASTA files (note depending on the used settings and input files, not all FASTA files may be present):
 
@@ -133,7 +133,7 @@ tqdm>=4.51.0
 
 ## Additional Information
 
-Additional details on result interpretation can be found on our manuscript in [STAR Protocols](https://www.sciencedirect.com/science/article/pii/S2666166720301258).
+Additional details on troubleshooting and result interpretation can be found in our publication in [STAR Protocols](https://www.sciencedirect.com/science/article/pii/S2666166720301258).
 
 ## Contributing
 
