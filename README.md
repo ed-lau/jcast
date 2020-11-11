@@ -131,6 +131,9 @@ requests>=2.24.0
 tqdm>=4.51.0
 ```
 
+## Additional Information
+
+Additional details on result interpretation can be found on our manuscript in [STAR Protocols](https://www.sciencedirect.com/science/article/pii/S2666166720301258)
 
 ## Contributing
 
