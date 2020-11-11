@@ -133,7 +133,7 @@ tqdm>=4.51.0
 
 ## Additional Information
 
-Additional details on result interpretation can be found on our manuscript in [STAR Protocols](https://www.sciencedirect.com/science/article/pii/S2666166720301258)
+Additional details on result interpretation can be found on our manuscript in [STAR Protocols](https://www.sciencedirect.com/science/article/pii/S2666166720301258).
 
 ## Contributing
 
@@ -148,4 +148,4 @@ Please contact us if you wish to contribute, and submit pull requests to us.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE.md file for details
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
