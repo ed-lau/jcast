@@ -83,7 +83,7 @@ Note: Arguments including nThread, readLength, and anchorLength should be custom
 
 Run the JCAST Python program specifying the path to the rMATS output directory, the genome sequence, as well as the GTF annotation file:
  
-    $ python -m jcast path/to/rMATS/output/encode_human_heart/ path/to/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_heart
+    $ python -m jcast path/to/rMATS/output/encode_human_heart/ path/to/gtf/Homo_sapiens.GRCh38.89.gtf path/to/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_heart
 
 #### FASTA output
 JCAST outputs FASTA databases which can be further filtered and combined using any scripting languages, or can be used directly for database search
