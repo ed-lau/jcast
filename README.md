@@ -79,7 +79,7 @@ Go back to the data directory and run the rMATS image. The -v flag mounts the ho
 
     $ sudo docker run -v path/to/data/directory:/data rmats:turbo01 --b1 /data/b1.txt --b2 /data/b2.txt --gtf /data/GRCh38.gtf --od /data/output -t paired  --nthread 4 --readLength 101 --anchorLength 1
 
-Note: Arguments including nThread, readLength, and anchorLength should be customized to suit your system and data files. Please refer to the rMATS documentations for details.
+Note: Arguments including nThread, readLength, and anchorLength should be customized to suit your system and data files. Please refer to the [rMATS](https://github.com/Xinglab/rmats-turbo) documentations for details.
 
 Run the JCAST Python program specifying the path to the rMATS output directory, the genome sequence, as well as the GTF annotation file:
  
