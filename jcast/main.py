@@ -146,7 +146,7 @@ def _translate_one(junction,
 
     #
     # discard junction if the corrected P value of this read count is < threshold
-    # this removes junctions that are inconsifound on both replicates.
+    # this removes junctions that are inconsistently found on both replicates.
     #
     if junction.fdr < args.pvalue:
         return fates.skipped_low
