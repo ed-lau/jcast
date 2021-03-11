@@ -436,6 +436,7 @@ class Sequence(object):
             if ret.status_code == 200 and ret.text != '':
                 record = list(SeqIO.parse(StringIO(ret.text), 'fasta'))[0]
 
+                # TODO: Catch sqlite3.OperationalError if writing fails, such as in a remote volume.
                 cur.execute('''INSERT INTO sequences(id, seq) VALUES(:id, :seq)''',
                             {'id': cache, 'seq': record.format('fasta')})
                 con.commit()
