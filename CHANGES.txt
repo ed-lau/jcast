@@ -1,3 +1,7 @@
+v0.3.2
+---
+* P value threshold option now filters out junctions with P value above the user set value
+
 v0.3.1
 ---
 * Fixed issues where Gencode GTF files without transcript_biotype annotations could not be read

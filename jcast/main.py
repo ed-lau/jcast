@@ -148,7 +148,8 @@ def _translate_one(junction,
     # discard junction if the corrected P value of this read count is < threshold
     # this removes junctions that are inconsistently found on both replicates.
     #
-    if junction.fdr < args.pvalue:
+    q_lo, q_hi = args.qvalue
+    if not q_lo < junction.fdr < q_hi:
         return fates.skipped_low
 
     #
@@ -316,19 +317,26 @@ def main():
     parser = argparse.ArgumentParser(description='jcast retrieves transcript splice junctions'
                                                  'and translates them into amino acid sequences')
 
-    parser.add_argument('rmats_folder', help='path to folder storing rMATS output')
-    parser.add_argument('gtf_file', help='path to Ensembl gtf file')
-    parser.add_argument('genome', help='path to genome file')
+    parser.add_argument('rmats_folder',
+                        help='path to folder storing rMATS output',
+                        )
+    parser.add_argument('gtf_file',
+                        help='path to Ensembl gtf file',
+                        )
+    parser.add_argument('genome',
+                        help='path to genome file',
+                        )
 
     # parser.add_argument('-n', '--num_threads', help='number of threads for concurrency [default: 6]',
     #                     default=6,
     #                     type=int)
 
-    parser.add_argument('-o', '--out', help='name of the output files [default: psq_out]',
+    parser.add_argument('-o', '--out',
+                        help='name of the output files [default: psq_out]',
                         default='out')
 
-    parser.add_argument('-r', '--read'
-                        , help='minimum read counts to consider [default: 1]',
+    parser.add_argument('-r', '--read',
+                        help='minimum read counts to consider [default: 1]',
                         default=1,
                         type=int)
 
@@ -337,9 +345,11 @@ def main():
                         default=True,
                         type=bool)
 
-    parser.add_argument('-p', '--pvalue'
-                        , help='discard junctions with rMATS pvalue below this threshold [default: 0.01]',
-                        default=0.01,
+    parser.add_argument('-q', '--qvalue',
+                        help='take junctions with rMATS fdr within this threshold [default: 0 1]',
+                        metavar=('q_lo', 'q_hi'),
+                        nargs=2,
+                        default=[0, 1],
                         type=float)
 
     parser.set_defaults(func=runjcast)
