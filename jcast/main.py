@@ -85,6 +85,9 @@ def runjcast(args):
     # TODO: move this to a separate class
     #
     if args.model:
+
+        main_log.info('The -m flag is set. The modeled read count will override -r --read values.')
+
         tot = rmats_results.rmats_mxe.append(rmats_results.rmats_se).append(rmats_results.rmats_ri).append(
             rmats_results.rmats_a5ss).append(rmats_results.rmats_a3ss).copy()
         junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
@@ -100,7 +103,7 @@ def runjcast(args):
                               random_state=1,
                               ).fit(matrix_X_trans)
 
-        # sort the predictions
+        # Sort the classification components so the high-read distribution appears second
         order = gmm.means_.argsort(axis=0)[:, 0]
         gmm.means_ = gmm.means_[order]
         gmm.covariances_ = gmm.covariances_[order]
@@ -112,7 +115,7 @@ def runjcast(args):
         means = gmm.means_
         covars = gmm.covariances_
 
-        # Get the decision boundary (minimum count required to be predicted as second distribution)
+        # Get the decision boundary (minimum count required to be predicted as second predicted class)
         # TODO: catch error where model failed and min_count remains 1
         min_count = 1
         for i in range(1, round(pt.inverse_transform([gmm.means_[1]])[0][0])):

@@ -163,12 +163,10 @@ class Junction(object):
         self.sjc_s1 = kwargs['sjc_s1']
         self.sjc_s2 = kwargs['sjc_s2']
 
-
         self.tx1 = None
         self.tx0 = None
         self.phase = None
         self.num_start_codons = 0
-
 
         self.logger = logging.getLogger('jcast.junction')
 
