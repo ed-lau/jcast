@@ -8,19 +8,16 @@ import logging
 from functools import partial
 
 import tqdm
-from sklearn.mixture import GaussianMixture, BayesianGaussianMixture
+from sklearn.mixture import GaussianMixture
 from sklearn.preprocessing import PowerTransformer
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-from scipy import linalg
 import scipy.stats as stats
 
 from jcast import params, fates
 from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
-
 from jcast import __version__
 
 
@@ -93,7 +90,7 @@ def runjcast(args):
         junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
 
         # Array of junction sum read counts
-        matrix_X = np.array([[j.sum_read_count + 1] for j in junctions])
+        matrix_X = np.array([[j.sum_sjc + 1] for j in junctions])
         pt = PowerTransformer(method='box-cox')
         pt.fit(matrix_X)
         matrix_X_trans = pt.transform(matrix_X)
@@ -115,8 +112,9 @@ def runjcast(args):
         means = gmm.means_
         covars = gmm.covariances_
 
-
         # Get the decision boundary (minimum count required to be predicted as second distribution)
+        # TODO: catch error where model failed and min_count remains 1
+        min_count = 1
         for i in range(1, round(pt.inverse_transform([gmm.means_[1]])[0][0])):
             dist = gmm.predict(pt.transform(np.array([[i]])))
             if dist == [1]:
@@ -249,7 +247,7 @@ def _translate_one(junction,
 
     # If the -r argument is set directly and the -m flag is not, use the -r integer for count filtering
     # If the -m flag is set, use the modeled count for filtering
-    if (junction.sum_read_count < args.read and not args.model) or (args.read and junction.sum_read_count < pred_bound):
+    if (not args.model and junction.sum_sjc < args.read) or (args.model and junction.sum_sjc < pred_bound):
         #
         # If the canonical flag is set, append the canonical
         # Sp to the gene_canonical output even if none of the transcript slices are stitchable

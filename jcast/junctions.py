@@ -184,15 +184,13 @@ class Junction(object):
                + self.junction_type + ' ' + self.gene_symbol + ' ' + self.name
 
     @property
-    def sum_read_count(self):
+    def sum_sjc(self):
         """
-        Returns the minimum read count in the junction. if rMATS was run with one technical replicate,
+        Returns the sum of all SJCs in the junction. if rMATS was run with one technical replicate,
         the count field is an int, otherwise it is a list. Currently this takes the skipped junction count (SJC)
         as filtering criterion because the majority of translatable events are probably SE (skipped exon).
         Essentially this filters out alternative junctions that are very rarely skipped (high inclusion
         level of the exons) that are not likely to be translatable.
-
-        2021-07-02 This has been changed to sum of all read counts in the technical replicates
 
         :return:
         """
