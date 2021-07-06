@@ -8,6 +8,13 @@ import logging
 from functools import partial
 
 import tqdm
+from sklearn.mixture import GaussianMixture, BayesianGaussianMixture
+from sklearn.preprocessing import PowerTransformer
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from scipy import linalg
+import scipy.stats as stats
 
 from jcast import params, fates
 from jcast.junctions import Junction, RmatsResults
@@ -62,6 +69,8 @@ def runjcast(args):
     assert os.path.exists(os.path.join(args.rmats_folder, 'MXE.MATS.JC.txt')), 'rMATS files not found, check directory.'
     rmats_results = RmatsResults(rmats_dir=args.rmats_folder)
 
+    # Model read count cutoff
+
     #
     # Read the gtf file using the gtfpase package.
     # Then write as a pandas data frame.
@@ -75,6 +84,55 @@ def runjcast(args):
     genome = ReadGenome(args.genome)
 
     #
+    # Model read count cutoff.
+    # TODO: move this to a separate class
+    #
+
+    tot = rmats_results.rmats_mxe.append(rmats_results.rmats_se).append(rmats_results.rmats_ri).append(
+        rmats_results.rmats_a5ss).append(rmats_results.rmats_a3ss).copy()
+    junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
+
+    # Array of junction sum read counts
+    matrix_X = np.array([[j.sum_read_count + 1] for j in junctions])
+    pt = PowerTransformer(method='box-cox')
+    pt.fit(matrix_X)
+    matrix_X_trans = pt.transform(matrix_X)
+
+    gmm = GaussianMixture(n_components=2,
+                          covariance_type='diag',
+                          random_state=0
+                          ).fit(matrix_X_trans)
+
+    weights = gmm.weights_
+    means = gmm.means_
+    covars = gmm.covariances_
+
+    if args.read:
+        # Plot out figure
+        fig, ax = plt.subplots(constrained_layout=True)
+        ax.hist(matrix_X_trans, bins=50, histtype='bar', density=True, ec='red', alpha=0.5)
+        plt.style.use('seaborn-white')
+        ax.set_xlabel('Box-Cox transformed total skipped junction counts')
+        ax.set_ylabel('Frequency')
+        ax.set_title('Skipped junction count distributions')
+        tcks, values = plt.xticks()
+        new_tcks = np.int_(np.sort(pt.inverse_transform(np.array([[t] for t in tcks])).ravel()))
+
+        # Second axis for untransformed reads
+        ax2 = ax.twiny()
+        ax2.set_xlim(ax.get_xlim())
+        ax2.set_xticks(tcks[:-2])
+        ax2.set_xlabel('Untransformed total splice junction read counts')
+        ax2.set_xticklabels(new_tcks[:-2])
+
+        f_axis = matrix_X_trans.copy().ravel()
+        f_axis.sort()
+        ax.plot(f_axis, weights[0] * stats.norm.pdf(f_axis, means[0], np.sqrt(covars[0])).ravel(), c='red')
+        ax.plot(f_axis, weights[1] * stats.norm.pdf(f_axis, means[1], np.sqrt(covars[1])).ravel(), c='blue')
+
+        plt.savefig(fname=os.path.join(write_dir, 'model.png'))
+
+    #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
     #
     for rma in [rmats_results.rmats_mxe,
@@ -86,15 +144,13 @@ def runjcast(args):
 
         junctions = [Junction(**rma.iloc[i].to_dict()) for i in range(len(rma))]
 
-        # Model read counts
-
-
-
         translate_one_partial = partial(_translate_one,
                                         gtf=gtf,
                                         genome=genome,
                                         args=args,
                                         write_dir=write_dir,
+                                        transform_model=pt,
+                                        count_model=gmm,
                                         )
 
         #
@@ -139,22 +195,10 @@ def _translate_one(junction,
                    genome,
                    args,
                    write_dir,
-                    ):
+                   transform_model,
+                   count_model,
+                   ):
     """ get coordinate and translate one junction; arguments are passed through partial from main"""
-
-    #
-    # filter by junction read counts - discard junction if the min read count is below threshold
-    #
-    if junction.min_read_count < args.read:
-        return fates.skipped_low
-
-    #
-    # discard junction if the corrected P value of this read count is < threshold
-    # this removes junctions that are inconsistently found on both replicates.
-    #
-    q_lo, q_hi = args.qvalue
-    if not q_lo < junction.fdr < q_hi:
-        return fates.skipped_low
 
     #
     # trim slice coordinates by translation starts and ends
@@ -184,6 +228,40 @@ def _translate_one(junction,
     #
     sequence.get_canonical_aa(gtf=gtf, genome_index=genome.genome)
     sequence.translate(use_phase=True)
+
+    #
+    # filter by junction read counts - discard junction if the min read count is below threshold
+    #
+    if args.read:
+        # Predict which distirbution the junction belongs to based on the sum read counts
+        predicted_dist = count_model.predict(transform_model.transform(np.array([[junction.sum_read_count]])))
+
+        # Skip this junction if the predicted distribution is not where the mean count is max
+        if predicted_dist != np.where(count_model.means_ == np.amax(count_model.means_))[0]:
+
+            #
+            # If the canonical flag is set, append the canonical
+            # Sp to the gene_canonical output even if none of the transcript slices are stitchable
+            # back to the canonical protein. This avoids not having any protein level representation
+            # of a gene potentially in the proteome.
+            #
+            if args.canonical:
+                sequence.write_canonical(outdir=write_dir)
+
+            return fates.skipped_low
+
+    #
+    # discard junction if the corrected P value of this read count is < threshold
+    # this removes junctions that are inconsistently found on both replicates.
+    #
+    q_lo, q_hi = args.qvalue
+    if not q_lo < junction.fdr < q_hi:
+
+        # Write canonical anyhow if the canonical flag is set.
+        if args.canonical:
+            sequence.write_canonical(outdir=write_dir)
+
+        return fates.skipped_low
 
     #
     # write the Tier 1 and Tier 2 results into fasta file
@@ -340,14 +418,18 @@ def main():
                         default='out')
 
     parser.add_argument('-r', '--read',
-                        help='minimum read counts to consider [default: 1]',
-                        default=1,
-                        type=int)
+                        help='models junction read count cutoff using a Gaussian mixture model [default: False]',
+                        action='store_true',
+                        default=False,
+                        #type=bool,
+                        )
 
     parser.add_argument('-c', '--canonical', help='write out canonical protein sequence even if transcript'
-                                   'slices are untranslatable [default: True]',
-                        default=True,
-                        type=bool)
+                                   'slices are untranslatable [default: False]',
+                        default=False,
+                        action='store_true',
+                        # type=bool,
+                        )
 
     parser.add_argument('-q', '--qvalue',
                         help='take junctions with rMATS fdr within this threshold [default: 0 1]',

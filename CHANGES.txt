@@ -2,6 +2,14 @@ v0.3.2
 ---
 * The -q --qvalue option now works by including splice junctions within the specified range. To
 preserve the previous behavior, use -q 0.01 1. The default -q 0 1 disables filtering.
+* The -c --canonical argument now defaults to False. To preserve prior behaviors, manually set the
+-c flag to translate canonical proteins detected in the RNA-seq experiments even if isoform translation failes
+* The -c --canonical argument now will translate a canonical sequence even if a splice event has low skipped
+junction counts or falls outside of the specified fdr range
+* JCAST now automatically models the likely translatable junction count threshold through the -r --read argument.
+Previously this had to be done manually then set as an integer (minimal read count).
+* The skipped junction counts used for modeling now consider the sum of all biological and technical replicates
+rather than the minimum
 
 v0.3.1
 ---

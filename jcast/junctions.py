@@ -5,7 +5,6 @@
 import logging
 import os.path
 import pandas as pd
-import statistics
 
 from jcast import params
 
