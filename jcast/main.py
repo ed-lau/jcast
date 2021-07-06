@@ -87,27 +87,42 @@ def runjcast(args):
     # Model read count cutoff.
     # TODO: move this to a separate class
     #
+    if args.model:
+        tot = rmats_results.rmats_mxe.append(rmats_results.rmats_se).append(rmats_results.rmats_ri).append(
+            rmats_results.rmats_a5ss).append(rmats_results.rmats_a3ss).copy()
+        junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
 
-    tot = rmats_results.rmats_mxe.append(rmats_results.rmats_se).append(rmats_results.rmats_ri).append(
-        rmats_results.rmats_a5ss).append(rmats_results.rmats_a3ss).copy()
-    junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
+        # Array of junction sum read counts
+        matrix_X = np.array([[j.sum_read_count + 1] for j in junctions])
+        pt = PowerTransformer(method='box-cox')
+        pt.fit(matrix_X)
+        matrix_X_trans = pt.transform(matrix_X)
 
-    # Array of junction sum read counts
-    matrix_X = np.array([[j.sum_read_count + 1] for j in junctions])
-    pt = PowerTransformer(method='box-cox')
-    pt.fit(matrix_X)
-    matrix_X_trans = pt.transform(matrix_X)
+        gmm = GaussianMixture(n_components=2,
+                              covariance_type='diag',
+                              random_state=1,
+                              ).fit(matrix_X_trans)
 
-    gmm = GaussianMixture(n_components=2,
-                          covariance_type='diag',
-                          random_state=0
-                          ).fit(matrix_X_trans)
+        # sort the predictions
+        order = gmm.means_.argsort(axis=0)[:, 0]
+        gmm.means_ = gmm.means_[order]
+        gmm.covariances_ = gmm.covariances_[order]
+        gmm.weights_ = gmm.weights_[order]
+        gmm.precisions_ = gmm.precisions_[order]
+        gmm.precisions_cholesky_ = gmm.precisions_cholesky_[order]
 
-    weights = gmm.weights_
-    means = gmm.means_
-    covars = gmm.covariances_
+        weights = gmm.weights_
+        means = gmm.means_
+        covars = gmm.covariances_
 
-    if args.read:
+
+        # Get the decision boundary (minimum count required to be predicted as second distribution)
+        for i in range(1, round(pt.inverse_transform([gmm.means_[1]])[0][0])):
+            dist = gmm.predict(pt.transform(np.array([[i]])))
+            if dist == [1]:
+                min_count = i
+                break
+
         # Plot out figure
         fig, ax = plt.subplots(constrained_layout=True)
         ax.hist(matrix_X_trans, bins=50, histtype='bar', density=True, ec='red', alpha=0.5)
@@ -121,9 +136,10 @@ def runjcast(args):
         # Second axis for untransformed reads
         ax2 = ax.twiny()
         ax2.set_xlim(ax.get_xlim())
-        ax2.set_xticks(tcks[:-2])
+        ax2.set_xticks(tcks[1:-1])
         ax2.set_xlabel('Untransformed total splice junction read counts')
-        ax2.set_xticklabels(new_tcks[:-2])
+        ax2.set_xticklabels(new_tcks[1:-1])
+        ax2.axvline(linewidth=4, ls='--', color='blue', x=pt.transform(np.array([[min_count]])))
 
         f_axis = matrix_X_trans.copy().ravel()
         f_axis.sort()
@@ -149,8 +165,7 @@ def runjcast(args):
                                         genome=genome,
                                         args=args,
                                         write_dir=write_dir,
-                                        transform_model=pt,
-                                        count_model=gmm,
+                                        pred_bound=min_count,
                                         )
 
         #
@@ -195,8 +210,7 @@ def _translate_one(junction,
                    genome,
                    args,
                    write_dir,
-                   transform_model,
-                   count_model,
+                   pred_bound,
                    ):
     """ get coordinate and translate one junction; arguments are passed through partial from main"""
 
@@ -232,23 +246,20 @@ def _translate_one(junction,
     #
     # filter by junction read counts - discard junction if the min read count is below threshold
     #
-    if args.read:
-        # Predict which distirbution the junction belongs to based on the sum read counts
-        predicted_dist = count_model.predict(transform_model.transform(np.array([[junction.sum_read_count]])))
 
-        # Skip this junction if the predicted distribution is not where the mean count is max
-        if predicted_dist != np.where(count_model.means_ == np.amax(count_model.means_))[0]:
+    # If the -r argument is set directly and the -m flag is not, use the -r integer for count filtering
+    # If the -m flag is set, use the modeled count for filtering
+    if (junction.sum_read_count < args.read and not args.model) or (args.read and junction.sum_read_count < pred_bound):
+        #
+        # If the canonical flag is set, append the canonical
+        # Sp to the gene_canonical output even if none of the transcript slices are stitchable
+        # back to the canonical protein. This avoids not having any protein level representation
+        # of a gene potentially in the proteome.
+        #
+        if args.canonical:
+            sequence.write_canonical(outdir=write_dir)
 
-            #
-            # If the canonical flag is set, append the canonical
-            # Sp to the gene_canonical output even if none of the transcript slices are stitchable
-            # back to the canonical protein. This avoids not having any protein level representation
-            # of a gene potentially in the proteome.
-            #
-            if args.canonical:
-                sequence.write_canonical(outdir=write_dir)
-
-            return fates.skipped_low
+        return fates.skipped_low
 
     #
     # discard junction if the corrected P value of this read count is < threshold
@@ -418,6 +429,12 @@ def main():
                         default='out')
 
     parser.add_argument('-r', '--read',
+                        help='models junction read count cutoff using a Gaussian mixture model [default: False]',
+                        default=1,
+                        type=int,
+                        )
+
+    parser.add_argument('-m', '--model',
                         help='models junction read count cutoff using a Gaussian mixture model [default: False]',
                         action='store_true',
                         default=False,
