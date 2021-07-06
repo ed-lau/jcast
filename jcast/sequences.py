@@ -575,7 +575,7 @@ class Sequence(object):
                                            self.j.alt1_ee,
                                            self.translated_strand,
                                            self.translated_phase,
-                                           self.j.min_read_count,
+                                           self.j.sum_read_count,
                                            suffix,
                                        ),
                                        annotations={'molecule_type': 'extended_protein'},
@@ -602,7 +602,7 @@ class Sequence(object):
                     self.j.alt1_ee,
                     self.translated_strand,
                     self.translated_phase,
-                    self.j.min_read_count,
+                    self.j.sum_read_count,
                     suffix,
                 )
                 h.write_seqrecord_to_fasta(stitched, outdir, suffix)

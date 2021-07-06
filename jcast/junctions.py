@@ -169,7 +169,6 @@ class Junction(object):
         self.tx0 = None
         self.phase = None
         self.num_start_codons = 0
-        # self.min_read_count = 0
 
 
         self.logger = logging.getLogger('jcast.junction')
@@ -186,7 +185,7 @@ class Junction(object):
                + self.junction_type + ' ' + self.gene_symbol + ' ' + self.name
 
     @property
-    def min_read_count(self):
+    def sum_read_count(self):
         """
         Returns the minimum read count in the junction. if rMATS was run with one technical replicate,
         the count field is an int, otherwise it is a list. Currently this takes the skipped junction count (SJC)
@@ -194,17 +193,19 @@ class Junction(object):
         Essentially this filters out alternative junctions that are very rarely skipped (high inclusion
         level of the exons) that are not likely to be translatable.
 
+        2021-07-02 This has been changed to sum of all read counts in the technical replicates
+
         :return:
         """
         try:
-            mean_count_sample1 = int(statistics.mean([int(x) for x in (str(self.sjc_s1).split(sep=','))]))
-            mean_count_sample2 = int(statistics.mean([int(x) for x in (str(self.sjc_s2).split(sep=','))]))
+            sum_count_sample1 = int(sum([int(x) for x in (str(self.sjc_s1).split(sep=','))]))
+            sum_count_sample2 = int(sum([int(x) for x in (str(self.sjc_s2).split(sep=','))]))
 
         except ValueError:
-            mean_count_sample1 = 0
-            mean_count_sample2 = 0
+            sum_count_sample1 = 0
+            sum_count_sample2 = 0
 
-        return min([mean_count_sample1, mean_count_sample2])
+        return sum_count_sample1 + sum_count_sample2
 
     def _get_translated_region(self,
                                gtf,

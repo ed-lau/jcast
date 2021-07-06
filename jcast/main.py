@@ -86,6 +86,10 @@ def runjcast(args):
 
         junctions = [Junction(**rma.iloc[i].to_dict()) for i in range(len(rma))]
 
+        # Model read counts
+
+
+
         translate_one_partial = partial(_translate_one,
                                         gtf=gtf,
                                         genome=genome,

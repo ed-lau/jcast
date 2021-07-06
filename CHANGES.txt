@@ -1,6 +1,7 @@
 v0.3.2
 ---
-* P value threshold option now filters out junctions with P value above the user set value
+* The -q --qvalue option now works by including splice junctions within the specified range. To
+preserve the previous behavior, use -q 0.01 1. The default -q 0 1 disables filtering.
 
 v0.3.1
 ---
