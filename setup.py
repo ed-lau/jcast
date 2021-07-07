@@ -41,6 +41,7 @@ setup(
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3 :: Only',
     ],
 
@@ -54,7 +55,10 @@ setup(
                       'gtfparse>=1,<2',
                       'pandas>=1.0,<2',
                       'requests>=2,<3',
-                      'tqdm>=4,<5'],  # external packages as dependencies
+                      'tqdm>=4,<5',
+                      'scikit-learn>=0.24,<0.3',
+                      'matplotlib>=3.4,<4',
+                      ],  # external packages as dependencies
     entry_points={
         'console_scripts': ['jcast=jcast.main:main',
                             ],
