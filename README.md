@@ -121,14 +121,16 @@ The vbar(|)-delimited parts denote the following:
 
 ### Dependencies
 
-JCAST has been tested in Python 3.7 and 3.8 and uses the following packages:
+JCAST has been tested in Python 3.7, 3.8, 3.9 and uses the following packages:
 
 ```
 biopython>=1.78
 gtfparse>=1.2.1
-pandas>=1.1.4
+pandas>=1.3.0
 requests>=2.24.0
-tqdm>=4.51.0
+tqdm>=4.61.2
+scikit-learn==0.24.2
+matplotlib==3.4.2
 ```
 
 ## Additional Information

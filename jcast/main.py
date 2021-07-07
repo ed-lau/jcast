@@ -430,7 +430,7 @@ def main():
                         default='out')
 
     parser.add_argument('-r', '--read',
-                        help='models junction read count cutoff using a Gaussian mixture model [default: False]',
+                        help='the lowest skipped junction read count for a junction to be translated [default: 1]',
                         default=1,
                         type=int,
                         )
