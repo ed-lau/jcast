@@ -116,15 +116,16 @@ def runjcast(args):
         covars = gmm.covariances_
 
         # Get the decision boundary (minimum count required to be predicted as second predicted class)
-        # TODO: catch error where model failed and min_count remains 1
+        # TODO: catch errors where model may fail and min_count remains 1
         min_count = 1
+        # Loop only from 1 count to the mean of the second distribution
         for i in range(1, round(pt.inverse_transform([gmm.means_[1]])[0][0])):
             dist = gmm.predict(pt.transform(np.array([[i]])))
             if dist == [1]:
                 min_count = i
                 break
 
-        # Plot out figure
+        # Plot out the model figure and decision boundary
         fig, ax = plt.subplots(constrained_layout=True)
         ax.hist(matrix_X_trans, bins=50, histtype='bar', density=True, ec='red', alpha=0.5)
         plt.style.use('seaborn-white')
