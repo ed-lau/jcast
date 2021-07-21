@@ -1,3 +1,7 @@
+v0.3.3
+---
+* Fixed bug when model flag is not set
+
 v0.3.2
 ---
 * The -q --qvalue option now works by including splice junctions within the specified range. To
