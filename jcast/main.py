@@ -150,6 +150,8 @@ def runjcast(args):
 
         plt.savefig(fname=os.path.join(write_dir, 'model.png'))
 
+    else:
+        min_count = args.read
     #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
     #
