@@ -5,8 +5,10 @@
 import logging
 import os.path
 import pandas as pd
+import numpy as np
 
 from jcast import params
+
 
 class RmatsResults(object):
     """
@@ -28,6 +30,8 @@ class RmatsResults(object):
         self.rmats_ri = self._read_rmats_ri()
         self.rmats_a5ss = self._read_rmats_a5ss()
         self.rmats_a3ss = self._read_rmats_a3ss()
+
+        self.sum_sjc_array = None
 
         self.logger = logging.getLogger('jcast.input')
 
@@ -135,6 +139,21 @@ class RmatsResults(object):
         df['down_ee'] = -1
 
         return df
+
+    def get_junction_count_array(self):
+        """
+        Output an array of all the junction SJC sum counts for this set of rMATS results
+        :return: True
+        """
+
+        tot = self.rmats_mxe.append(self.rmats_se).append(self.rmats_ri).append(
+            self.rmats_a5ss).append(self.rmats_a3ss).copy()
+
+        junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
+
+        self.sum_sjc_array = np.array([[j.sum_sjc + 1] for j in junctions])
+
+        return True
 
 
 class Junction(object):

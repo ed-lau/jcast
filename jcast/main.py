@@ -85,27 +85,13 @@ def runjcast(args):
 
         main_log.info('The -m flag is set. The modeled read count will override -r --read values.')
 
-        tot = rmats_results.rmats_mxe.append(rmats_results.rmats_se).append(rmats_results.rmats_ri).append(
-            rmats_results.rmats_a5ss).append(rmats_results.rmats_a3ss).copy()
-        junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
+        # Make a numpy array of all junction SJC sum counts
+        rmats_results.get_junction_count_array()
 
-        # Numpy array of junction SJC sum counts
-        sum_sjc_array = np.array([[j.sum_sjc + 1] for j in junctions])
-
-        pt, gmm = model.gaussian_mixture(sum_sjc_array=sum_sjc_array)
-
-        # Get the decision boundary (minimum count required to be predicted as second predicted class)
-        # TODO: catch errors where model may fail and min_count remains 1
-        min_count = 1
-        # Loop only from 1 count to the mean of the second distribution
-        for i in range(1, round(pt.inverse_transform([gmm.means_[1]])[0][0])):
-            dist = gmm.predict(pt.transform(np.array([[i]])))
-            if dist == [1]:
-                min_count = i
-                break
+        pt, gmm, min_count = model.gaussian_mixture(sum_sjc_array=rmats_results.sum_sjc_array)
 
         # Plot out the model
-        model.plot_model(sum_sjc_array=sum_sjc_array,
+        model.plot_model(sum_sjc_array=rmats_results.sum_sjc_array,
                          pt=pt,
                          gmm=gmm,
                          min_count=min_count,
