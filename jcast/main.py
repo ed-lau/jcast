@@ -8,8 +8,6 @@ import logging
 from functools import partial
 
 import tqdm
-import numpy as np
-
 
 from jcast import params, fates, model
 from jcast.junctions import Junction, RmatsResults
