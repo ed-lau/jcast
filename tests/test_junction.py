@@ -11,6 +11,7 @@ from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
 
+
 class GenomeTest(unittest.TestCase):
     """
     Test cases involving reading genome sequence and references

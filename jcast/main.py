@@ -8,13 +8,10 @@ import logging
 from functools import partial
 
 import tqdm
-from sklearn.mixture import GaussianMixture
-from sklearn.preprocessing import PowerTransformer
 import numpy as np
-import matplotlib.pyplot as plt
-import scipy.stats as stats
 
-from jcast import params, fates
+
+from jcast import params, fates, model
 from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
@@ -92,28 +89,10 @@ def runjcast(args):
             rmats_results.rmats_a5ss).append(rmats_results.rmats_a3ss).copy()
         junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
 
-        # Array of junction sum read counts
-        matrix_X = np.array([[j.sum_sjc + 1] for j in junctions])
-        pt = PowerTransformer(method='box-cox')
-        pt.fit(matrix_X)
-        matrix_X_trans = pt.transform(matrix_X)
+        # Numpy array of junction SJC sum counts
+        sum_sjc_array = np.array([[j.sum_sjc + 1] for j in junctions])
 
-        gmm = GaussianMixture(n_components=2,
-                              covariance_type='diag',
-                              random_state=1,
-                              ).fit(matrix_X_trans)
-
-        # Sort the classification components so the high-read distribution appears second
-        order = gmm.means_.argsort(axis=0)[:, 0]
-        gmm.means_ = gmm.means_[order]
-        gmm.covariances_ = gmm.covariances_[order]
-        gmm.weights_ = gmm.weights_[order]
-        gmm.precisions_ = gmm.precisions_[order]
-        gmm.precisions_cholesky_ = gmm.precisions_cholesky_[order]
-
-        weights = gmm.weights_
-        means = gmm.means_
-        covars = gmm.covariances_
+        pt, gmm = model.gaussian_mixture(sum_sjc_array=sum_sjc_array)
 
         # Get the decision boundary (minimum count required to be predicted as second predicted class)
         # TODO: catch errors where model may fail and min_count remains 1
@@ -125,31 +104,15 @@ def runjcast(args):
                 min_count = i
                 break
 
-        # Plot out the model figure and decision boundary
-        fig, ax = plt.subplots(constrained_layout=True)
-        ax.hist(matrix_X_trans, bins=50, histtype='bar', density=True, ec='red', alpha=0.5)
-        plt.style.use('seaborn-white')
-        ax.set_xlabel('Box-Cox transformed total skipped junction counts')
-        ax.set_ylabel('Frequency')
-        ax.set_title('Skipped junction count distributions')
-        tcks, values = plt.xticks()
-        new_tcks = np.int_(np.sort(pt.inverse_transform(np.array([[t] for t in tcks])).ravel()))
+        # Plot out the model
+        model.plot_model(sum_sjc_array=sum_sjc_array,
+                         pt=pt,
+                         gmm=gmm,
+                         min_count=min_count,
+                         write_dir=write_dir,
+                         )
 
-        # Second axis for untransformed reads
-        ax2 = ax.twiny()
-        ax2.set_xlim(ax.get_xlim())
-        ax2.set_xticks(tcks[1:-1])
-        ax2.set_xlabel('Untransformed total splice junction read counts')
-        ax2.set_xticklabels(new_tcks[1:-1])
-        ax2.axvline(linewidth=4, ls='--', color='blue', x=pt.transform(np.array([[min_count]])))
-
-        f_axis = matrix_X_trans.copy().ravel()
-        f_axis.sort()
-        ax.plot(f_axis, weights[0] * stats.norm.pdf(f_axis, means[0], np.sqrt(covars[0])).ravel(), c='red')
-        ax.plot(f_axis, weights[1] * stats.norm.pdf(f_axis, means[1], np.sqrt(covars[1])).ravel(), c='blue')
-
-        plt.savefig(fname=os.path.join(write_dir, 'model.png'))
-
+    # If the m flag is not set, use the r argument value as min count
     else:
         min_count = args.read
     #
