@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" Tests """
+""" Tests for splice junction related functions """
 
 
 import unittest
@@ -18,10 +18,6 @@ class GenomeTest(unittest.TestCase):
     """
 
     def setUp(self):
-        """
-
-        :return:
-        """
 
         global gtf, rmats_results, genome, test_data_loc
 
@@ -47,6 +43,7 @@ class GenomeTest(unittest.TestCase):
         pass
 
     def test_pkm_manual(self):
+        """ test for translating PKM, a known AS protein """
 
         rma = rmats_results.rmats_mxe
         # TODO: test negative strand and trimming
@@ -90,7 +87,7 @@ class GenomeTest(unittest.TestCase):
         self.assertEqual(sequence.slice2_stitched.seq, retrieved_pkm1)
 
     def test_trim_start(self):
-        """ test for trimming """
+        """ test for trimming junctions """
 
         rma = rmats_results.rmats_a5ss
         # TODO: test negative strand and trimming

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
-""" Tests """
+""" Tests for genome related functionalities """
 
 
 import unittest
 import os
 
-
 from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
+
 
 class GenomeTest(unittest.TestCase):
     """
@@ -17,10 +17,6 @@ class GenomeTest(unittest.TestCase):
     """
 
     def setUp(self):
-        """
-
-        :return:
-        """
 
         global gtf, rmats_results, genome, test_data_loc
 
@@ -45,7 +41,6 @@ class GenomeTest(unittest.TestCase):
 
         pass
 
-
     def test_retrieve_gtf_canonical_transcripts(self):
         """ test for DPP8 between GTF and Uniprot canonical sequences """
 
@@ -67,7 +62,6 @@ class GenomeTest(unittest.TestCase):
 
         self.assertEqual(gtf_aa.seq, uniprot_aa.seq)
 
-
     def test_unannotated_transcripts(self):
         """ test for GOLGA2P10 which has no annotated translation product on gtf or uniprot """
 
@@ -88,5 +82,3 @@ class GenomeTest(unittest.TestCase):
         # since there is no canonical, there should be no stitching
         sequence.stitch_to_canonical_aa(slice_to_stitch=1)
         self.assertIsNone(sequence.slice1_stitched)
-
-

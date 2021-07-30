@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" Tests """
+""" Tests for sequence translation related functionalities """
 
 
 import unittest
@@ -12,18 +12,13 @@ class GenomeTest(unittest.TestCase):
     """
 
     def setUp(self):
-        """
-
-        :return:
-        """
-
         pass
 
     def tearDown(self):
-
         pass
 
     def test_translate_cdna(self):
+        """ test for the make_pep function """
 
         # Insulin 4 transcript protein coding region and protein sequences downloaded
         # http://uswest.ensembl.org/Homo_sapiens/Transcript/Sequence_Protein?db=core;g=ENSG00000120211;r=9:5231419-5235304;t=ENST00000239316
