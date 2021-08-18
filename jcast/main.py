@@ -94,6 +94,7 @@ def runjcast(args):
                          gmm=gmm,
                          min_count=min_count,
                          write_dir=write_dir,
+                         filename='model',
                          )
 
     # If the m flag is not set, use the r argument value as min count
