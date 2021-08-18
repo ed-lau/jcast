@@ -43,13 +43,13 @@ def get_local_nuc(genome_index,
 
 
 def get_rest_nuc(species,
-                 chr,
+                 chrom,
                  es,
                  ee,
                  ):
     """
     :param species: Species, e.g., 'mouse
-    :param chr: Chromosome, e.g., 1
+    :param chrom: Chromosome, e.g., 1
     :param es: Exon start, e.g., 10000000
     :param ee: Exon end, e.g., 10000100
     :return:
@@ -76,7 +76,7 @@ def get_rest_nuc(species,
     if es <= 0 or ee <= 0:
         return ''
 
-    cache = species + '-' + str(chr) + '-' + str(es) + '-' + str(ee)
+    cache = species + '-' + str(chrom) + '-' + str(es) + '-' + str(ee)
 
     con = sq.connect('seq-cache.db')
     cur = con.cursor()
@@ -100,7 +100,7 @@ def get_rest_nuc(species,
         print("Sequence not yet cached locally. 1")
 
     server = "http://rest.ensembl.org"
-    ext = "/sequence/region/" + species + "/" + str(chr) + ":" + str(es) + ".." + str(ee) + ":1?"
+    ext = "/sequence/region/" + species + "/" + str(chrom) + ":" + str(es) + ".." + str(ee) + ":1?"
 
     print(server+ext)
 
@@ -222,6 +222,8 @@ def make_pep(nt: str,
     #
     for i in range(pos0, len(nt) - 2, 3):
 
+        # TODO: Catch KeyErrors in codon table lookup
+        # TODO: Accommodate soft masking by converting nt to upper
         aa = code[nt[i:i + 3]]
 
         if aa == 'X':
