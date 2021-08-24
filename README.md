@@ -118,8 +118,7 @@ The vbar(`|`)-delimited parts denote the following:
 11. Minimal skipped junction count (sjc) in rMATS preceded by r (r521)
 12. Tier (T1) 
 
-
-### Dependencies
+## Dependencies
 
 JCAST has been tested in Python 3.7, 3.8, 3.9 and uses the following packages:
 
