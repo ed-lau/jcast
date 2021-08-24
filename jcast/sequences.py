@@ -348,8 +348,6 @@ class Sequence(object):
                                   phase=self.gtf_canonical_transcript.starting_translation_phase,
                                   terminate=True)
 
-
-
         canonical_aa = SeqRecord(Seq(canonical_aa), annotations={'molecule_type': 'extended_protein'})
         canonical_aa.id = '{0}|{1}'.format(self.j.gene_id,
                                            self.j.gene_symbol)
