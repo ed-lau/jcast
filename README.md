@@ -133,6 +133,10 @@ scikit-learn==0.24.2
 matplotlib==3.4.2
 ```
 
+## Known Issues
+* rMATS output with rows containing `NA` as gene name can fail.
+* Upstream analyses should be performed using an unmasked genome. Currently JCAST cannot handled masked nucleotides (`N`)
+
 ## Additional Information
 
 Additional details on troubleshooting and result interpretation can be found in our publication in [STAR Protocols](https://www.sciencedirect.com/science/article/pii/S2666166720301258).
