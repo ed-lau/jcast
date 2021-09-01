@@ -44,8 +44,7 @@ where {j} is replaced by the path to JCAST.
 The following is an example using ENCODE public RNA-seq dataset to generate a cardiac-specific database with JCAST.
 
 #### Download RNA-Seq from ENCODE: 
-As an example, we will download the .fastq files from ENCODE adult human heart [dataset 1](https://www.encodeproject.org/experiments/ENCSR436QDU/) and
-     [dataset 2](https://www.encodeproject.org/experiments/ENCSR391VGU/).
+As an example, we will download the .fastq files from ENCODE adult human heart [dataset 1](https://www.encodeproject.org/experiments/ENCSR436QDU/) and [dataset 2](https://www.encodeproject.org/experiments/ENCSR391VGU/).
      
 #### Align the FASTQ files to a reference genome 
 Read alignment can be done using STAR >= v.2.5.0, e.g.,:
