@@ -56,7 +56,7 @@ setup(
                       'pandas>=1.0,<2',
                       'requests>=2,<3',
                       'tqdm>=4,<5',
-                      'scikit-learn>=0.24,<0.3',
+                      #'scikit-learn>=0.24,<0.3',
                       'matplotlib>=3.4,<4',
                       ],  # external packages as dependencies
     entry_points={
