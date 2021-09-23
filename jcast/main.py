@@ -86,13 +86,11 @@ def runjcast(args):
         # Make a numpy array of all junction SJC sum counts
         rmats_results.get_junction_count_array()
 
-        ln_sjc, mean_mix_model, min_count, gamma_or_lognorm = model.general_mixture_model(sum_sjc_array=rmats_results.sum_sjc_array, gamma_or_lognorm=args.g_or_ln)
-        
+        ln_sjc, best_mix_model, min_count = model.general_mixture_model(sum_sjc_array=rmats_results.sum_sjc_array)
         model.plot_general_mixture_model(
             ln_sjc,
-            mean_mix_model,
+            best_mix_model,
             min_count,
-            gamma_or_lognorm,  
             write_dir=write_dir,
             filename='model',
             )
