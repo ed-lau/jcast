@@ -212,7 +212,7 @@ def _translate_one(junction,
 
     # If the -r argument is set directly and the -m flag is not, use the -r integer for count filtering
     # If the -m flag is set, use the modeled count for filtering
-    if (not args.model and junction.sum_sjc < args.read) or (args.model and junction.sum_sjc < pred_bound):
+    if (not args.model and junction.sum_sjc <= args.read) or (args.model and junction.sum_sjc <= pred_bound):
         #
         # If the canonical flag is set, append the canonical
         # Sp to the gene_canonical output even if none of the transcript slices are stitchable
@@ -229,7 +229,7 @@ def _translate_one(junction,
     # this removes junctions that are inconsistently found on both replicates.
     #
     q_lo, q_hi = args.qvalue
-    if not q_lo < junction.fdr < q_hi:
+    if not q_lo <= junction.fdr <= q_hi:
 
         # Write canonical anyhow if the canonical flag is set.
         if args.canonical:
