@@ -121,7 +121,7 @@ def plot_general_mixture_model(ln_sjc,
     ax2.set_xlabel('Untransformed total splice junction read counts')
     ax2.set_xticklabels(new_tcks[1:-1])
 
-    plt.savefig(fname=os.path.join(write_dir, filename + '.png'))
+    plt.savefig(fname=os.path.join(write_dir, filename + '.pdf'))
 
 
 def gaussian_mixture(sum_sjc_array):
