@@ -86,6 +86,17 @@ def runjcast(args):
         # Make a numpy array of all junction SJC sum counts
         rmats_results.get_junction_count_array()
 
+        ln_sjc, best_mix_model, min_count = model.general_mixture_model(sum_sjc_array=rmats_results.sum_sjc_array)
+        model.plot_general_mixture_model(
+            ln_sjc,
+            best_mix_model,
+            min_count,
+            write_dir=write_dir,
+            filename='model',
+            )
+        
+        # Gaussian mixture model implementation
+        """
         pt, gmm, min_count = model.gaussian_mixture(sum_sjc_array=rmats_results.sum_sjc_array)
 
         # Plot out the model
@@ -96,7 +107,7 @@ def runjcast(args):
                          write_dir=write_dir,
                          filename='model',
                          )
-
+        """
     # If the m flag is not set, use the r argument value as min count
     else:
         min_count = args.read
@@ -406,6 +417,11 @@ def main():
                         nargs=2,
                         default=[0, 1],
                         type=float)
+    # DEVELOPMENT ARGUMENT, Should be deleted when a default distribution - Gamma or LogNorm - is determined.
+    parser.add_argument("--g_or_ln",
+                        help="Switch on distribution to use for low end of histogram, 0 for Gamma, anything else for LogNorm",
+                        default=0,
+                        type=int)
 
     parser.set_defaults(func=runjcast)
 

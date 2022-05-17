@@ -56,8 +56,9 @@ setup(
                       'pandas>=1.0,<2',
                       'requests>=2,<3',
                       'tqdm>=4,<5',
-                      'scikit-learn>=0.24,<0.3',
+                      #'scikit-learn>=0.24,<0.3', pip can't see this for some reason
                       'matplotlib>=3.4,<4',
+                      'pomegranate>=0.13,<1.0'
                       ],  # external packages as dependencies
     entry_points={
         'console_scripts': ['jcast=jcast.main:main',
