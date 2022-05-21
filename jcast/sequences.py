@@ -537,7 +537,7 @@ class Sequence(object):
             self.get_canonical_aa_uniprot(reviewed='true')
             canonical = self.canonical_aa[:]
             # try to get unreviewed sequence
-            if len(self.canonical_aa[:] == 0):
+            if len(self.canonical_aa[:]) == 0:
                 self.get_canonical_aa_uniprot(reviewed='false')
 
         if len(self.canonical_aa[:]) > 0:
