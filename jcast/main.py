@@ -177,6 +177,7 @@ def _translate_one(junction,
                    ):
     """ get coordinate and translate one junction; arguments are passed through partial from main"""
 
+    print(f'Gene Symbol: {junction.gene_symbol} ID: {junction.gene_id}')
     #
     # trim slice coordinates by translation starts and ends
     #

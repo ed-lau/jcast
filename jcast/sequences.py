@@ -311,17 +311,17 @@ class Sequence(object):
         if params.use_gtf_only:
             self.canonical_aa = self.get_canonical_aa_gtf(gtf,
                                                           genome_index)
-
             # Uniprot fallback
             # if len(self.canonical_aa) ==0:
             #    self.canonical_aa = self.get_canonical_aa_uniprot()
 
+        # try to get the reviewed canonical entry from uniprot; if no reviewed entry, get un-reviewed entry
         else:
-            self.canonical_aa = self.get_canonical_aa_uniprot()
-
+            self.canonical_aa = self.get_canonical_aa_uniprot(reviewed='true')
+            if len(self.canonical_aa[:]) == 0:
+                self.canonical_aa = self.get_canonical_aa_uniprot(reviewed='false')
 
         return True
-
 
     def translate_annotated_transcriptfrom_gtf(self,
                                                annotated_transcript,
@@ -376,10 +376,13 @@ class Sequence(object):
 
 
     def get_canonical_aa_uniprot(self,
+                                 reviewed='true',
                                  ) -> SeqRecord:
+
         """
         get the canonical sequences from Uniprot
 
+        :param reviewed: get only reviewed sequence
         :return: canonical aa seqrecord
         """
 
@@ -411,7 +414,7 @@ class Sequence(object):
 
             # Uniprot does not support transcript version
             ext = '/proteins/api/proteins/Ensembl:' + re.sub('\\..*', '', self.j.gene_id) + \
-                  '?offset=0&size=1&reviewed=true&isoform=0'
+                  '?offset=0&size=1&reviewed=' + reviewed + '&isoform=0'
 
             self.logger.info('Sequence not cached locally. Attempting to get from Uniprot: {0}'.format(
                 server + ext
@@ -528,10 +531,17 @@ class Sequence(object):
         """
 
         canonical = self.canonical_aa[:]
+
         if len(self.canonical_aa[:]) == 0:
-            self.get_canonical_aa_uniprot()
+            # try to get the reviewed sequence
+            self.get_canonical_aa_uniprot(reviewed='true')
             canonical = self.canonical_aa[:]
-        h.write_seqrecord_to_fasta(canonical, outdir, 'canonical')
+            # try to get unreviewed sequence
+            if len(self.canonical_aa[:] == 0):
+                self.get_canonical_aa_uniprot(reviewed='false')
+
+        if len(self.canonical_aa[:]) > 0:
+            h.write_seqrecord_to_fasta(canonical, outdir, 'canonical')
 
         return True
 
@@ -577,7 +587,7 @@ class Sequence(object):
                                            suffix,
                                        ),
                                        annotations={'molecule_type': 'extended_protein'},
-                                       name=self.j.gene_symbol,
+                                       name=f'Sequence_{str(self.j.gene_symbol)}',
                                        description='Orphan',
                                        )
                     h.write_seqrecord_to_fasta(orphan, outdir, (suffix + '_orphan'))

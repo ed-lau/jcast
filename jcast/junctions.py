@@ -6,6 +6,7 @@ import logging
 import os.path
 import pandas as pd
 import numpy as np
+import pandas.core.computation.ops
 
 from jcast import params
 
@@ -178,9 +179,16 @@ class Junction(object):
         self.down_ee = kwargs['down_ee']
         self.junction_type = kwargs['jxn_type']
         self.gene_symbol = kwargs['gene_symbol']
+
+        # 2022-05-21 If no symbol
+        if self.gene_symbol is None:
+            self.gene_symbol = f'NoGeneName_{self.gene_id}'
+
         self.fdr = kwargs['fdr']
         self.sjc_s1 = kwargs['sjc_s1']
         self.sjc_s2 = kwargs['sjc_s2']
+        self.ijc_s1 = kwargs['ijc_s1']
+        self.ijc_s2 = kwargs['ijc_s2']
 
         self.tx1 = None
         self.tx0 = None
@@ -209,17 +217,27 @@ class Junction(object):
         Essentially this filters out alternative junctions that are very rarely skipped (high inclusion
         level of the exons) that are not likely to be translatable.
 
+        2022-05-21: This now returns the min of SJC and IJC sums
+
         :return:
         """
         try:
-            sum_count_sample1 = int(sum([int(x) for x in (str(self.sjc_s1).split(sep=','))]))
-            sum_count_sample2 = int(sum([int(x) for x in (str(self.sjc_s2).split(sep=','))]))
+            sum_sjc_count_sample1 = int(sum([int(x) for x in (str(self.sjc_s1).split(sep=','))]))
+            sum_sjc_count_sample2 = int(sum([int(x) for x in (str(self.sjc_s2).split(sep=','))]))
 
         except ValueError:
-            sum_count_sample1 = 0
-            sum_count_sample2 = 0
+            sum_sjc_count_sample1 = 0
+            sum_sjc_count_sample2 = 0
 
-        return sum_count_sample1 + sum_count_sample2
+        try:
+            sum_ijc_count_sample1 = int(sum([int(x) for x in (str(self.ijc_s1).split(sep=','))]))
+            sum_ijc_count_sample2 = int(sum([int(x) for x in (str(self.ijc_s2).split(sep=','))]))
+
+        except ValueError:
+            sum_ijc_count_sample1 = 0
+            sum_ijc_count_sample2 = 0
+
+        return min(sum_sjc_count_sample1 + sum_sjc_count_sample2, sum_ijc_count_sample1 + sum_ijc_count_sample2)
 
     def _get_translated_region(self,
                                gtf,
@@ -244,9 +262,17 @@ class Junction(object):
         tsl = params.tsl_threshold
 
         # 2020-07-25 now getting the start codons of all protein coding transcripts at TSL threshold
-        gtf0_start = gtf0.query('feature == "start_codon" & '
-                                'transcript_biotype == "protein_coding" & '
-                                        'transcript_support_level <= @tsl').loc[:, 'start'].drop_duplicates()
+        # 2022-05-21 if there is no TSL, do not look up TSL
+        try:
+            gtf0_start = gtf0.query('feature == "start_codon" & '
+                                    'transcript_biotype == "protein_coding" & '
+                                            'transcript_support_level <= @tsl').loc[:, 'start'].drop_duplicates()
+        except pd.core.computation.ops.UndefinedVariableError:
+            gtf0_start = gtf0.query('feature == "start_codon" & '
+                                    'transcript_biotype == "protein_coding"').loc[:, 'start'].drop_duplicates()
+
+        except KeyError:
+            gtf0_end = None
 
         # Number of start sites:
         self.num_start_codons = len(gtf0_start)
@@ -263,7 +289,10 @@ class Junction(object):
         try:
             gtf0_end = gtf0.query('feature == "start_codon" & '
                                   'transcript_biotype == "protein_coding" & '
-                                  'transcript_support_level <= @tsl').loc[:, 'start'].drop_duplicates()
+                                  'transcript_support_level <= @tsl').loc[:, 'end'].drop_duplicates()
+        except pd.core.computation.ops.UndefinedVariableError:
+            gtf0_end = gtf0.query('feature == "start_codon" & '
+                                  'transcript_biotype == "protein_coding"').loc[:, 'end'].drop_duplicates()
 
         except KeyError:
             gtf0_end = None
