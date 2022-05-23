@@ -10,7 +10,7 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='jcast',
-    version="0.3.3",
+    version="0.3.4",
     description='JCAST retrieves splice junction information from RNA-seq dat aand translates amino acids sequences',
 
     long_description=long_description,

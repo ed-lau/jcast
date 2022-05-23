@@ -10,5 +10,5 @@ modules = [ basename(f)[:-3] for f in modules if isfile(f)
 			and not f.endswith("__main__.py")]
 __all__ = modules
 
-__version_info__ = ('0', '3', '3')
+__version_info__ = ('0', '3', '4')
 __version__ = '.'.join(__version_info__)
