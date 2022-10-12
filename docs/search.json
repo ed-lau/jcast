@@ -1,0 +1,79 @@
+[
+  {
+    "objectID": "change.html",
+    "href": "change.html",
+    "title": "Change Log",
+    "section": "",
+    "text": "Fixed an issue where a small number of slices were not translated.\nFixed an issue where JCAST quits if the model flag is not set.\n\nv0.3.2\n\n\nThe -q –qvalue option now works by including splice junctions within the specified range. To preserve the previous behavior, use -q 0.01 1. The default -q 0 1 disables filtering.\nThe -c –canonical argument now defaults to False. To preserve prior behaviors, manually set the -c flag to translate canonical proteins detected in the RNA-seq experiments even if isoform translation failes\nThe -c –canonical argument now will translate a canonical sequence even if a splice event has low skipped junction counts or falls outside of the specified fdr range\nJCAST now automatically models the likely translatable junction count threshold through the -m –model argument. Previously this was done manually then set as an integer (minimal read count) using the -r –read argument.\nThe skipped junction counts used for modeling now consider the sum of all biological and technical replicates rather than the minimum\n\nv0.3.1\n\n\nFixed issues where Gencode GTF files without transcript_biotype annotations could not be read\nFixed issues of retrieving Uniprot canonical sequences from Ensembl transcript versions\nCompatibility with biopython>=1.78\n\nv0.2.8\n\n\nFixed an issue where jcast is called twice from the direct cli entry point\nAdded option to use longest coding sequence from GTF as canonical\n\nv0.2.6\n\n\nFixed an issue where some A5SS minus-strand transcripts had incorrect phases retrieved from gtf\nFixed an issue where some transcripts using a secondary translation start sites are not trimmed"
+  },
+  {
+    "objectID": "faqs.html",
+    "href": "faqs.html",
+    "title": "Frequently Asked Questions",
+    "section": "",
+    "text": "A: For a typical application, we would recommend appending T1.fasta to either the JCAST canonical output (which writes the canonical sequence for any gene that has been detected above the read count cutoff, regardless of whether the non-canonical translation was successful), or to a Uniprot canonical database. The lower tier fasta files contain sequences with frame shifts and/or termination codons. You can include them by appending them to the T1+canonical fasta, but the results should be interpreted with caution.\n\n\n\nA: JCAST expects a typical unaltered rMATS output folder, including the individual splice types from rMATS being in the rMATS output directory, named exactly as MXE.MATS.JC.txt, SE.MATS.JC.txt, RI.MATS.JC.txt, A3SS.MATS.JC.txt, A5SS.MATS.JC.txt.\n\n\n\nA: Contact us at [edward.lau@cuanschutz.edu]"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "JCAST Home",
+    "section": "",
+    "text": "JCAST (Junction Centric Alternative Splicing Translator) is a Python software that takes in splicing events from RNA sequencing data to create custom protein sequence databases for protein isoform analysis.\nJCAST attempts to create small protein sequence databases that contain only likely sequences in mass spectrometry experiment samples to avoid runaway database size inflation.\nTo do so, JCAST likely translatable alternative splice junctions and performs one-frame in silico analysis, then joins the translated variant sequences with full-length canonical sequences."
+  },
+  {
+    "objectID": "index.html#downloads",
+    "href": "index.html#downloads",
+    "title": "JCAST Home",
+    "section": "Downloads",
+    "text": "Downloads\n\n\nLatest Updates\nv0.3.5\n\n\nFixed an issue where a small number of slices were not translated.\nFixed an issue where JCAST quits if the model flag is not set.\n\n\nSee Change Log for details.\n\nThe latest version and source code of JCAST can be found on github: https://github.com/ed-lau/jcast.\nSee the Quick Start and Documentation for instructions."
+  },
+  {
+    "objectID": "index.html#contributors",
+    "href": "index.html#contributors",
+    "title": "JCAST Home",
+    "section": "Contributors",
+    "text": "Contributors\n\nEdward Lau, PhD\nMaggie Lam, PhD\nR W LudWig, BSc"
+  },
+  {
+    "objectID": "index.html#citations",
+    "href": "index.html#citations",
+    "title": "JCAST Home",
+    "section": "Citations",
+    "text": "Citations\nJCAST: Sample-Specific Protein Isoform Databases for Mass Spectrometry-based Proteomics Experiments. RW Ludwig, E Lau Software Impacts 10, 100163\nDetermining Alternative Protein Isoform Expression Using RNA Sequencing and Mass Spectrometry. Y Han, JM Wright, E Lau, MPY Lam STAR Protocols 1 (3), 100138\nSplice-Junction-based Mapping of Alternative Isoforms in the Human Proteome. E Lau, Y Han, DR Williams, CT Thomas, R Shrestha, JC Wu, MPY Lam Cell Reports 29 (11), 3751-3765. e5"
+  },
+  {
+    "objectID": "install.html",
+    "href": "install.html",
+    "title": "Quick Start",
+    "section": "",
+    "text": "Install Python 3.7+ and pip. See instructions on Python website for specific instructions for your operating system.\nJCAST can be installed from PyPI via pip. We recommend using a virtual environment.\n$ pip install jcast"
+  },
+  {
+    "objectID": "install.html#running-jcast",
+    "href": "install.html#running-jcast",
+    "title": "Quick Start",
+    "section": "Running JCAST",
+    "text": "Running JCAST\nLaunch JCAST as a module (Usage/Help):\n$ python -m jcast\nAlternatively:\n$ jcast\nExample command:\n$ python -m jcast  data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_pancreas -q 0 1 -r 1 -m -c\nTo test that the installation can load test data files in tests/data (sample rMATS file and human chr 15 genome files)\n$ pip install tox  $ tox\nTo run JCAST using the test files and print the results to Desktop\n$ python -m jcast {j}/tests/data/rmats {j}/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf  {j}/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz -o ~/Desktop\nwhere {j} is replaced by the path to JCAST."
+  },
+  {
+    "objectID": "install.html#example-usage",
+    "href": "install.html#example-usage",
+    "title": "Quick Start",
+    "section": "Example Usage",
+    "text": "Example Usage\nThe following is an example using JCAST to generate custom databases from ENCODE public RNA-seq dataset to generate a cardiac-specific database with JCAST.\n\nDownload RNA-Seq from ENCODE:\nAs an example, we will download the .fastq files from ENCODE adult human heart dataset 1 and dataset 2.\n\n\nAlign the FASTQ files to a reference genome\nRead alignment can be performed using STAR >= v.2.5.0, e.g.,:\n$ STAR --runThreadN 10 --genomeDir path/to/GRCh38/STARindex --sjdbGTFfile path/to/Homo_sapiens.gtf --sjdbOverhang 100 --readFilesIn ./ENCFF781VGS.fastq.gz ./ENCFF466ZAS.fastq.gz --readFilesCommand zcat --outSAMtype BAM SortedByCoordinate --outFileNamePrefix ./STAR_aligned/b1t1/\n$ STAR --runThreadN 10 --genomeDir path/to/GRCh38/STARindex --sjdbGTFfile path/to/Homo_sapiens.gtf --sjdbOverhang 100 --readFilesIn ./ENCFF731CDK.fastq.gz ./ENCFF429YOS.fastq.gz --readFilesCommand zcat --outSAMtype BAM SortedByCoordinate --outFileNamePrefix ./STAR_aligned/b2t1/\nNote: Arguments including runThreadN and sjdbOverhang should be customized to suit your system and data files. Please refer to the STAR documentations for details.\n\n\nIdentify transcript splice junctions\nSplice junctions can be found using rMATS with the .bam files following STAR. Please refer to the rMATS instructions for latest commands. The following example was tested using rmats-turbo-0.1 running in Docker and using rMATS v.4.1.0/Python 3.7. Support for stringtie assembled transcripts will be implemented in a future version.\n\n\nSet up a Virtual Environment for rMATS turbo 0.1 in Python 2.7 (only if needed)\n\n\nInstall the rMATS image\nFollow instructions from rMATS and docker specific to your OS. E.g.:\n$ sudo docker load -i rmats-turbo-0.1.tar\n\n\nPrepare the /rMATS subdirectory\nCopy the individual .bam files from STAR into the rMATS subdirectory and rename them b1t1.bam, b1t2.bam, b2t1.bam, b2t2.bam, etc. Copy the GTF file from the Genomes folder as GRCm38.gtf. Write a b1.txt file with a text editor containing the following docker virtual directories:\n/data/b1t1.bam,/data/b1t2.bam\nWrite a b2.txt file\n/data/b2t1.bam,/data/b2t2.bam\nGo back to the data directory and run the rMATS image. The -v flag mounts the host directory into the docker container at /data, which corresponds to the visual directories in the b1.txt and b2.txt files.\n$ sudo docker run -v path/to/data/directory:/data rmats:turbo01 --b1 /data/b1.txt --b2 /data/b2.txt --gtf /data/GRCh38.gtf --od /data/output -t paired  --nthread 4 --readLength 101 --anchorLength 1\n\n\n\n\n\n\nNote\n\n\n\nNote: Arguments including nThread, readLength, and anchorLength should be customized to suit your system and data files. Please refer to the rMATS documentations for details.\n\n\nRun the JCAST Python program specifying the path to the rMATS output directory, the genome sequence, as well as the GTF annotation file:\n$ python -m jcast path/to/rMATS/output/encode_human_heart/ path/to/gtf/Homo_sapiens.GRCh38.89.gtf path/to/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_heart"
+  },
+  {
+    "objectID": "about.html",
+    "href": "about.html",
+    "title": "Documentations",
+    "section": "",
+    "text": "JCAST outputs FASTA databases which can be further filtered and combined using any scripting languages, or can be used directly for database search in virtually any shotgun proteomics database search engines (e.g., SEQUEST, Crux/Tide, Maxquant, MS-GF+). For most usages, we recommend appending the T1.fasta file to the JCAST output canonica.fasta file or the canonical SwissProt database.\nJCAST may output the following FASTA files (note depending on the used settings and input files, not all FASTA files may be present):\n\nxxx_canonical.fasta – This file contains protein sequences from splice junctions that are identical to SwissProt canonical sequences. The FASTA entries are named according to UniProt convention.\n\nxxx_T1.fasta – This file contains noncanonical sequences translated from splice junctions. Tier 1 junctions are translated in frame according to annotated GTF frames, did not encounter frameshift or premature stop codon, and are successfully joined back to full-length SwissProt sequences.\nxxx_T2.fasta – Tier 2 junctions are translated in frame according to annotated GTF frames, did not encounter premature stop codon, and are successfully joined back to full-length SwissProt sequences, but have encountered a possible frameshift (length differences in exons not multiples of 3).\nxxx_T3.fasta – Tier 3 junctions did not encounter premature stop codon, and are successfully joined back to full-length SwissProt sequences, but using a translation frame different from that annotated in the supplied GTF (they should be rare).\nxxx_T4.fasta – Tier 4 junctions were forced-translated when one of the two alternative junction slices encountered a premature stop codon but could be translated using one of three frames into a peptide fragment at least a certain proportion in length as the successfully translated slice (see params.py). These sequences should be either excluded from database search or interpreted with a great amount of caution.\n**xxx_T#_orphan.fasta** – These fragments were translated according to their tiers but could not be joined back to the canonical SwissProt sequence through the stitch length (see params.py for defaults).\n\n\n\n\n\n\n\nWarning\n\n\n\nNote: Orphan sequences are non-full-length fragments and should be either excluded from database search or interpreted with a great amount of caution.\n\n\nNoncanonical FASTA entries have the following naming convention:\n>sp|Q91VW5|GOGA4_MOUSE|ENSMUSG00000038708|MXE1|0|chr9|118560742:118560872|118565557:118565667|+2|r521|T1 sp|Q91VW5|GOGA4_MOUSE Golgin subfamily A member 4 OS=Mus musculus OX=10090 GN=Golga4 PE=1 SV=2\nThe vbar(|)-delimited parts denote the following: 1. Knowledgebase name, from canonical SwissProt protein entry (sp) 2. UniProt accession, from canonical SwissProt protein entry (Q91VW5) 3. UniProt name, from canonical SwissProt protein entry (GOGA4_MOUSE) 4. Annotated gene name (ENSMUSG00000038708) 5. rMATS junction type and order (MXE1) 6. Input file row name (0) 7. Chromosome (chr9) 8. Anchor exon start and end (118560742:118560872) 9. Alternative exon start and end (118565557:118565667) 10. Translated strand and phase (+2) 11. Minimal skipped junction count (sjc) in rMATS preceded by r (r521) 12. Tier (T1)"
+  },
+  {
+    "objectID": "about.html#options",
+    "href": "about.html#options",
+    "title": "Documentations",
+    "section": "Options",
+    "text": "Options\npython -m jcast -h\nusage: __main__.py [-h] [-o OUT] [-r READ] [-m] [-c] [-q q_lo q_hi] [--g_or_ln G_OR_LN] rmats_folder gtf_file genome\n\njcast retrieves transcript splice junctionsand translates them into amino acid sequences\n\npositional arguments:\n  rmats_folder          path to folder storing rMATS output\n  gtf_file              path to Ensembl gtf file\n  genome                path to genome file\n\noptional arguments:\n  -h, --help            show this help message and exit\n  -o OUT, --out OUT     name of the output files [default: psq_out]\n  -r READ, --read READ  the lowest skipped junction read count for a junction to be translated [default: 1]\n  -m, --model           models junction read count cutoff using a Gaussian mixture model [default: False]\n  -c, --canonical       write out canonical protein sequence even if transcriptslices are untranslatable [default: False]\n  -q q_lo q_hi, --qvalue q_lo q_hi\n                        take junctions with rMATS fdr within this threshold [default: 0 1]\n  --g_or_ln G_OR_LN     Switch on distribution to use for low end of histogram, 0 for Gamma, anything else for LogNorm"
+  }
+]
