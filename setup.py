@@ -10,8 +10,8 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='jcast',
-    version="0.3.4",
-    description='JCAST retrieves splice junction information from RNA-seq dat aand translates amino acids sequences',
+    version="0.3.5",
+    description='JCAST uses splice junction information from RNA-seq data to create custom protein databases',
 
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -26,7 +26,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
 
         # Indicate who your project is intended for
         'Intended Audience :: Developers',
@@ -49,7 +49,7 @@ setup(
 
     packages=find_packages(),
 
-    python_requires='>=3.6, <4',
+    python_requires='>=3.7, <4',
 
     install_requires=['biopython>=1.78,<2',
                       'gtfparse>=1,<2',
@@ -67,7 +67,7 @@ setup(
 
     project_urls={
         'Source': 'https://github.com/ed-lau/jcast',
-        'Maggie Lam Lab': 'http://www.maggielab.org',
+        'Lau Lab Colorado': 'https://www.laulab.net',
     },
 
     data_files=[('tests',
