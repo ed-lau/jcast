@@ -45,7 +45,7 @@ The following is an example using ENCODE public RNA-seq dataset to generate a ca
 As an example, we will download the .fastq files from ENCODE adult human heart [dataset 1](https://www.encodeproject.org/experiments/ENCSR436QDU/) and [dataset 2](https://www.encodeproject.org/experiments/ENCSR391VGU/).
      
 #### Align the FASTQ files to a reference genome 
-Read alignment can be done using STAR >= v.2.5.0, e.g.,:
+Read alignment can be performed using STAR >= v.2.5.0, e.g.,:
 
 	$ STAR --runThreadN 10 --genomeDir path/to/GRCh38/STARindex --sjdbGTFfile path/to/Homo_sapiens.gtf --sjdbOverhang 100 --readFilesIn ./ENCFF781VGS.fastq.gz ./ENCFF466ZAS.fastq.gz --readFilesCommand zcat --outSAMtype BAM SortedByCoordinate --outFileNamePrefix ./STAR_aligned/b1t1/
     $ STAR --runThreadN 10 --genomeDir path/to/GRCh38/STARindex --sjdbGTFfile path/to/Homo_sapiens.gtf --sjdbOverhang 100 --readFilesIn ./ENCFF731CDK.fastq.gz ./ENCFF429YOS.fastq.gz --readFilesCommand zcat --outSAMtype BAM SortedByCoordinate --outFileNamePrefix ./STAR_aligned/b2t1/
