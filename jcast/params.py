@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-""" Parameters """
+""" Experimental parameters """
 
 """
 Annotated transcript filtering
