@@ -151,8 +151,9 @@ gtfparse>=1.2.1
 pandas>=1.3.0
 requests>=2.24.0
 tqdm>=4.61.2
-scikit-learn==0.24.2
+scikit-learn>=1.0
 matplotlib==3.4.2
+scipy>=1.7.0
 ```
 
 ## Known Issues
