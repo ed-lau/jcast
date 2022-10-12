@@ -16,28 +16,35 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "JCAST Home",
+    "title": "JCAST - Junction Centric Alternative Splicing Translator",
     "section": "",
-    "text": "JCAST (Junction Centric Alternative Splicing Translator) is a Python software that takes in splicing events from RNA sequencing data to create custom protein sequence databases for protein isoform analysis.\nJCAST attempts to create small protein sequence databases that contain only likely sequences in mass spectrometry experiment samples to avoid runaway database size inflation.\nTo do so, JCAST likely translatable alternative splice junctions and performs one-frame in silico analysis, then joins the translated variant sequences with full-length canonical sequences."
+    "text": "Lau Lab Colorado"
+  },
+  {
+    "objectID": "index.html#about-jcast",
+    "href": "index.html#about-jcast",
+    "title": "JCAST - Junction Centric Alternative Splicing Translator",
+    "section": "About JCAST",
+    "text": "About JCAST\nJCAST (Junction Centric Alternative Splicing Translator) is a Python software that takes in splicing events from RNA sequencing data to create custom protein sequence databases for protein isoform analysis.\nJCAST attempts to create small protein sequence databases that contain only likely sequences in mass spectrometry experiment samples to avoid runaway database size inflation.\nTo do so, JCAST likely translatable alternative splice junctions and performs one-frame in silico analysis, then joins the translated variant sequences with full-length canonical sequences."
   },
   {
     "objectID": "index.html#downloads",
     "href": "index.html#downloads",
-    "title": "JCAST Home",
+    "title": "JCAST - Junction Centric Alternative Splicing Translator",
     "section": "Downloads",
     "text": "Downloads\n\n\nLatest Updates\nv0.3.5\n\n\nFixed an issue where a small number of slices were not translated.\nFixed an issue where JCAST quits if the model flag is not set.\n\n\nSee Change Log for details.\n\nThe latest version and source code of JCAST can be found on github: https://github.com/ed-lau/jcast.\nSee the Quick Start and Documentation for instructions."
   },
   {
     "objectID": "index.html#contributors",
     "href": "index.html#contributors",
-    "title": "JCAST Home",
+    "title": "JCAST - Junction Centric Alternative Splicing Translator",
     "section": "Contributors",
     "text": "Contributors\n\nEdward Lau, PhD\nMaggie Lam, PhD\nR W LudWig, BSc"
   },
   {
     "objectID": "index.html#citations",
     "href": "index.html#citations",
-    "title": "JCAST Home",
+    "title": "JCAST - Junction Centric Alternative Splicing Translator",
     "section": "Citations",
     "text": "Citations\nJCAST: Sample-Specific Protein Isoform Databases for Mass Spectrometry-based Proteomics Experiments. RW Ludwig, E Lau Software Impacts 10, 100163\nDetermining Alternative Protein Isoform Expression Using RNA Sequencing and Mass Spectrometry. Y Han, JM Wright, E Lau, MPY Lam STAR Protocols 1 (3), 100138\nSplice-Junction-based Mapping of Alternative Isoforms in the Human Proteome. E Lau, Y Han, DR Williams, CT Thomas, R Shrestha, JC Wu, MPY Lam Cell Reports 29 (11), 3751-3765. e5"
   },
