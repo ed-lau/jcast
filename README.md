@@ -84,7 +84,8 @@ Run the JCAST Python program specifying the path to the rMATS output directory, 
 
 #### FASTA output
 JCAST outputs FASTA databases which can be further filtered and combined using any scripting languages, or can be used directly for database search
-in virtually any shotgun proteomics database search engines (e.g., SEQUEST, Crux/Tide, Maxquant, MS-GF+).
+in virtually any shotgun proteomics database search engines (e.g., SEQUEST, Crux/Tide, Maxquant, MS-GF+). For most usages, we recommend appending
+the T1.fasta file to the JCAST output canonica.fasta file or the canonical SwissProt database.
     
 JCAST may output the following FASTA files (note depending on the used settings and input files, not all FASTA files may be present):
 
