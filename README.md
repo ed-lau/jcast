@@ -92,7 +92,7 @@ Additional details on troubleshooting and result interpretation can be found in 
 Please contact us if you wish to contribute, and submit pull requests to us.
 
 
-## Authors
+## Contributors
 
 * **Edward Lau, PhD** - *Code/design* - [ed-lau](https://github.com/ed-lau)
 * **Maggie Lam, PhD** - *Code/design* - [Maggie-Lam](https://github.com/Maggie-Lam)
