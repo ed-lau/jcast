@@ -39,14 +39,14 @@
     "href": "index.html#contributors",
     "title": "JCAST - Junction Centric Alternative Splicing Translator",
     "section": "Contributors",
-    "text": "Contributors\n\nEdward Lau, PhD\nMaggie Lam, PhD\nR W LudWig, BSc"
+    "text": "Contributors\n\nEdward Lau, PhD - ed-lau\nMaggie Lam, PhD - Maggie-Lam\nR W Ludwig, BSc - WesLudwig"
   },
   {
     "objectID": "index.html#citations",
     "href": "index.html#citations",
     "title": "JCAST - Junction Centric Alternative Splicing Translator",
     "section": "Citations",
-    "text": "Citations\nJCAST: Sample-Specific Protein Isoform Databases for Mass Spectrometry-based Proteomics Experiments. RW Ludwig, E Lau Software Impacts 10, 100163\nDetermining Alternative Protein Isoform Expression Using RNA Sequencing and Mass Spectrometry. Y Han, JM Wright, E Lau, MPY Lam STAR Protocols 1 (3), 100138\nSplice-Junction-based Mapping of Alternative Isoforms in the Human Proteome. E Lau, Y Han, DR Williams, CT Thomas, R Shrestha, JC Wu, MPY Lam Cell Reports 29 (11), 3751-3765. e5"
+    "text": "Citations\n\nJCAST: Sample-Specific Protein Isoform Databases for Mass Spectrometry-based Proteomics Experiments. RW Ludwig, E Lau Software Impacts 10, 100163 Link\nDetermining Alternative Protein Isoform Expression Using RNA Sequencing and Mass Spectrometry. Y Han, JM Wright, E Lau, MPY Lam STAR Protocols 1 (3), 100138 Link\nSplice-Junction-based Mapping of Alternative Isoforms in the Human Proteome. E Lau, Y Han, DR Williams, CT Thomas, R Shrestha, JC Wu, MPY Lam Cell Reports 29 (11), 3751-3765. e5 Link"
   },
   {
     "objectID": "install.html",
