@@ -1,5 +1,3 @@
-![JCAST](https://github.com/ed-lau/jcast/blob/master/images/logo2.png?raw=True)
-
 # Junction Centric Alternative Splicing Translator v.0.3.3
 
 JCAST (Junction Centric Alternative Splicing Translator) takes in alternative splicing events and returns custom protein sequence databases for isoform analysis.
