@@ -115,6 +115,32 @@ The vbar(`|`)-delimited parts denote the following:
 11. Minimal skipped junction count (sjc) in rMATS preceded by r (r521)
 12. Tier (T1) 
 
+## All Arguments
+```
+python -m jcast -h
+usage: __main__.py [-h] [-o OUT] [-r READ] [-m] [-c] [-q q_lo q_hi] [--g_or_ln G_OR_LN] rmats_folder gtf_file genome
+
+jcast retrieves transcript splice junctionsand translates them into amino acid sequences
+
+positional arguments:
+  rmats_folder          path to folder storing rMATS output
+  gtf_file              path to Ensembl gtf file
+  genome                path to genome file
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -o OUT, --out OUT     name of the output files [default: psq_out]
+  -r READ, --read READ  the lowest skipped junction read count for a junction to be translated [default: 1]
+  -m, --model           models junction read count cutoff using a Gaussian mixture model [default: False]
+  -c, --canonical       write out canonical protein sequence even if transcriptslices are untranslatable [default: False]
+  -q q_lo q_hi, --qvalue q_lo q_hi
+                        take junctions with rMATS fdr within this threshold [default: 0 1]
+  --g_or_ln G_OR_LN     Switch on distribution to use for low end of histogram, 0 for Gamma, anything else for LogNorm
+
+
+```
+
+
 ## Dependencies
 
 JCAST has been tested in Python 3.7, 3.8, 3.9 and uses the following packages:
