@@ -25,7 +25,7 @@
     "href": "index.html#about-jcast",
     "title": "JCAST - Junction Centric Alternative Splicing Translator",
     "section": "About JCAST",
-    "text": "About JCAST\nJCAST (Junction Centric Alternative Splicing Translator) is a Python software that takes in splicing events from RNA sequencing data to create custom protein sequence databases for protein isoform analysis.\nJCAST attempts to create small protein sequence databases that contain only likely sequences in mass spectrometry experiment samples to avoid runaway database size inflation.\nTo do so, JCAST likely translatable alternative splice junctions and performs one-frame in silico analysis, then joins the translated variant sequences with full-length canonical sequences."
+    "text": "About JCAST\nJCAST (Junction Centric Alternative Splicing Translator) is a Python software that takes in splicing events from RNA sequencing data to create custom protein sequence databases for protein isoform analysis.\nJCAST attempts to create small protein sequence databases that contain only likely sequences in mass spectrometry experiment samples to avoid runaway database size inflation.\nTo do so, JCAST likely translatable alternative splice junctions and performs one-frame in silico analysis, then joins the translated variant sequences with full-length canonical sequences.\n\n\n\nJCAST Workflow"
   },
   {
     "objectID": "index.html#downloads",
