@@ -12,34 +12,46 @@ Install Python 3.7+ and pip. See instructions on Python website for specific ins
 
 JCAST can be installed from PyPI via pip. We recommend using a virtual environment.
 
-    $ pip install jcast
+```bash
+$ pip install jcast
+```
 
 #### Running
 	
 Launch JCAST as a module (Usage/Help):
-		
-	$ python -m jcast
+
+```bash
+$ python -m jcast
+```
 
 Alternatively:
 
-    $ jcast
+```bash
+$ jcast
+```
 
 Example command: 
-		
-	$ python -m jcast  data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_pancreas -q 0 1 -r 1 -m -c
-    
+
+```bash
+$ python -m jcast  data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_pancreas -q 0 1 -r 1 -m -c
+```
+
 To test that the installation can load test data files in tests/data (sample rMATS file and human chr 15 genome files)
 
-    $ pip install tox
-    $ tox
+```bash
+$ pip install tox
+$ tox
+```
 
 To run JCAST using the test files and print the results to Desktop
 
-    $ python -m jcast {j}/tests/data/rmats {j}/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf  {j}/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz -o ~/Desktop
-
+```bash
+$ python -m jcast {j}/tests/data/rmats {j}/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf  {j}/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz -o ~/Desktop
+```
 
 ## All Arguments
-```
+
+```bash
 python -m jcast -h
 usage: __main__.py [-h] [-o OUT] [-r READ] [-m] [-c] [-q q_lo q_hi] [--g_or_ln G_OR_LN] rmats_folder gtf_file genome
 
