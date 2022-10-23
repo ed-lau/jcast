@@ -245,9 +245,10 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <p>Example command:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python <span class="at">-m</span> jcast  data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa <span class="at">-o</span> encode_human_pancreas <span class="at">-q</span> 0 1 <span class="at">-r</span> 1 <span class="at">-m</span> <span class="at">-c</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>To test that the installation can load test data files in tests/data (sample rMATS file and human chr 15 genome files)</p>
-<p><code>$ pip install tox  $ tox</code></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> pip install tox </span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> tox</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>To run JCAST using the test files and print the results to Desktop</p>
-<p>`<code>bash $ python -m jcast {j}/tests/data/rmats {j}/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf  {j}/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz -o ~/Desktop</code></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python <span class="at">-m</span> jcast {j}/tests/data/rmats {j}/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf  {j}/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz <span class="at">-o</span> ~/Desktop</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>where {j} is replaced by the path to JCAST.</p>
 </section>
 <section id="example-usage" class="level2">
@@ -260,8 +261,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="align-the-fastq-files-to-a-reference-genome" class="level4">
 <h4 class="anchored" data-anchor-id="align-the-fastq-files-to-a-reference-genome">Align the FASTQ files to a reference genome</h4>
 <p>Read alignment can be performed using STAR &gt;= v.2.5.0, e.g.,:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> STAR <span class="at">--runThreadN</span> 10 <span class="at">--genomeDir</span> path/to/GRCh38/STARindex <span class="at">--sjdbGTFfile</span> path/to/Homo_sapiens.gtf <span class="at">--sjdbOverhang</span> 100 <span class="at">--readFilesIn</span> ./ENCFF781VGS.fastq.gz ./ENCFF466ZAS.fastq.gz <span class="at">--readFilesCommand</span> zcat <span class="at">--outSAMtype</span> BAM SortedByCoordinate <span class="at">--outFileNamePrefix</span> ./STAR_aligned/b1t1/</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> STAR <span class="at">--runThreadN</span> 10 <span class="at">--genomeDir</span> path/to/GRCh38/STARindex <span class="at">--sjdbGTFfile</span> path/to/Homo_sapiens.gtf <span class="at">--sjdbOverhang</span> 100 <span class="at">--readFilesIn</span> ./ENCFF731CDK.fastq.gz ./ENCFF429YOS.fastq.gz <span class="at">--readFilesCommand</span> zcat <span class="at">--outSAMtype</span> BAM SortedByCoordinate <span class="at">--outFileNamePrefix</span> ./STAR_aligned/b2t1/</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> STAR <span class="at">--runThreadN</span> 10 <span class="at">--genomeDir</span> path/to/GRCh38/STARindex <span class="at">--sjdbGTFfile</span> path/to/Homo_sapiens.gtf <span class="at">--sjdbOverhang</span> 100 <span class="at">--readFilesIn</span> ./ENCFF781VGS.fastq.gz ./ENCFF466ZAS.fastq.gz <span class="at">--readFilesCommand</span> zcat <span class="at">--outSAMtype</span> BAM SortedByCoordinate <span class="at">--outFileNamePrefix</span> ./STAR_aligned/b1t1/</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> STAR <span class="at">--runThreadN</span> 10 <span class="at">--genomeDir</span> path/to/GRCh38/STARindex <span class="at">--sjdbGTFfile</span> path/to/Homo_sapiens.gtf <span class="at">--sjdbOverhang</span> 100 <span class="at">--readFilesIn</span> ./ENCFF731CDK.fastq.gz ./ENCFF429YOS.fastq.gz <span class="at">--readFilesCommand</span> zcat <span class="at">--outSAMtype</span> BAM SortedByCoordinate <span class="at">--outFileNamePrefix</span> ./STAR_aligned/b2t1/</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <p>Note: Arguments including runThreadN and sjdbOverhang should be customized to suit your system and data files. Please refer to the STAR documentations for details.</p>
 </section>
 <section id="identify-transcript-splice-junctions" class="level4">
@@ -274,7 +275,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <section id="install-the-rmats-image" class="level4">
 <h4 class="anchored" data-anchor-id="install-the-rmats-image">Install the rMATS image</h4>
 <p>Follow instructions from rMATS and docker specific to your OS. E.g.:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo docker load <span class="at">-i</span> rmats-turbo-0.1.tar</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> sudo docker load <span class="at">-i</span> rmats-turbo-0.1.tar</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="prepare-the-rmats-subdirectory" class="level4">
 <h4 class="anchored" data-anchor-id="prepare-the-rmats-subdirectory">Prepare the /rMATS subdirectory</h4>
@@ -298,7 +299,7 @@ Note
 </div>
 </div>
 <p>Run the JCAST Python program specifying the path to the rMATS output directory, the genome sequence, as well as the GTF annotation file:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python <span class="at">-m</span> jcast path/to/rMATS/output/encode_human_heart/ path/to/gtf/Homo_sapiens.GRCh38.89.gtf path/to/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa <span class="at">-o</span> encode_human_heart</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python <span class="at">-m</span> jcast path/to/rMATS/output/encode_human_heart/ path/to/gtf/Homo_sapiens.GRCh38.89.gtf path/to/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa <span class="at">-o</span> encode_human_heart</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 
 
 </section>
