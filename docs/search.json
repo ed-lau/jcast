@@ -11,7 +11,7 @@
     "href": "faqs.html",
     "title": "Frequently Asked Questions",
     "section": "",
-    "text": "A: For a typical application, we would recommend appending T1.fasta to either the JCAST canonical output (which writes the canonical sequence for any gene that has been detected above the read count cutoff, regardless of whether the non-canonical translation was successful), or to a Uniprot canonical database. The lower tier fasta files contain sequences with frame shifts and/or termination codons. You can include them by appending them to the T1+canonical fasta, but the results should be interpreted with caution.\n\n\n\nA: JCAST expects a typical unaltered rMATS output folder, including the individual splice types from rMATS being in the rMATS output directory, named exactly as MXE.MATS.JC.txt, SE.MATS.JC.txt, RI.MATS.JC.txt, A3SS.MATS.JC.txt, A5SS.MATS.JC.txt.\n\n\n\nA: Contact us at [edward.lau@cuanschutz.edu]"
+    "text": "A: For a typical application, we would recommend appending T1.fasta to either the JCAST canonical output (which writes the canonical sequence for any gene that has been detected above the read count cutoff, regardless of whether the non-canonical translation was successful), or to a Uniprot canonical database. The lower tier fasta files contain sequences with frame shifts and/or termination codons. You can include them by appending them to the T1+canonical fasta, but the results should be interpreted with caution.\n\n\n\nA: JCAST expects a typical unaltered rMATS output folder, including the individual splice types from rMATS being in the rMATS output directory, named exactly as MXE.MATS.JC.txt, SE.MATS.JC.txt, RI.MATS.JC.txt, A3SS.MATS.JC.txt, A5SS.MATS.JC.txt.\n\n\n\nA: Contact us at edward.lau@cuanschutz.edu"
   },
   {
     "objectID": "index.html",
@@ -60,7 +60,7 @@
     "href": "install.html#running-jcast",
     "title": "Quick Start",
     "section": "Running JCAST",
-    "text": "Running JCAST\nLaunch JCAST as a module (Usage/Help):\n$ python -m jcast\nAlternatively:\n$ jcast\nExample command:\n$ python -m jcast  data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_pancreas -q 0 1 -r 1 -m -c\nTo test that the installation can load test data files in tests/data (sample rMATS file and human chr 15 genome files)\n$ pip install tox  $ tox\nTo run JCAST using the test files and print the results to Desktop\n$ python -m jcast {j}/tests/data/rmats {j}/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf  {j}/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz -o ~/Desktop\nwhere {j} is replaced by the path to JCAST."
+    "text": "Running JCAST\nLaunch JCAST as a module (Usage/Help):\n$ python -m jcast\nAlternatively:\n$ jcast\nExample command:\n$ python -m jcast  data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_pancreas -q 0 1 -r 1 -m -c\nTo test that the installation can load test data files in tests/data (sample rMATS file and human chr 15 genome files)\n$ pip install tox  $ tox\nTo run JCAST using the test files and print the results to Desktop\n`bash $ python -m jcast {j}/tests/data/rmats {j}/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf  {j}/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz -o ~/Desktop\nwhere {j} is replaced by the path to JCAST."
   },
   {
     "objectID": "install.html#example-usage",
