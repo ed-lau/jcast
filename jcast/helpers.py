@@ -150,6 +150,7 @@ def get_complementary(nt: str,
         try:
             comp += bp[n]
         except KeyError:
+            raise KeyError('Invalid nucleotide: ' + n)
             comp += 'X'
 
     return comp

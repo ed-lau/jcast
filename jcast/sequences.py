@@ -141,14 +141,20 @@ class Sequence(object):
             self.translated_phase = self.j.phase
 
         else:
+            self.logger.info('Using non-phase translation for {0} {1}'.format(self.j.name, self.j.gene_symbol))
             for i in range(3):
-                self.slice1_aa = h.make_pep(self.slice1_nt.seq, self.j.strand, i, terminate=True)
-                self.slice2_aa = h.make_pep(self.slice2_nt.seq, self.j.strand, i, terminate=True)
-                if len(self.slice1_aa) > 0 and len(self.slice2_aa) > 0:
-                    self.translated_phase = i
-                else:
-                    self.slice1_aa = ''
-                    self.slice2_aa = ''
+                try:
+                    self.slice1_aa = h.make_pep(self.slice1_nt.seq, self.j.strand, i, terminate=True)
+                    self.slice2_aa = h.make_pep(self.slice2_nt.seq, self.j.strand, i, terminate=True)
+                    if len(self.slice1_aa) > 0 and len(self.slice2_aa) > 0:
+                        self.translated_phase = i
+                    else:
+                        self.slice1_aa = ''
+                        self.slice2_aa = ''
+                except KeyError:
+                    print()
+                    raise KeyError(f'KeyError in translation of {self.j.name},{ self.j.gene_id}'
+                                   f'{self.j.anc_es}, {self.j.anc_ee}')
 
         if log:
             for i_, s_ in enumerate([self.slice1_aa, self.slice2_aa]):
@@ -237,8 +243,8 @@ class Sequence(object):
 
         tsl = params.tsl_threshold
         filter_tx = gtf_gene.query('feature == "CDS" & '
-                                            'transcript_biotype == "protein_coding" & '
-                                            'transcript_support_level <= @tsl')
+                                   'transcript_biotype == "protein_coding" & '
+                                   'transcript_support_level <= @tsl')
         coding_tx = sorted(filter_tx['transcript_name'].drop_duplicates())
 
         # for each qualifying transcripts, get all the CDS

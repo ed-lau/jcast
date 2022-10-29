@@ -4,6 +4,7 @@
 
 skipped_low = 'SKIPPED. Sequence discarded due to low coverage. \n\n'
 skipped_p = 'SKIPPED. Sequence discarded due to difference across replicates. \n\n'
+skipped_masked = 'SKIPPED. Sequence discarded due to masked regions. \n\n'
 
 tier1 = 'SUCCESS TIER 1. Retrieved phase: {0}. Used phase: {1}. No frameshift. \n\n'
 tier2 = 'SUCCESS TIER 2. Retrieved phase: {0}. Used phase: {1}. Frameshift. \n\n'

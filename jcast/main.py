@@ -6,7 +6,7 @@ import os
 import datetime
 import logging
 from functools import partial
-
+import argparse
 import tqdm
 
 from jcast import params, fates, model
@@ -114,12 +114,14 @@ def runjcast(args):
     #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
     #
-    for rma in [rmats_results.rmats_mxe,
-                rmats_results.rmats_se,
-                rmats_results.rmats_ri,
-                rmats_results.rmats_a5ss,
-                rmats_results.rmats_a3ss,
-                ]:
+    for splice_type, rma in zip(["MXE", "SE", "RI", "A5SS", "A3SS",],
+                                [rmats_results.rmats_mxe, rmats_results.rmats_se, rmats_results.rmats_ri,
+                                 rmats_results.rmats_a5ss, rmats_results.rmats_a3ss, ]):
+
+        if splice_type not in args.splice_type:
+            main_log.info(f'Skipping {splice_type} because it was not specified in the -s argument.')
+            continue
+        # TODO: allow skipping of certain splice types
 
         junctions = [Junction(**rma.iloc[i].to_dict()) for i in range(len(rma))]
 
@@ -201,6 +203,17 @@ def _translate_one(junction,
     # conjoin alternative exons to make slice 1 and 2,
     #
     sequence.make_slice_localgenome(genome.genome)
+
+    # 2022-10-28: temporary fix to avoid hard masking
+    if args.mask:
+        for m in args.mask:
+            if m in sequence.slice1_nt or m in sequence.slice2_nt:
+
+                # Write canonical anyhow if the canonical flag is set.
+                if args.canonical:
+                    sequence.write_canonical(outdir=write_dir)
+
+                return fates.skipped_masked
 
     #
     # translate to peptides
@@ -366,10 +379,22 @@ def _translate_one(junction,
         return fates.fail
 
 
+# Check the q value ranges are between 0 and 1 and the second value is larger than the first.
+class CheckQValueRange(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if not 0 <= values[0] <= 1:
+            parser.error("qvalue lower bound must be between 0 and 1")
+        if not 0 <= values[1] <= 1:
+            parser.error("qvalue upper bound must be between 0 and 1")
+        if values[0] >= values[1]:
+            parser.error("qvalue lower bound must be smaller than upper bound")
+        setattr(namespace, self.dest, values)
+
+
 def main():
     """ running main with parsed arguments from command line """
 
-    import argparse
+
     import sys
 
     parser = argparse.ArgumentParser(description='jcast retrieves transcript splice junctions'
@@ -413,12 +438,28 @@ def main():
                         # type=bool,
                         )
 
+    parser.add_argument('--mask',
+                        help='masked nucleotides; slices will not be translated if '
+                             'containing one of these letters [default: NnXx]',
+                        default='NnXx',
+                        )
+
+    parser.add_argument('-s', '--splice_type',
+                       help='splice type to be translated [default: MXE SE RI A5SS A3SS]',
+                       default=set(['MXE', 'SE', 'RI', 'A5SS', 'A3SS']),
+                       choices=['MXE', 'SE', 'RI', 'A5SS', 'A3SS'],
+                       nargs='+',
+                       )
+
     parser.add_argument('-q', '--qvalue',
                         help='take junctions with rMATS fdr within this threshold [default: 0 1]',
                         metavar=('q_lo', 'q_hi'),
                         nargs=2,
                         default=[0, 1],
-                        type=float)
+                        type=float,
+                        action=CheckQValueRange,
+                        )
+
     # DEVELOPMENT ARGUMENT, Should be deleted when a default distribution - Gamma or LogNorm - is determined.
     parser.add_argument("--g_or_ln",
                         help="Switch on distribution to use for low end of histogram, 0 for Gamma, anything else for LogNorm",

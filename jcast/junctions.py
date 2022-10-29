@@ -448,7 +448,7 @@ class Junction(object):
                     self.alt2_es = self.tx0
 
             except TypeError or ValueError:
-                self.logger.info('Trimming start failed.')
+                self.logger.info('Trimming start not performed.')
 
             try:
                 if self.down_ee > self.tx1 > self.down_es:
@@ -465,7 +465,7 @@ class Junction(object):
                     self.alt2_ee = self.tx1
 
             except TypeError or ValueError:
-                self.logger.info('Trimming end failed.')
+                self.logger.info('Trimming end not performed.')
 
         elif self.junction_type == 'SE':
             try:
@@ -478,7 +478,7 @@ class Junction(object):
                     self.alt1_es = self.tx0
 
             except TypeError or ValueError:
-                self.logger.info('Trimming start failed.')
+                self.logger.info('Trimming start not performed.')
 
             try:
                 if self.down_ee > self.tx1 > self.down_es:
@@ -490,7 +490,7 @@ class Junction(object):
                     self.alt1_ee = self.tx1
 
             except TypeError or ValueError:
-                self.logger.info('Trimming end failed.')
+                self.logger.info('Trimming end not performed.')
 
         elif self.junction_type == 'RI':
             try:
@@ -498,14 +498,14 @@ class Junction(object):
                     self.anc_es = self.tx0
 
             except TypeError or ValueError:
-                self.logger.info('Trimming start failed.')
+                self.logger.info('Trimming start not performed.')
 
             try:
                 if self.down_ee > self.tx1 > self.down_es:
                     self.down_ee = self.tx1
 
             except TypeError or ValueError:
-                self.logger.info('Trimming end failed.')
+                self.logger.info('Trimming end not performed.')
 
         elif self.junction_type == 'A5SS':
             try:
@@ -516,14 +516,14 @@ class Junction(object):
                     self.alt1_es = self.tx0
 
             except TypeError or ValueError:
-                self.logger.info('Trimming start failed.')
+                self.logger.info('Trimming start not performed.')
 
             try:
                 if self.anc_ee > self.tx1 > self.anc_es:
                     self.anc_ee = self.tx1
 
             except TypeError or ValueError:
-                self.logger.info('Trimming end failed.')
+                self.logger.info('Trimming end not performed.')
 
         elif self.junction_type == 'A3SS':
             try:
@@ -531,7 +531,7 @@ class Junction(object):
                     self.anc_es = self.tx0
 
             except TypeError or ValueError:
-                self.logger.info('Trimming start failed.')
+                self.logger.info('Trimming start not performed.')
 
             try:
                 if self.alt1_ee > self.tx1 > self.alt1_es:
@@ -541,6 +541,6 @@ class Junction(object):
                     self.alt2_ee = self.tx1
 
             except TypeError or ValueError:
-                self.logger.info('Trimming end failed.')
+                self.logger.info('Trimming end not performed.')
 
         return True
