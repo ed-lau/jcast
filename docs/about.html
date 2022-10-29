@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>JCAST v0.3.5 - Documentations</title>
+<title>JCAST v0.3.5 - Documentation</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -120,9 +120,11 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 <link rel="stylesheet" href="styles.css">
-<meta property="og:title" content="JCAST v0.3.5 - Documentations">
+<meta property="og:title" content="JCAST v0.3.5 - Documentation">
+<meta property="og:description" content="The use of custom RNA-seq derived protein sequences has been shown to be a viable strategy for identifying non-canonical gene products not documented in common protein sequence databases.">
 <meta property="og:site-name" content="JCAST v0.3.5">
-<meta name="twitter:title" content="JCAST v0.3.5 - Documentations">
+<meta name="twitter:title" content="JCAST v0.3.5 - Documentation">
+<meta name="twitter:description" content="The use of custom RNA-seq derived protein sequences has been shown to be a viable strategy for identifying non-canonical gene products not documented in common protein sequence databases.">
 <meta name="twitter:image" content="https://ed-lau.github.io/jcast/images/jcast.png">
 <meta name="twitter:creator" content="@LauLabColorado">
 <meta name="twitter:image-height" content="643">
@@ -136,7 +138,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   <header id="quarto-header" class="headroom fixed-top">
   <nav class="quarto-secondary-nav" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
     <div class="container-fluid d-flex justify-content-between">
-      <h1 class="quarto-secondary-nav-title">Documentations</h1>
+      <h1 class="quarto-secondary-nav-title">Documentation</h1>
       <button type="button" class="quarto-btn-toggle btn" aria-label="Show secondary navigation">
         <i class="bi bi-chevron-right"></i>
       </button>
@@ -197,7 +199,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#output" id="toc-output" class="nav-link active" data-scroll-target="#output">Output</a></li>
+  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#output" id="toc-output" class="nav-link" data-scroll-target="#output">Output</a></li>
   <li><a href="#options" id="toc-options" class="nav-link" data-scroll-target="#options">Options</a></li>
   </ul>
 <div class="toc-actions"><div><i class="bi bi-github"></i></div><div class="action-links"><p><a href="https://github.com/ed-lau/jcast/issues/new" class="toc-action">Report an issue</a></p></div></div></nav>
@@ -207,7 +210,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title d-none d-lg-block">Documentations</h1>
+<h1 class="title d-none d-lg-block">Documentation</h1>
 </div>
 
 
@@ -221,6 +224,12 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 </header>
 
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>The use of custom RNA-seq derived protein sequences has been shown to be a viable strategy for identifying non-canonical gene products not documented in common protein sequence databases. However, the inclusion of too many sequences can lead to false positive identifications. JCAST combines splice junction modeling and one-frame translation to create small custom protein sequence databases.</p>
+<p>JCAST is a command line tool that takes an annotation GTF file, rMATS results, and a genome FASTA file to create custom protein FASTA files for downstream analysis. To prioritize likely detectable splice junctions, JCAST models the minimal splice junction read count in RNA-seq for all canonical-alternative splice junction pairs. JCAST then uses this model to calculate the minimal read count cutoff for in silico translation. An example of the read count mixture model is shown below.</p>
+<p><img src="images/model.png" class="img-fluid"></p>
+</section>
 <section id="output" class="level2">
 <h2 class="anchored" data-anchor-id="output">Output</h2>
 <section id="fasta-output" class="level4">
