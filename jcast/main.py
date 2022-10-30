@@ -4,7 +4,6 @@
 
 import os
 import datetime
-import logging
 from functools import partial
 import argparse
 import tqdm
@@ -14,66 +13,38 @@ from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
 from jcast import __version__
+from jcast.logger import get_logger
 
 
-def runjcast(args):
+def run_jcast(args) -> None:
     """
     main look for jcast flow.
 
     :param args: parsed arguments
-    :return:
+    :return: None
     """
 
-    # Get timestamp for out files
-    now = datetime.datetime.now()
 
-    write_dir = os.path.join(args.out, 'jcast_' + now.strftime('%Y%m%d%H%M%S'))
-    os.makedirs(write_dir, exist_ok=True)
+    # ---- Main logger setup ----
+    logger = get_logger('jcast', args.out)
+    logger.info(args)
+    logger.info(__version__)
 
-    # Main logger setup
-    main_log = logging.getLogger('jcast')
-    main_log.propagate = False
-    main_log.setLevel(logging.INFO)
+    # ---- Read in rMATS files ----
+    rmats_results = RmatsResults(logger=logger,
+                                 rmats_dir=args.rmats_folder,
+                                 )
+    # TODO: only read in the splice types that are needed
 
-    # create file handler which logs even debug messages
-    fh = logging.FileHandler(os.path.join(write_dir, 'jcast_main.log'))
-    fh.setLevel(logging.DEBUG)
+    # ---- Read the gtf file using  gtfpase then write as a pandas data frame. ----
+    gtf = ReadAnnotations(logger=logger,
+                          path=args.gtf_file,
+                          )
 
-    # create formatter and add it to the handlers
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
-
-    # add the handlers to the logger
-    main_log.addHandler(fh)
-
-    #
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.WARNING)
-    ch.setFormatter(formatter)
-    main_log.addHandler(ch)
-
-    main_log.info(args)
-    main_log.info(__version__)
-
-    #
-    # Open the rMATS output file (MXE) here, rename the columns
-    #
-    assert os.path.exists(os.path.join(args.rmats_folder, 'MXE.MATS.JC.txt')), 'rMATS files not found, check directory.'
-    rmats_results = RmatsResults(rmats_dir=args.rmats_folder)
-
-    # Model read count cutoff
-
-    #
-    # Read the gtf file using the gtfpase package.
-    # Then write as a pandas data frame.
-    #
-    gtf = ReadAnnotations(args.gtf_file)
-    gtf.read_gtf()
-
-    #
-    # Read genome file into memory
-    #
-    genome = ReadGenome(args.genome)
+    # ---- Read genome file into memory ----
+    genome = ReadGenome(logger=logger,
+                        path=args.genome,
+                        )
 
     #
     # Model read count cutoff.
@@ -81,7 +52,7 @@ def runjcast(args):
     #
     if args.model:
 
-        main_log.info('The -m flag is set. The modeled read count will override -r --read values.')
+        logger.info('The -m flag is set. The modeled read count will override -r --read values.')
 
         # Make a numpy array of all junction SJC sum counts
         rmats_results.get_junction_count_array()
@@ -91,7 +62,7 @@ def runjcast(args):
             ln_sjc,
             best_mix_model,
             min_count,
-            write_dir=write_dir,
+            write_dir=args.out,
             filename='model',
             )
         
@@ -104,7 +75,7 @@ def runjcast(args):
                          pt=pt,
                          gmm=gmm,
                          min_count=min_count,
-                         write_dir=write_dir,
+                         write_dir=args.out,
                          filename='model',
                          )
         """
@@ -119,7 +90,7 @@ def runjcast(args):
                                  rmats_results.rmats_a5ss, rmats_results.rmats_a3ss, ]):
 
         if splice_type not in args.splice_type:
-            main_log.info(f'Skipping {splice_type} because it was not specified in the -s argument.')
+            logger.info(f'Skipping {splice_type} because it was not specified in the -s argument.')
             continue
         # TODO: allow skipping of certain splice types
 
@@ -129,7 +100,6 @@ def runjcast(args):
                                         gtf=gtf,
                                         genome=genome,
                                         args=args,
-                                        write_dir=write_dir,
                                         pred_bound=min_count,
                                         )
 
@@ -145,12 +115,12 @@ def runjcast(args):
         #             total=len(junctions),
         #             desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
         #     )):
-        #         main_log.info('>>>>>> Doing {0} junction {1} for gene {2} {3}'.format(junctions[i].junction_type,
+        #         logger.info('>>>>>> Doing {0} junction {1} for gene {2} {3}'.format(junctions[i].junction_type,
         #                                                                               junctions[i].name,
         #                                                                               junctions[i].gene_symbol,
         #                                                                               junctions[i].gene_id,
         #                                                                           ))
-        #         main_log.info(f)
+        #         logger.info(f)
 
         #
         # Single threaded for-loop
@@ -160,26 +130,31 @@ def runjcast(args):
                             desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
                             ):
 
-            main_log.info('>>>>>> Doing {0} junction {1} for gene {2} {3}'.format(jx.junction_type,
+            logger.info('>>>>>> Doing {0} junction {1} for gene {2} {3}'.format(jx.junction_type,
                                                                                   jx.name,
                                                                                   jx.gene_symbol,
                                                                                   jx.gene_id,
                                                                                   ))
-            main_log.info(translate_one_partial(jx))
+            logger.info(translate_one_partial(jx))
 
     return True
 
 
-def _translate_one(junction,
-                   gtf,
-                   genome,
-                   args,
-                   write_dir,
-                   pred_bound,
+def _translate_one(junction: Junction,
+                   gtf: ReadAnnotations,
+                   genome: ReadGenome,
+                   args: argparse.Namespace,
+                   pred_bound: int,
                    ):
-    """ get coordinate and translate one junction; arguments are passed through partial from main"""
-
-    # print(f'Gene Symbol: {junction.gene_symbol} ID: {junction.gene_id}')
+    """
+    Get coordinates and translate one junction object.
+    :param junction: Junction object
+    :param gtf: ReadAnnotations object
+    :param genome: ReadGenome object
+    :param args: parsed arguments
+    :param pred_bound: read count cutoff
+    :return:
+    """
 
     #
     # trim slice coordinates by translation starts and ends
@@ -195,7 +170,7 @@ def _translate_one(junction,
     #
     # initiate a sequence object that copies most of the junction information
     #
-    sequence = Sequence(junction)
+    sequence = Sequence(junction=junction)
 
     #
     # get nucleotide sequences of all slices using genome in memory
@@ -211,9 +186,9 @@ def _translate_one(junction,
 
                 # Write canonical anyhow if the canonical flag is set.
                 if args.canonical:
-                    sequence.write_canonical(outdir=write_dir)
+                    sequence.write_canonical(outdir=args.out)
 
-                return fates.skipped_masked
+                return fates.SKIPPED_MASKED
 
     #
     # translate to peptides
@@ -235,9 +210,9 @@ def _translate_one(junction,
         # of a gene potentially in the proteome.
         #
         if args.canonical:
-            sequence.write_canonical(outdir=write_dir)
+            sequence.write_canonical(outdir=args.out)
 
-        return fates.skipped_low
+        return fates.SKIPPED_LOW_COUNT
 
     #
     # discard junction if the corrected P value of this read count is < threshold
@@ -248,9 +223,9 @@ def _translate_one(junction,
 
         # Write canonical anyhow if the canonical flag is set.
         if args.canonical:
-            sequence.write_canonical(outdir=write_dir)
+            sequence.write_canonical(outdir=args.out)
 
-        return fates.skipped_low
+        return fates.SKIPPED_P_VALUE
 
     #
     # write the Tier 1 and Tier 2 results into fasta file
@@ -268,11 +243,11 @@ def _translate_one(junction,
                                                 slice_has_ptc=False)
 
             sequence.write_slices(
-                outdir=write_dir,
+                outdir=args.out,
                 suffix='T1',
             )
 
-            return fates.tier1.format(sequence.j.phase,
+            return fates.TIER1.format(sequence.j.phase,
                                       sequence.translated_phase,
                                       )
 
@@ -292,11 +267,11 @@ def _translate_one(junction,
                                                     slice_has_ptc=True)
 
             sequence.write_slices(
-                outdir=write_dir,
+                outdir=args.out,
                 suffix='T2',
             )
 
-            return fates.tier2.format(sequence.j.phase,
+            return fates.TIER2.format(sequence.j.phase,
                                       sequence.translated_phase,
                                       )
 
@@ -311,11 +286,11 @@ def _translate_one(junction,
                 sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
                                                 slice_has_ptc=False)
 
-            sequence.write_slices(outdir=write_dir,
+            sequence.write_slices(outdir=args.out,
                                   suffix='T3',
                                   )
 
-            return fates.tier3.format(sequence.j.phase,
+            return fates.TIER3.format(sequence.j.phase,
                                       sequence.translated_phase,
                                       )
 
@@ -340,11 +315,11 @@ def _translate_one(junction,
             sequence.stitch_to_canonical_aa(slice_to_stitch=2,
                                             slice_has_ptc=True)
 
-        sequence.write_slices(outdir=write_dir,
+        sequence.write_slices(outdir=args.out,
                               suffix='T4',
                               )
 
-        return fates.tier4.format(forced_slice)
+        return fates.TIER4.format(forced_slice)
 
     # force-translate through slice 1 if slice 1 hits PTC:
     elif len(sequence.slice2_aa) > 0 and len(sequence.slice1_aa) == 0:
@@ -356,14 +331,14 @@ def _translate_one(junction,
             sequence.stitch_to_canonical_aa(slice_to_stitch=1,
                                             slice_has_ptc=True)
 
-        sequence.write_slices(outdir=write_dir,
+        sequence.write_slices(outdir=args.out,
                               suffix='T4',
                               )
 
-        return fates.tier4.format(forced_slice)
+        return fates.TIER4.format(forced_slice)
 
     #
-    # if nothing works, write FAILURE fate
+    # if nothing works, write FAIL fate
     #
     else:
         #
@@ -374,9 +349,9 @@ def _translate_one(junction,
         # of a gene potentially in the proteome.
         #
         if args.canonical:
-            sequence.write_canonical(outdir=write_dir)
+            sequence.write_canonical(outdir=args.out)
 
-        return fates.fail
+        return fates.FAIL
 
 
 # Check the q value ranges are between 0 and 1 and the second value is larger than the first.
@@ -405,9 +380,11 @@ def main():
                         )
     parser.add_argument('gtf_file',
                         help='path to Ensembl gtf file',
+                        type=argparse.FileType('r'),
                         )
     parser.add_argument('genome',
                         help='path to genome file',
+                        type=argparse.FileType('r'),
                         )
 
     # parser.add_argument('-n', '--num_threads', help='number of threads for concurrency [default: 6]',
@@ -466,7 +443,7 @@ def main():
                         default=0,
                         type=int)
 
-    parser.set_defaults(func=runjcast)
+    parser.set_defaults(func=run_jcast)
 
     # print help message if no arguments are given
     if len(sys.argv[1:]) == 0:
@@ -475,6 +452,11 @@ def main():
 
     # parse all the arguments
     args = parser.parse_args()
+
+    # Check if the rMATS directory contains the expected files
+    for splice_type in args.splice_type:
+        assert os.path.exists(os.path.join(args.rmats_folder, f'{splice_type}.MATS.JC.txt')), \
+            'rMATS files not found, check directory.'
 
     # run the function in the argument
     args.func(args)

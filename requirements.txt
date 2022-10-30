@@ -6,3 +6,4 @@ tqdm>=4.61.2
 scikit-learn>=1.0
 matplotlib==3.4.2
 scipy>=1.7.0
+pomegranate>=0.14.5

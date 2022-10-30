@@ -4,11 +4,9 @@
 
 import os.path
 import sqlite3 as sq
-
 import requests as rq
 
 from Bio import SeqIO
-# from Bio.Alphabet import IUPAC
 
 from jcast import constants
 

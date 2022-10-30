@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 """ Methods that concern splice junctions - getting their coordinates, transcription starts/ends, phases. """
-
 import logging
 import os.path
 import pandas as pd
@@ -22,8 +21,16 @@ class RmatsResults(object):
     """
 
     def __init__(self,
+                 logger,
                  rmats_dir,
+
                  ):
+        """
+        :param rmats_dir: directory containing the rMATS output files
+        :param logger: logger object
+        """
+
+        self.logger = logger
 
         self.dir = rmats_dir
         self.rmats_mxe = self._read_rmats_mxe()
@@ -34,7 +41,7 @@ class RmatsResults(object):
 
         self.sum_sjc_array = None
 
-        self.logger = logging.getLogger('jcast.input')
+
 
     def _read_rmats_mxe(self):
         """
@@ -164,7 +171,33 @@ class Junction(object):
 
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self,
+                 **kwargs):
+        """
+        Initialize a Junction object
+        :param logger: logger object
+        :param kwargs: keyword arguments, including the following:
+        gene_id: gene ID
+        gene_symbol: gene symbol
+        chr: chromosome
+        strand: strand
+        alt1_es: alternative 1 exon start
+        alt1_ee: alternative 1 exon end
+        alt2_es: alternative 2 exon start
+        alt2_ee: alternative 2 exon end
+        anc_es: anchor exon start
+        anc_ee: anchor exon end
+        down_es: downstream exon start
+        down_ee: downstream exon end
+        jxn_type: junction type, one of 'MXE', 'SE', 'RI', 'A5SS', 'A3SS'
+        ijc_s1: inclusion junction count sample 1
+        sjc_s1: skipped junction count sample 1
+        ijc_s2: inclusion junction count sample 2
+        sjc_s2: skipped junction count sample 2
+
+        :param logger:
+        :param kwargs:
+        """
         self.name = str(kwargs['id'])
         self.gene_id = kwargs['gene_id']
         self.strand = kwargs['strand']
@@ -195,7 +228,7 @@ class Junction(object):
         self.phase = None
         self.num_start_codons = 0
 
-        self.logger = logging.getLogger('jcast.junction')
+        self.logger = logging.getLogger('jcast')
 
 
     def __repr__(self):

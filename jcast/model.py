@@ -13,7 +13,8 @@ from sklearn.preprocessing import PowerTransformer
 from pomegranate import GeneralMixtureModel, GammaDistribution, NormalDistribution, LogNormalDistribution
 
 
-def general_mixture_model(sum_sjc_array, n_iter=50):
+def general_mixture_model(sum_sjc_array,
+                          n_iter=50):
     """Model skip junction histogram with a mixed distribution.
 
         Args:

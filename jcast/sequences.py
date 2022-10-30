@@ -9,7 +9,6 @@ import os.path
 from Bio.Seq import Seq
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
-# from Bio.Alphabet import IUPAC
 
 import requests as rq
 from requests.adapters import HTTPAdapter
@@ -30,14 +29,13 @@ class Sequence(object):
                  junction: Junction,
                  ):
         """
-        :type junction: object
         :param junction: the splice junction object
 
         Mostly copying properties of the junction object (already trimmed) to start a new sequence object. This
         sequence object will be used to make the nucleotide slices and translate into protein sequences.
 
         """
-        self.logger = logging.getLogger('jcast.seq')
+        self.logger = logging.getLogger('jcast')
 
         self.j = junction
         self.slice1_nt = None
@@ -71,7 +69,7 @@ class Sequence(object):
         by checking if slice 1 nucleotides are different in length from slice 2 nucleotide by
         multiples of 3, which probably denotes frame shift (unless there are loose amino acids near the end)?
 
-        :return:
+        :return: True if frameshift, False if not
         """
 
         #
@@ -153,7 +151,7 @@ class Sequence(object):
                         self.slice2_aa = ''
                 except KeyError:
                     print()
-                    raise KeyError(f'KeyError in translation of {self.j.name},{ self.j.gene_id}'
+                    raise KeyError(f'KeyError in translation of {self.j.name}, {self.j.gene_id}'
                                    f'{self.j.anc_es}, {self.j.anc_ee}')
 
         if log:
@@ -175,7 +173,7 @@ class Sequence(object):
 
     def translate_forced(self,
                          slice_to_translate: int,
-                         ):
+                         ) -> None:
         """
         This is the fallback translate function for tier 4 peptides. We will start by using the retrieved GTF phase
         and attempt to translate as normal. If only slice_1 returns normal without stop codon but slice_2 runs into
@@ -225,7 +223,7 @@ class Sequence(object):
                                                                                                   )
                          )
 
-        return True
+        return None
 
     def get_annotated_transcripts_gtf(self, gtf):
         """
@@ -380,11 +378,9 @@ class Sequence(object):
         return self.translate_annotated_transcriptfrom_gtf(annotated_transcript=self.gtf_canonical_transcript,
                                                            genome_index=genome_index)
 
-
     def get_canonical_aa_uniprot(self,
-                                 reviewed='true',
+                                 reviewed: str = 'true',
                                  ) -> SeqRecord:
-
         """
         get the canonical sequences from Uniprot
 
@@ -469,7 +465,7 @@ class Sequence(object):
     def stitch_to_canonical_aa(self,
                                 slice_to_stitch: int,
                                 slice_has_ptc: bool = False,
-                                ):
+                                ) -> None:
         """
         Given a translated junction sequence, look for the fasta entry that overlaps with it, then return the entry
         and the coordinates. This will be used to extend the junction sequence to encompass entire protein sequence.
@@ -526,14 +522,14 @@ class Sequence(object):
             elif slice_to_stitch == 2:
                 self.slice2_stitched = stitched[:]
 
-        return True
+        return None
 
     def write_canonical(self,
-                        outdir,
-                        ):
+                        out_dir,
+                        ) -> None:
         """
         write canonical sequences to fasta file
-        :param output: output directory
+        :param out_dir: output directory
         """
 
         canonical = self.canonical_aa[:]
@@ -547,18 +543,18 @@ class Sequence(object):
                 self.get_canonical_aa_uniprot(reviewed='false')
 
         if len(self.canonical_aa[:]) > 0:
-            h.write_seqrecord_to_fasta(canonical, outdir, 'canonical')
+            h.write_seqrecord_to_fasta(canonical, out_dir, 'canonical')
 
-        return True
+        return None
 
     def write_slices(self,
-                     outdir,
+                     out_dir,
                      suffix,
-                     ):
+                     ) -> None:
         """
         write the translated SeqRecord objects created into fasta file
 
-        :param outdir:          string  output directory
+        :param out_dir:          string  output directory
         :param suffix:          string  additional suffix to add to the end of an output file
 
         :return:
@@ -596,11 +592,11 @@ class Sequence(object):
                                        name=f'Sequence_{str(self.j.gene_symbol)}',
                                        description='Orphan',
                                        )
-                    h.write_seqrecord_to_fasta(orphan, outdir, (suffix + '_orphan'))
+                    h.write_seqrecord_to_fasta(orphan, out_dir, (suffix + '_orphan'))
 
             # if the stitched is same as canonical, write canonical
             elif stitched.seq == self.canonical_aa.seq:
-                self.write_canonical(outdir=outdir)
+                self.write_canonical(out_dir=out_dir)
 
             # otherwise write alternative slice to fasta
             elif len(stitched) > 0:
@@ -619,6 +615,6 @@ class Sequence(object):
                     self.j.sum_sjc,
                     suffix,
                 )
-                h.write_seqrecord_to_fasta(stitched, outdir, suffix)
+                h.write_seqrecord_to_fasta(stitched, out_dir, suffix)
 
-        return True
+        return None

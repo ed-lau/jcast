@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """ Genome annotations. """
-
+import _io
+import argparse
 import os.path
 import logging
 import gzip
@@ -17,17 +18,22 @@ class ReadAnnotations(object):
     Class holds the name and location of the GTF file, plus a pandas dataframe
     """
 
-    def __init__(self, path):
+    def __init__(self,
+                 logger: logging.Logger,
+                 path: _io.TextIOWrapper, ):
         """
-
-        :param path: Path of the GTF file
+        :parrm logger: logger object
+        :param path: Path to GTF file
         """
-        self.path = os.path.join(path)
-        self.annot = 0
+        self.logger = logger
+        self.path = path
 
-        self.logger = logging.getLogger('jcast.gtf')
+        self.annot = pd.DataFrame()
 
-    def read_gtf(self):
+        self.read_gtf()
+
+
+    def read_gtf(self) -> None:
         """
         Read gtf file based on the location and name supplied
         :return:
@@ -36,7 +42,7 @@ class ReadAnnotations(object):
         self.logger.info("Reading GTF file. This could take a minute.")
 
         # Writes cached gtf if it doesn't exist
-        cached_gtf = self.path + '.cached'
+        cached_gtf = self.path.name + '.cached'
 
         if os.path.isfile(cached_gtf) is False:
             self.annot = gtfparse.read_gtf(self.path)
@@ -47,23 +53,26 @@ class ReadAnnotations(object):
         # 2020-11-06 if Gencode GTF is used, column is transcript_type rather than transcript_biotype.
         # This will make the transcript_biotype column manually
 
-        if not 'transcript_biotype' in self.annot.columns:
+        if 'transcript_biotype' not in self.annot.columns:
             self.annot['transcript_biotype'] = self.annot['transcript_type']
 
-        return True
-
+        return None
 
 
 class ReadGenome(object):
 
-    def __init__(self, f_loc):
+    def __init__(self,
+                 logger: logging.Logger,
+                 path: _io.TextIOWrapper, ):
+        """
+        :param logger: logger object
+        :param path: Path to genome fasta file
+
         """
 
-        :param f_loc: :param f_loc:   Location of fasta file (.fa or .gz)
-        """
 
-        self.f_loc = f_loc
-        self.logger = logging.getLogger('jcast.genome')
+        self.path = path
+        self.logger = logger
 
         self.genome = None
         self._read_fasta()
@@ -76,13 +85,13 @@ class ReadGenome(object):
         :return:
         """
 
-        if self.f_loc.endswith('.gz'):
-            with gzip.open(self.f_loc, 'rt') as f:
+        if self.path.name.endswith('.gz'):
+            with gzip.open(self.path, 'rt') as f:
                 self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta'))
                 self.logger.info('Read from zipped genome. \n\n')
 
         else:
-            with open(self.f_loc, 'rt') as f:
+            with open(self.path.name, 'rt') as f:
                 self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta'))
                 self.logger.info('Read from genome. \n\n')
 
