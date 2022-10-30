@@ -3,7 +3,6 @@
 """jcast.main: Main function."""
 
 import os
-import datetime
 from functools import partial
 import argparse
 import tqdm
@@ -18,12 +17,11 @@ from jcast.logger import get_logger
 
 def run_jcast(args) -> None:
     """
-    main look for jcast flow.
+    Main function for jcast
 
     :param args: parsed arguments
     :return: None
     """
-
 
     # ---- Main logger setup ----
     logger = get_logger('jcast', args.out)
@@ -85,15 +83,14 @@ def run_jcast(args) -> None:
     #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
     #
-    for splice_type, rma in zip(["MXE", "SE", "RI", "A5SS", "A3SS",],
-                                [rmats_results.rmats_mxe, rmats_results.rmats_se, rmats_results.rmats_ri,
-                                 rmats_results.rmats_a5ss, rmats_results.rmats_a3ss, ]):
+    for splice_type, rma in zip(["MXE", "SE", "RI", "A5SS", "A3SS"], rmats_results.rmats_list):
 
+        # ---- Skip if the splice type is not in the list of splice types to run ----
         if splice_type not in args.splice_type:
             logger.info(f'Skipping {splice_type} because it was not specified in the -s argument.')
             continue
-        # TODO: allow skipping of certain splice types
 
+        # ---- Get a list of junctions from each splice type ----
         junctions = [Junction(**rma.iloc[i].to_dict()) for i in range(len(rma))]
 
         translate_one_partial = partial(_translate_one,
@@ -122,9 +119,7 @@ def run_jcast(args) -> None:
         #                                                                           ))
         #         logger.info(f)
 
-        #
-        # Single threaded for-loop
-        #
+        # ---- Single threaded for loop ----
         for jx in tqdm.tqdm(junctions,
                             total=len(junctions),
                             desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
@@ -148,6 +143,7 @@ def _translate_one(junction: Junction,
                    ):
     """
     Get coordinates and translate one junction object.
+
     :param junction: Junction object
     :param gtf: ReadAnnotations object
     :param genome: ReadGenome object
@@ -186,22 +182,17 @@ def _translate_one(junction: Junction,
 
                 # Write canonical anyhow if the canonical flag is set.
                 if args.canonical:
-                    sequence.write_canonical(outdir=args.out)
+                    sequence.write_canonical(out_dir=args.out)
 
                 return fates.SKIPPED_MASKED
 
-    #
-    # translate to peptides
-    #
+    # ---- Translate to peptides. This happens before the filters so we can write the canonical sequence ----
     sequence.get_canonical_aa(gtf=gtf, genome_index=genome.genome)
     sequence.translate(use_phase=True)
 
-    #
-    # filter by junction read counts - discard junction if the min read count is below threshold
-    #
-
+    # ---- Filter by junction read counts - discard junction if the min read count is below threshold
     # If the -r argument is set directly and the -m flag is not, use the -r integer for count filtering
-    # If the -m flag is set, use the modeled count for filtering
+    # If the -m flag is set, use the modeled count for filtering instead of the -r argument value ----
     if (not args.model and junction.sum_sjc <= args.read) or (args.model and junction.sum_sjc <= pred_bound):
         #
         # If the canonical flag is set, append the canonical
@@ -210,43 +201,33 @@ def _translate_one(junction: Junction,
         # of a gene potentially in the proteome.
         #
         if args.canonical:
-            sequence.write_canonical(outdir=args.out)
+            sequence.write_canonical(out_dir=args.out)
 
         return fates.SKIPPED_LOW_COUNT
 
-    #
-    # discard junction if the corrected P value of this read count is < threshold
-    # this removes junctions that are inconsistently found on both replicates.
-    #
+    # Discard junction if the corrected P value of this read count is outside of threshold
+    # This is used to include or discard junctions that are inconsistently found on both replicates.
     q_lo, q_hi = args.qvalue
     if not q_lo <= junction.fdr <= q_hi:
 
         # Write canonical anyhow if the canonical flag is set.
         if args.canonical:
-            sequence.write_canonical(outdir=args.out)
+            sequence.write_canonical(out_dir=args.out)
 
         return fates.SKIPPED_P_VALUE
 
-    #
-    # write the Tier 1 and Tier 2 results into fasta file
-    #
+    # ---- Write the Tier 1 and Tier 2 results into fasta file ----
     if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
-
         # Tier 1: both translated without stop codon, no frameshift
         if not sequence.frameshift:
-
             # Do a function like this to extend with fasta, and then write if necessary.
-            # TODO: instead of using Uniprot we should get the canonical exons from the GTF directly
-
-            for slice_ in [1, 2]:
+            # TODO: instead of using Uniprot, have the option to get the canonical exons from the GTF directly
+            for slice_ in range(1, 3):
                 sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
                                                 slice_has_ptc=False)
-
-            sequence.write_slices(
-                outdir=args.out,
-                suffix='T1',
-            )
-
+            sequence.write_slices(out_dir=args.out,
+                                  suffix='T1',
+                                  )
             return fates.TIER1.format(sequence.j.phase,
                                       sequence.translated_phase,
                                       )
@@ -256,7 +237,7 @@ def _translate_one(junction: Junction,
         #
         elif sequence.frameshift:
 
-            for slice_ in [1, 2]:
+            for slice_ in range(1, 3):
                 sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
                                                 slice_has_ptc=False)
 
@@ -267,7 +248,7 @@ def _translate_one(junction: Junction,
                                                     slice_has_ptc=True)
 
             sequence.write_slices(
-                outdir=args.out,
+                out_dir=args.out,
                 suffix='T2',
             )
 
@@ -282,11 +263,11 @@ def _translate_one(junction: Junction,
         sequence.translate(use_phase=False)
         # after tier 3 translation, check if both slices are good
         if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
-            for slice_ in [1, 2]:
+            for slice_ in range(1, 3):
                 sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
                                                 slice_has_ptc=False)
 
-            sequence.write_slices(outdir=args.out,
+            sequence.write_slices(out_dir=args.out,
                                   suffix='T3',
                                   )
 
@@ -315,7 +296,7 @@ def _translate_one(junction: Junction,
             sequence.stitch_to_canonical_aa(slice_to_stitch=2,
                                             slice_has_ptc=True)
 
-        sequence.write_slices(outdir=args.out,
+        sequence.write_slices(out_dir=args.out,
                               suffix='T4',
                               )
 
@@ -331,7 +312,7 @@ def _translate_one(junction: Junction,
             sequence.stitch_to_canonical_aa(slice_to_stitch=1,
                                             slice_has_ptc=True)
 
-        sequence.write_slices(outdir=args.out,
+        sequence.write_slices(out_dir=args.out,
                               suffix='T4',
                               )
 
@@ -349,7 +330,7 @@ def _translate_one(junction: Junction,
         # of a gene potentially in the proteome.
         #
         if args.canonical:
-            sequence.write_canonical(outdir=args.out)
+            sequence.write_canonical(out_dir=args.out)
 
         return fates.FAIL
 

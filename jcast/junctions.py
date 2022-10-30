@@ -39,6 +39,7 @@ class RmatsResults(object):
         self.rmats_a5ss = self._read_rmats_a5ss()
         self.rmats_a3ss = self._read_rmats_a3ss()
 
+        self.rmats_list = [self.rmats_mxe, self.rmats_se, self.rmats_ri, self.rmats_a5ss, self.rmats_a3ss]
         self.sum_sjc_array = None
 
 
@@ -305,7 +306,7 @@ class Junction(object):
                                     'transcript_biotype == "protein_coding"').loc[:, 'start'].drop_duplicates()
 
         except KeyError:
-            gtf0_end = None
+            gtf0_start = None
 
         # Number of start sites:
         self.num_start_codons = len(gtf0_start)
