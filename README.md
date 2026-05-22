@@ -107,7 +107,7 @@ Please contact us if you wish to contribute, and submit pull requests to us.
 ## Contributors
 
 * **Edward Lau, PhD** - *Code/design* - [ed-lau](https://github.com/ed-lau)
-* **Maggie Lam, PhD** - *Code/design* - [Maggie-Lam](https://github.com/Maggie-Lam)
+* **Maggie Lam, PhD** - *Code/design* - [Maggie-Lam](https://maggielamlab.org)
 * **Robert Wes Ludwig, BSc** - *Modeling* - [WesLudwig](https://github.com/WesLudwig)
 
 
