@@ -8,6 +8,7 @@ mzml/
 *.db
 *.cached
 cache/
+jcast_website
 
 # Pycharm
 .idea/

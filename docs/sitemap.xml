@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ed-lau.github.io/jcast/change.html</loc>
-    <lastmod>2022-10-31T19:50:51.689Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ed-lau.github.io/jcast/faqs.html</loc>
-    <lastmod>2022-10-31T19:50:53.127Z</lastmod>
+    <loc>https://ed-lau.github.io/jcast/about.html</loc>
+    <lastmod>2026-05-22T18:48:04.841Z</lastmod>
   </url>
   <url>
     <loc>https://ed-lau.github.io/jcast/index.html</loc>
-    <lastmod>2022-10-31T19:50:54.572Z</lastmod>
+    <lastmod>2026-05-22T18:49:09.494Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ed-lau.github.io/jcast/change.html</loc>
+    <lastmod>2022-10-31T19:50:24.373Z</lastmod>
+  </url>
+  <url>
+    <loc>https://ed-lau.github.io/jcast/faqs.html</loc>
+    <lastmod>2022-10-31T19:50:30.890Z</lastmod>
   </url>
   <url>
     <loc>https://ed-lau.github.io/jcast/install.html</loc>
-    <lastmod>2022-10-31T19:50:56.035Z</lastmod>
-  </url>
-  <url>
-    <loc>https://ed-lau.github.io/jcast/about.html</loc>
-    <lastmod>2022-10-31T19:50:57.445Z</lastmod>
+    <lastmod>2022-10-31T19:50:42.762Z</lastmod>
   </url>
 </urlset>
