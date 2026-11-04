@@ -52,13 +52,13 @@ setup(
     python_requires='>=3.7, <4',
 
     install_requires=['biopython>=1.78,<2',
-                      'gtfparse>=1,<2',
-                      'pandas>=1.0,<2',
+                      'gtfparse>=1.3,<2',
+                      'pandas>=1.5,<4',
+                      'numpy>=1.20,<3',
+                      'scipy>=1.7,<2',
                       'requests>=2,<3',
                       'tqdm>=4,<5',
-                      #'scikit-learn>=0.24,<0.3', pip can't see this for some reason
                       'matplotlib>=3.4,<4',
-                      'pomegranate>=0.13,<1.0'
                       ],  # external packages as dependencies
     extras_require={
         'gui': ['PySide6>=6.6'],

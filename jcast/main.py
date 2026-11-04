@@ -55,15 +55,22 @@ def run_jcast(args) -> None:
         # Make a numpy array of all junction SJC sum counts
         rmats_results.get_junction_count_array()
 
-        ln_sjc, best_mix_model, min_count = model.general_mixture_model(sum_sjc_array=rmats_results.sum_sjc_array)
-        model.plot_general_mixture_model(
-            ln_sjc,
-            best_mix_model,
-            min_count,
-            write_dir=args.out,
-            filename='model',
-            )
-        
+        ln_sjc, mix_params, min_count = model.general_mixture_model(sum_sjc_array=rmats_results.sum_sjc_array)
+
+        if min_count is None:
+            logger.warning(f'Mixture model fit was degenerate; falling back to -r {args.read}.')
+            min_count = args.read
+        else:
+            logger.info('Mixture model parameters (gamma shape, gamma rate, normal mean, normal sd, weights): '
+                        f'{[round(float(p), 3) for p in mix_params]}; modeled min_count {min_count}.')
+            model.plot_general_mixture_model(
+                ln_sjc,
+                mix_params,
+                min_count,
+                write_dir=args.out,
+                filename='model',
+                )
+
         # Gaussian mixture model implementation
         """
         pt, gmm, min_count = model.gaussian_mixture(sum_sjc_array=rmats_results.sum_sjc_array)

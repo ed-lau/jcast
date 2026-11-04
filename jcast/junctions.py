@@ -5,7 +5,6 @@ import logging
 import os.path
 import pandas as pd
 import numpy as np
-import pandas.core.computation.ops
 
 from jcast import params
 
@@ -155,8 +154,7 @@ class RmatsResults(object):
         :return: True
         """
 
-        tot = self.rmats_mxe.append(self.rmats_se).append(self.rmats_ri).append(
-            self.rmats_a5ss).append(self.rmats_a3ss).copy()
+        tot = pd.concat(self.rmats_list, ignore_index=True)
 
         junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
 
@@ -301,7 +299,7 @@ class Junction(object):
             gtf0_start = gtf0.query('feature == "start_codon" & '
                                     'transcript_biotype == "protein_coding" & '
                                             'transcript_support_level <= @tsl').loc[:, 'start'].drop_duplicates()
-        except pd.core.computation.ops.UndefinedVariableError:
+        except pd.errors.UndefinedVariableError:
             gtf0_start = gtf0.query('feature == "start_codon" & '
                                     'transcript_biotype == "protein_coding"').loc[:, 'start'].drop_duplicates()
 
@@ -324,7 +322,7 @@ class Junction(object):
             gtf0_end = gtf0.query('feature == "start_codon" & '
                                   'transcript_biotype == "protein_coding" & '
                                   'transcript_support_level <= @tsl').loc[:, 'end'].drop_duplicates()
-        except pd.core.computation.ops.UndefinedVariableError:
+        except pd.errors.UndefinedVariableError:
             gtf0_end = gtf0.query('feature == "start_codon" & '
                                   'transcript_biotype == "protein_coding"').loc[:, 'end'].drop_duplicates()
 
