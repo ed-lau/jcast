@@ -60,8 +60,12 @@ setup(
                       'matplotlib>=3.4,<4',
                       'pomegranate>=0.13,<1.0'
                       ],  # external packages as dependencies
+    extras_require={
+        'gui': ['PySide6>=6.6'],
+    },
     entry_points={
         'console_scripts': ['jcast=jcast.main:main',
+                            'jcast-gui=jcast.gui:launch_gui',
                             ],
     },
 
