@@ -5,3 +5,10 @@
 
 requires = ["setuptools>=40.8.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "network: needs network access to the EBI Proteins API (deselect with -m 'not network')",
+    "slow: end-to-end runs over the bundled test data (deselect with -m 'not slow')",
+]

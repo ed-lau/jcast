@@ -252,7 +252,7 @@ this. Fix: `pd.concat(self.rmats_list, ignore_index=True)`.
 [jcast/model.py:196](jcast/model.py#L196). Raises `OSError`. Delete the
 calls; they run after plotting, so they never had an effect.
 
-### HIGH-7 — Test suite is broken ✔
+### HIGH-7 — Test suite is broken ✔ — **fixed in PR 1**
 
 6 of 7 tests fail, and `test_model.py` fails at import. Two separate problems
 need fixing:
@@ -264,7 +264,7 @@ need fixing:
 Fix HIGH-8 first so the classes accept plain paths. Then add `logger=` to the
 tests.
 
-### HIGH-8 — `argparse.FileType('r')` for GTF and genome; `.fa.gz` always crashes ✔ *(upgraded)*
+### HIGH-8 — `argparse.FileType('r')` for GTF and genome; `.fa.gz` always crashes ✔ *(upgraded)* — **fixed in PR 1**
 
 [jcast/main.py:362-369](jcast/main.py#L362-L369),
 [jcast/annots.py:88-91](jcast/annots.py#L88-L91). `ReadGenome` calls
@@ -590,6 +590,15 @@ required by the GUI's annotations.
 
 ## 8. Test coverage
 
+> **Update — PR 1 (2026-11-03):** all 18 tests pass. Tests are pytest-style
+> with session fixtures in [tests/conftest.py](tests/conftest.py), which load
+> the chr15 data once. The GTF cache and UniProt cache go to temp dirs, and
+> data paths are anchored at the test file. Network tests carry
+> `@pytest.mark.network` and the golden run carries `@pytest.mark.slow`; run
+> `pytest -m "not network"` offline. Gaps 1, 2 (marking only; network tests
+> still run by default), 5 and 6 below are done. The table and hygiene notes
+> describe the state before PR 1.
+
 | File | Tests | Status (2026-11-03 run) |
 |---|---|---|
 | [tests/test_translate.py](tests/test_translate.py) | 1 | Passes |
@@ -629,7 +638,7 @@ currently can't be installed and run from scratch.
 | # | PR | Theme | Gate |
 |---|---|---|---|
 | 0 | ✅ **Unblock**: Appendix A model, lazy optional imports, `pd.concat`, drop `seaborn-white`, remove pomegranate, bound `gtfparse<2`, `pandas.errors.UndefinedVariableError` | Env | Done 2026-11-03 |
-| 1 | Paths not file handles (HIGH-8), then repair tests (HIGH-7) + golden e2e test | Tests | PR 0 |
+| 1 | ✅ Paths not file handles (HIGH-8), then repair tests (HIGH-7) + golden e2e test | Tests | Done 2026-11-03 |
 | 2 | pandas ≥ 2 exception handling (MED-7), `NaN` gene symbols | Compat | PR 1 |
 | 3 | Soft-masking / IUPAC (HIGH-2/3) | Correctness | PR 1 |
 | 4 | **`tx0`/`tx1` from start/stop codons** (§5.1) — regression test first; changelog entry | Sci-integrity | PRs 1, 2 |

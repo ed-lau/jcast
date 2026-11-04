@@ -368,11 +368,9 @@ def main():
                         )
     parser.add_argument('gtf_file',
                         help='path to Ensembl gtf file',
-                        type=argparse.FileType('r'),
                         )
     parser.add_argument('genome',
-                        help='path to genome file',
-                        type=argparse.FileType('r'),
+                        help='path to genome file (optionally .gz)',
                         )
 
     # parser.add_argument('-n', '--num_threads', help='number of threads for concurrency [default: 6]',
@@ -440,6 +438,10 @@ def main():
 
     # parse all the arguments
     args = parser.parse_args()
+
+    for path in [args.gtf_file, args.genome]:
+        if not os.path.isfile(path):
+            parser.error(f'file not found: {path}')
 
     # Check if the rMATS directory contains the expected files
     for splice_type in args.splice_type:

@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """ Genome annotations. """
-import _io
-import argparse
-import os.path
+import os
 import logging
 import gzip
 
@@ -20,13 +18,13 @@ class ReadAnnotations(object):
 
     def __init__(self,
                  logger: logging.Logger,
-                 path: _io.TextIOWrapper, ):
+                 path: str, ):
         """
         :parrm logger: logger object
         :param path: Path to GTF file
         """
         self.logger = logger
-        self.path = path
+        self.path = os.fspath(path)
 
         self.annot = pd.DataFrame()
 
@@ -42,7 +40,7 @@ class ReadAnnotations(object):
         self.logger.info("Reading GTF file. This could take a minute.")
 
         # Writes cached gtf if it doesn't exist
-        cached_gtf = self.path.name + '.cached'
+        cached_gtf = self.path + '.cached'
 
         if os.path.isfile(cached_gtf) is False:
             self.annot = gtfparse.read_gtf(self.path)
@@ -63,15 +61,15 @@ class ReadGenome(object):
 
     def __init__(self,
                  logger: logging.Logger,
-                 path: _io.TextIOWrapper, ):
+                 path: str, ):
         """
         :param logger: logger object
-        :param path: Path to genome fasta file
+        :param path: Path to genome fasta file, optionally gzipped
 
         """
 
 
-        self.path = path
+        self.path = os.fspath(path)
         self.logger = logger
 
         self.genome = None
@@ -85,13 +83,13 @@ class ReadGenome(object):
         :return:
         """
 
-        if self.path.name.endswith('.gz'):
+        if self.path.endswith('.gz'):
             with gzip.open(self.path, 'rt') as f:
                 self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta'))
                 self.logger.info('Read from zipped genome. \n\n')
 
         else:
-            with open(self.path.name, 'rt') as f:
+            with open(self.path, 'rt') as f:
                 self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta'))
                 self.logger.info('Read from genome. \n\n')
 

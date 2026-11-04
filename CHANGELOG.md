@@ -41,6 +41,13 @@ GUI. Implementation is staged as the patch series described in
   `TODO.md`, and the Quarto sources under `jcast_website/`.
 
 ### Fixed
+- **Gzipped genomes (`.fa.gz`) crashed every run** with `UnicodeDecodeError`.
+  The GTF and genome arguments are now plain paths (no `argparse.FileType`),
+  and missing files are reported by argparse.
+- Test suite repaired and moved to pytest fixtures (18 tests). Adds a chr15
+  end-to-end golden test pinning per-tier outcome counts and output FASTA
+  contents, plus model cutoff tests. Tests no longer write caches into the
+  repository.
 - `-m` on pandas ≥ 2: `DataFrame.append` replaced with `pd.concat`.
 - `-m` on matplotlib ≥ 3.6: removed the `seaborn-white` style call.
 - GTFs without `transcript_support_level` on pandas ≥ 2: catch
@@ -59,7 +66,6 @@ The following items are scheduled for v0.4.0 but live in subsequent focused
 PRs. See [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised) for the full
 table.
 
-- Repair the test suite (constructors now require `logger`).
 - Replace `except TypeError or ValueError:` with the correct tuple form.
 - Treat soft-masked (lowercase) and ambiguous IUPAC bases safely in
   `make_pep`.
@@ -72,8 +78,7 @@ table.
 - Stitch-anchor uniqueness check in `stitch_to_canonical_aa`.
 - Bump Python floor to 3.10.
 - GitHub Actions CI matrix across 3.10–3.13.
-- Drop the dev-only `--g_or_ln` flag; replace `argparse.FileType('r')` with
-  plain string paths.
+- Drop the dev-only `--g_or_ln` flag.
 
 ## [0.3.5a] — 2022-10-28
 
