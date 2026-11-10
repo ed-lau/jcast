@@ -77,6 +77,18 @@ GUI. Implementation is staged as the patch series described in
   `psq_T1.fasta` gains 5 sequences and loses none, and no sequence matching
   an annotated protein is lost. See
   [reports/2026-11-10-utr-exon-trimming-audit.md](reports/2026-11-10-utr-exon-trimming-audit.md).
+- **Retained-intron (RI) slices contained both flanking exons twice (affects
+  output).** rMATS's retained exon already spans the upstream and downstream
+  exons, but JCAST added them again. So every intron-retaining RI sequence
+  was translated from a duplicated sequence, in every release since at least
+  v0.2.6.
+
+  The retained slice is now the retained exon alone. On chr15, 5 of 88 RI
+  junctions change fate, and 58 RI records, mostly in `psq_T4.fasta`, are
+  replaced by correct translations. `psq_T1.fasta` and
+  `psq_canonical.fasta` are unchanged. Re-running is recommended if RI
+  output was used. See
+  [reports/2026-11-10-ri-slice-audit.md](reports/2026-11-10-ri-slice-audit.md).
 - GTFs without `transcript_support_level`: the translation-bound lookup now
   checks for the column instead of relying on exception handling, which
   could pass `None` to `len()` (REVIEW.md MED-7).
@@ -102,8 +114,6 @@ table.
 
 - Treat soft-masked (lowercase) and ambiguous IUPAC bases safely in
   `make_pep`.
-- Build the RI retained-intron slice from the retained exon alone; it
-  currently contains both flanking exons twice (PR 4a2).
 - Take the translation phase from the first retained coding exon (PR 4b).
 - Treat annotated alternative stop codons as natural C-termini, written to
   `psq_T1_alt_cterm.fasta` (PR 4c).

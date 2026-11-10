@@ -291,7 +291,7 @@ No upper bounds, so it currently installs pomegranate 1.1.2 (breaks the
 import), gtfparse 3.0.5 (polars frame; `.to_csv` fails in `read_gtf`), and
 pandas 3.1. It also disagrees with `setup.py` on every bound. See §7.
 
-### HIGH-11 — RI slice 1 contains its flanking exons twice ✔ *(new, 2026-11-10)*
+### HIGH-11 — RI slice 1 contains its flanking exons twice ✔ *(new, 2026-11-10)* — **fixed in PR 4a2**
 
 [jcast/sequences.py:93-95](jcast/sequences.py#L93-L95). The rMATS RI
 `riExonStart_0base..riExonEnd` span (mapped to `alt1`) already runs from the
@@ -302,7 +302,9 @@ appear twice. UNC45A RI 916: 37 + 515 + 324 = 876 nt instead of 515.
 Most RI junctions therefore hit a frame-shifted stop codon and land in T4
 (57 of 88 under PR 4a; 1 is T1). Slice 1 should be `alt1` alone. Found
 during the PR 4a audit
-([report §6](reports/2026-11-10-utr-exon-trimming-audit.md)); fix in PR 4a2.
+([report §6](reports/2026-11-10-utr-exon-trimming-audit.md)). Fixed in PR 4a2
+([audit](reports/2026-11-10-ri-slice-audit.md)): 5 RI fates change, and
+58 duplicated-sequence RI records are replaced, mostly in T4.
 
 ### MED-1 — `sum_sjc` returns `min(SJC, IJC)` ◎
 
@@ -676,7 +678,7 @@ currently can't be installed and run from scratch.
 | 3 | Soft-masking / IUPAC (HIGH-2/3) | Correctness | PR 1 |
 | 4 | ✅ **`tx0`/`tx1` from start/stop codons** (§5.1) — regression test first; changelog entry | Sci-integrity | Done 2026-11-10 |
 | 4a | ✅ **Drop pure-UTR exons**: strand-agnostic `_trim`, `SKIPPED_OUTSIDE_CDS`, second-start retry removed ([audit](reports/2026-11-10-utr-exon-trimming-audit.md)) | Sci-integrity | Done 2026-11-10 |
-| 4a2 | **RI slice composition** (HIGH-11): slice 1 is the retained exon alone. Own audit and golden update. | Sci-integrity | PR 4a |
+| 4a2 | ✅ **RI slice composition** (HIGH-11): slice 1 is the retained exon alone ([audit](reports/2026-11-10-ri-slice-audit.md)) | Sci-integrity | Done 2026-11-10 |
 | 4b | **Phase from the first retained coding exon**, enforcing one-frame translation (tx1 audit §8 item 4). Retire the three-frame fallback (T3, MED-2) if the audit for this PR shows it is no longer reached; otherwise defer its removal. Re-check ANXA2 SE 12446, GTF2A2 SE 11945 and ZFYVE19 SE 6502 (PR 4a audit §5.3). | Sci-integrity | PR 4a2 |
 | 4c | **Alternative C-termini**: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only and write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). Re-run that audit on 4a–4b first. | Sci-integrity | PR 4b |
 | 5 | Stitch anchor checks (MED-3); MED-2 moves to PR 4b | Correctness | PR 1 |

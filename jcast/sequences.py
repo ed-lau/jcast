@@ -90,9 +90,15 @@ class Sequence(object):
         alt2_nt = h.get_local_nuc(genome_index, self.j.chr, self.j.alt2_es, self.j.alt2_ee)
         down_nt = h.get_local_nuc(genome_index, self.j.chr, self.j.down_es, self.j.down_ee)
 
-        if self.j.junction_type in ['MXE', 'SE', 'RI']:
+        if self.j.junction_type in ['MXE', 'SE']:
             self.slice1_nt = anc_nt + alt1_nt + down_nt
             self.slice2_nt = anc_nt + alt2_nt + down_nt
+
+        # 2026-11-10 the rMATS retained exon (alt1) already spans both flanking exons, so it is slice 1 on its own;
+        # previously both flanks were added again. See reports/2026-11-10-ri-slice-audit.md
+        elif self.j.junction_type == 'RI':
+            self.slice1_nt = alt1_nt
+            self.slice2_nt = anc_nt + down_nt
 
         # 2020-07-25 the flanking exons for A5SS and A3SS:
         elif self.j.junction_type == 'A5SS':

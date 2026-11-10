@@ -462,10 +462,15 @@ class Junction(object):
         :return: True if the two slices are identical
         """
 
-        shared = ['anc', 'down'] if self.junction_type in ['MXE', 'SE', 'RI'] else ['anc']
+        if self.junction_type in ['MXE', 'SE']:
+            slice1, slice2 = ['anc', 'alt1', 'down'], ['anc', 'alt2', 'down']
+        elif self.junction_type == 'RI':
+            slice1, slice2 = ['alt1'], ['anc', 'down']
+        else:
+            slice1, slice2 = ['anc', 'alt1'], ['anc', 'alt2']
 
         def exons(names):
             return sorted((getattr(self, n + '_es'), getattr(self, n + '_ee')) for n in names
                           if getattr(self, n + '_es') > 0 and getattr(self, n + '_ee') > 0)
 
-        return exons(shared + ['alt1']) == exons(shared + ['alt2'])
+        return exons(slice1) == exons(slice2)

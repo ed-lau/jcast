@@ -171,3 +171,30 @@ def test_event_outside_cds_is_skipped(gtf, genome, rmats_results, tmp_path, monk
 
     assert fate == fates.SKIPPED_OUTSIDE_CDS
     assert [p.name for p in tmp_path.glob('psq_*.fasta')] == ['psq_canonical.fasta']
+
+
+def test_retained_intron_slices(genome, rmats_results):
+    """ RI slice 1 is the retained exon alone; slice 2 splices the flanking exons (REVIEW.md HIGH-11) """
+
+    junction = _junction(rmats_results.rmats_ri, 916)  # UNC45A, +
+    sequence = Sequence(junction)
+    sequence.make_slice_localgenome(genome.genome)
+
+    chrom = genome.genome['15'].seq
+    retained = chrom[junction.alt1_es - 1:junction.alt1_ee]
+    spliced = chrom[junction.anc_es - 1:junction.anc_ee] + chrom[junction.down_es - 1:junction.down_ee]
+
+    assert (len(sequence.slice1_nt), len(sequence.slice2_nt)) == (515, 37 + 324)
+    assert sequence.slice1_nt.seq == retained
+    assert sequence.slice2_nt.seq == spliced
+
+
+def test_retained_intron_in_utr_is_skipped(gtf, genome, rmats_results, tmp_path, monkeypatch):
+    """ an intron retained upstream of the start codon is outside the CDS; it used to yield a doubled slice """
+
+    monkeypatch.setattr(params, 'use_gtf_only', True)
+    args = argparse.Namespace(out=str(tmp_path), read=1, model=False, canonical=False,
+                              mask='NnXx', qvalue=[0, 1])
+    junction = _junction(rmats_results.rmats_ri, 943)  # FAH, +
+
+    assert main._translate_one(junction, gtf, genome, args, pred_bound=args.read) == fates.SKIPPED_OUTSIDE_CDS

@@ -7,6 +7,7 @@ If an intentional change alters the output, update the expected values below in 
 the difference in CHANGELOG.md. History:
     PR 4 (tx0/tx1 from stop codons) changed 48 fates; reports/2026-11-03-tx1-translation-bounds-audit.md
     PR 4a (trim every exon to the CDS, skip events outside it) changed 103; reports/2026-11-10-utr-exon-trimming-audit.md
+    PR 4a2 (RI slice 1 is the retained exon alone) changed 5; reports/2026-11-10-ri-slice-audit.md
 """
 
 import argparse
@@ -25,24 +26,24 @@ from jcast.sequences import Sequence
 from tests.conftest import HUMAN_GENOME, HUMAN_GTF, RMATS
 
 EXPECTED_FATES = {
-    'FAILURE': 240,
-    'PARTIAL TIER 4': 259,
+    'FAILURE': 238,
+    'PARTIAL TIER 4': 258,
     'SKIPPED: Sequence discarded due to low coverage': 297,
-    'SKIPPED: Splice event lies outside the annotated coding region': 90,
-    'SUCCESS TIER 1': 190,
-    'SUCCESS TIER 2': 27,
-    'SUCCESS TIER 3': 2,
+    'SKIPPED: Splice event lies outside the annotated coding region': 92,
+    'SUCCESS TIER 1': 189,
+    'SUCCESS TIER 2': 28,
+    'SUCCESS TIER 3': 3,
 }
 
 # file name -> (number of records, sha256 of the sorted sequences)
 EXPECTED_FASTA = {
     'psq_T1.fasta': (169, '3d2f81c9ea105384'),
-    'psq_T1_orphan.fasta': (37, 'd62174c09099a806'),
+    'psq_T1_orphan.fasta': (35, '0fb8e039b382505f'),
     'psq_T2.fasta': (22, 'eadd8b473f04ba9b'),
-    'psq_T2_orphan.fasta': (13, '6a697faa2bb1badb'),
-    'psq_T3_orphan.fasta': (4, '95f9daa6904c380d'),
-    'psq_T4.fasta': (217, '6c62940eed1f0bdf'),
-    'psq_T4_orphan.fasta': (75, '96f291a767ac245a'),
+    'psq_T2_orphan.fasta': (14, 'df20330478e800ea'),
+    'psq_T3_orphan.fasta': (6, '5fe79dd925477100'),
+    'psq_T4.fasta': (213, 'b9bd82baeddb99cd'),
+    'psq_T4_orphan.fasta': (74, 'bc75e26e41cff64c'),
     'psq_canonical.fasta': (268, '6b891792cb75c69e'),
 }
 

@@ -373,4 +373,6 @@ The inputs and their checksums are the same as for the
 [tx1 audit, §9](2026-11-03-tx1-translation-bounds-audit.md#9-reproducing-this-audit).
 
 After PR 4a is committed, `--baseline da72a0a` still compares against PR 4.
-The candidate is whatever the working tree holds.
+The candidate is whatever the working tree holds, so to reproduce the
+evidence files here exactly, run the script at commit `89e1a82` (PR 4a).
+Later PRs, starting with PR 4a2's RI change, alter the candidate.
