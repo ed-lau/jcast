@@ -61,7 +61,7 @@ bug is **not silent**, contrary to the first review. Splice events at the
 C-terminal exon are essentially untranslatable (2 of 44 on chr15), and 12 %
 of junctions get spurious trims at start codons. Correcting it changes the
 fate of 48 of 1,105 junctions and recovers 12 additional T1 sequences
-(none lost)
+(none lost). Fixed in PR 4
 ([§5.1](#51--tx1-is-derived-from-start_codon-not-stop_codon--measured)).
 
 ---
@@ -334,7 +334,7 @@ reference volumes. It also serves a **stale cache** if the GTF is replaced
 under the same name, and `to_csv` writes the index as an unnamed extra column.
 Fix: cache in a user dir keyed on (path, size, mtime), with `index=False`.
 
-### MED-7 — `_get_translated_region` exception handling is broken on pandas ≥ 2 ✔ *(expanded)*
+### MED-7 — `_get_translated_region` exception handling is broken on pandas ≥ 2 ✔ *(expanded)* — **fixed in PR 4**
 
 [jcast/junctions.py:300-338](jcast/junctions.py#L300-L338).
 
@@ -440,6 +440,9 @@ JCAST output feeds MS database searches, so silent sequence errors propagate
 into identifications.
 
 ### 5.1 — `tx1` is derived from `start_codon`, not `stop_codon` — measured
+
+> **Status: fixed in PR 4 (2026-11-10).** The implementation reproduces the audited corrected variant
+> exactly: the same fate counts and the same per-file record counts (audit §5.4, §7.3).
 
 > **Full audit:** [reports/2026-11-03-tx1-translation-bounds-audit.md](reports/2026-11-03-tx1-translation-bounds-audit.md),
 > reproducible with `python reports/tx1_audit/audit_tx1.py`. The figures below
@@ -635,8 +638,8 @@ paths), `tearDown` deletes `.cached` files from the repo's data directory,
    caches, and anchor paths at `Path(__file__).parent`.
 2. Mark network tests (`@pytest.mark.network`) and default to
    `params.use_gtf_only` elsewhere.
-3. Regression tests pinning `tx0`/`tx1` for one `+` and one `−` transcript
-   (the gate for §5.1).
+3. ✅ Regression tests pinning `tx0`/`tx1` for one `+` and one `−` transcript
+   (the gate for §5.1). Added in PR 4.
 4. `make_pep` / `get_complementary` with lowercase and IUPAC input.
 5. A model test asserting `min_count` within a tolerance band per dataset,
    plus the degenerate-fit fallback (the stomach dataset is a natural fixture).
@@ -656,9 +659,9 @@ currently can't be installed and run from scratch.
 |---|---|---|---|
 | 0 | ✅ **Unblock**: Appendix A model, lazy optional imports, `pd.concat`, drop `seaborn-white`, remove pomegranate, bound `gtfparse<2`, `pandas.errors.UndefinedVariableError` | Env | Done 2026-11-03 |
 | 1 | ✅ Paths not file handles (HIGH-8), then repair tests (HIGH-7) + golden e2e test | Tests | Done 2026-11-03 |
-| 2 | pandas ≥ 2 exception handling (MED-7), `NaN` gene symbols | Compat | PR 1 |
+| 2 | `NaN` gene symbols (MED-7 was fixed in PR 4) | Compat | PR 1 |
 | 3 | Soft-masking / IUPAC (HIGH-2/3) | Correctness | PR 1 |
-| 4 | **`tx0`/`tx1` from start/stop codons** (§5.1) — regression test first; changelog entry | Sci-integrity | PRs 1, 2 |
+| 4 | ✅ **`tx0`/`tx1` from start/stop codons** (§5.1) — regression test first; changelog entry | Sci-integrity | Done 2026-11-10 |
 | 4a | **Drop pure-UTR exons**: `_trim` removes any exon lying entirely outside [`tx0`, `tx1`] (tx1 audit §8 item 1). Own audit and golden update. | Sci-integrity | PR 4 |
 | 4b | **Phase from the first retained coding exon**, enforcing one-frame translation (tx1 audit §8 item 4). Retire the three-frame fallback (T3, MED-2) if the audit for this PR shows it is no longer reached; otherwise defer its removal. | Sci-integrity | PR 4a |
 | 4c | **Alternative C-termini**: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only and write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). Re-run that audit on 4a + 4b first. | Sci-integrity | PR 4b |

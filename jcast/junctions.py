@@ -293,64 +293,40 @@ class Junction(object):
         #
         tsl = params.tsl_threshold
 
-        # 2020-07-25 now getting the start codons of all protein coding transcripts at TSL threshold
+        # 2020-07-25 now getting the start and stop codons of all protein coding transcripts at TSL threshold
         # 2022-05-21 if there is no TSL, do not look up TSL
-        try:
-            gtf0_start = gtf0.query('feature == "start_codon" & '
-                                    'transcript_biotype == "protein_coding" & '
-                                            'transcript_support_level <= @tsl').loc[:, 'start'].drop_duplicates()
-        except pd.errors.UndefinedVariableError:
-            gtf0_start = gtf0.query('feature == "start_codon" & '
-                                    'transcript_biotype == "protein_coding"').loc[:, 'start'].drop_duplicates()
+        # 2026-11-10 the end of translation now comes from stop codons (it was taken from start codons);
+        #            see reports/2026-11-03-tx1-translation-bounds-audit.md
+        coding = gtf0.query('transcript_biotype == "protein_coding"')
+        if 'transcript_support_level' in coding.columns:
+            coding = coding.query('transcript_support_level <= @tsl')
 
-        except KeyError:
-            gtf0_start = None
+        starts = coding.query('feature == "start_codon"')
+        stops = coding.query('feature == "stop_codon"')
 
         # Number of start sites:
-        self.num_start_codons = len(gtf0_start)
+        self.num_start_codons = len(starts['start'].drop_duplicates())
 
-        # If there are retrievable start site:
-        if self.num_start_codons > 0:
+        #
+        # tx0 and tx1 are the lower and upper genomic bounds of the coding region, as _trim expects.
+        # The start site is chosen by startsite_index from the most upstream (longest transcript);
+        # the end is the most downstream stop codon. GTF codon coordinates are inclusive, so no offset is needed.
+        # Each bound stays None (no trimming on that side) if it cannot be determined.
+        #
+        if self.strand == '+':
+            five_prime = sorted(starts['start'].drop_duplicates())
+            self.tx0 = five_prime[startsite_index] if len(five_prime) > startsite_index else None
+            self.tx1 = int(stops['end'].max()) if len(stops) > 0 else None
 
-            # Get the start site for the longest transcript (lowest coordinates if strand is +)
-            gtf0_start = sorted(gtf0_start, reverse=self.strand == '-')
-
-            self.tx0 = gtf0_start[startsite_index]
-
-        # 2020-07-25 now getting end codons of all protein coding transcripts at TSL threshold
-        try:
-            gtf0_end = gtf0.query('feature == "start_codon" & '
-                                  'transcript_biotype == "protein_coding" & '
-                                  'transcript_support_level <= @tsl').loc[:, 'end'].drop_duplicates()
-        except pd.errors.UndefinedVariableError:
-            gtf0_end = gtf0.query('feature == "start_codon" & '
-                                  'transcript_biotype == "protein_coding"').loc[:, 'end'].drop_duplicates()
-
-        except KeyError:
-            gtf0_end = None
-
-        # Get the longest transcripts (highest coordinates if strand is +)
-        if len(gtf0_end) > 0:
-            self.tx1 = sorted(gtf0_end, reverse=self.strand == '+')[0]
         else:
-            self.tx1 = -1
+            five_prime = sorted(starts['end'].drop_duplicates(), reverse=True)
+            self.tx1 = five_prime[startsite_index] if len(five_prime) > startsite_index else None
+            self.tx0 = int(stops['start'].min()) if len(stops) > 0 else None
 
-        #
-        # by rMATS convention, if strand is -ve
-        # then the upstream is near the end of tx
-        # shift by 2 to get to the end of the end codon.
-        #
-        if self.strand == '-' and self.tx1 > 0 and self.tx0 > 0:
-            self.tx0, self.tx1 = self.tx1, self.tx0
-            self.tx1 += 2
-
-        elif self.strand == '+':
-            self.tx1 += 2
-
-        self.logger.debug('Chosen start codon is {0}; end codon is {1}; tsl is {2}.'.format(self.tx0,
-                                                                                            self.tx1,
-                                                                                            tsl,
-                                                                                            )
+        self.logger.debug('Chosen coding region is {0} to {1}; tsl is {2}.'.format(self.tx0,
+                                                                                     self.tx1,
+                                                                                     tsl,
+                                                                                     )
                           )
         return True
 

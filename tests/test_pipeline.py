@@ -3,8 +3,9 @@
 """ End-to-end golden test: run every chr15 junction through the tiering logic and pin the outcome.
 
 Canonical sequences come from the GTF only and UniProt is stubbed out, so this test needs no network.
-If an intentional change alters the output (e.g. REVIEW.md §5.1, the tx0/tx1 fix), update the expected
-values below in the same commit and record the difference in CHANGELOG.md.
+If an intentional change alters the output, update the expected values below in the same commit and record
+the difference in CHANGELOG.md. History: PR 4 (tx0/tx1 from stop codons) changed 48 fates; see
+reports/2026-11-03-tx1-translation-bounds-audit.md.
 """
 
 import argparse
@@ -23,23 +24,23 @@ from jcast.sequences import Sequence
 from tests.conftest import HUMAN_GENOME, HUMAN_GTF, RMATS
 
 EXPECTED_FATES = {
-    'FAILURE': 360,
-    'PARTIAL TIER 4': 236,
+    'FAILURE': 330,
+    'PARTIAL TIER 4': 261,
     'SKIPPED': 297,
-    'SUCCESS TIER 1': 185,
-    'SUCCESS TIER 2': 25,
+    'SUCCESS TIER 1': 189,
+    'SUCCESS TIER 2': 26,
     'SUCCESS TIER 3': 2,
 }
 
 # file name -> (number of records, sha256 of the sorted sequences)
 EXPECTED_FASTA = {
-    'psq_T1.fasta': (152, '155d0579ce053722'),
-    'psq_T1_orphan.fasta': (48, 'd706539ee9d4af17'),
-    'psq_T2.fasta': (20, '6d3a178e69825516'),
-    'psq_T2_orphan.fasta': (13, '67b969f4bb023a98'),
+    'psq_T1.fasta': (164, '090e7d662cf37d5a'),
+    'psq_T1_orphan.fasta': (46, '63ee71696cc41171'),
+    'psq_T2.fasta': (23, 'e6b15fbd2d8ec97c'),
+    'psq_T2_orphan.fasta': (11, 'b4c3140401bea5f4'),
     'psq_T3_orphan.fasta': (4, '95f9daa6904c380d'),
-    'psq_T4.fasta': (193, '40bceb3dd60b89fa'),
-    'psq_T4_orphan.fasta': (72, '22c1f861b24e8af1'),
+    'psq_T4.fasta': (216, '4961cbef7e40127e'),
+    'psq_T4_orphan.fasta': (81, '3e569d7ec8d2d9cc'),
     'psq_canonical.fasta': (268, '6b891792cb75c69e'),
 }
 

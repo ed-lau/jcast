@@ -44,10 +44,27 @@ GUI. Implementation is staged as the patch series described in
 - **Gzipped genomes (`.fa.gz`) crashed every run** with `UnicodeDecodeError`.
   The GTF and genome arguments are now plain paths (no `argparse.FileType`),
   and missing files are reported by argparse.
-- Test suite repaired and moved to pytest fixtures (18 tests). Adds a chr15
+- Test suite repaired and moved to pytest fixtures. Adds a chr15
   end-to-end golden test pinning per-tier outcome counts and output FASTA
   contents, plus model cutoff tests. Tests no longer write caches into the
   repository.
+- **Translation-end bound taken from start codons (affects output).** The
+  bound used to trim splice events to the coding region was computed from
+  start codons instead of stop codons (since 2020-07). As a result:
+  - splice events spanning a protein's C-terminal exon were almost never
+    translated;
+  - some events containing a start-codon exon yielded 5′-UTR-derived or
+    event-less sequences in lower tiers.
+
+  The bound now uses annotated stop codons, and each side falls back to no
+  trimming when it cannot be determined. On the bundled chr15 data, 48 of
+  1,105 junctions change tier. `psq_T1.fasta` gains 12 sequences and loses
+  none, and `psq_canonical.fasta` is unchanged. Re-running is recommended to
+  recover C-terminal isoforms. See
+  [reports/2026-11-03-tx1-translation-bounds-audit.md](reports/2026-11-03-tx1-translation-bounds-audit.md).
+- GTFs without `transcript_support_level`: the translation-bound lookup now
+  checks for the column instead of relying on exception handling, which
+  could pass `None` to `len()` (REVIEW.md MED-7).
 - `-m` on pandas ≥ 2: `DataFrame.append` replaced with `pd.concat`.
 - `-m` on matplotlib ≥ 3.6: removed the `seaborn-white` style call.
 - GTFs without `transcript_support_level` on pandas ≥ 2: catch
@@ -69,10 +86,10 @@ table.
 - Replace `except TypeError or ValueError:` with the correct tuple form.
 - Treat soft-masked (lowercase) and ambiguous IUPAC bases safely in
   `make_pep`.
-- **Fix `tx0`/`tx1` translation bounds** — `_get_translated_region` queries
-  `start_codon` for the translation-end coordinate. Confirmed: it changes the
-  fate of ~4 % of chr15 junctions (REVIEW.md §5.1). Fix with a regression test
-  and document the output diff.
+- Drop exons lying entirely in the UTR (PR 4a); take the translation phase
+  from the first retained coding exon (PR 4b); treat annotated alternative
+  stop codons as natural C-termini, written to `psq_T1_alt_cterm.fasta`
+  (PR 4c).
 - Output-directory creation guarantee; route the UniProt cache through
   `args.out` (or the platform user-cache dir) instead of CWD.
 - Stitch-anchor uniqueness check in `stitch_to_canonical_aa`.
