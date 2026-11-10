@@ -9,7 +9,7 @@ the difference in CHANGELOG.md. History:
     PR 4a (trim every exon to the CDS, skip events outside it) changed 103; reports/2026-11-10-utr-exon-trimming-audit.md
     PR 4a2 (RI slice 1 is the retained exon alone) changed 5; reports/2026-11-10-ri-slice-audit.md
     PR 4b candidate (per-slice frame, fallback kept) changed 73; reports/2026-11-10-phase-audit.md
-    PR 4b final (three-frame fallback and Tier 3 removed) changed 15 more; same report, §9
+    PR 4b final, 2679edb (three-frame fallback and Tier 3 removed) changed 15 more; same report, §9
 """
 
 import argparse

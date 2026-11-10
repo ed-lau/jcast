@@ -406,7 +406,7 @@ The inputs are the same as for the
 | Commit | Content |
 |---|---|
 | `9e27815` | Candidate: per-slice frames plus the two audit switches, defaulting to the old behaviour. Golden test = `fallback` variant. |
-| The next commit on `v0.4.0-hardening` (final PR 4b) | Removes `Sequence.translate`'s three-frame loop and its `use_phase` argument, the T3 path in `_translate_one`, `fates.TIER3`, both switches, and the T3 entry in the GUI tier counters. Golden test = `one_frame` variant. |
+| `2679edb` (final PR 4b) | Removes `Sequence.translate`'s three-frame loop and its `use_phase` argument, the T3 path in `_translate_one`, `fates.TIER3`, both switches, and the T3 entry in the GUI tier counters. Golden test = `one_frame` variant. |
 
 **Regression tests,** each confirmed to fail on the code before the change:
 

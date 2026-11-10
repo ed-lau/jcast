@@ -22,7 +22,7 @@ network.
 | [tx0/tx1 translation bounds](2026-11-03-tx1-translation-bounds-audit.md) | 4 | Implemented in `da72a0a` | `a555446` (`python reports/tx1_audit/audit_tx1.py`) |
 | [Trimming to the coding region (UTR exons)](2026-11-10-utr-exon-trimming-audit.md) | 4a | Implemented in `89e1a82` | `89e1a82` (`python reports/utr_audit/audit_utr.py`) |
 | [RI retained-intron slices](2026-11-10-ri-slice-audit.md) | 4a2 | Implemented in `bc7d894` | `bc7d894` (`python reports/ri_audit/audit_ri.py`) |
-| [Reading frame and three-frame fallback](2026-11-10-phase-audit.md) | 4b | Candidate `9e27815`; final in the next commit | four variants at `9e27815`; final check with `--final` |
+| [Reading frame and three-frame fallback](2026-11-10-phase-audit.md) | 4b | Candidate `9e27815`; final `2679edb` | four variants at `9e27815`; final check with `--final` |
 | [Alternative C-termini](2026-11-10-alt-cterm-tiering-audit.md) | 4c | **Planned.** Measured on PR 4 alone, so re-run on PR 4b before implementing. Scope extended to N-termini. | `a555446` (`python reports/cterm_audit/audit_cterm.py`) |
 
 Each script compares a baseline commit with the working tree, or patches
@@ -71,7 +71,7 @@ every output file's contents. Its values at each stage:
 | PR 4a: trim to the coding region | `89e1a82` | 240 | 259 | 297 | 90 | 190 | 27 | 2 | 169 |
 | PR 4a2: RI slices | `bc7d894` | 238 | 258 | 297 | 92 | 189 | 28 | 3 | 169 |
 | PR 4b candidate: per-slice frames, fallback kept | `9e27815` | 165 | 289 | 297 | 92 | 214 | 45 | 3 | 170 |
-| PR 4b final: fallback and T3 removed | next commit | 157 | 302 | 297 | 92 | 212 | 45 | – | 170 |
+| PR 4b final: fallback and T3 removed | `2679edb` | 157 | 302 | 297 | 92 | 212 | 45 | – | 170 |
 
 `psq_canonical.fasta` has 268 records at every stage. At no stage is a
 `psq_T1.fasta` sequence matching an annotated protein lost.
