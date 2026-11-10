@@ -245,7 +245,7 @@ def _translate_one(junction: Junction,
             sequence.write_slices(out_dir=args.out,
                                   suffix='T1',
                                   )
-            return fates.TIER1.format(sequence.j.phase,
+            return fates.TIER1.format(sequence.j.phase_label,
                                       sequence.translated_phase,
                                       )
 
@@ -269,14 +269,14 @@ def _translate_one(junction: Junction,
                 suffix='T2',
             )
 
-            return fates.TIER2.format(sequence.j.phase,
+            return fates.TIER2.format(sequence.j.phase_label,
                                       sequence.translated_phase,
                                       )
 
     #
     # Tier 3 - retrieved phase is different from PTC-free frame.
     #
-    else:
+    elif params.three_frame_fallback:
         sequence.translate(use_phase=False)
         # after tier 3 translation, check if both slices are good
         if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
@@ -288,7 +288,7 @@ def _translate_one(junction: Junction,
                                   suffix='T3',
                                   )
 
-            return fates.TIER3.format(sequence.j.phase,
+            return fates.TIER3.format(sequence.j.phase_label,
                                       sequence.translated_phase,
                                       )
 

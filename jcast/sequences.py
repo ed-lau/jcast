@@ -51,7 +51,8 @@ class Sequence(object):
         self.gtf_canonical_transcript = None
         self.gtf_alternative_transcripts = None
 
-        self.translated_phase = -1                  # Phase that was actually used for translation.
+        self.translated_phase = -1                  # Phase that was actually used for translation (for logging).
+        self.translated_phases = [-1, -1]           # Phase actually used for each slice
         self.translated_strand = self.j.strand    # Strand that was actually used for translation
 
     def __repr__(self):
@@ -138,11 +139,16 @@ class Sequence(object):
         :return: True
         """
 
-        if self.j.phase in [0, 1, 2] and use_phase:
-            self.slice1_aa = h.make_pep(self.slice1_nt.seq, self.j.strand, self.j.phase, terminate=True)
-            self.slice2_aa = h.make_pep(self.slice2_nt.seq, self.j.strand, self.j.phase, terminate=True)
+        phases = self.j.slice_phases
+
+        # each slice in its own annotated frame
+        if use_phase and (all(p in [0, 1, 2] for p in phases) or not params.three_frame_fallback):
+            self.slice1_aa, self.slice2_aa = [h.make_pep(nt.seq, self.j.strand, p, terminate=True)
+                                              if p in [0, 1, 2] else ''
+                                              for nt, p in zip([self.slice1_nt, self.slice2_nt], phases)]
             self.logger.debug('Used retrieved phase for {0} {1}:'.format(self.j.name, self.j.gene_symbol))
-            self.translated_phase = self.j.phase
+            self.translated_phases = [p if p in [0, 1, 2] else -1 for p in phases]
+            self.translated_phase = self.j.phase_label
 
         else:
             self.logger.info('Using non-phase translation for {0} {1}'.format(self.j.name, self.j.gene_symbol))
@@ -152,6 +158,7 @@ class Sequence(object):
                     self.slice2_aa = h.make_pep(self.slice2_nt.seq, self.j.strand, i, terminate=True)
                     if len(self.slice1_aa) > 0 and len(self.slice2_aa) > 0:
                         self.translated_phase = i
+                        self.translated_phases = [i, i]
                     else:
                         self.slice1_aa = ''
                         self.slice2_aa = ''
@@ -204,10 +211,11 @@ class Sequence(object):
             nt_to_translate = None
 
         # translate without terminating at stop codon
-        seq = h.make_pep(nt_to_translate.seq, self.j.strand, self.j.phase, terminate=False)
+        phase = self.j.slice_phases[slice_to_translate - 1]
+        seq = h.make_pep(nt_to_translate.seq, self.j.strand, phase, terminate=False) if phase in [0, 1, 2] else ''
 
         if len(seq) > 0:
-            self.translated_phase = self.j.phase
+            self.translated_phases[slice_to_translate - 1] = phase
             force_translated_aa = seq
 
         else:
@@ -590,7 +598,7 @@ class Sequence(object):
                                            self.j.alt1_es,
                                            self.j.alt1_ee,
                                            self.translated_strand,
-                                           self.translated_phase,
+                                           self.translated_phases[i],
                                            self.j.sum_sjc,
                                            suffix,
                                        ),
@@ -617,7 +625,7 @@ class Sequence(object):
                     self.j.alt1_es,
                     self.j.alt1_ee,
                     self.translated_strand,
-                    self.translated_phase,
+                    self.translated_phases[i],
                     self.j.sum_sjc,
                     suffix,
                 )

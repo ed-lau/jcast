@@ -6,6 +6,8 @@ import argparse
 import types
 
 import pytest
+from Bio import SeqIO
+from Bio.Seq import Seq
 
 from jcast import fates, main, params
 from jcast.junctions import Junction
@@ -198,3 +200,57 @@ def test_retained_intron_in_utr_is_skipped(gtf, genome, rmats_results, tmp_path,
     junction = _junction(rmats_results.rmats_ri, 943)  # FAH, +
 
     assert main._translate_one(junction, gtf, genome, args, pred_bound=args.read) == fates.SKIPPED_OUTSIDE_CDS
+
+
+def _annotated_protein(gtf, genome, transcript_name):
+    """ the protein encoded by an annotated transcript, translated from its CDS rows """
+
+    cds = gtf.annot.query('transcript_name == @transcript_name & feature == "CDS"').sort_values('start')
+    chrom = genome.genome[str(cds['seqname'].iloc[0])].seq
+    nt = ''.join(str(chrom[s - 1:e]) for s, e in zip(cds['start'], cds['end']))
+    if cds['strand'].iloc[0] == '-':
+        nt, frame = str(Seq(nt).reverse_complement()), int(cds['frame'].iloc[-1])
+    else:
+        frame = int(cds['frame'].iloc[0])
+    nt = nt[frame:]
+    return str(Seq(nt[:len(nt) - len(nt) % 3]).translate()).rstrip('*')
+
+
+def _translate(junction, gtf, genome, out_dir, monkeypatch):
+    monkeypatch.setattr(params, 'use_gtf_only', True)
+    args = argparse.Namespace(out=str(out_dir), read=1, model=False, canonical=False,
+                              mask='NnXx', qvalue=[0, 1])
+    return main._translate_one(junction, gtf, genome, args, pred_bound=args.read)
+
+
+def test_phase_unchanged_where_it_was_found(gtf, rmats_results):
+    """ the per-slice lookup returns the frame the exact-match lookup found (PR 4b audit §5.1) """
+
+    junction = _junction(rmats_results.rmats_se, 5739)  # MFGE8, -
+    junction.trim_cds(gtf)
+    junction.get_translated_phase(gtf)
+
+    assert junction.slice_phases == (2, 2)
+    assert junction.phase == 2
+
+
+def test_per_slice_phase(gtf, genome, rmats_results, tmp_path, monkeypatch):
+    """ slices that start in different exons are each read in their own frame (REVIEW.md PR 4b) """
+
+    junction = _junction(rmats_results.rmats_se, 11945)  # GTF2A2, -: 5' UTR exon removed, slices start apart
+    fate = _translate(junction, gtf, genome, tmp_path, monkeypatch)
+
+    assert junction.slice_phases == (0, 2)
+    assert fate.startswith('SUCCESS TIER 2')
+
+
+def test_per_slice_phase_reconstructs_annotated_isoform(gtf, genome, rmats_results, tmp_path, monkeypatch):
+    """ LINS1 MXE 449 slice 2, read in its own frame, is exactly the annotated LINS1-207 protein """
+
+    junction = _junction(rmats_results.rmats_mxe, 449)
+    fate = _translate(junction, gtf, genome, tmp_path, monkeypatch)
+
+    assert junction.slice_phases == (2, 0)
+    assert fate.startswith('SUCCESS TIER 2')
+    written = {str(r.seq) for r in SeqIO.parse(tmp_path / 'psq_T2.fasta', 'fasta')}
+    assert _annotated_protein(gtf, genome, 'LINS1-207') in written

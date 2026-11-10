@@ -22,6 +22,17 @@ ptc_threshold = 0.33  # the PTC slice should be at least this portion of the lon
 
 
 """
+Three-frame fallback (PR 4b audit switch; to be removed or kept according to that audit)
+
+When a slice has no annotated reading frame, or does not translate in it, try all three frames (Tier 3).
+"""
+three_frame_fallback = True
+
+# PR 4b audit switch: read a frame for a slice that lacks the gene's start codon when the other slice contains it
+frame_for_start_less_slice = True
+
+
+"""
 Canonical transcript recognition
 
 Canonical can be chosen from the GTF (longest protein coding sequence) alone 

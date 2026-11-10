@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """ Methods that concern splice junctions - getting their coordinates, transcription starts/ends, phases. """
+import collections
 import logging
 import os.path
 import pandas as pd
@@ -225,6 +226,8 @@ class Junction(object):
         self.tx1 = None
         self.tx0 = None
         self.phase = None
+        self.slice_phases = (None, None)
+        self.phase_ambiguous = False
         self.num_start_codons = 0
 
         self.logger = logging.getLogger('jcast')
@@ -332,73 +335,87 @@ class Junction(object):
 
     def get_translated_phase(self, gtf):
         """
-        Get the annotated translation phase from the GTF file
-        :param gtf:  genome annotation
-        :return:
-        """
+        Get the annotated translation phase of each slice from the GTF file. Call after trim_cds.
 
-        """
-        Get translation phase from GTF file.
-        If there is no phase found in the GTF, use phase -1 for now.
-        # TODO: look more closely into GTF file, or try translating from all frames
+        The phase is read at the 5' end of each slice (lowest coordinate on +, highest on -), i.e. at the start
+        of its first retained exon, from the protein-coding CDS rows covering that position: first those at
+        the TSL threshold used for the coding bounds, then any TSL. Where transcripts disagree on the frame,
+        the most frequent is used and phase_ambiguous is set. A slice whose 5' end no CDS covers gets None.
+
+        2026-11-10 replaces a lookup that required one fixed exon (e.g. the anchor) to match a CDS row exactly
+        at both ends, which failed whenever that exon had been trimmed or removed, and which assumed both slices
+        start in the same exon. See reports/2026-11-10-phase-audit.md
+
+        :param gtf:  genome annotation
+        :return: None
         """
 
         # Subset the gtf file
         gtf0 = gtf.annot.query('gene_id == @self.gene_id')
+        coding = gtf0.query('feature == "CDS" & transcript_biotype == "protein_coding"')
 
-        # Select the anchor exon from CDS and get the frame
-        # Note 2018-03-24 this is probably not quite right. I think you should find out whether the anchor
-        # is really the one that determines the phase here.
+        tsl = params.tsl_threshold
+        supported = coding
+        if 'transcript_support_level' in coding.columns:
+            supported = coding.query('transcript_support_level <= @tsl')
 
-        ph0, ph1 = None, None
+        phases, self.phase_ambiguous = [], False
+        for exons in self.slice_exons():
+            if not exons:
+                phases.append(None)
+                continue
 
-        # 2018-03-24: First define the exon we are looking for.
-        if self.junction_type in ['MXE', 'SE', 'RI']:
-            if self.strand == '+':
-                ph0, ph1 = self.anc_es, self.anc_ee
-            elif self.strand == '-':
-                ph0, ph1 = self.down_es, self.down_ee
+            five_prime = min(es for es, ee in exons) if self.strand == '+' else max(ee for es, ee in exons)
+            frames = self._frames_at(supported, five_prime) or self._frames_at(coding, five_prime)
+            if not frames:
+                phases.append(None)
+                continue
 
-        elif self.junction_type == 'A5SS':
-            if self.strand == '+':
-                ph0, ph1 = self.alt1_es, self.alt1_ee  # Might have to search also for alt2
-            elif self.strand == '-':
-                #
-                # 2020-07-25 changed to using the alt1 to retrieve phase because it is also upstream
-                # ph0, ph1 = self.anc_es, self.anc_ee #
-                ph0, ph1 = self.alt1_es, self.alt1_ee
+            counts = collections.Counter(frames)
+            self.phase_ambiguous = self.phase_ambiguous or len(counts) > 1
+            phases.append(sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[0][0])
 
-        elif self.junction_type == 'A3SS':
-            if self.strand == '+':
-                ph0, ph1 = self.anc_es, self.anc_ee
-            elif self.strand == '-':
-                #
-                # 2020-07-25 changed to using the anc to retrieve phase because it is also upstream
-                # ph0, ph1 = self.alt1_es, self.alt1_ee
-                ph0, ph1 = self.anc_es, self.anc_ee
+        # PR 4b audit switch: a slice without the start codon that the other slice contains gets no frame
+        start = self.tx0 if self.strand == '+' else self.tx1
+        if not params.frame_for_start_less_slice and start is not None:
+            has_start = [any(es <= start <= ee for es, ee in exons) for exons in self.slice_exons()]
+            if has_start[0] != has_start[1]:
+                phases = [p if s else None for p, s in zip(phases, has_start)]
 
-        self.logger.info('Anchor exon start {0} Anchor exon end {1}'.format(ph0,
-                                                                            ph1))
+        self.slice_phases = tuple(phases)
 
-        # Get the frame of that coding exon from GTF.
-        coding_exon = gtf0.query('start == @ph0').\
-            query('end == @ph1').query('feature == "CDS" & transcript_biotype == "protein_coding"')
-            # 2020-07-25 added protein coding filter in case a nonsense-mediated decay CDS comes first
-
-
-        # If phases retrieved, get the first value
-        if len(coding_exon) > 0:
-            self.phase = int([x for x in coding_exon.loc[:, 'frame'].iloc if x != '.'][0])
-            # TODO: find the canonical transcript
-
-        else:
-            self.phase = None     # dummy value to trigger trying different phases for longest translation
-            # TODO: handle phase retrieval failure in a tidier manner
-
+        # a single phase only when both slices share it
+        self.phase = phases[0] if phases[0] == phases[1] else None
 
         self.logger.info('Transcription start: {0} Transcript end: {1}'.format(self.tx0,
                                                                                self.tx1))
-        self.logger.info('Retrieved phase: {0}'.format(self.phase))
+        self.logger.info('Retrieved phases: {0}'.format(self.slice_phases))
+
+    def _frames_at(self, cds, position: int) -> list:
+        """
+        The reading frame at a genomic position, from every CDS row covering it
+
+        GTF frame is the number of bases to skip from the 5' end of the CDS row to the first complete codon,
+        so the frame at a position inside the row is offset by its distance from that end.
+
+        :param cds: CDS rows of the gene
+        :param position: genomic position, the 5' end of a slice
+        :return: list of frames (0, 1 or 2), one per covering CDS row
+        """
+
+        rows = cds[(cds['start'] <= position) & (cds['end'] >= position)]
+        frames = rows['frame'].astype(int)
+
+        if self.strand == '+':
+            return [int(x) for x in (rows['start'] + frames - position) % 3]
+        return [int(x) for x in (frames - (rows['end'] - position)) % 3]
+
+    @property
+    def phase_label(self) -> str:
+        """ the retrieved phase for logging: one value, or slice1/slice2 when the slices differ """
+        if self.slice_phases[0] == self.slice_phases[1]:
+            return str(self.slice_phases[0])
+        return '{0}/{1}'.format(*self.slice_phases)
 
     def trim_cds(self, gtf):
         """
@@ -462,6 +479,17 @@ class Junction(object):
         :return: True if the two slices are identical
         """
 
+        slice1, slice2 = self.slice_exons()
+        return slice1 == slice2
+
+    def slice_exons(self):
+        """
+        The retained exons of each slice as sorted (start, end) tuples, composed as in
+        Sequence.make_slice_localgenome.
+
+        :return: (slice 1 exons, slice 2 exons)
+        """
+
         if self.junction_type in ['MXE', 'SE']:
             slice1, slice2 = ['anc', 'alt1', 'down'], ['anc', 'alt2', 'down']
         elif self.junction_type == 'RI':
@@ -473,4 +501,4 @@ class Junction(object):
             return sorted((getattr(self, n + '_es'), getattr(self, n + '_ee')) for n in names
                           if getattr(self, n + '_es') > 0 and getattr(self, n + '_ee') > 0)
 
-        return exons(slice1) == exons(slice2)
+        return exons(slice1), exons(slice2)

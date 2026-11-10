@@ -1,0 +1,196 @@
+baseline commit: bc7d894; junctions: 1105
+
+fate counts: baseline
+    238  FAILURE
+    258  PARTIAL TIER 4
+    297  SKIPPED: Sequence discarded due to low coverage
+     92  SKIPPED: Splice event lies outside the annotated coding region
+    189  SUCCESS TIER 1
+     28  SUCCESS TIER 2
+      3  SUCCESS TIER 3
+
+fate counts: fallback
+    165  FAILURE
+    289  PARTIAL TIER 4
+    297  SKIPPED: Sequence discarded due to low coverage
+     92  SKIPPED: Splice event lies outside the annotated coding region
+    214  SUCCESS TIER 1
+     45  SUCCESS TIER 2
+      3  SUCCESS TIER 3
+
+fate counts: one_frame
+    157  FAILURE
+    302  PARTIAL TIER 4
+    297  SKIPPED: Sequence discarded due to low coverage
+     92  SKIPPED: Splice event lies outside the annotated coding region
+    212  SUCCESS TIER 1
+     45  SUCCESS TIER 2
+
+fate counts: no_startless
+    160  FAILURE
+    332  PARTIAL TIER 4
+    297  SKIPPED: Sequence discarded due to low coverage
+     92  SKIPPED: Splice event lies outside the annotated coding region
+    192  SUCCESS TIER 1
+     32  SUCCESS TIER 2
+
+fate transitions baseline -> fallback
+     31  FAILURE | PARTIAL TIER 4
+     25  FAILURE | SUCCESS TIER 1
+     17  FAILURE | SUCCESS TIER 2
+
+fate transitions baseline -> one_frame
+     41  FAILURE | PARTIAL TIER 4
+     25  FAILURE | SUCCESS TIER 1
+     17  FAILURE | SUCCESS TIER 2
+      2  SUCCESS TIER 1 | FAILURE
+      3  SUCCESS TIER 3 | PARTIAL TIER 4
+
+fate transitions baseline -> no_startless
+     70  FAILURE | PARTIAL TIER 4
+      5  FAILURE | SUCCESS TIER 1
+      5  FAILURE | SUCCESS TIER 2
+      2  SUCCESS TIER 1 | FAILURE
+      1  SUCCESS TIER 2 | PARTIAL TIER 4
+      3  SUCCESS TIER 3 | PARTIAL TIER 4
+
+fate transitions fallback -> one_frame
+     10  FAILURE | PARTIAL TIER 4
+      2  SUCCESS TIER 1 | FAILURE
+      3  SUCCESS TIER 3 | PARTIAL TIER 4
+
+fate transitions one_frame -> no_startless
+      3  PARTIAL TIER 4 | FAILURE
+     20  SUCCESS TIER 1 | PARTIAL TIER 4
+     13  SUCCESS TIER 2 | PARTIAL TIER 4
+
+candidate phase availability (junctions not skipped) | baseline had a phase
+     17  both, different | False
+     75  both, same | False
+    532  both, same | True
+     80  neither slice | False
+     12  one slice | False
+
+baseline phase available and candidate slice-1 phase available: 532; they differ: 0 ()
+
+candidate phase ambiguous (transcripts disagree): 2
+
+slice with no annotated frame: does the gene have any protein-coding CDS?
+     41  neither slice | False
+     39  neither slice | True
+     12  one slice | True
+
+annotated start codon contained in (junctions not skipped) | baseline fate | one_frame fate
+      5  both slices | FAILURE | PARTIAL TIER 4
+      2  both slices | SUCCESS TIER 3 | PARTIAL TIER 4
+     29  neither slice | FAILURE | PARTIAL TIER 4
+      5  neither slice | FAILURE | SUCCESS TIER 1
+      5  neither slice | FAILURE | SUCCESS TIER 2
+      1  neither slice | SUCCESS TIER 3 | PARTIAL TIER 4
+      2  no start codon annotated | SUCCESS TIER 1 | FAILURE
+      7  one slice only | FAILURE | PARTIAL TIER 4
+     20  one slice only | FAILURE | SUCCESS TIER 1
+     12  one slice only | FAILURE | SUCCESS TIER 2
+
+annotated start codon contained in, all junctions not skipped (one_frame fate)
+     18  both slices | FAILURE
+     47  both slices | PARTIAL TIER 4
+     29  both slices | SUCCESS TIER 1
+      6  both slices | SUCCESS TIER 2
+     88  neither slice | FAILURE
+    246  neither slice | PARTIAL TIER 4
+    159  neither slice | SUCCESS TIER 1
+     26  neither slice | SUCCESS TIER 2
+     49  no start codon annotated | FAILURE
+      2  no start codon annotated | PARTIAL TIER 4
+      4  no start codon annotated | SUCCESS TIER 1
+      2  one slice only | FAILURE
+      7  one slice only | PARTIAL TIER 4
+     20  one slice only | SUCCESS TIER 1
+     13  one slice only | SUCCESS TIER 2
+
+three-frame translation used (baseline, fallback)
+    210  False | False
+     47  True | False
+    459  True | True
+
+fallback: fate of junctions that used three-frame translation
+    165  FAILURE
+    289  PARTIAL TIER 4
+      2  SUCCESS TIER 1
+      3  SUCCESS TIER 3
+
+FASTA records (file | baseline | fallback | one_frame)
+      1  psq_T1.fasta | 169 | 170 | 170 | 169
+      1  psq_T1_orphan.fasta | 35 | 39 | 36 | 32
+      1  psq_T2.fasta | 22 | 23 | 23 | 22
+      1  psq_T2_orphan.fasta | 14 | 16 | 16 | 14
+      1  psq_T3_orphan.fasta | 6 | 6 | 0 | 0
+      1  psq_T4.fasta | 213 | 232 | 235 | 238
+      1  psq_T4_orphan.fasta | 74 | 82 | 82 | 87
+      1  psq_canonical.fasta | 268 | 268 | 268 | 267
+
+FASTA diff vs baseline (variant | file | change | annotation)
+      1  fallback | psq_T1.fasta | gained | annotated protein_coding
+      1  fallback | psq_T1_orphan.fasta | gained | annotated protein_coding
+      3  fallback | psq_T1_orphan.fasta | gained | no annotated match
+      1  fallback | psq_T2.fasta | gained | annotated protein_coding
+      3  fallback | psq_T2_orphan.fasta | gained | no annotated match
+      1  fallback | psq_T2_orphan.fasta | lost | no annotated match
+      3  fallback | psq_T4.fasta | gained | annotated nonsense_mediated_decay
+      5  fallback | psq_T4.fasta | gained | annotated protein_coding
+     11  fallback | psq_T4.fasta | gained | no annotated match
+      3  fallback | psq_T4_orphan.fasta | gained | annotated nonsense_mediated_decay
+      5  fallback | psq_T4_orphan.fasta | gained | no annotated match
+      3  no_startless | psq_T1_orphan.fasta | lost | no annotated match
+      2  no_startless | psq_T2_orphan.fasta | gained | no annotated match
+      2  no_startless | psq_T2_orphan.fasta | lost | no annotated match
+      6  no_startless | psq_T3_orphan.fasta | lost | no annotated match
+      4  no_startless | psq_T4.fasta | gained | annotated nonsense_mediated_decay
+      8  no_startless | psq_T4.fasta | gained | annotated protein_coding
+     13  no_startless | psq_T4.fasta | gained | no annotated match
+      3  no_startless | psq_T4_orphan.fasta | gained | annotated nonsense_mediated_decay
+      1  no_startless | psq_T4_orphan.fasta | gained | annotated protein_coding
+      9  no_startless | psq_T4_orphan.fasta | gained | no annotated match
+      1  no_startless | psq_canonical.fasta | lost | annotated protein_coding
+      1  one_frame | psq_T1.fasta | gained | annotated protein_coding
+      1  one_frame | psq_T1_orphan.fasta | gained | annotated protein_coding
+      3  one_frame | psq_T1_orphan.fasta | gained | no annotated match
+      3  one_frame | psq_T1_orphan.fasta | lost | no annotated match
+      1  one_frame | psq_T2.fasta | gained | annotated protein_coding
+      3  one_frame | psq_T2_orphan.fasta | gained | no annotated match
+      1  one_frame | psq_T2_orphan.fasta | lost | no annotated match
+      6  one_frame | psq_T3_orphan.fasta | lost | no annotated match
+      4  one_frame | psq_T4.fasta | gained | annotated nonsense_mediated_decay
+      5  one_frame | psq_T4.fasta | gained | annotated protein_coding
+     13  one_frame | psq_T4.fasta | gained | no annotated match
+      3  one_frame | psq_T4_orphan.fasta | gained | annotated nonsense_mediated_decay
+      5  one_frame | psq_T4_orphan.fasta | gained | no annotated match
+
+all records by annotation, T1/T2 files: baseline
+     67  psq_T1.fasta | annotated protein_coding
+    102  psq_T1.fasta | no annotated match
+      1  psq_T2.fasta | annotated nonsense_mediated_decay
+      2  psq_T2.fasta | annotated protein_coding
+     19  psq_T2.fasta | no annotated match
+
+all records by annotation, T1/T2 files: fallback
+     68  psq_T1.fasta | annotated protein_coding
+    102  psq_T1.fasta | no annotated match
+      1  psq_T2.fasta | annotated nonsense_mediated_decay
+      3  psq_T2.fasta | annotated protein_coding
+     19  psq_T2.fasta | no annotated match
+
+all records by annotation, T1/T2 files: one_frame
+     68  psq_T1.fasta | annotated protein_coding
+    102  psq_T1.fasta | no annotated match
+      1  psq_T2.fasta | annotated nonsense_mediated_decay
+      3  psq_T2.fasta | annotated protein_coding
+     19  psq_T2.fasta | no annotated match
+
+all records by annotation, T1/T2 files: no_startless
+     67  psq_T1.fasta | annotated protein_coding
+    102  psq_T1.fasta | no annotated match
+      1  psq_T2.fasta | annotated nonsense_mediated_decay
+      2  psq_T2.fasta | annotated protein_coding
+     19  psq_T2.fasta | no annotated match
