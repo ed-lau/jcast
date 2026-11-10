@@ -136,15 +136,36 @@ coordinates, translation strand, frame, and tier (see below).
 | File | Contents |
 |---|---|
 | `psq_canonical.fasta` | Sequences identical to the canonical SwissProt/GTF protein for the gene. Headers follow UniProt convention. |
-| `psq_T1.fasta` | **Tier 1.** Both slices translate in the GTF-annotated frame, no PTC, no frameshift, both successfully stitched into the canonical full-length protein. |
-| `psq_T2.fasta` | **Tier 2.** Same as T1 except a possible frameshift (slice-length difference not a multiple of 3). |
-| `psq_T3.fasta` | **Tier 3.** Clean translation, stitched into canonical, but using a frame different from the GTF annotation. Should be rare. |
-| `psq_T4.fasta` | **Tier 4.** One slice runs into a PTC; the other is force-translated through the stop codon (kept only if it is at least `params.ptc_threshold` × the good slice). **Treat T4 with caution — exclude from MS searches unless you have a specific reason to include it.** |
-| `psq_T#_orphan.fasta` | Fragments that translated cleanly but could not be stitched back to the canonical sequence. **Treat orphans with caution.** |
+| `psq_T1.fasta` | **Tier 1.** Both slices translate in their annotated reading frames with no premature stop codon (PTC). The slice lengths differ by a multiple of 3. Both slices are stitched into the canonical full-length protein. |
+| `psq_T2.fasta` | **Tier 2.** As T1, but the slice lengths differ by a non-multiple of 3 (frameshift). A slice that cannot be stitched at both ends may be joined at its N-terminus only. |
+| `psq_T4.fasta` | **Tier 4.** Only one slice translates; the other hits a PTC. The PTC slice is translated *up to* its stop codon, giving a truncated product, which is joined to the canonical at its N-terminus. If it is shorter than `params.ptc_threshold` × the other slice, or cannot be joined, it goes to `psq_T4_orphan.fasta`. **Treat T4 with caution — exclude from MS searches unless you have a specific reason to include it.** |
+| `psq_T#_orphan.fasta` | Slices of that tier that translated but could not be stitched back to the canonical sequence. **Treat orphans with caution.** |
+
+There is no Tier 3 from v0.4.0. It re-translated in a guessed frame when the
+annotated frame failed, and was removed together with the three-frame
+fallback (see [CHANGELOG.md](CHANGELOG.md)).
+
+How a junction is processed (v0.4.0):
+
+1. **Trimming.** Every exon is trimmed to the gene's annotated coding region.
+   This runs from the most upstream start codon to the most distal stop
+   codon of protein-coding transcripts with transcript support level ≤
+   `params.tsl_threshold`. Exons entirely in the UTR are removed.
+2. **Skip if outside the coding region.** If the splice event lies entirely
+   outside the coding region, both slices are identical after trimming. The
+   junction is skipped (`SKIPPED. Splice event lies outside the annotated
+   coding region.`), and the canonical is still written with `-c`.
+3. **Reading frame.** Each slice is read in its own frame, taken from the
+   annotated coding sequence at the slice's 5′ end. A slice with no annotated
+   frame is not translated, for example in a lncRNA or a pseudogene. Frames
+   are never guessed.
+
+Skipped and failed junctions write no isoform sequences. Each junction's
+outcome (fate) is written to the log.
 
 For a typical proteomics workflow, append `psq_T1.fasta` and
 `psq_canonical.fasta` to a base SwissProt database and search as usual.
-Including T2–T4 and orphans is possible but increases false-discovery risk.
+Including T2, T4 and orphans is possible but increases false-discovery risk.
 
 ### Header format
 
@@ -165,9 +186,9 @@ The `|`-separated fields are:
 7. Chromosome.
 8. Anchor exon `start:end`.
 9. Alternative exon `start:end`.
-10. Translated strand and phase (e.g. `+2`).
+10. Translated strand and that slice's phase (e.g. `+2`).
 11. Skipped-junction read count, prefixed with `r`.
-12. Tier (`T1` / `T2` / `T3` / `T4`).
+12. Tier (`T1` / `T2` / `T4`).
 
 ## Worked example: ENCODE heart
 
@@ -204,8 +225,10 @@ python -m jcast /work/output \
   see [REVIEW.md](REVIEW.md) HIGH-2/HIGH-3.)
 - **rMATS rows with `NA` gene names can fail.** A defensive substitution was
   added in v0.3.5a; further fixes are planned.
-- **Tier 4 force-translates through stop codons.** Treat T4 outputs as
-  candidates for follow-up validation, not as confirmed identifications.
+- **Tier 4 contains products truncated at a stop codon.** Some of these are
+  genuine alternative C-termini rather than premature stops; separating them
+  is planned for v0.4.0 (REVIEW.md, PR 4c). Treat T4 outputs as candidates
+  for follow-up validation, not as confirmed identifications.
 - **UniProt and GTF `.cached` files are written to the current working
   directory** and the directory of the input GTF respectively — this fails on
   read-only volumes. Workaround: `cd` to a writable directory before running.
@@ -216,8 +239,8 @@ python -m jcast /work/output \
 **What do I do with the output files?**
 For a typical analysis, append `psq_T1.fasta` to either `psq_canonical.fasta`
 (if you used `-c`) or your existing SwissProt canonical database, and search
-that combined file in your MS pipeline. Lower-tier (T2/T3/T4) and orphan
-outputs contain frameshifted or force-translated sequences and should be
+that combined file in your MS pipeline. Lower-tier (T2/T4) and orphan
+outputs contain frameshifted or truncated sequences and should be
 interpreted with caution.
 
 **What files are required in the rMATS directory input?**

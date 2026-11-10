@@ -9,7 +9,7 @@
 | **Data** | Bundled chr15 test set: 1,105 rMATS junctions, Ensembl GRCh38.89 GTF, GRCh38 chr15 DNA |
 | **Environment** | Python 3.11.13, pandas 2.3.1, numpy 1.26.4, biopython 1.78, gtfparse 1.3.0 |
 | **Reproduce** | `python reports/phase_audit/audit_phase.py` (≈ 5 min, no network) against the candidate working tree. See [§8](#8-reproducing-this-audit). |
-| **Evidence** | [phase_audit/summary.txt](phase_audit/summary.txt) · [phase_audit/junctions.tsv](phase_audit/junctions.tsv) (one row per junction, all variants) · [phase_audit/fasta_diff.tsv](phase_audit/fasta_diff.tsv) (every output sequence differing from the baseline, per variant, with exact annotation matches) |
+| **Evidence** | Four-variant comparison (candidate commit `9e27815`): [phase_audit/summary.txt](phase_audit/summary.txt) · [phase_audit/junctions.tsv](phase_audit/junctions.tsv) (one row per junction, all variants) · [phase_audit/fasta_diff.tsv](phase_audit/fasta_diff.tsv) (every output sequence differing from the baseline, per variant, with exact annotation matches). Final verification (§9): [phase_audit/final/summary.txt](phase_audit/final/summary.txt) · [phase_audit/final/junctions.tsv](phase_audit/final/junctions.tsv) |
 
 Every number in this report is printed in `summary.txt` or can be read
 directly from the two TSV files.
@@ -316,9 +316,9 @@ Lost in `one_frame`: 10 records, none matching an annotated protein.
 
 ---
 
-## 6. What the final PR would contain
+## 6. What the final PR contains
 
-Assuming the recommendations in §7:
+Both recommendations in §7 were approved; §9 records the outcome.
 
 1. Per-slice frames as in §3.
 2. **Remove** the three-frame loop in `Sequence.translate`, the T3 path in
@@ -371,16 +371,79 @@ reading a frame (recommended), or withhold it.**
 ## 8. Reproducing this audit
 
 ```bash
-python reports/phase_audit/audit_phase.py               # baseline bc7d894 vs the working tree
-python reports/phase_audit/audit_phase.py --baseline X
+# four-variant comparison: needs the candidate's audit switches, so check out 9e27815 first
+git checkout 9e27815 && python reports/phase_audit/audit_phase.py
+
+# final verification: baseline bc7d894 vs the PR 4b code, checked against the one_frame variant
+python reports/phase_audit/audit_phase.py --final
 ```
 
-The four-variant comparison needs the candidate's two temporary switches.
-Run it against the working tree described in §3. The final PR removes the
-switches. Its own verification re-runs the comparison as baseline vs final,
-and must match the `one_frame` column.
+The candidate's two temporary switches exist only at commit `9e27815`,
+where their defaults reproduce the old behaviour and the golden test pins
+the `fallback` variant. The final PR 4b commit removes the switches.
+`--final` re-runs baseline vs final, and verifies that every junction's
+fate and every changed output sequence equal the audited `one_frame`
+variant.
 
 The script creates and removes its own git worktree for the baseline, stubs
 out UniProt, and rewrites the three evidence files in `reports/phase_audit/`.
 The inputs are the same as for the
 [tx1 audit, §9](2026-11-03-tx1-translation-bounds-audit.md#9-reproducing-this-audit).
+
+---
+
+## 9. Final implementation and verification
+
+**Decisions (approved 2026-11-10).**
+
+1. **Remove the three-frame fallback and Tier 3.** Implemented.
+2. **Keep reading a frame for slices that lack the start codon.** Implemented
+   as the default; there is no switch. The annotated-start rule is scheduled
+   in PR 4c.
+
+**Commits.**
+
+| Commit | Content |
+|---|---|
+| `9e27815` | Candidate: per-slice frames plus the two audit switches, defaulting to the old behaviour. Golden test = `fallback` variant. |
+| The next commit on `v0.4.0-hardening` (final PR 4b) | Removes `Sequence.translate`'s three-frame loop and its `use_phase` argument, the T3 path in `_translate_one`, `fates.TIER3`, both switches, and the T3 entry in the GUI tier counters. Golden test = `one_frame` variant. |
+
+**Regression tests,** each confirmed to fail on the code before the change:
+
+| Test | Fails on | Asserts |
+|---|---|---|
+| `test_phase_unchanged_where_it_was_found` | `bc7d894` | MFGE8 SE 5739: frames (2, 2), equal to the old phase |
+| `test_per_slice_phase` | `bc7d894` | GTF2A2 SE 11945: frames (0, 2); fate T2 |
+| `test_per_slice_phase_reconstructs_annotated_isoform` | `bc7d894` | LINS1 MXE 449: frames (2, 0); fate T2; the T2 file contains the LINS1-207 protein, translated from the GTF |
+| `test_slice_without_frame_is_not_guessed` | `9e27815` | ANXA2 SE 12446: frames (None, 2); fate T4 |
+| `test_no_coding_annotation_is_not_translated` | `9e27815` | GOLGA2P10 SE 5796 (pseudogene): no frames; FAILURE |
+| `test_annotated_frame_is_not_overridden` | `9e27815` | USP3 SE 6181 (formerly T3): T4; no `psq_T3*` file |
+
+**Verification**
+([final/summary.txt](phase_audit/final/summary.txt)).
+`audit_phase.py --final` compares `bc7d894` with the final code:
+
+- **Fates:** for 0 of 1,105 junctions does the final fate differ from the
+  audited `one_frame` fate.
+- **Output:** 49 sequences differ from the baseline, the identical set to
+  the audited `one_frame` variant.
+- **Fate counts:**
+
+  | Fate | Junctions |
+  |---|---|
+  | FAILURE | 157 |
+  | PARTIAL TIER 4 | 302 |
+  | SKIPPED (low coverage) | 297 |
+  | SKIPPED (outside coding region) | 92 |
+  | SUCCESS TIER 1 | 212 |
+  | SUCCESS TIER 2 | 45 |
+
+- **Files:** `psq_T1.fasta` has 170 records and `psq_canonical.fasta` 268;
+  no `psq_T3*` file is produced.
+
+The full test suite (34 tests, including the network tests) passes.
+
+**Current tier definitions** are in
+[REVIEW.md §3](../REVIEW.md#tier-classification-current-after-pr-4b), the
+[README](../README.md#output-files) and the
+[CHANGELOG](../CHANGELOG.md#tiers-in-v040-summary-of-prs-44b).

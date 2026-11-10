@@ -30,7 +30,7 @@ def test_pkm_manual(gtf, genome, rmats_results):
     sequence = Sequence(junction)
     sequence.make_slice_localgenome(genome.genome)
     sequence.get_canonical_aa(gtf, genome.genome)
-    sequence.translate(use_phase=True)
+    sequence.translate()
 
     for i in [1, 2]:
         sequence.stitch_to_canonical_aa(slice_to_stitch=i)
@@ -254,3 +254,33 @@ def test_per_slice_phase_reconstructs_annotated_isoform(gtf, genome, rmats_resul
     assert fate.startswith('SUCCESS TIER 2')
     written = {str(r.seq) for r in SeqIO.parse(tmp_path / 'psq_T2.fasta', 'fasta')}
     assert _annotated_protein(gtf, genome, 'LINS1-207') in written
+
+
+def test_slice_without_frame_is_not_guessed(gtf, genome, rmats_results, tmp_path, monkeypatch):
+    """ only the slice with an annotated frame is translated; the other is not guessed (REVIEW.md PR 4b) """
+
+    junction = _junction(rmats_results.rmats_se, 12446)  # ANXA2, -: no CDS covers slice 1's start
+    fate = _translate(junction, gtf, genome, tmp_path, monkeypatch)
+
+    assert junction.slice_phases == (None, 2)
+    assert fate.startswith('PARTIAL TIER 4')
+
+
+def test_no_coding_annotation_is_not_translated(gtf, genome, rmats_results, tmp_path, monkeypatch):
+    """ a gene without any protein-coding CDS gets no frame and fails, rather than a guessed translation """
+
+    junction = _junction(rmats_results.rmats_se, 5796)  # GOLGA2P10, a pseudogene
+    fate = _translate(junction, gtf, genome, tmp_path, monkeypatch)
+
+    assert junction.slice_phases == (None, None)
+    assert fate == fates.FAIL
+
+
+def test_annotated_frame_is_not_overridden(gtf, genome, rmats_results, tmp_path, monkeypatch):
+    """ a slice that hits a stop in its annotated frame is T4, not re-translated in another frame (former T3) """
+
+    junction = _junction(rmats_results.rmats_se, 6181)  # USP3
+    fate = _translate(junction, gtf, genome, tmp_path, monkeypatch)
+
+    assert fate.startswith('PARTIAL TIER 4')
+    assert not list(tmp_path.glob('psq_T3*.fasta'))

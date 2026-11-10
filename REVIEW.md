@@ -202,23 +202,63 @@ jcast/
    dict held in memory.
 4. **Optional `-m`**: fit a mixture to ln(count + 1) and use the decision
    boundary as the read cutoff.
-5. **Per junction**: `trim_cds` → `get_translated_phase` → slice nucleotides →
-   mask check → canonical lookup → read/FDR filters → tier T1–T4 or fail →
-   append to `psq_*.fasta`.
+5. **Per junction** (as of PR 4b):
+   1. `trim_cds` trims every exon to the gene's coding region and removes
+      exons outside it (PR 4/4a).
+   2. `get_translated_phase` reads each slice's frame at its 5′ end (PR 4b).
+   3. Slice nucleotides are built (RI per PR 4a2), then the mask check.
+   4. Canonical lookup, then the read-count and FDR filters.
+   5. The junction is skipped if its event lies outside the coding region.
+   6. Tier T1, T2 or T4, or fail; the result is appended to `psq_*.fasta`.
 
-### Tier classification
+### Tier classification (current, after PR 4b)
 
-| Tier | Meaning |
+Before tiering, each junction is processed in four steps:
+
+1. **Trimming.** The junction is trimmed to the gene's annotated coding
+   region, [`tx0`, `tx1`]. This runs from the most upstream start codon to
+   the most distal stop codon of protein-coding transcripts at TSL ≤
+   `params.tsl_threshold`. Exons entirely outside it are removed.
+2. **Slices.** The two slices are built from the retained exons. For RI,
+   slice 1 is the retained exon alone.
+3. **Frames.** Each slice gets its own reading frame. It is read at the
+   slice's 5′ end from the protein-coding CDS rows covering it: first at the
+   TSL threshold, then any TSL, taking the majority frame if transcripts
+   disagree.
+4. **Translation.** Each slice is translated once, in that frame. A slice
+   with no annotated frame is not translated, and no frame is ever guessed.
+
+| Tier / fate | Meaning |
 |---|---|
-| **T1** | Both slices translate without stop codons in the GTF phase; no frameshift. |
-| **T2** | Same, but the slice-length difference is not divisible by 3 (frameshift). |
-| **T3** | The GTF phase fails, but another frame translates both slices cleanly. |
-| **T4** | One slice hits a PTC. The other is force-translated, and kept only if ≥ `ptc_threshold` × the good slice. |
-| Skip | Low count, FDR outside range, or masked nucleotides. |
-| Fail | None of the above. The canonical is written if `-c` is set. |
+| **T1** | Both slices translate in their annotated frames with no stop codon before the last codon. Slice lengths differ by a multiple of 3. |
+| **T2** | Same as T1, but the slice lengths differ by a non-multiple of 3 (frameshift). An unstitchable slice may be joined at its N-terminus only. |
+| **T4** | Exactly one slice translates. The other is translated in its frame **up to** its first stop codon (a truncated product; nothing if it has no frame). The product is joined at its N-terminus only if it is ≥ `params.ptc_threshold` × the translated slice's length. Otherwise, or if it cannot be joined, it goes to `psq_T4_orphan.fasta`. |
+| ~~T3~~ | **Removed in PR 4b.** It re-translated in a guessed frame when the annotated frame failed. |
+| Skip | One of four reasons: low count; FDR outside `-q`; masked nucleotides; or, new in PR 4a, the event lies outside the annotated coding region (both slices are identical after trimming). The canonical is written if `-c` is set. |
+| Fail | Neither slice translates: no annotated frame, or a stop codon in both. |
 
-Slices that translate but fail to stitch to the canonical go to
-`psq_T#_orphan.fasta`.
+**Output files.**
+
+- T1/T2/T4 slices that stitch to the canonical go to `psq_T#.fasta`.
+- Slices that do not stitch go to `psq_T#_orphan.fasta`.
+- A stitched slice identical to the canonical is written to
+  `psq_canonical.fasta`.
+
+**Known limitations of the current tiers**, with the audit for each:
+
+- **Alternative C-termini are classed as PTCs (T4/FAIL).** An isoform whose
+  alternative exon brings a different, annotated stop codon is treated as
+  hitting a premature stop.
+  [C-terminal audit](reports/2026-11-10-alt-cterm-tiering-audit.md).
+- **Slices that lack the start codon.** When the gene's start codon lies in
+  an alternative exon, the other slice is still read from mid-CDS. This
+  inflates T1/T2 counts for about 32 chr15 junctions without adding wrong
+  records.
+  [Phase audit §5.4](reports/2026-11-10-phase-audit.md).
+- **One coding region per gene.** Transcripts with a later start codon or
+  an earlier stop are trimmed to the gene-wide range (ZFYVE19 SE 6502).
+
+PR 4c addresses the first two.
 
 ---
 
@@ -312,15 +352,17 @@ during the PR 4a audit
 README header field 11 ("skipped-junction read count"), and the plot axis
 label all say SJC. See §5.2.
 
-### MED-2 — Three-frame fallback keeps the *last* frame; can discard a good one ◎
+### MED-2 — Three-frame fallback keeps the *last* frame; can discard a good one ◎ — **closed in PR 4b (fallback removed)**
 
 [jcast/sequences.py:143-151](jcast/sequences.py#L143-L151). There's no
 `break`. If frame 0 succeeds and a later frame fails, both slices are reset to
 `''` and the junction drops to T4/fail. Add `break` after the first success,
 or pick the longest translation deliberately.
 
-*2026-11-10:* moved to PR 4b. The fallback is to be removed there once
-one-frame translation is enforced (§5.1 decisions).
+*2026-11-10:* closed by removing the three-frame fallback in PR 4b. Once
+frames were read correctly, the fallback changed only 15 chr15 junctions,
+and no annotated sequence depended on it
+([phase audit §5.3](reports/2026-11-10-phase-audit.md)).
 
 ### MED-3 — Stitch anchor is not checked for uniqueness or order ◎
 
@@ -504,13 +546,15 @@ both versions are listed in audit §8.
 | 1. Pure-UTR exons are never removed | Drop them. Translating UTR is outside JCAST's purpose. **Done in PR 4a.** |
 | 2. One gene-wide CDS envelope | Defer. Revisit after PR 4. |
 | 3. Second-start-site retry | Deferred, but **removed in PR 4a**: once UTR exons are removed, it deleted exons coding in TSL 1–2 transcripts in 20 junctions ([PR 4a audit §4.3](reports/2026-11-10-utr-exon-trimming-audit.md)). |
-| 4. Phase lookup after trimming | Take the phase from the first retained coding exon and enforce one-frame translation. **PR 4b.** |
-| 5. Three-frame fallback (MED-2) | Its output (T3) is not used downstream of JCAST. Remove it in PR 4b if that PR's audit shows it is no longer reached; otherwise defer. |
+| 4. Phase lookup after trimming | Each slice's frame is read at its 5′ end, and translation uses one frame only. **Done in PR 4b.** |
+| 5. Three-frame fallback (MED-2) | **Removed in PR 4b**, together with Tier 3 and the `psq_T3*.fasta` outputs. The audit showed only 15 junctions depended on it: 3 T3 guesses, 10 FAILUREs that hid a translatable slice, and 2 pseudogene T1s. No annotated sequence was lost ([phase audit §5.3, §7](reports/2026-11-10-phase-audit.md)). |
+| *(PR 4b finding)* Slices lacking the start codon | **Keep reading a frame for them.** Withholding it removed real isoforms (GTF2A2-208, LINS1-207). An annotated-start rule, mirroring the annotated-stop rule, is to be added in PR 4c ([phase audit §5.4](reports/2026-11-10-phase-audit.md)). |
 
 Alternative C-terminal isoforms, which today are classed as PTC (T4/FAIL), are
 evaluated in
 [reports/2026-11-10-alt-cterm-tiering-audit.md](reports/2026-11-10-alt-cterm-tiering-audit.md).
-That work is PR 4c.
+That work, extended to alternative N-termini, is PR 4c. All audits and
+decisions are indexed in [reports/README.md](reports/README.md).
 
 ### 5.2 — `sum_sjc` is `min(SJC, IJC)` ◎
 
@@ -661,6 +705,8 @@ paths), `tearDown` deletes `.cached` files from the repo's data directory,
 6. **End-to-end golden test.** Run the chr15 fixture in GTF-only mode and
    assert per-fate counts. Baseline as shipped: FAIL 360, T4 236, SKIP 297,
    T1 185, T2 25, T3 2. This catches silent regressions during refactors.
+   ✅ Added in PR 1. Its values are updated with each output-changing PR; the
+   history is in [reports/README.md](reports/README.md).
 7. GitHub Actions running pytest on 3.10–3.13.
 
 ---
@@ -679,8 +725,8 @@ currently can't be installed and run from scratch.
 | 4 | ✅ **`tx0`/`tx1` from start/stop codons** (§5.1) — regression test first; changelog entry | Sci-integrity | Done 2026-11-10 |
 | 4a | ✅ **Drop pure-UTR exons**: strand-agnostic `_trim`, `SKIPPED_OUTSIDE_CDS`, second-start retry removed ([audit](reports/2026-11-10-utr-exon-trimming-audit.md)) | Sci-integrity | Done 2026-11-10 |
 | 4a2 | ✅ **RI slice composition** (HIGH-11): slice 1 is the retained exon alone ([audit](reports/2026-11-10-ri-slice-audit.md)) | Sci-integrity | Done 2026-11-10 |
-| 4b | **Phase from the first retained coding exon**, enforcing one-frame translation (tx1 audit §8 item 4). Retire the three-frame fallback (T3, MED-2) if the audit for this PR shows it is no longer reached; otherwise defer its removal. Re-check ANXA2 SE 12446, GTF2A2 SE 11945 and ZFYVE19 SE 6502 (PR 4a audit §5.3). | Sci-integrity | PR 4a2 |
-| 4c | **Alternative C-termini**: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only and write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). Re-run that audit on 4a–4b first. | Sci-integrity | PR 4b |
+| 4b | ✅ **Per-slice frame at the slice's 5′ end**, one-frame translation only; three-frame fallback, Tier 3 and `psq_T3*.fasta` removed (MED-2 closed) ([audit](reports/2026-11-10-phase-audit.md)) | Sci-integrity | Done 2026-11-10 |
+| 4c | **Alternative termini.** C-terminal: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only; write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). N-terminal: a slice lacking the gene's start codon that contains another annotated start is translated from it and joined C-terminally only ([phase audit §5.4](reports/2026-11-10-phase-audit.md)). Re-run the C-terminal audit on PR 4b first. | Sci-integrity | PR 4b |
 | 5 | Stitch anchor checks (MED-3); MED-2 moves to PR 4b | Correctness | PR 1 |
 | 6 | Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2) | Sci-integrity | PR 1 |
 | 7 | Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13) | Robustness | PR 1 |

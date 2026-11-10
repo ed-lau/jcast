@@ -9,7 +9,6 @@ SKIPPED_OUTSIDE_CDS = 'SKIPPED. Splice event lies outside the annotated coding r
 
 TIER1 = 'SUCCESS TIER 1. Retrieved phase: {0}. Used phase: {1}. No frameshift. \n\n'
 TIER2 = 'SUCCESS TIER 2. Retrieved phase: {0}. Used phase: {1}. Frameshift. \n\n'
-TIER3 = 'SUCCESS TIER 3. GTF phase mismatch. Retrieved phase: {0}. Used phase: {1}. \n\n'
 TIER4 = 'PARTIAL TIER 4. Slice {0} hit a premature termination codon. Translated fragment. \n\n'
 
 FAIL = 'FAILURE.  No alternative translation. \n\n'

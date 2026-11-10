@@ -126,59 +126,39 @@ class Sequence(object):
                                                                                           s_.seq))
 
     def translate(self,
-                  use_phase: bool = True,
                   log: bool = True,
                   ):
         """
-        This is the translate function for tier 1/2/3 peptide. Calls make_pep with the terminal option
-        which will terminate when it runs into a stop codon. Later on we should make a force_translate that does
-        three frame translation and just either return all frames or return the longest.
+        This is the translate function for tier 1/2 peptides. Each slice is translated in its own annotated frame
+        (Junction.slice_phases) with make_pep's terminate option, which returns an empty string when it runs into
+        a stop codon before the last codon. A slice without an annotated frame is not translated.
 
-        :param use_phase: bool Whether to ue the stored phase or attempt to do three-frame translation
+        2026-11-10 removed the three-frame fallback (and with it Tier 3): it guessed a frame when the phase was
+        missing or did not translate, kept the last frame tried, and its output was not used downstream.
+        See reports/2026-11-10-phase-audit.md
+
         :param log: bool Whether to write results to log file
         :return: True
         """
 
         phases = self.j.slice_phases
-
-        # each slice in its own annotated frame
-        if use_phase and (all(p in [0, 1, 2] for p in phases) or not params.three_frame_fallback):
-            self.slice1_aa, self.slice2_aa = [h.make_pep(nt.seq, self.j.strand, p, terminate=True)
-                                              if p in [0, 1, 2] else ''
-                                              for nt, p in zip([self.slice1_nt, self.slice2_nt], phases)]
-            self.logger.debug('Used retrieved phase for {0} {1}:'.format(self.j.name, self.j.gene_symbol))
-            self.translated_phases = [p if p in [0, 1, 2] else -1 for p in phases]
-            self.translated_phase = self.j.phase_label
-
-        else:
-            self.logger.info('Using non-phase translation for {0} {1}'.format(self.j.name, self.j.gene_symbol))
-            for i in range(3):
-                try:
-                    self.slice1_aa = h.make_pep(self.slice1_nt.seq, self.j.strand, i, terminate=True)
-                    self.slice2_aa = h.make_pep(self.slice2_nt.seq, self.j.strand, i, terminate=True)
-                    if len(self.slice1_aa) > 0 and len(self.slice2_aa) > 0:
-                        self.translated_phase = i
-                        self.translated_phases = [i, i]
-                    else:
-                        self.slice1_aa = ''
-                        self.slice2_aa = ''
-                except KeyError:
-                    print()
-                    raise KeyError(f'KeyError in translation of {self.j.name}, {self.j.gene_id}'
-                                   f'{self.j.anc_es}, {self.j.anc_ee}')
+        self.slice1_aa, self.slice2_aa = [h.make_pep(nt.seq, self.j.strand, p, terminate=True)
+                                          if p in [0, 1, 2] else ''
+                                          for nt, p in zip([self.slice1_nt, self.slice2_nt], phases)]
+        self.translated_phases = [p if p in [0, 1, 2] else -1 for p in phases]
+        self.translated_phase = self.j.phase_label
 
         if log:
             for i_, s_ in enumerate([self.slice1_aa, self.slice2_aa]):
                 if s_ != '':
                     self.logger.info(
-                        'Translated AA for {0} {1} {2} phase {3}{4} slice {5} (use_phase={6}): {7}'.format(
+                        'Translated AA for {0} {1} {2} phase {3}{4} slice {5}: {6}'.format(
                             self.j.junction_type,
                             self.j.name,
                             self.j.gene_symbol,
                             self.j.strand,
-                            self.translated_phase,
+                            self.translated_phases[i_],
                             i_ + 1,
-                            use_phase,
                             s_,
                         )
                     )

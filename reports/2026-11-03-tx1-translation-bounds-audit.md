@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-03 |
-| **Status** | Pre-fix audit. No production code changed. Input to PR 4 of the [v0.4.0 roadmap](../REVIEW.md#9-v040-hardening-roadmap-revised). |
+| **Status** | Pre-fix audit. No production code changed. Input to PR 4 of the [v0.4.0 roadmap](../REVIEW.md#9-v040-hardening-roadmap-revised). Implemented in `da72a0a`. **Later changes:** see the [reports index](README.md); Tier 3 was removed in PR 4b, so T3 figures here are historical. |
 | **Code audited** | JCAST v0.3.5a, commit `3ed17b0` (branch `v0.4.0-hardening`), [jcast/junctions.py:274-357](../jcast/junctions.py#L274-L357) |
 | **Data** | Bundled chr15 test set: 1,105 rMATS junctions, Ensembl GRCh38.89 GTF, GRCh38 chr15 DNA |
 | **Environment** | Python 3.11.13, pandas 2.3.1, numpy 1.26.4, biopython 1.78, gtfparse 1.3.0 (corrected 2026-11-10; the versions first listed here were wrong. Re-running in this environment reproduces all three evidence files byte for byte.) |

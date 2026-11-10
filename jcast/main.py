@@ -195,7 +195,7 @@ def _translate_one(junction: Junction,
 
     # ---- Translate to peptides. This happens before the filters so we can write the canonical sequence ----
     sequence.get_canonical_aa(gtf=gtf, genome_index=genome.genome)
-    sequence.translate(use_phase=True)
+    sequence.translate()
 
     # ---- Filter by junction read counts - discard junction if the min read count is below threshold
     # If the -r argument is set directly and the -m flag is not, use the -r integer for count filtering
@@ -274,34 +274,12 @@ def _translate_one(junction: Junction,
                                       )
 
     #
-    # Tier 3 - retrieved phase is different from PTC-free frame.
-    #
-    elif params.three_frame_fallback:
-        sequence.translate(use_phase=False)
-        # after tier 3 translation, check if both slices are good
-        if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
-            for slice_ in range(1, 3):
-                sequence.stitch_to_canonical_aa(slice_to_stitch=slice_,
-                                                slice_has_ptc=False)
-
-            sequence.write_slices(out_dir=args.out,
-                                  suffix='T3',
-                                  )
-
-            return fates.TIER3.format(sequence.j.phase_label,
-                                      sequence.translated_phase,
-                                      )
-
+    # 2026-11-10 Tier 3 (re-translating in a guessed frame when the annotated frame failed) was removed;
+    # see reports/2026-11-10-phase-audit.md
     #
     # Tier 4: if sequence is still not good, do Tier 4: One of the two slices hits stop codon.
     # write out the slice if it is at least a certain proportion (params.ptc_threshold) as long as the long slice.
     #
-
-    # translate again after tier 3 to reset to tier 1/2 translation state (using retrieved phase)
-    sequence.translate(use_phase=True,
-                       log=False,
-                       )
-    # TODO: we should avoid translating twice.
 
     # force-translate through slice 2 if slice 2 hits PTC:
     if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) == 0:

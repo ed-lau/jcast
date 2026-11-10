@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-10 |
-| **Status** | Audit of the PR 4a implementation, run before it is committed. Baseline is PR 4 (commit `da72a0a`); candidate is the PR 4a working tree. |
+| **Status** | Audit of the PR 4a implementation, run before it is committed. Baseline is PR 4 (commit `da72a0a`); candidate is the PR 4a working tree. Implemented in `89e1a82`. **Later changes:** see the [reports index](README.md); Tier 3 was removed in PR 4b, so T3 figures here are historical. |
 | **Code audited** | `Junction._trim`, `Junction.trim_cds`, and the new `Junction.event_outside_cds` ([jcast/junctions.py](../jcast/junctions.py)); the new skip in `main._translate_one` |
 | **Data** | Bundled chr15 test set: 1,105 rMATS junctions, Ensembl GRCh38.89 GTF, GRCh38 chr15 DNA |
 | **Environment** | Python 3.11.13, pandas 2.3.1, numpy 1.26.4, biopython 1.78, gtfparse 1.3.0 |

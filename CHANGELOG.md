@@ -14,6 +14,50 @@ fixes, scientific-integrity audits, and the introduction of an optional Qt
 GUI. Implementation is staged as the patch series described in
 [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised).
 
+### Tiers in v0.4.0 (summary of PRs 4–4b)
+
+How a junction is translated and tiered has changed substantially. Every
+change has an audit under [reports/](reports/README.md).
+
+| | v0.3.5a | v0.4.0 |
+|---|---|---|
+| Coding-region bounds | C-terminal bound taken from a **start** codon | Most upstream start codon to most distal stop codon (TSL ≤ 2 protein-coding) |
+| UTR exons | Kept unless a bound fell inside them | Removed. Events entirely outside the coding region are **skipped** with a new fate |
+| RI retained slice | Flanking exons included twice | Retained exon alone |
+| Reading frame | One phase from a fixed exon matched exactly. Missing for 26 % of junctions after trimming | Each slice's own frame, read at its 5′ end |
+| No annotated frame | Three-frame guess, keeping the last frame tried | The slice is not translated |
+| Tiers | T1, T2, T3, T4 | **T1, T2, T4.** T3 and `psq_T3*.fasta` removed |
+
+Cumulative effect on the bundled chr15 data:
+
+| Fate | v0.3.5a | v0.4.0 |
+|---|---|---|
+| T1 | 185 | 212 |
+| T2 | 25 | 45 |
+| T3 | 2 | – |
+| T4 | 236 | 302 |
+| FAIL | 360 | 157 |
+| Skipped, low count | 297 | 297 |
+| Skipped, outside the coding region | – | 92 |
+
+`psq_T1.fasta` grows from 152 to 170 records, and `psq_canonical.fasta` is
+unchanged (268). Re-running is recommended for any analysis that used RI
+output, C-terminal events or lower tiers.
+
+**Decisions recorded during PR 4b.** The candidate carried two switches for
+the audit only, `three_frame_fallback` and `frame_for_start_less_slice`.
+Neither was released.
+
+- **The three-frame fallback is removed.** Once frames were read correctly,
+  it changed only 15 junctions, and no annotated sequence depended on it.
+- **Slices lacking the start codon keep their annotated frame.** Withholding
+  it removed real isoforms. An annotated-start rule is planned instead
+  (PR 4c).
+
+See
+[reports/2026-11-10-phase-audit.md](reports/2026-11-10-phase-audit.md) §7
+and §9.
+
 ### Added
 - Optional `jcast/gui/` PySide6 skeleton; launch via `python -m jcast --gui`
   or `jcast-gui`. Requires `pip install jcast[gui]`.
@@ -89,6 +133,22 @@ GUI. Implementation is staged as the patch series described in
   `psq_canonical.fasta` are unchanged. Re-running is recommended if RI
   output was used. See
   [reports/2026-11-10-ri-slice-audit.md](reports/2026-11-10-ri-slice-audit.md).
+- **Each slice is translated in its own annotated reading frame (affects
+  output).** The frame used to come from one fixed exon that had to match a
+  CDS row exactly, and was shared by both slices. After trimming, that
+  lookup failed for 184 of 716 non-skipped chr15 junctions.
+  - The frame is now read at each slice's 5′ end from the protein-coding CDS
+    rows covering it, so slices starting in different exons get their own
+    frames.
+  - Where the old lookup found a frame (532 junctions), the new one agrees
+    every time.
+  - FASTA headers report each slice's own frame.
+
+  On chr15, 88 junctions change fate, and FAILURE falls from 238 to 157.
+  No sequence matching an annotated protein is lost, and T1/T2 gain the
+  annotated GTF2A2-208 and LINS1-207. `psq_canonical.fasta` is unchanged.
+  See
+  [reports/2026-11-10-phase-audit.md](reports/2026-11-10-phase-audit.md).
 - GTFs without `transcript_support_level`: the translation-bound lookup now
   checks for the column instead of relying on exception handling, which
   could pass `None` to `len()` (REVIEW.md MED-7).
@@ -99,6 +159,11 @@ GUI. Implementation is staged as the patch series described in
   `pandas.core.computation.ops` location no longer exists).
 
 ### Removed
+- **Tier 3 and the three-frame fallback** (`psq_T3.fasta`,
+  `psq_T3_orphan.fasta`, `fates.TIER3`, and `Sequence.translate(use_phase=...)`).
+  They guessed a reading frame when the annotated one was missing or failed,
+  keeping the last frame tried (REVIEW.md MED-2, now closed). A slice without
+  an annotated frame is no longer translated.
 - The retry with the gene's second start codon in `trim_cds`. Once UTR exons
   are removed, it deleted exons coding in well-supported transcripts.
 - `pomegranate` dependency.
@@ -114,9 +179,11 @@ table.
 
 - Treat soft-masked (lowercase) and ambiguous IUPAC bases safely in
   `make_pep`.
-- Take the translation phase from the first retained coding exon (PR 4b).
-- Treat annotated alternative stop codons as natural C-termini, written to
-  `psq_T1_alt_cterm.fasta` (PR 4c).
+- Alternative termini (PR 4c):
+  - treat annotated alternative stop codons as natural C-termini, written to
+    `psq_T1_alt_cterm.fasta`;
+  - translate a slice that lacks the gene's start codon from another
+    annotated start codon it contains, joining it C-terminally only.
 - Output-directory creation guarantee; route the UniProt cache through
   `args.out` (or the platform user-cache dir) instead of CWD.
 - Stitch-anchor uniqueness check in `stitch_to_canonical_aa`.

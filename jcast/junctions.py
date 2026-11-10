@@ -375,13 +375,6 @@ class Junction(object):
             self.phase_ambiguous = self.phase_ambiguous or len(counts) > 1
             phases.append(sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[0][0])
 
-        # PR 4b audit switch: a slice without the start codon that the other slice contains gets no frame
-        start = self.tx0 if self.strand == '+' else self.tx1
-        if not params.frame_for_start_less_slice and start is not None:
-            has_start = [any(es <= start <= ee for es, ee in exons) for exons in self.slice_exons()]
-            if has_start[0] != has_start[1]:
-                phases = [p if s else None for p, s in zip(phases, has_start)]
-
         self.slice_phases = tuple(phases)
 
         # a single phase only when both slices share it

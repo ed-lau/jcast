@@ -22,12 +22,18 @@ Canonical sequences come from the GTF only and UniProt is stubbed out, so the ru
 no network.
 
 Usage (from the repository root):
-    python reports/phase_audit/audit_phase.py [--baseline COMMIT]
+    python reports/phase_audit/audit_phase.py [--baseline COMMIT]   # four-variant comparison; run at commit 9e27815
+    python reports/phase_audit/audit_phase.py --final               # baseline vs final PR 4b, written to final/
+
+The four-variant comparison needs the candidate's audit switches, which exist only at commit 9e27815. The --final
+mode compares the baseline with the working tree and checks that every junction's fate and every output sequence
+that differs from the baseline equal the audited one_frame variant (junctions.tsv and fasta_diff.tsv here).
 """
 
 import argparse
 import collections
 import csv
+import inspect
 import json
 import logging
 import os
@@ -73,7 +79,9 @@ def worker(out_dir, fallback, startless='True'):
         one_frame = use_phase and (all(p in [0, 1, 2] for p in phases) or not getattr(params, 'three_frame_fallback', True))
         if not one_frame:
             self.j.three_frame_used = True
-        return original(self, use_phase=use_phase, log=log)
+        if 'use_phase' in inspect.signature(original).parameters:
+            return original(self, use_phase=use_phase, log=log)
+        return original(self, log=log)
     Sequence.translate = recording
 
     out_dir = Path(out_dir)
@@ -245,10 +253,66 @@ def main_(baseline_commit):
     print((OUT / 'summary.txt').read_text())
 
 
+def final_(baseline_commit):
+    """Baseline vs the final PR 4b code; verify against the audited one_frame variant."""
+    sys.path.insert(0, str(REPO))
+    sys.path.insert(0, str(REPO / 'reports' / 'utr_audit'))
+    import audit_utr
+
+    final_dir = OUT / 'final'
+    final_dir.mkdir(exist_ok=True)
+    work = Path(tempfile.mkdtemp(prefix='phase_audit_final_'))
+    baseline_repo = work / 'baseline'
+    subprocess.run(['git', '-C', str(REPO), 'worktree', 'add', '--detach', str(baseline_repo), baseline_commit],
+                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        base = run_variant(baseline_repo, work / 'out_baseline', True)
+        final = run_variant(REPO, work / 'out_final', False)
+    finally:
+        subprocess.run(['git', '-C', str(REPO), 'worktree', 'remove', '--force', str(baseline_repo)], check=True)
+
+    with open(OUT / 'junctions.tsv') as fh:
+        audited = {(r['type'], r['rmats_id']): r for r in csv.DictReader(fh, delimiter='\t')}
+    with open(OUT / 'fasta_diff.tsv') as fh:
+        audited_diff = {(r['file'], r['change'], r['sequence']) for r in csv.DictReader(fh, delimiter='\t')
+                        if r['variant'] == 'one_frame'}
+
+    rows = [{'type': k[0], 'rmats_id': k[1], 'gene_symbol': f['gene_symbol'], 'baseline_fate': base[k]['fate'],
+             'final_fate': f['fate'], 'audited_one_frame_fate': audited[(k[0], str(k[1]))]['one_frame_fate'],
+             'slice1_phase': f['slice_phases'][0], 'slice2_phase': f['slice_phases'][1]}
+            for k, f in final.items()]
+    with open(final_dir / 'junctions.tsv', 'w', newline='') as fh:
+        w = csv.DictWriter(fh, fieldnames=list(rows[0]), delimiter='\t')
+        w.writeheader()
+        w.writerows(rows)
+
+    fb, ff = audit_utr.read_fastas(work / 'out_baseline'), audit_utr.read_fastas(work / 'out_final')
+    diff = set()
+    for name in set(fb) | set(ff):
+        b_seqs, f_seqs = set(fb.get(name, {})), set(ff.get(name, {}))
+        diff |= {(name, 'lost', s) for s in b_seqs - f_seqs} | {(name, 'gained', s) for s in f_seqs - b_seqs}
+
+    mismatched = [r for r in rows if r['final_fate'] != r['audited_one_frame_fate']]
+    T = audit_utr.table
+    out = [f'baseline commit: {baseline_commit}; final = working tree; junctions: {len(rows)}\n',
+           f'junctions whose final fate differs from the audited one_frame fate: {len(mismatched)}\n',
+           f'output sequences differing from the baseline: final {len(diff)}, audited one_frame {len(audited_diff)}; '
+           f'identical sets: {diff == audited_diff}\n']
+    out.append(T('fate counts: final', collections.Counter(r['final_fate'] for r in rows)))
+    out.append(T('fate transitions baseline -> final', collections.Counter(
+        (r['baseline_fate'], r['final_fate']) for r in rows if r['baseline_fate'] != r['final_fate'])))
+    out.append(T('FASTA records (file | baseline | final)', collections.Counter(
+        {(n, len(fb.get(n, {})), len(ff.get(n, {}))): 1 for n in sorted(set(fb) | set(ff))})))
+    (final_dir / 'summary.txt').write_text('\n'.join(out))
+    print((final_dir / 'summary.txt').read_text())
+
+
 if __name__ == '__main__':
     if len(sys.argv) > 3 and sys.argv[1] == '--worker':
         worker(*sys.argv[2:])
     else:
         parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
         parser.add_argument('--baseline', default=BASELINE_COMMIT, help='commit to compare against')
-        main_(parser.parse_args().baseline)
+        parser.add_argument('--final', action='store_true', help='baseline vs final PR 4b, checked against one_frame')
+        a = parser.parse_args()
+        final_(a.baseline) if a.final else main_(a.baseline)

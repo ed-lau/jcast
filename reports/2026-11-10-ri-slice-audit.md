@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-10 |
-| **Status** | Audit of the PR 4a2 implementation, run before it is committed. Baseline is PR 4a (commit `89e1a82`); candidate is the PR 4a2 working tree. |
+| **Status** | Audit of the PR 4a2 implementation, run before it is committed. Baseline is PR 4a (commit `89e1a82`); candidate is the PR 4a2 working tree. Implemented in `bc7d894`. **Later changes:** see the [reports index](README.md); Tier 3 was removed in PR 4b, so T3 figures here are historical. |
 | **Defect** | REVIEW.md HIGH-11, found during the [PR 4a audit](2026-11-10-utr-exon-trimming-audit.md#6-new-finding-ri-slice-1-duplicates-its-flanking-exons-reviewmd-high-11) |
 | **Code audited** | `Sequence.make_slice_localgenome` ([jcast/sequences.py](../jcast/sequences.py)); `Junction.event_outside_cds` ([jcast/junctions.py](../jcast/junctions.py)) |
 | **Data** | Bundled chr15 test set: 1,105 rMATS junctions (88 RI), Ensembl GRCh38.89 GTF, GRCh38 chr15 DNA |

@@ -1,0 +1,30 @@
+baseline commit: bc7d894; final = working tree; junctions: 1105
+
+junctions whose final fate differs from the audited one_frame fate: 0
+
+output sequences differing from the baseline: final 49, audited one_frame 49; identical sets: True
+
+fate counts: final
+    157  FAILURE
+    302  PARTIAL TIER 4
+    297  SKIPPED: Sequence discarded due to low coverage
+     92  SKIPPED: Splice event lies outside the annotated coding region
+    212  SUCCESS TIER 1
+     45  SUCCESS TIER 2
+
+fate transitions baseline -> final
+     41  FAILURE | PARTIAL TIER 4
+     25  FAILURE | SUCCESS TIER 1
+     17  FAILURE | SUCCESS TIER 2
+      2  SUCCESS TIER 1 | FAILURE
+      3  SUCCESS TIER 3 | PARTIAL TIER 4
+
+FASTA records (file | baseline | final)
+      1  psq_T1.fasta | 169 | 170
+      1  psq_T1_orphan.fasta | 35 | 36
+      1  psq_T2.fasta | 22 | 23
+      1  psq_T2_orphan.fasta | 14 | 16
+      1  psq_T3_orphan.fasta | 6 | 0
+      1  psq_T4.fasta | 213 | 235
+      1  psq_T4_orphan.fasta | 74 | 82
+      1  psq_canonical.fasta | 268 | 268
