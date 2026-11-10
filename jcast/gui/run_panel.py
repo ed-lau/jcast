@@ -8,7 +8,7 @@ Skeleton placeholder. The real implementation:
   responsive,
 * tails ``out_dir/logfile.log`` into a QPlainTextEdit,
 * shows per-splice-type progress bars,
-* increments per-tier counters (T1 / T2 / T4 / canonical / orphan) by
+* increments per-tier counters (T1 / T1 ALT / T2 / T4 / canonical / orphan) by
   parsing the ``fates`` strings written to the log,
 * offers "Open output folder" on completion.
 """

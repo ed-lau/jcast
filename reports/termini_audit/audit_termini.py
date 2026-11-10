@@ -32,7 +32,8 @@ Every product is compared with all proteins translated from the GTF's CDS record
     summary.txt     the aggregate numbers quoted in the report
 
 Usage (from the repository root):
-    python reports/termini_audit/audit_termini.py
+    python reports/termini_audit/audit_termini.py              # evidence for the report (at 919f6c7)
+    python reports/termini_audit/audit_termini.py --out DIR    # write the three files to DIR instead
 """
 
 import argparse
@@ -166,7 +167,7 @@ def translate_from(f, start, nt_record, strand):
 
 # ---- run -----------------------------------------------------------------------------------------------------------
 
-def main_():
+def main_(out=OUT):
     import audit_cterm  # annotated_proteins with transcript names and biotypes
 
     logger = logging.getLogger('jcast')
@@ -297,18 +298,20 @@ def main_():
             'product_class', 'product_matches',
             'today_stop_state', 'today_product_class', 'today_is_canonical', 'n_only_class', 'non_atg_starts',
             'current_files', 'current_class', 'aa']
-    with open(OUT / 'slices.tsv', 'w', newline='') as fh:
+    out = Path(out)
+    out.mkdir(parents=True, exist_ok=True)
+    with open(out / 'slices.tsv', 'w', newline='') as fh:
         w = csv.DictWriter(fh, fieldnames=cols, delimiter='\t', extrasaction='ignore')
         w.writeheader()
         w.writerows(slice_rows)
-    with open(OUT / 'junctions.tsv', 'w', newline='') as fh:
+    with open(out / 'junctions.tsv', 'w', newline='') as fh:
         w = csv.DictWriter(fh, fieldnames=['policy', 'type', 'rmats_id', 'gene_symbol', 'strand', 'sum_sjc',
                                            'analysed', 'actual_fate', 'slice1', 'slice2', 'routed', 'proposed_fate'],
                            delimiter='\t', extrasaction='ignore')
         w.writeheader()
         w.writerows(junction_rows)
-    (OUT / 'summary.txt').write_text(summarise(slice_rows, junction_rows, current))
-    print((OUT / 'summary.txt').read_text())
+    (out / 'summary.txt').write_text(summarise(slice_rows, junction_rows, current))
+    print((out / 'summary.txt').read_text())
 
 
 def table(title, counter):
@@ -364,4 +367,6 @@ def summarise(slices, junctions, current):
 
 
 if __name__ == '__main__':
-    main_()
+    parser = argparse.ArgumentParser(description=__doc__.split('\n')[0])
+    parser.add_argument('--out', default=str(OUT), help='directory for the three evidence files')
+    main_(parser.parse_args().out)

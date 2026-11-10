@@ -14,7 +14,7 @@ fixes, scientific-integrity audits, and the introduction of an optional Qt
 GUI. Implementation is staged as the patch series described in
 [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised).
 
-### Tiers in v0.4.0 (summary of PRs 4–4b2)
+### Tiers in v0.4.0 (summary of PRs 4–4c)
 
 How a junction is translated and tiered has changed substantially. Every
 change has an audit under [reports/](reports/README.md).
@@ -26,23 +26,26 @@ change has an audit under [reports/](reports/README.md).
 | RI retained slice | Flanking exons included twice | Retained exon alone |
 | Reading frame | One phase from a fixed exon matched exactly. Missing for 26 % of junctions after trimming | Each slice's own frame, read at its 5′ end |
 | Frameshift test (T1 vs T2) | Raw slice lengths | Coding lengths, from each slice's frame (PR 4b2) |
+| Alternative termini | A stop at an alternative annotated stop codon read as premature (T4/FAIL); slices without the start codon read from mid-CDS | **T1 ALT TERMINUS**: annotated alternative stop and start codons end and start the slice; written to `psq_T1_alt_cterm` / `psq_T1_alt_nterm` / `psq_T1_alt_both.fasta` (PR 4c) |
 | No annotated frame | Three-frame guess, keeping the last frame tried | The slice is not translated |
-| Tiers | T1, T2, T3, T4 | **T1, T2, T4.** T3 and `psq_T3*.fasta` removed |
+| Tiers | T1, T2, T3, T4 | **T1, T1 ALT TERMINUS, T2, T4.** T3 and `psq_T3*.fasta` removed |
 
 Cumulative effect on the bundled chr15 data:
 
 | Fate | v0.3.5a | v0.4.0 |
 |---|---|---|
-| T1 | 185 | 227 |
+| T1 | 185 | 219 |
+| T1 ALT TERMINUS | – | 25 |
 | T2 | 25 | 30 |
 | T3 | 2 | – |
-| T4 | 236 | 302 |
-| FAIL | 360 | 157 |
+| T4 | 236 | 289 |
+| FAIL | 360 | 153 |
 | Skipped, low count | 297 | 297 |
 | Skipped, outside the coding region | – | 92 |
 
-`psq_T1.fasta` grows from 152 to 171 records, and `psq_canonical.fasta` is
-unchanged (268). Re-running is recommended for any analysis that used RI
+`psq_T1.fasta` grows from 152 to 173 records. The new
+`psq_T1_alt_cterm.fasta` and `psq_T1_alt_nterm.fasta` hold 18 and 4.
+`psq_canonical.fasta` is unchanged (268). Re-running is recommended for any analysis that used RI
 output, C-terminal events or lower tiers.
 
 **Decisions recorded during PR 4b.** The candidate carried two switches for
@@ -60,6 +63,25 @@ See
 and §9.
 
 ### Added
+- **Alternative C- and N-termini (affects output).**
+  - A slice whose first stop codon is an annotated protein-coding stop
+    codon is complete at that end, not a premature stop. It is joined to
+    the canonical at its N-terminus only.
+  - A slice that lacks the gene's start codon (present in the other slice)
+    but contains another annotated start codon is translated from that start
+    and joined at its C-terminus only.
+  - Such junctions get the new fate `SUCCESS TIER 1 ALT TERMINUS`, and their
+    slices go to `psq_T1_alt_cterm.fasta`, `psq_T1_alt_nterm.fasta` or
+    `psq_T1_alt_both.fasta` (with `_orphan` files) by which terminus differs
+    from the canonical.
+  - Annotated sites use the same TSL threshold as the coding bounds.
+
+  On chr15, 26 junctions change fate: 16 come up from FAIL or T4, and 9 were
+  T1 whose start-less slice recreated the canonical and now gives the
+  annotated isoform. 22 alt records are written, 19 of them exact
+  annotated proteins. No `psq_T1.fasta` record moves, and no annotated
+  sequence is lost. See
+  [reports/2026-11-10-alt-termini-audit.md](reports/2026-11-10-alt-termini-audit.md).
 - Optional `jcast/gui/` PySide6 skeleton; launch via `python -m jcast --gui`
   or `jcast-gui`. Requires `pip install jcast[gui]`.
 - [REVIEW.md](REVIEW.md): comprehensive critical review covering architecture,
@@ -189,11 +211,8 @@ table.
 
 - Treat soft-masked (lowercase) and ambiguous IUPAC bases safely in
   `make_pep`.
-- Alternative termini (PR 4c):
-  - treat annotated alternative stop codons as natural C-termini, written to
-    `psq_T1_alt_cterm.fasta`;
-  - translate a slice that lacks the gene's start codon from another
-    annotated start codon it contains, joining it C-terminally only.
+- With `-c`, write the canonical for every gene, whatever its junctions'
+  tiers (REVIEW.md MED-14; 2 chr15 genes affected).
 - Output-directory creation guarantee; route the UniProt cache through
   `args.out` (or the platform user-cache dir) instead of CWD.
 - Stitch-anchor uniqueness check in `stitch_to_canonical_aa`.

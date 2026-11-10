@@ -444,6 +444,6 @@ The inputs are the same as for the
 The full test suite (34 tests, including the network tests) passes.
 
 **Current tier definitions** are in
-[REVIEW.md §3](../REVIEW.md#tier-classification-current-after-pr-4b), the
+[REVIEW.md §3](../REVIEW.md#tier-classification-current-after-pr-4c), the
 [README](../README.md#output-files) and the
 [CHANGELOG](../CHANGELOG.md#tiers-in-v040-summary-of-prs-44b2).

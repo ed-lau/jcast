@@ -137,6 +137,9 @@ coordinates, translation strand, frame, and tier (see below).
 |---|---|
 | `psq_canonical.fasta` | Sequences identical to the canonical SwissProt/GTF protein for the gene. Headers follow UniProt convention. |
 | `psq_T1.fasta` | **Tier 1.** Both slices translate in their annotated reading frames with no premature stop codon (PTC), and the event does not shift the reading frame: the slices' coding lengths, measured from each slice's frame, differ by a multiple of 3. Both slices are stitched into the canonical full-length protein. |
+| `psq_T1_alt_cterm.fasta` | **Tier 1, alternative C-terminus.** One slice ends at an annotated protein-coding stop codon that is not the canonical protein's. It is a complete C-terminus, not a premature stop, and is joined to the canonical at its N-terminus only. |
+| `psq_T1_alt_nterm.fasta` | **Tier 1, alternative N-terminus.** The gene's start codon lies in an alternative exon that this slice lacks. The slice is translated from another annotated start codon it contains, and joined to the canonical at its C-terminus only. |
+| `psq_T1_alt_both.fasta` | **Tier 1, both termini alternative.** The slice starts at an alternative annotated start codon and ends at an alternative annotated stop codon (created only when needed). |
 | `psq_T2.fasta` | **Tier 2.** As T1, but the coding lengths differ by a non-multiple of 3 (frameshift). A slice that cannot be stitched at both ends may be joined at its N-terminus only. |
 | `psq_T4.fasta` | **Tier 4.** Only one slice translates; the other hits a PTC. The PTC slice is translated *up to* its stop codon, giving a truncated product, which is joined to the canonical at its N-terminus. If it is shorter than `params.ptc_threshold` × the other slice, or cannot be joined, it goes to `psq_T4_orphan.fasta`. **Treat T4 with caution — exclude from MS searches unless you have a specific reason to include it.** |
 | `psq_T#_orphan.fasta` | Slices of that tier that translated but could not be stitched back to the canonical sequence. **Treat orphans with caution.** |
@@ -144,6 +147,11 @@ coordinates, translation strand, frame, and tier (see below).
 There is no Tier 3 from v0.4.0. It re-translated in a guessed frame when the
 annotated frame failed, and was removed together with the three-frame
 fallback (see [CHANGELOG.md](CHANGELOG.md)).
+
+Annotated start and stop codons are taken from protein-coding transcripts
+with transcript support level ≤ `params.tsl_threshold`. A stop codon
+annotated only on nonsense-mediated-decay transcripts, or not annotated at
+all, is still a premature stop (T4).
 
 How a junction is processed (v0.4.0):
 
@@ -188,7 +196,7 @@ The `|`-separated fields are:
 9. Alternative exon `start:end`.
 10. Translated strand and that slice's phase (e.g. `+2`).
 11. Skipped-junction read count, prefixed with `r`.
-12. Tier (`T1` / `T2` / `T4`).
+12. Tier (`T1`, `T1_alt_cterm`, `T1_alt_nterm`, `T1_alt_both`, `T2`, `T4`).
 
 ## Worked example: ENCODE heart
 
@@ -225,10 +233,11 @@ python -m jcast /work/output \
   see [REVIEW.md](REVIEW.md) HIGH-2/HIGH-3.)
 - **rMATS rows with `NA` gene names can fail.** A defensive substitution was
   added in v0.3.5a; further fixes are planned.
-- **Tier 4 contains products truncated at a stop codon.** Some of these are
-  genuine alternative C-termini rather than premature stops; separating them
-  is planned for v0.4.0 (REVIEW.md, PR 4c). Treat T4 outputs as candidates
-  for follow-up validation, not as confirmed identifications.
+- **Tier 4 contains products truncated at a stop codon.** Alternative
+  C-termini at an annotated stop codon go to `psq_T1_alt_cterm.fasta`
+  instead. A stop codon that the annotation does not support stays in T4,
+  and some of these may still be genuine. Treat T4 outputs as candidates for
+  follow-up validation, not as confirmed identifications.
 - **UniProt and GTF `.cached` files are written to the current working
   directory** and the directory of the input GTF respectively — this fails on
   read-only volumes. Workaround: `cd` to a writable directory before running.
@@ -237,7 +246,9 @@ python -m jcast /work/output \
 ## FAQ
 
 **What do I do with the output files?**
-For a typical analysis, append `psq_T1.fasta` to either `psq_canonical.fasta`
+For a typical analysis, append `psq_T1.fasta` (and, if you want annotated
+alternative termini, `psq_T1_alt_cterm.fasta` / `psq_T1_alt_nterm.fasta`) to
+either `psq_canonical.fasta`
 (if you used `-c`) or your existing SwissProt canonical database, and search
 that combined file in your MS pipeline. Lower-tier (T2/T4) and orphan
 outputs contain frameshifted or truncated sequences and should be

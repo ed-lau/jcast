@@ -1,0 +1,54 @@
+baseline commit: a0f3338 (PR 4b2); candidate: working tree (PR 4c); junctions: 1105
+
+1. junctions whose fate differs from the simulation: 0
+
+2. routed slices: 72; written where the simulation put them, with the same annotation: 72
+
+3. sequences matching an annotated protein present before but in no file now: 0
+
+routed slices: how the written record was found
+      7  deduplicated (sibling event)
+     36  own record
+     29  written as the canonical record (no junction id)
+
+fate counts: candidate
+    153  FAILURE
+    289  PARTIAL TIER 4
+    297  SKIPPED: Sequence discarded due to low coverage
+     92  SKIPPED: Splice event lies outside the annotated coding region
+    219  SUCCESS TIER 1
+     25  SUCCESS TIER 1 ALT TERMINUS
+     30  SUCCESS TIER 2
+
+fate transitions baseline -> candidate
+      3  FAILURE | SUCCESS TIER 1 ALT TERMINUS
+      1  FAILURE | SUCCESS TIER 1
+     13  PARTIAL TIER 4 | SUCCESS TIER 1 ALT TERMINUS
+      9  SUCCESS TIER 1 | SUCCESS TIER 1 ALT TERMINUS
+
+FASTA records (file | baseline | candidate)
+      1  psq_T1.fasta | 171 | 173
+      1  psq_T1_alt_cterm.fasta | 0 | 18
+      1  psq_T1_alt_cterm_orphan.fasta | 0 | 2
+      1  psq_T1_alt_nterm.fasta | 0 | 4
+      1  psq_T1_orphan.fasta | 37 | 35
+      1  psq_T2.fasta | 23 | 23
+      1  psq_T2_orphan.fasta | 14 | 14
+      1  psq_T4.fasta | 235 | 226
+      1  psq_T4_orphan.fasta | 82 | 76
+      1  psq_canonical.fasta | 268 | 268
+
+FASTA diff (file | change | annotated protein_coding)
+      1  psq_T1.fasta | gained | False
+      1  psq_T1.fasta | gained | True
+      3  psq_T1_alt_cterm.fasta | gained | False
+     15  psq_T1_alt_cterm.fasta | gained | True
+      1  psq_T1_alt_cterm_orphan.fasta | gained | False
+      1  psq_T1_alt_cterm_orphan.fasta | gained | True
+      4  psq_T1_alt_nterm.fasta | gained | True
+      1  psq_T1_orphan.fasta | lost | False
+      1  psq_T1_orphan.fasta | lost | True
+      2  psq_T4.fasta | lost | False
+      7  psq_T4.fasta | lost | True
+      5  psq_T4_orphan.fasta | lost | False
+      1  psq_T4_orphan.fasta | lost | True

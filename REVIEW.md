@@ -211,7 +211,7 @@ jcast/
    5. The junction is skipped if its event lies outside the coding region.
    6. Tier T1, T2 or T4, or fail; the result is appended to `psq_*.fasta`.
 
-### Tier classification (current, after PR 4b)
+### Tier classification (current, after PR 4c)
 
 Before tiering, each junction is processed in four steps:
 
@@ -231,6 +231,7 @@ Before tiering, each junction is processed in four steps:
 | Tier / fate | Meaning |
 |---|---|
 | **T1** | Both slices translate in their annotated frames with no stop codon before the last codon. Their coding lengths (slice length minus that slice's frame; PR 4b2) differ by a multiple of 3. |
+| **T1 ALT TERMINUS** | New in PR 4c. At least one slice is anchored at an annotated terminus (TSL ≤ 2 protein-coding), and both reach an acceptable end. *C-anchored*: its first stop is an annotated stop codon; it is joined at its N-terminus only. *N-anchored*: it lacks the gene's start codon that the other slice has, and is translated from another annotated start codon in it; it is joined at its C-terminus only. The output file depends on which terminus differs from the canonical: `psq_T1_alt_cterm`, `psq_T1_alt_nterm`, `psq_T1_alt_both`, or `psq_T1` if neither (`_orphan` if unjoinable). The frameshift test is waived only when a slice ends at an internal annotated stop. |
 | **T2** | Same as T1, but the coding lengths differ by a non-multiple of 3 (frameshift). An unstitchable slice may be joined at its N-terminus only. |
 | **T4** | Exactly one slice translates. The other is translated in its frame **up to** its first stop codon (a truncated product; nothing if it has no frame). The product is joined at its N-terminus only if it is ≥ `params.ptc_threshold` × the translated slice's length. Otherwise, or if it cannot be joined, it goes to `psq_T4_orphan.fasta`. |
 | ~~T3~~ | **Removed in PR 4b.** It re-translated in a guessed frame when the annotated frame failed. |
@@ -246,19 +247,16 @@ Before tiering, each junction is processed in four steps:
 
 **Known limitations of the current tiers**, with the audit for each:
 
-- **Alternative C-termini are classed as PTCs (T4/FAIL).** An isoform whose
-  alternative exon brings a different, annotated stop codon is treated as
-  hitting a premature stop.
-  [C-terminal audit](reports/2026-11-10-alt-cterm-tiering-audit.md).
-- **Slices that lack the start codon.** When the gene's start codon lies in
-  an alternative exon, the other slice is still read from mid-CDS. This
-  inflates T1/T2 counts for about 32 chr15 junctions without adding wrong
-  records.
+- **Alternative termini need annotation.** An alternative stop or start
+  codon that the annotation lacks, or has only above the TSL threshold, is
+  still read as a premature stop (T4/FAIL) or a mid-CDS fragment.
+  [Termini audit](reports/2026-11-10-alt-termini-audit.md).
+- **Start-less slices without an annotated alternative start** (34 on chr15)
+  are still read from mid-CDS. They inflate T1/T2 counts without adding
+  wrong records.
   [Phase audit §5.4](reports/2026-11-10-phase-audit.md).
 - **One coding region per gene.** Transcripts with a later start codon or
   an earlier stop are trimmed to the gene-wide range (ZFYVE19 SE 6502).
-
-PR 4c addresses the first two.
 
 ---
 
@@ -448,6 +446,15 @@ and log the effective threshold.
 Re-running into the same `-o` with different parameters silently merges
 results across runs. Refuse a non-empty output dir without `--overwrite`, or
 write to a temp dir and move it into place.
+
+### MED-14 — `-c` does not guarantee the canonical for genes whose junctions all succeed ◎ *(new, 2026-11-10)*
+
+With `-c`, the skip, FAILURE and (from PR 4c) alternative-terminus paths
+write the gene's canonical. T1, T2 and T4 write it only when a slice
+stitches into it exactly. On chr15, 2 protein-coding genes get no canonical
+record despite `-c`. The documented intent is that the canonical is written
+even when isoform translation fails. Write it on every path when `-c` is set
+(PR 8, with MED-9).
 
 ### MED-13 — `get_logger` stacks handlers on every call ◎ *(new; matters for the GUI)*
 
@@ -727,11 +734,11 @@ currently can't be installed and run from scratch.
 | 4a2 | ✅ **RI slice composition** (HIGH-11): slice 1 is the retained exon alone ([audit](reports/2026-11-10-ri-slice-audit.md)) | Sci-integrity | Done 2026-11-10 |
 | 4b | ✅ **Per-slice frame at the slice's 5′ end**, one-frame translation only; three-frame fallback, Tier 3 and `psq_T3*.fasta` removed (MED-2 closed) ([audit](reports/2026-11-10-phase-audit.md)) | Sci-integrity | Done 2026-11-10 |
 | 4b2 | ✅ **Frameshift test from coding lengths.** `Sequence.frameshift` compared raw slice lengths, which is wrong once slices have their own frames (PR 4b). Fixed: 17 chr15 junctions reclassified, no sequence lost or created ([audit](reports/2026-11-10-frameshift-audit.md)) | Sci-integrity (regression) | Done 2026-11-10 |
-| 4c | **Alternative termini.** C-terminal: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only; write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). N-terminal: a slice lacking the gene's start codon that contains another annotated start is translated from it and joined C-terminally only ([phase audit §5.4](reports/2026-11-10-phase-audit.md)). Re-evaluated on the current pipeline in [the termini audit](reports/2026-11-10-alt-termini-audit.md); decisions approved 2026-11-10 (TSL ≤ 2 sites, one file per terminus, fate `SUCCESS TIER 1 ALT TERMINUS`). | Sci-integrity | PR 4b2 |
+| 4c | ✅ **Alternative termini** (done 2026-11-10; [audit and verification](reports/2026-11-10-alt-termini-audit.md)). C-terminal: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only; write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). N-terminal: a slice lacking the gene's start codon that contains another annotated start is translated from it and joined C-terminally only ([phase audit §5.4](reports/2026-11-10-phase-audit.md)). Re-evaluated on the current pipeline in [the termini audit](reports/2026-11-10-alt-termini-audit.md); decisions approved 2026-11-10 (TSL ≤ 2 sites, one file per terminus, fate `SUCCESS TIER 1 ALT TERMINUS`). | Sci-integrity | Done 2026-11-10 |
 | 5 | Stitch anchor checks (MED-3); MED-2 moves to PR 4b | Correctness | PR 1 |
 | 6 | Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2) | Sci-integrity | PR 1 |
 | 7 | Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13) | Robustness | PR 1 |
-| 8 | Network resilience + `write_canonical` fallback (MED-9/10) | Robustness | PR 1 |
+| 8 | Network resilience + `write_canonical` fallback (MED-9/10); `-c` writes the canonical on every path (MED-14) | Robustness | PR 1 |
 | 9 | Per-gene GTF index, in-memory FASTA de-dup, filter before canonical lookup | Performance | PR 1 (golden test guards it) |
 | 10 | Packaging: pyproject metadata, Python ≥ 3.10, fix `find_packages`/`data_files`, bounds | Env | PR 0 |
 | 11 | CI (GitHub Actions) | Infra | PRs 1, 10 |

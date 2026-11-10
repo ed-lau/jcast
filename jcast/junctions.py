@@ -228,6 +228,8 @@ class Junction(object):
         self.phase = None
         self.slice_phases = (None, None)
         self.phase_ambiguous = False
+        self.start_sites = set()
+        self.stop_sites = set()
         self.num_start_codons = 0
 
         self.logger = logging.getLogger('jcast')
@@ -306,6 +308,12 @@ class Junction(object):
 
         starts = coding.query('feature == "start_codon"')
         stops = coding.query('feature == "stop_codon"')
+
+        # 2026-11-10 annotated start and stop codons (5' base in transcript orientation), used to recognise
+        # alternative N- and C-termini; see reports/2026-11-10-alt-termini-audit.md
+        five_prime = 'start' if self.strand == '+' else 'end'
+        self.start_sites = set(int(x) for x in starts[five_prime])
+        self.stop_sites = set(int(x) for x in stops[five_prime])
 
         # Number of start sites:
         self.num_start_codons = len(starts['start'].drop_duplicates())
@@ -495,3 +503,17 @@ class Junction(object):
                           if getattr(self, n + '_es') > 0 and getattr(self, n + '_ee') > 0)
 
         return exons(slice1), exons(slice2)
+
+    def slice_positions(self):
+        """
+        The genomic position of every nucleotide of each slice, in transcript orientation (5' to 3'), matching the
+        nucleotides of Sequence.make_slice_localgenome after reverse complementing on the - strand.
+
+        :return: (slice 1 positions, slice 2 positions)
+        """
+
+        out = []
+        for exons in self.slice_exons():
+            positions = [p for es, ee in exons for p in range(es, ee + 1)]
+            out.append(positions if self.strand == '+' else positions[::-1])
+        return tuple(out)

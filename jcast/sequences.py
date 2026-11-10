@@ -22,6 +22,8 @@ from jcast import params
 
 from jcast.annots import AnnotatedTranscript
 
+STOP_CODONS = {'TAA', 'TAG', 'TGA'}
+
 
 class Sequence(object):
 
@@ -53,6 +55,7 @@ class Sequence(object):
 
         self.translated_phase = -1                  # Phase that was actually used for translation (for logging).
         self.translated_phases = [-1, -1]           # Phase actually used for each slice
+        self.alt_suffixes = None                    # Output suffix per slice when routed by alternative termini
         self.translated_strand = self.j.strand    # Strand that was actually used for translation
 
     def __repr__(self):
@@ -166,6 +169,118 @@ class Sequence(object):
                         )
                     )
         return True
+
+    def route_alternative_termini(self) -> bool:
+        """
+        Recognise alternative termini that would otherwise be read as premature stops or as start-less fragments,
+        and, if the junction qualifies, translate and join its slices accordingly.
+
+        A slice is C-anchored if its first in-frame stop codon is an annotated protein-coding stop codon of the gene
+        (internal or in its last codon): it ends there. A slice is N-anchored if it lacks the gene's start codon
+        while the other slice contains it, and it contains another annotated protein-coding start codon: it is
+        translated from the first such ATG. A C-anchored slice is joined to the canonical at its N-terminus only,
+        an N-anchored one at its C-terminus only, one anchored at both ends not at all.
+
+        The junction qualifies if at least one slice is anchored, both slices reach an acceptable end (no stop
+        codon, a stop in the last codon, or an annotated stop) and it is not a frameshift. The frameshift test is
+        waived if a slice ends at an internal annotated stop (the slices then end at different stops); otherwise it
+        compares the coding lengths from each slice's translation start.
+
+        Each slice's output suffix depends on which terminus differs from the canonical's (first and last
+        params.aa_stitch_length residues): T1, T1_alt_cterm, T1_alt_nterm or T1_alt_both; an anchored slice that
+        cannot be joined goes to the orphan file of its anchor.
+
+        See reports/2026-11-10-alt-termini-audit.md
+
+        :return: True if the junction was routed (slices, stitched products and alt_suffixes set)
+        """
+
+        gene_start = self.j.tx0 if self.j.strand == '+' else self.j.tx1
+        positions = self.j.slice_positions()
+        nts = [self.slice1_nt, self.slice2_nt]
+        seqs = [str(nt.seq).upper() for nt in nts]
+        if self.j.strand == '-':
+            seqs = [h.get_complementary(s) for s in seqs]
+        contains_start = [gene_start is not None and gene_start in set(p) for p in positions]
+
+        plans = []
+        for k in range(2):
+            s, pos = seqs[k], positions[k]
+            phase = self.j.slice_phases[k]
+            start, n_anchored = (phase if phase in [0, 1, 2] else None), False
+
+            if not contains_start[k] and contains_start[1 - k]:
+                alt = next((i for i, p in enumerate(pos) if p in self.j.start_sites and s[i:i + 3] == 'ATG'), None)
+                if alt is not None:
+                    start, n_anchored = alt, True
+
+            if start is None:
+                return False
+
+            stop = next((i for i in range(start, len(s) - 2, 3) if s[i:i + 3] in STOP_CODONS), None)
+            terminal = stop is not None and stop > len(s) - 5
+            annotated = stop is not None and pos[stop] in self.j.stop_sites
+            if stop is not None and not terminal and not annotated:
+                return False
+
+            plans.append({'start': start, 'n': n_anchored, 'c': annotated, 'internal': annotated and not terminal,
+                          'length': len(s)})
+
+        if not any(p['n'] or p['c'] for p in plans):
+            return False
+        if not any(p['internal'] for p in plans) and \
+                ((plans[0]['length'] - plans[0]['start']) - (plans[1]['length'] - plans[1]['start'])) % 3 != 0:
+            return False
+
+        canonical = str(self.canonical_aa.seq)
+        length = params.aa_stitch_length
+        suffixes, products, peptides = [], [], []
+        for k, p in enumerate(plans):
+            aa = h.make_pep(nts[k].seq, self.j.strand, p['start'], terminate=False)
+            product = self._join(aa, {(True, True): 'none', (True, False): 'c',
+                                      (False, True): 'n', (False, False): 'both'}[(p['n'], p['c'])])
+            if product is None:
+                suffix = {(True, True): 'T1_alt_both', (True, False): 'T1_alt_nterm',
+                          (False, True): 'T1_alt_cterm', (False, False): 'T1'}[(p['n'], p['c'])]
+            elif str(product.seq) == canonical:
+                suffix = 'T1'
+            else:
+                n_same = str(product.seq)[:length] == canonical[:length]
+                c_same = str(product.seq)[-length:] == canonical[-length:]
+                suffix = {(True, True): 'T1', (True, False): 'T1_alt_cterm',
+                          (False, True): 'T1_alt_nterm', (False, False): 'T1_alt_both'}[(n_same, c_same)]
+            peptides.append(aa)
+            products.append(product)
+            suffixes.append(suffix)
+            self.translated_phases[k] = p['start'] % 3
+
+        self.slice1_aa, self.slice2_aa = peptides
+        self.slice1_stitched, self.slice2_stitched = products
+        self.alt_suffixes = suffixes
+        p1, p2 = self.translated_phases
+        self.translated_phase = str(p1) if p1 == p2 else f'{p1}/{p2}'
+        return True
+
+    def _join(self, aa: str, mode: str):
+        """
+        Join a peptide to the canonical: 'both' ends (as stitch_to_canonical_aa), 'n' (N-terminus only),
+        'c' (C-terminus only) or 'none' (the peptide alone). None if there is no canonical, the peptide is shorter
+        than the joint, or the joint is not found.
+        """
+
+        canonical = self.canonical_aa
+        length = params.aa_stitch_length
+        if len(canonical) == 0 or len(aa) < length:
+            return None
+
+        m0, m1 = canonical.seq.find(aa[:length]), canonical.seq.find(aa[-length:])
+        if mode == 'both':
+            return canonical[:m0] + aa + canonical[m1 + length:] if m0 != -1 and m1 != -1 else None
+        if mode == 'n':
+            return canonical[:m0] + aa if m0 != -1 else None
+        if mode == 'c':
+            return canonical[:0] + aa + canonical[m1 + length:] if m1 != -1 else None
+        return canonical[:0] + aa
 
     def translate_forced(self,
                          slice_to_translate: int,
@@ -547,17 +662,20 @@ class Sequence(object):
     def write_slices(self,
                      out_dir,
                      suffix,
+                     slice_suffixes=None,
                      ) -> None:
         """
         write the translated SeqRecord objects created into fasta file
 
         :param out_dir:          string  output directory
         :param suffix:          string  additional suffix to add to the end of an output file
+        :param slice_suffixes:  list    optional suffix per slice, overriding suffix (alternative termini)
 
         :return:
         """
 
         for i, stitched in enumerate([self.slice1_stitched, self.slice2_stitched]):
+            slice_suffix = slice_suffixes[i] if slice_suffixes else suffix
 
             # if no stitched aa, write the slice aa to orphan if it exists
             if stitched is None:
@@ -583,13 +701,13 @@ class Sequence(object):
                                            self.translated_strand,
                                            self.translated_phases[i],
                                            self.j.sum_sjc,
-                                           suffix,
+                                           slice_suffix,
                                        ),
                                        annotations={'molecule_type': 'extended_protein'},
                                        name=f'Sequence_{str(self.j.gene_symbol)}',
                                        description='Orphan',
                                        )
-                    h.write_seqrecord_to_fasta(orphan, out_dir, (suffix + '_orphan'))
+                    h.write_seqrecord_to_fasta(orphan, out_dir, (slice_suffix + '_orphan'))
 
             # if the stitched is same as canonical, write canonical
             elif stitched.seq == self.canonical_aa.seq:
@@ -610,8 +728,8 @@ class Sequence(object):
                     self.translated_strand,
                     self.translated_phases[i],
                     self.j.sum_sjc,
-                    suffix,
+                    slice_suffix,
                 )
-                h.write_seqrecord_to_fasta(stitched, out_dir, suffix)
+                h.write_seqrecord_to_fasta(stitched, out_dir, slice_suffix)
 
         return None

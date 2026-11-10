@@ -233,6 +233,29 @@ def _translate_one(junction: Junction,
 
         return fates.SKIPPED_OUTSIDE_CDS
 
+    # ---- Alternative termini: a slice that ends at an annotated stop codon, or that lacks the gene's start codon
+    # but contains another annotated one, is complete at that end rather than a fragment.
+    # 2026-11-10; see reports/2026-11-10-alt-termini-audit.md ----
+    if sequence.route_alternative_termini():
+        sequence.write_slices(out_dir=args.out,
+                              suffix='T1',
+                              slice_suffixes=sequence.alt_suffixes,
+                              )
+
+        # Write canonical anyhow if the canonical flag is set: these junctions were mostly FAILURE or T4 before,
+        # and the FAILURE path writes it.
+        if args.canonical:
+            sequence.write_canonical(out_dir=args.out)
+        alt_files = [s for s in sequence.alt_suffixes if s.startswith('T1_alt')]
+        if alt_files:
+            return fates.TIER1_ALT_TERMINUS.format(sequence.j.phase_label,
+                                                   sequence.translated_phase,
+                                                   ', '.join(alt_files),
+                                                   )
+        return fates.TIER1.format(sequence.j.phase_label,
+                                  sequence.translated_phase,
+                                  )
+
     # ---- Write the Tier 1 and Tier 2 results into fasta file ----
     if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
         # Tier 1: both translated without stop codon, no frameshift

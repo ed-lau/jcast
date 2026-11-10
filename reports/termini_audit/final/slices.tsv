@@ -1,0 +1,73 @@
+type	rmats_id	slice	gene_symbol	expected_file	written_files	how	expected_matches	written_matches	agrees
+MXE	579	1	ARPP19	psq_T1_alt_nterm	psq_T1_alt_nterm	own record	ARPP19-202:protein_coding;ARPP19-204:protein_coding;ARPP19-205:protein_coding;ARPP19-211:protein_coding	ARPP19-202:protein_coding;ARPP19-204:protein_coding;ARPP19-205:protein_coding;ARPP19-211:protein_coding	True
+MXE	579	2	ARPP19	psq_T1	psq_T1	own record	ARPP19-201:protein_coding;ARPP19-208:protein_coding;ARPP19-209:protein_coding;ARPP19-212:protein_coding	ARPP19-201:protein_coding;ARPP19-208:protein_coding;ARPP19-209:protein_coding;ARPP19-212:protein_coding	True
+SE	5716	1	PEX11A	psq_canonical	-	written as the canonical record (no junction id)	PEX11A-201:protein_coding		True
+SE	5716	2	PEX11A	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	PEX11A-203:protein_coding	PEX11A-203:protein_coding	True
+SE	5739	1	MFGE8	psq_canonical	-	written as the canonical record (no junction id)	MFGE8-201:protein_coding;MFGE8-215:protein_coding		True
+SE	5739	2	MFGE8	psq_T1	psq_T1	own record	MFGE8-202:protein_coding	MFGE8-202:protein_coding	True
+SE	5744	1	DET1	psq_canonical	-	written as the canonical record (no junction id)	DET1-202:protein_coding;DET1-207:protein_coding		True
+SE	5744	2	DET1	psq_T1_alt_nterm	psq_T1_alt_nterm	own record	DET1-201:protein_coding	DET1-201:protein_coding	True
+SE	5845	1	TMED3	psq_canonical	-	written as the canonical record (no junction id)	TMED3-201:protein_coding		True
+SE	5845	2	TMED3	psq_T1	psq_T1	own record			True
+SE	5921	1	COMMD4	psq_canonical	-	written as the canonical record (no junction id)	COMMD4-201:protein_coding;COMMD4-203:nonsense_mediated_decay		True
+SE	5921	2	COMMD4	psq_T1	psq_T1	own record	COMMD4-202:protein_coding	COMMD4-202:protein_coding	True
+SE	5987	1	PML	psq_T1	-	deduplicated (sibling event)	PML-215:protein_coding		True
+SE	5987	2	PML	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	PML-204:protein_coding;PML-217:protein_coding	PML-204:protein_coding;PML-217:protein_coding	True
+SE	5988	1	PML	psq_T1_alt_cterm	psq_T1_alt_cterm	own record			True
+SE	5988	2	PML	psq_T1_alt_cterm	-	deduplicated (sibling event)	PML-204:protein_coding;PML-217:protein_coding		True
+SE	6124	1	DPP8	psq_canonical	-	written as the canonical record (no junction id)	DPP8-203:protein_coding;DPP8-210:protein_coding		True
+SE	6124	2	DPP8	psq_T1_alt_nterm	psq_T1_alt_nterm	own record	DPP8-201:protein_coding	DPP8-201:protein_coding	True
+SE	6210	1	BNIP2	psq_T1	psq_T1	own record			True
+SE	6210	2	BNIP2	psq_canonical	-	written as the canonical record (no junction id)	BNIP2-201:protein_coding;BNIP2-213:protein_coding		True
+SE	6275	1	ZNF280D	psq_canonical	-	written as the canonical record (no junction id)	ZNF280D-201:protein_coding		True
+SE	6275	2	ZNF280D	psq_T1_alt_nterm	psq_T1_alt_nterm	own record	ZNF280D-207:protein_coding	ZNF280D-207:protein_coding	True
+SE	6276	1	ZNF280D	psq_canonical	-	written as the canonical record (no junction id)	ZNF280D-201:protein_coding		True
+SE	6276	2	ZNF280D	psq_T1_alt_nterm	-	deduplicated (sibling event)	ZNF280D-207:protein_coding		True
+SE	6375	1	MPI	psq_canonical	-	written as the canonical record (no junction id)	MPI-202:protein_coding		True
+SE	6375	2	MPI	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	MPI-213:protein_coding	MPI-213:protein_coding	True
+SE	6426	1	CASC4	psq_canonical	-	written as the canonical record (no junction id)	CASC4-201:protein_coding		True
+SE	6426	2	CASC4	psq_T1	psq_T1	own record	CASC4-202:protein_coding	CASC4-202:protein_coding	True
+SE	6489	1	CHP1	psq_canonical	-	written as the canonical record (no junction id)	CHP1-201:protein_coding		True
+SE	6489	2	CHP1	psq_T1	psq_T1	own record	CHP1-204:protein_coding	CHP1-204:protein_coding	True
+SE	6592	1	EMC4	psq_canonical	-	written as the canonical record (no junction id)	EMC4-202:protein_coding		True
+SE	6592	2	EMC4	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	EMC4-201:protein_coding	EMC4-201:protein_coding	True
+SE	7770	1	ARPP19	psq_T1	-	deduplicated (sibling event)	ARPP19-201:protein_coding;ARPP19-208:protein_coding;ARPP19-209:protein_coding;ARPP19-212:protein_coding		True
+SE	7770	2	ARPP19	psq_T1_alt_nterm	-	deduplicated (sibling event)	ARPP19-202:protein_coding;ARPP19-204:protein_coding;ARPP19-205:protein_coding;ARPP19-211:protein_coding		True
+SE	7772	1	ARPP19	psq_T1	-	deduplicated (sibling event)	ARPP19-201:protein_coding;ARPP19-208:protein_coding;ARPP19-209:protein_coding;ARPP19-212:protein_coding		True
+SE	7772	2	ARPP19	psq_T1_alt_nterm	-	deduplicated (sibling event)	ARPP19-202:protein_coding;ARPP19-204:protein_coding;ARPP19-205:protein_coding;ARPP19-211:protein_coding		True
+SE	11945	1	GTF2A2	psq_canonical	-	written as the canonical record (no junction id)	GTF2A2-202:protein_coding;GTF2A2-203:protein_coding;GTF2A2-204:protein_coding		True
+SE	11945	2	GTF2A2	psq_T1_alt_orphan	psq_T1_alt_cterm_orphan	own record			True
+SE	12765	1	BTBD1	psq_canonical	-	written as the canonical record (no junction id)	BTBD1-201:protein_coding		True
+SE	12765	2	BTBD1	psq_T1	psq_T1	own record			True
+SE	18709	1	MEIS2	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	MEIS2-206:protein_coding	MEIS2-206:protein_coding	True
+SE	18709	2	MEIS2	psq_canonical	-	written as the canonical record (no junction id)	MEIS2-222:protein_coding		True
+SE	24775	1	OAZ2	psq_canonical	-	written as the canonical record (no junction id)	OAZ2-205:protein_coding		True
+SE	24775	2	OAZ2	psq_canonical	-	written as the canonical record (no junction id)	OAZ2-205:protein_coding		True
+SE	28030	1	FAM96A	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	FAM96A-206:protein_coding	FAM96A-206:protein_coding	True
+SE	28030	2	FAM96A	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	FAM96A-202:protein_coding;FAM96A-203:protein_coding	FAM96A-202:protein_coding;FAM96A-203:protein_coding	True
+SE	29748	1	SNAPC5	psq_canonical	-	written as the canonical record (no junction id)	SNAPC5-202:protein_coding;SNAPC5-203:protein_coding;SNAPC5-204:nonsense_mediated_decay;SNAPC5-205:protein_coding		True
+SE	29748	2	SNAPC5	psq_T1	psq_T1	own record	SNAPC5-201:protein_coding	SNAPC5-201:protein_coding	True
+SE	43505	1	LYSMD4	psq_T1_alt_orphan	psq_T1_alt_cterm_orphan	own record		LYSMD4-204:protein_coding	True
+SE	43505	2	LYSMD4	psq_canonical	-	written as the canonical record (no junction id)	LYSMD4-202:protein_coding		True
+SE	48189	1	C15orf57	psq_canonical	-	written as the canonical record (no junction id)	C15orf57-201:protein_coding;C15orf57-202:protein_coding;C15orf57-208:nonsense_mediated_decay;C15orf57-209:nonsense_mediated_decay		True
+SE	48189	2	C15orf57	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	C15orf57-205:protein_coding;C15orf57-214:protein_coding	C15orf57-205:protein_coding;C15orf57-214:protein_coding	True
+RI	931	1	RPS17	psq_canonical	-	written as the canonical record (no junction id)	RPS17-209:protein_coding		True
+RI	931	2	RPS17	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	RPS17-201:protein_coding	RPS17-201:protein_coding	True
+RI	978	1	PML	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	PML-207:protein_coding	PML-207:protein_coding	True
+RI	978	2	PML	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	PML-202:protein_coding	PML-202:protein_coding	True
+RI	1400	1	RPS27L	psq_T1_alt_cterm	psq_T1_alt_cterm	own record			True
+RI	1400	2	RPS27L	psq_canonical	-	written as the canonical record (no junction id)	RPS27L-205:protein_coding		True
+RI	4475	1	FRMD5	psq_canonical	-	written as the canonical record (no junction id)	FRMD5-202:protein_coding		True
+RI	4475	2	FRMD5	psq_T1_alt_cterm	psq_T1_alt_cterm	own record			True
+A5SS	769	1	PML	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	PML-208:protein_coding;PML-221:protein_coding	PML-208:protein_coding;PML-221:protein_coding	True
+A5SS	769	2	PML	psq_canonical	-	written as the canonical record (no junction id)	PML-201:protein_coding		True
+A3SS	1238	1	HDDC3	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	HDDC3-201:protein_coding	HDDC3-201:protein_coding	True
+A3SS	1238	2	HDDC3	psq_canonical	-	written as the canonical record (no junction id)	HDDC3-202:protein_coding		True
+A3SS	1304	1	FAM219B	psq_canonical	-	written as the canonical record (no junction id)	FAM219B-201:protein_coding;FAM219B-204:protein_coding		True
+A3SS	1304	2	FAM219B	psq_T1	psq_T1	own record			True
+A3SS	1551	1	ADPGK	psq_T1	psq_T1	own record			True
+A3SS	1551	2	ADPGK	psq_canonical	-	written as the canonical record (no junction id)	ADPGK-201:protein_coding		True
+A3SS	4710	1	SERF2	psq_T1	psq_T1	own record	SERF2-202:protein_coding	SERF2-202:protein_coding	True
+A3SS	4710	2	SERF2	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	SERF2-201:protein_coding;SERF2-203:protein_coding;SERF2-212:nonsense_mediated_decay	SERF2-201:protein_coding;SERF2-203:protein_coding;SERF2-212:nonsense_mediated_decay	True
+A3SS	6113	1	NMB	psq_T1_alt_cterm	psq_T1_alt_cterm	own record	NMB-201:protein_coding	NMB-201:protein_coding	True
+A3SS	6113	2	NMB	psq_canonical	-	written as the canonical record (no junction id)	NMB-202:protein_coding		True

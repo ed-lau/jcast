@@ -23,9 +23,9 @@ network.
 | [Trimming to the coding region (UTR exons)](2026-11-10-utr-exon-trimming-audit.md) | 4a | Implemented in `89e1a82` | `89e1a82` (`python reports/utr_audit/audit_utr.py`) |
 | [RI retained-intron slices](2026-11-10-ri-slice-audit.md) | 4a2 | Implemented in `bc7d894` | `bc7d894` (`python reports/ri_audit/audit_ri.py`) |
 | [Reading frame and three-frame fallback](2026-11-10-phase-audit.md) | 4b | Candidate `9e27815`; final `2679edb` | four variants at `9e27815`; final check with `--final` |
-| [Frameshift test from coding lengths](2026-11-10-frameshift-audit.md) | 4b2 | Implemented (see the reports' commit log) | the PR 4b2 commit (`python reports/frameshift_audit/audit_frameshift.py`) |
+| [Frameshift test from coding lengths](2026-11-10-frameshift-audit.md) | 4b2 | Implemented in `a0f3338` | `a0f3338` (`python reports/frameshift_audit/audit_frameshift.py`) |
 | [Alternative C-termini (first evaluation)](2026-11-10-alt-cterm-tiering-audit.md) | 4c | Superseded by the next row. Measured on PR 4 alone. | `a555446` (`python reports/cterm_audit/audit_cterm.py`) |
-| [Alternative C- and N-termini on the current pipeline](2026-11-10-alt-termini-audit.md) | 4c (and 4b2) | **Decisions approved 2026-11-10** (§7). Also found a PR 4b regression in the frameshift test (§6), proposed as PR 4b2. | `919f6c7` (`python reports/termini_audit/audit_termini.py`) |
+| [Alternative C- and N-termini on the current pipeline](2026-11-10-alt-termini-audit.md) | 4c (and 4b2) | **Implemented in PR 4c** (§10), after PR 4b2, which fixes the regression it found (§6). | evaluation: `919f6c7` (`audit_termini.py`); expected after 4b2: `a0f3338` (`audit_termini.py --out …/expected_after_4b2`); verification: the PR 4c commit (`verify_4c.py`) |
 
 Each script compares a baseline commit with the working tree, or patches
 the candidate in at runtime, so later code changes its output. To reproduce
@@ -46,7 +46,7 @@ first.
 | 2026-11-10 | PR 4c: annotated sites at TSL ≤ 2; one file per terminus (`psq_T1_alt_cterm`, `psq_T1_alt_nterm`, `psq_T1_alt_both`, each with `_orphan`); one fate `SUCCESS TIER 1 ALT TERMINUS`; frameshift test waived only for a slice ending at an internal annotated stop | [termini audit §7](2026-11-10-alt-termini-audit.md#7-decisions-needed) |
 | 2026-11-10 | PR 4b2: fix the frameshift test (coding lengths) before PR 4c | [termini audit §6](2026-11-10-alt-termini-audit.md#6-regression-found-the-frameshift-test-ignores-per-slice-frames-proposed-pr-4b2) |
 
-## Current tiers (after PR 4b)
+## Current tiers (after PR 4c)
 
 Before tiering, each junction is trimmed to the gene's annotated coding
 region, and exons entirely in the UTR are removed. Junctions whose event
@@ -57,11 +57,12 @@ translated.
 | Tier | Meaning |
 |---|---|
 | **T1** | Both slices translate with no premature stop codon, and their coding lengths (from each slice's own frame) differ by a multiple of 3. |
+| **T1 ALT TERMINUS** | At least one slice ends at an annotated alternative stop codon (C-anchored, joined at its N-terminus only) or starts at an annotated alternative start codon (N-anchored, joined at its C-terminus only). Files: `psq_T1_alt_cterm`, `psq_T1_alt_nterm`, `psq_T1_alt_both` (each with `_orphan`). |
 | **T2** | As T1, but with a frameshift. |
 | **T4** | One slice translates. The other is translated up to its first stop codon; that product is joined N-terminally if it is ≥ `ptc_threshold` × the translated slice's length, otherwise it is written as an orphan. |
 
 T3 no longer exists. The full definitions are in
-[REVIEW.md §3](../REVIEW.md#tier-classification-current-after-pr-4b).
+[REVIEW.md §3](../REVIEW.md#tier-classification-current-after-pr-4c).
 
 ## Golden-test history
 
@@ -76,7 +77,8 @@ every output file's contents. Its values at each stage:
 | PR 4a2: RI slices | `bc7d894` | 238 | 258 | 297 | 92 | 189 | 28 | 3 | 169 |
 | PR 4b candidate: per-slice frames, fallback kept | `9e27815` | 165 | 289 | 297 | 92 | 214 | 45 | 3 | 170 |
 | PR 4b final: fallback and T3 removed | `2679edb` | 157 | 302 | 297 | 92 | 212 | 45 | – | 170 |
-| PR 4b2: frameshift test from coding lengths | PR 4b2 commit | 157 | 302 | 297 | 92 | 227 | 30 | – | 171 |
+| PR 4b2: frameshift test from coding lengths | `a0f3338` | 157 | 302 | 297 | 92 | 227 | 30 | – | 171 |
+| PR 4c: alternative termini (+ T1 ALT 25) | PR 4c commit | 153 | 289 | 297 | 92 | 219 | 30 | – | 173 |
 
 `psq_canonical.fasta` has 268 records at every stage. At no stage is a
 `psq_T1.fasta` sequence matching an annotated protein lost.
@@ -90,6 +92,9 @@ every output file's contents. Its values at each stage:
 - **The frameshift test ignored per-slice frames after PR 4b,** found in
   the PR 4c audit (§6). It misclassifies T1/T2 for 17 chr15 junctions.
   Fixed in PR 4b2.
+- **`-c` does not write the canonical for genes whose junctions all
+  succeed** (REVIEW.md MED-14; 2 chr15 genes), found while verifying
+  PR 4c. Scheduled for PR 8.
 - **The T4 length threshold was mis-documented.** It decides whether the
   truncated product is joined to the canonical, not whether it is written.
   Corrected in the README and REVIEW.md with PR 4b.

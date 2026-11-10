@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-10 |
-| **Status** | Pre-implementation evaluation. No production code changed. Re-runs the [C-terminal audit](2026-11-10-alt-cterm-tiering-audit.md) on the current pipeline and extends it to N-termini. **All recommendations in §7 were approved on 2026-11-10:** PR 4b2 first; TSL ≤ 2 sites; separate files per terminus; one fate `SUCCESS TIER 1 ALT TERMINUS`; the refined frameshift rule. **It also found a regression from PR 4b in the frameshift test (§6), proposed as PR 4b2 to land before 4c.** |
+| **Status** | Pre-implementation evaluation. No production code changed. Re-runs the [C-terminal audit](2026-11-10-alt-cterm-tiering-audit.md) on the current pipeline and extends it to N-termini. **Implemented in PR 4c (§10).** All recommendations in §7 were approved on 2026-11-10: PR 4b2 first; TSL ≤ 2 sites; separate files per terminus; one fate `SUCCESS TIER 1 ALT TERMINUS`; the refined frameshift rule. **It also found a regression from PR 4b in the frameshift test (§6), proposed as PR 4b2 to land before 4c.** |
 | **Code audited** | Commit `919f6c7` (PR 4b final + docs): tiering in [jcast/main.py](../jcast/main.py), frames in `Junction.get_translated_phase`, stitching in `Sequence.stitch_to_canonical_aa`, frameshift test `Sequence.frameshift` |
 | **Data** | Bundled chr15 test set: 1,105 rMATS junctions (716 not skipped), Ensembl GRCh38.89 GTF, GRCh38 chr15 DNA |
 | **Environment** | Python 3.11.13, pandas 2.3.1, numpy 1.26.4, biopython 1.78, gtfparse 1.3.0 |
@@ -454,3 +454,89 @@ The script:
 
 The inputs are those of the
 [tx1 audit, §9](2026-11-03-tx1-translation-bounds-audit.md#9-reproducing-this-audit).
+
+---
+
+## 10. Implementation and verification (PR 4c)
+
+**Implemented as approved** (§7):
+
+- annotated sites at TSL ≤ 2, taken from the same protein-coding rows as
+  the coding bounds (`Junction.start_sites`, `stop_sites`);
+- `Sequence.route_alternative_termini` and `_join` (N-only, C-only or no
+  join);
+- per-slice output suffixes in `write_slices`;
+- the fate `SUCCESS TIER 1 ALT TERMINUS`, whose message lists the alt
+  files;
+- the refined frameshift waiver.
+
+PR 4b2 (`a0f3338`) landed first, so the simulation was re-run on it. That
+run is the expected outcome, in
+[termini_audit/expected_after_4b2/](termini_audit/expected_after_4b2/summary.txt).
+After PR 4b2 there are no T2 → T1 promotions (§4.3), because those junctions
+were already T1. Fates change for 26 junctions:
+
+| Before | After | Junctions |
+|---|---|---|
+| FAIL | T1 ALT | 3 |
+| FAIL | T1 | 1 |
+| T4 | T1 ALT | 13 |
+| T1 | T1 ALT | 9 |
+
+**One addition during implementation.** With `-c`, the new path also writes
+the canonical, as the FAILURE path does. Without it, FAM96A's canonical
+(FAM96A-201) disappeared from `psq_canonical.fasta`, because its only
+junction moved from FAILURE to T1 ALT. The underlying inconsistency, that
+T1/T2/T4 do not write the canonical with `-c`, predates this PR. It affects
+2 chr15 genes and is recorded as REVIEW.md MED-14 for PR 8.
+
+**Regression tests** (`tests/test_termini.py`):
+
+| Test | Junction | Asserts | Before PR 4c |
+|---|---|---|---|
+| two alternative C-termini | FAM96A SE 28030 | T1 ALT; FAM96A-206 and -202 in `psq_T1_alt_cterm` | fails |
+| alternative C-terminus + canonical | NMB A3SS 6113 | NMB-201 in alt_cterm, NMB-202 in canonical | fails |
+| terminal annotated stop | EMC4 SE 6592 | EMC4-201 in alt_cterm | fails |
+| alternative N-terminus | DET1 SE 5744 | DET1-201 in `psq_T1_alt_nterm` | fails |
+| N-terminus replaces the recreated canonical | ARPP19 SE 7770 | ARPP19-202 in alt_nterm, ARPP19-201 in T1 | fails |
+| NMD-only stop stays a PTC | SEMA4B SE 5703 | T4, no alt file | passes (guard) |
+| anchored frameshift stays T2 | APH1B MXE 3368 | T2 | passes (guard) |
+| internal event at the canonical stop | MFGE8 SE 5739 | plain T1, MFGE8-202 in T1 | passes (guard) |
+
+**Verification**
+([termini_audit/verify_4c.py](termini_audit/verify_4c.py) →
+[final/summary.txt](termini_audit/final/summary.txt)).
+The real pipeline at PR 4b2 and at PR 4c is compared with the simulation:
+
+1. **Fates:** 0 of 1,105 junctions differ from the simulated fate.
+2. **Routed slices:** all 72 are written where the simulation put them, with
+   the same annotation:
+   - 36 have their own record;
+   - 29 are written as the canonical record;
+   - 7 are already present from a sibling event, which the FASTA writer
+     does not write twice.
+3. **Annotated proteins:** no sequence matching one is lost.
+
+**Output files:**
+
+| File | Records | Exact annotated protein-coding |
+|---|---|---|
+| `psq_T1_alt_cterm.fasta` | 18 | 15 |
+| `psq_T1_alt_cterm_orphan.fasta` | 2 | 1 (LYSMD4-204) |
+| `psq_T1_alt_nterm.fasta` | 4 | 4 |
+| `psq_T1.fasta` | 171 → 173 | |
+| `psq_canonical.fasta` | 268, unchanged | |
+
+**Fates after PR 4c:**
+
+| Fate | Junctions |
+|---|---|
+| FAILURE | 153 |
+| PARTIAL TIER 4 | 289 |
+| SKIPPED (low coverage) | 297 |
+| SKIPPED (outside coding region) | 92 |
+| SUCCESS TIER 1 | 219 |
+| SUCCESS TIER 1 ALT TERMINUS | 25 |
+| SUCCESS TIER 2 | 30 |
+
+The full test suite (43 tests, including the network tests) passes.

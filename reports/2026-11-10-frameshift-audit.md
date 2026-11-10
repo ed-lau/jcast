@@ -6,7 +6,7 @@
 | **Status** | Implemented. A regression from PR 4b, found in the [alternative-termini audit §6](2026-11-10-alt-termini-audit.md#6-regression-found-the-frameshift-test-ignores-per-slice-frames-proposed-pr-4b2). Baseline is commit `5c0a697`. |
 | **Code** | `Sequence.frameshift` ([jcast/sequences.py](../jcast/sequences.py)) |
 | **Environment** | Python 3.11.13, pandas 2.3.1, numpy 1.26.4, biopython 1.78, gtfparse 1.3.0 |
-| **Reproduce** | `python reports/frameshift_audit/audit_frameshift.py` at the PR 4b2 commit (≈ 2 min, no network) |
+| **Reproduce** | `python reports/frameshift_audit/audit_frameshift.py` at `a0f3338` (≈ 2 min, no network) |
 | **Evidence** | [frameshift_audit/summary.txt](frameshift_audit/summary.txt) · [frameshift_audit/junctions.tsv](frameshift_audit/junctions.tsv) · [frameshift_audit/fasta_diff.tsv](frameshift_audit/fasta_diff.tsv) |
 
 ## 1. Defect and fix
