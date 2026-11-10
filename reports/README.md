@@ -23,7 +23,8 @@ network.
 | [Trimming to the coding region (UTR exons)](2026-11-10-utr-exon-trimming-audit.md) | 4a | Implemented in `89e1a82` | `89e1a82` (`python reports/utr_audit/audit_utr.py`) |
 | [RI retained-intron slices](2026-11-10-ri-slice-audit.md) | 4a2 | Implemented in `bc7d894` | `bc7d894` (`python reports/ri_audit/audit_ri.py`) |
 | [Reading frame and three-frame fallback](2026-11-10-phase-audit.md) | 4b | Candidate `9e27815`; final `2679edb` | four variants at `9e27815`; final check with `--final` |
-| [Alternative C-termini](2026-11-10-alt-cterm-tiering-audit.md) | 4c | **Planned.** Measured on PR 4 alone, so re-run on PR 4b before implementing. Scope extended to N-termini. | `a555446` (`python reports/cterm_audit/audit_cterm.py`) |
+| [Alternative C-termini (first evaluation)](2026-11-10-alt-cterm-tiering-audit.md) | 4c | Superseded by the next row. Measured on PR 4 alone. | `a555446` (`python reports/cterm_audit/audit_cterm.py`) |
+| [Alternative C- and N-termini on the current pipeline](2026-11-10-alt-termini-audit.md) | 4c (and 4b2) | **Decisions approved 2026-11-10** (§7). Also found a PR 4b regression in the frameshift test (§6), proposed as PR 4b2. | `919f6c7` (`python reports/termini_audit/audit_termini.py`) |
 
 Each script compares a baseline commit with the working tree, or patches
 the candidate in at runtime, so later code changes its output. To reproduce
@@ -41,6 +42,8 @@ first.
 | 2026-11-10 | **Remove the three-frame fallback and Tier 3** (switch `three_frame_fallback`, audit only, never released) | [4b audit §5.3, §7](2026-11-10-phase-audit.md#53-effect-of-the-three-frame-fallback-fallback--one_frame) |
 | 2026-11-10 | **Keep a frame for slices lacking the start codon** (switch `frame_for_start_less_slice`, audit only, never released); add an annotated-start rule in PR 4c | [4b audit §5.4, §7](2026-11-10-phase-audit.md#54-slices-that-lack-the-start-codon) |
 | 2026-11-10 | Alternative C-terminal isoforms go to a separate `psq_T1_alt_cterm.fasta` | [C-terminal audit §7](2026-11-10-alt-cterm-tiering-audit.md) |
+| 2026-11-10 | PR 4c: annotated sites at TSL ≤ 2; one file per terminus (`psq_T1_alt_cterm`, `psq_T1_alt_nterm`, `psq_T1_alt_both`, each with `_orphan`); one fate `SUCCESS TIER 1 ALT TERMINUS`; frameshift test waived only for a slice ending at an internal annotated stop | [termini audit §7](2026-11-10-alt-termini-audit.md#7-decisions-needed) |
+| 2026-11-10 | PR 4b2: fix the frameshift test (coding lengths) before PR 4c | [termini audit §6](2026-11-10-alt-termini-audit.md#6-regression-found-the-frameshift-test-ignores-per-slice-frames-proposed-pr-4b2) |
 
 ## Current tiers (after PR 4b)
 
@@ -82,6 +85,9 @@ every output file's contents. Its values at each stage:
   exons twice. Fixed in PR 4a2.
 - **A5SS/A3SS on the `−` strand were trimmed at the wrong bound**, found in
   the PR 4a audit. Fixed in PR 4a.
+- **The frameshift test ignored per-slice frames after PR 4b,** found in
+  the PR 4c audit (§6). It misclassifies T1/T2 for 17 chr15 junctions.
+  Proposed fix: PR 4b2.
 - **The T4 length threshold was mis-documented.** It decides whether the
   truncated product is joined to the canonical, not whether it is written.
   Corrected in the README and REVIEW.md with PR 4b.
