@@ -57,9 +57,11 @@ Once those are fixed, the core tiering logic runs cleanly on pandas 3 /
 numpy 2. The full chr15 run raised no exceptions.
 
 **The most important scientific finding** is that the `tx1` (translation-end)
-bug is **not silent**, contrary to the first review. It truncates 15 % of SE
-and 11 % of MXE junctions on chr15. Correcting it changes the fate of 45 of
-1,105 junctions and recovers 12 additional T1 sequences
+bug is **not silent**, contrary to the first review. Splice events at the
+C-terminal exon are essentially untranslatable (2 of 44 on chr15), and 12 %
+of junctions get spurious trims at start codons. Correcting it changes the
+fate of 48 of 1,105 junctions and recovers 12 additional T1 sequences
+(none lost)
 ([§5.1](#51--tx1-is-derived-from-start_codon-not-stop_codon--measured)).
 
 ---
@@ -302,6 +304,9 @@ label all say SJC. See §5.2.
 `''` and the junction drops to T4/fail. Add `break` after the first success,
 or pick the longest translation deliberately.
 
+*2026-11-10:* moved to PR 4b. The fallback is to be removed there once
+one-frame translation is enforced (§5.1 decisions).
+
 ### MED-3 — Stitch anchor is not checked for uniqueness or order ◎
 
 [jcast/sequences.py:506-510](jcast/sequences.py#L506-L510). `str.find`
@@ -436,46 +441,58 @@ into identifications.
 
 ### 5.1 — `tx1` is derived from `start_codon`, not `stop_codon` — measured
 
-[jcast/junctions.py:322-347](jcast/junctions.py#L322-L347). The block
-commented "now getting end codons" queries `feature == "start_codon"`. On
-`+` strand, `tx1` becomes the most downstream *start* codon (+2). On `−`
-strand, after the swap, the lower bound `tx0` is likewise a start codon.
-Alternative transcripts often start translation at internal ATGs, so this
-coordinate frequently lies *inside* coding exons.
+> **Full audit:** [reports/2026-11-03-tx1-translation-bounds-audit.md](reports/2026-11-03-tx1-translation-bounds-audit.md),
+> reproducible with `python reports/tx1_audit/audit_tx1.py`. The figures below
+> are from that audit. They supersede the earlier prototype numbers, which
+> had silently dropped the TSL filter.
 
-**Measured on chr15 (1,105 junctions processed):**
+[jcast/junctions.py:320-348](jcast/junctions.py#L320-L348). The block
+commented "now getting end codons" queries `feature == "start_codon"`. The
+C-terminal bound (`tx1` on `+`, `tx0` on `−`) therefore sits at a start
+codon: 2 nt past it on `+`, and *on* it on `−`, where both bounds collapse.
+It matches an annotated stop codon in 0 of 1,105 chr15 junctions.
 
-| Type | Junctions | End-side trim fired |
-|---|---|---|
-| SE | 720 | 109 (15 %) |
-| MXE | 90 | 10 (11 %) |
-| A5SS | 71 | 4 |
-| RI | 88 | 2 |
-| A3SS | 136 | 2 |
+**Two failure modes:**
 
-**Output impact.** The full pipeline was run with a prototype fix:
-`+`: `[min start_codon.start, max stop_codon.end]`;
-`−`: `[min stop_codon.start, max start_codon.end]`; no `+2` offset.
+- **A — C-terminal events are untranslatable.** 63 junctions span the
+  stop-codon exon. The shipped code translates 2 of the 44 that pass the read
+  filter; corrected bounds translate 36 (7 T1, 4 T2, 25 T4). The slice
+  otherwise runs into the 3′ UTR and the true stop is read as a PTC.
+- **B — spurious trims at start codons** (129 junctions). These cut the
+  start-codon exon a few nt after the ATG, or on `−` keep its 5′-UTR side.
+  Some T1/T2 "successes" are 5′-UTR translations, or slice pairs from which
+  the splice event was deleted.
 
-- 45 / 1,105 junctions change fate. 23 FAIL → T4, 8 FAIL → T1, 1 FAIL → T2,
-  1 T4 → T2. In the other direction, 4 T4 → FAIL, 3 T1 → FAIL, and 4 T1/T2 →
-  T4.
-- `psq_T1.fasta`: 152 → 164 records. **12 sequences gained, 0 lost; no
-  existing T1 sequence changed.** Stitching back to the canonical masks
-  truncated C-termini, so the damage shows up as *lost isoforms* (e.g. a
-  skip-form slice reduced to the anchor exon) rather than corrupted ones.
-- T4 and orphan files change more (≈ 20 sequences each way).
+**Output impact** (corrected bounds as specified in the audit, §7):
 
-**Recommendations:**
+- 48 of 1,105 junctions change fate, all in classes A/B; the other 917 are
+  identical. 38 improve. The 10 that get worse were all traced to artefactual
+  shipped "successes".
+- `psq_T1.fasta`: 152 → 164. **12 gained (8 match an annotated Ensembl
+  protein), 0 lost.** `psq_canonical.fasta` is unchanged. One annotated-match
+  sequence is no longer produced: a 43-aa BLOC1S6 orphan fragment that arose
+  from an artefactual trim.
 
-1. Don't simply swap the feature string. The `+2` offset was tuned for start
-   codons, and with stop codons it leaves 2 nt past the stop, which
-   `make_pep` then treats as a PTC (see the LOW item above).
-2. Pin `tx0`/`tx1` for one `+` and one `−` transcript in a regression test
-   *before* changing the code.
-3. Investigate the 3 T1 → FAIL transitions in the prototype before shipping.
-4. Call out the behavior change in the changelog, so users of ≤ v0.3.5 can
-   decide whether to re-run.
+**Recommendations:** implement the bound definition in audit §7.1 (no `+2`
+offsets; each bound falls back to `None` independently). Land the regression
+tests in audit §7.2 first, then update the golden test (audit §7.3) and the
+CHANGELOG (audit §7.4) in the same commit. Residual issues that exist under
+both versions are listed in audit §8.
+
+**Decisions on the residual issues (2026-11-10):**
+
+| Audit §8 item | Decision |
+|---|---|
+| 1. Pure-UTR exons are never removed | Drop them. Translating UTR is outside JCAST's purpose. **PR 4a.** |
+| 2. One gene-wide CDS envelope | Defer. Revisit after PR 4. |
+| 3. Second-start-site retry | Defer. Revisit after PR 4. |
+| 4. Phase lookup after trimming | Take the phase from the first retained coding exon and enforce one-frame translation. **PR 4b.** |
+| 5. Three-frame fallback (MED-2) | Its output (T3) is not used downstream of JCAST. Remove it in PR 4b if that PR's audit shows it is no longer reached; otherwise defer. |
+
+Alternative C-terminal isoforms, which today are classed as PTC (T4/FAIL), are
+evaluated in
+[reports/2026-11-10-alt-cterm-tiering-audit.md](reports/2026-11-10-alt-cterm-tiering-audit.md).
+That work is PR 4c.
 
 ### 5.2 — `sum_sjc` is `min(SJC, IJC)` ◎
 
@@ -642,7 +659,10 @@ currently can't be installed and run from scratch.
 | 2 | pandas ≥ 2 exception handling (MED-7), `NaN` gene symbols | Compat | PR 1 |
 | 3 | Soft-masking / IUPAC (HIGH-2/3) | Correctness | PR 1 |
 | 4 | **`tx0`/`tx1` from start/stop codons** (§5.1) — regression test first; changelog entry | Sci-integrity | PRs 1, 2 |
-| 5 | Three-frame `break` (MED-2), stitch anchor checks (MED-3) | Correctness | PR 1 |
+| 4a | **Drop pure-UTR exons**: `_trim` removes any exon lying entirely outside [`tx0`, `tx1`] (tx1 audit §8 item 1). Own audit and golden update. | Sci-integrity | PR 4 |
+| 4b | **Phase from the first retained coding exon**, enforcing one-frame translation (tx1 audit §8 item 4). Retire the three-frame fallback (T3, MED-2) if the audit for this PR shows it is no longer reached; otherwise defer its removal. | Sci-integrity | PR 4a |
+| 4c | **Alternative C-termini**: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only and write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). Re-run that audit on 4a + 4b first. | Sci-integrity | PR 4b |
+| 5 | Stitch anchor checks (MED-3); MED-2 moves to PR 4b | Correctness | PR 1 |
 | 6 | Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2) | Sci-integrity | PR 1 |
 | 7 | Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13) | Robustness | PR 1 |
 | 8 | Network resilience + `write_canonical` fallback (MED-9/10) | Robustness | PR 1 |
