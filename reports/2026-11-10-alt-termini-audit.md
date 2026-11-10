@@ -330,13 +330,20 @@ shared downstream sequence depends on the *coding* lengths:
 `(len1 − phase1) − (len2 − phase2)`.
 
 **The two tests disagree for 17 junctions** — every T1/T2 junction whose
-slices have different frames. Query: `slices.tsv`, policy `tsl2`, columns
-`frame` and `coding_nt`.
+slices have different frames.
+
+> **Erratum (2026-11-10).** This table first listed PKM SE 36967 as
+> T1 → T2, giving 15 T2 → T1 and 2 T1 → T2. The query took `coding_nt`
+> from `slices.tsv`. For an N-anchored slice, that column is measured from
+> the alternative start codon, not from the slice's frame, so it was wrong
+> for PKM's slice 2. Recomputed from the pipeline's actual slices in the
+> [PR 4b2 audit](2026-11-10-frameshift-audit.md), PKM SE 36967 is T2 → T1.
+> The total of 17 is unchanged. The corrected table follows.
 
 | Today | Junctions | Coding-length test |
 |---|---|---|
-| T2 | ADAL MXE 2115, LINS1 MXE 449, GTF2A2 SE 11945, HYKK SE 17536, WDR61 SE 22528, OAZ2 SE 24775, MGA SE 31207, DET1 SE 5744, CD276 SE 5993, DPP8 SE 6124, ZNF280D SE 6275/6276, TMEM62 SE 6443, UBE3A SE 6665/6666 (15) | in frame, so T1 |
-| T1 | GTF2A2 SE 11950, PKM SE 36967 (2) | frameshift, so T2 |
+| T2 | ADAL MXE 2115, LINS1 MXE 449, GTF2A2 SE 11945, HYKK SE 17536, WDR61 SE 22528, OAZ2 SE 24775, MGA SE 31207, DET1 SE 5744, CD276 SE 5993, DPP8 SE 6124, ZNF280D SE 6275/6276, TMEM62 SE 6443, UBE3A SE 6665/6666, PKM SE 36967 (16) | in frame, so T1 |
+| T1 | GTF2A2 SE 11950 (1) | frameshift, so T2 |
 
 **Evidence for the coding-length test.** LINS1 MXE 449's T2 record is
 exactly the annotated LINS1-207 protein (phase audit §5.4), which is

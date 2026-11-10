@@ -241,18 +241,18 @@ def test_per_slice_phase(gtf, genome, rmats_results, tmp_path, monkeypatch):
     fate = _translate(junction, gtf, genome, tmp_path, monkeypatch)
 
     assert junction.slice_phases == (0, 2)
-    assert fate.startswith('SUCCESS TIER 2')
+    assert fate.startswith('SUCCESS TIER 1')  # in frame once each slice's frame is accounted for (PR 4b2)
 
 
 def test_per_slice_phase_reconstructs_annotated_isoform(gtf, genome, rmats_results, tmp_path, monkeypatch):
-    """ LINS1 MXE 449 slice 2, read in its own frame, is exactly the annotated LINS1-207 protein """
+    """ LINS1 MXE 449 slice 2, read in its own frame, is exactly the annotated LINS1-207 protein (T1 since PR 4b2) """
 
     junction = _junction(rmats_results.rmats_mxe, 449)
     fate = _translate(junction, gtf, genome, tmp_path, monkeypatch)
 
     assert junction.slice_phases == (2, 0)
-    assert fate.startswith('SUCCESS TIER 2')
-    written = {str(r.seq) for r in SeqIO.parse(tmp_path / 'psq_T2.fasta', 'fasta')}
+    assert fate.startswith('SUCCESS TIER 1')
+    written = {str(r.seq) for r in SeqIO.parse(tmp_path / 'psq_T1.fasta', 'fasta')}
     assert _annotated_protein(gtf, genome, 'LINS1-207') in written
 
 
@@ -284,3 +284,13 @@ def test_annotated_frame_is_not_overridden(gtf, genome, rmats_results, tmp_path,
 
     assert fate.startswith('PARTIAL TIER 4')
     assert not list(tmp_path.glob('psq_T3*.fasta'))
+
+
+def test_frameshift_counts_each_slice_frame(gtf, genome, rmats_results, tmp_path, monkeypatch):
+    """ slices whose raw lengths differ by a multiple of 3 are still a frameshift if their frames differ (PR 4b2) """
+
+    junction = _junction(rmats_results.rmats_se, 11950)  # GTF2A2, -: frames (0, 2)
+    fate = _translate(junction, gtf, genome, tmp_path, monkeypatch)
+
+    assert junction.slice_phases == (0, 2)
+    assert fate.startswith('SUCCESS TIER 2')

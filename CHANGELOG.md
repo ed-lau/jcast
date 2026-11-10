@@ -14,7 +14,7 @@ fixes, scientific-integrity audits, and the introduction of an optional Qt
 GUI. Implementation is staged as the patch series described in
 [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised).
 
-### Tiers in v0.4.0 (summary of PRs 4–4b)
+### Tiers in v0.4.0 (summary of PRs 4–4b2)
 
 How a junction is translated and tiered has changed substantially. Every
 change has an audit under [reports/](reports/README.md).
@@ -25,6 +25,7 @@ change has an audit under [reports/](reports/README.md).
 | UTR exons | Kept unless a bound fell inside them | Removed. Events entirely outside the coding region are **skipped** with a new fate |
 | RI retained slice | Flanking exons included twice | Retained exon alone |
 | Reading frame | One phase from a fixed exon matched exactly. Missing for 26 % of junctions after trimming | Each slice's own frame, read at its 5′ end |
+| Frameshift test (T1 vs T2) | Raw slice lengths | Coding lengths, from each slice's frame (PR 4b2) |
 | No annotated frame | Three-frame guess, keeping the last frame tried | The slice is not translated |
 | Tiers | T1, T2, T3, T4 | **T1, T2, T4.** T3 and `psq_T3*.fasta` removed |
 
@@ -32,15 +33,15 @@ Cumulative effect on the bundled chr15 data:
 
 | Fate | v0.3.5a | v0.4.0 |
 |---|---|---|
-| T1 | 185 | 212 |
-| T2 | 25 | 45 |
+| T1 | 185 | 227 |
+| T2 | 25 | 30 |
 | T3 | 2 | – |
 | T4 | 236 | 302 |
 | FAIL | 360 | 157 |
 | Skipped, low count | 297 | 297 |
 | Skipped, outside the coding region | – | 92 |
 
-`psq_T1.fasta` grows from 152 to 170 records, and `psq_canonical.fasta` is
+`psq_T1.fasta` grows from 152 to 171 records, and `psq_canonical.fasta` is
 unchanged (268). Re-running is recommended for any analysis that used RI
 output, C-terminal events or lower tiers.
 
@@ -149,6 +150,15 @@ and §9.
   annotated GTF2A2-208 and LINS1-207. `psq_canonical.fasta` is unchanged.
   See
   [reports/2026-11-10-phase-audit.md](reports/2026-11-10-phase-audit.md).
+- **The T1/T2 frameshift test ignored per-slice frames (affects output;
+  regression from the per-slice frame change).** It compared raw slice
+  lengths, which is wrong when the two slices start in different frames.
+  It now compares coding lengths.
+
+  On chr15, 17 junctions are reclassified: 16 from T2 to T1, including the
+  annotated LINS1-207, and 1 from T1 to T2. No sequence is lost or created;
+  records only move between the T1 and T2 files. See
+  [reports/2026-11-10-frameshift-audit.md](reports/2026-11-10-frameshift-audit.md).
 - GTFs without `transcript_support_level`: the translation-bound lookup now
   checks for the column instead of relying on exception handling, which
   could pass `None` to `len()` (REVIEW.md MED-7).

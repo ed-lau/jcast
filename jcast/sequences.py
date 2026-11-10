@@ -67,14 +67,17 @@ class Sequence(object):
     def frameshift(self) -> bool:
         """
         check for frameshift; used to determine whether the slice should be tier 1 or tier 2
-        by checking if slice 1 nucleotides are different in length from slice 2 nucleotide by
-        multiples of 3, which probably denotes frame shift (unless there are loose amino acids near the end)?
+        by checking whether the two slices' coding lengths (from each slice's own reading frame to its end)
+        differ by a non-multiple of 3, i.e. whether the event shifts the frame of the shared downstream sequence.
+
+        2026-11-10 the coding lengths account for each slice's own frame (Junction.slice_phases, PR 4b); comparing
+        raw slice lengths misclassified slices that start in different frames. See reports/2026-11-10-alt-termini-audit.md
 
         :return: True if frameshift, False if not
         """
 
-        #
-        return ((len(self.slice1_nt) - len(self.slice2_nt)) % 3) != 0
+        offsets = [p if p in [0, 1, 2] else 0 for p in self.j.slice_phases]
+        return ((len(self.slice1_nt) - offsets[0]) - (len(self.slice2_nt) - offsets[1])) % 3 != 0
 
     def make_slice_localgenome(self,
                                genome_index,

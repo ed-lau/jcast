@@ -230,8 +230,8 @@ Before tiering, each junction is processed in four steps:
 
 | Tier / fate | Meaning |
 |---|---|
-| **T1** | Both slices translate in their annotated frames with no stop codon before the last codon. Slice lengths differ by a multiple of 3. |
-| **T2** | Same as T1, but the slice lengths differ by a non-multiple of 3 (frameshift). An unstitchable slice may be joined at its N-terminus only. |
+| **T1** | Both slices translate in their annotated frames with no stop codon before the last codon. Their coding lengths (slice length minus that slice's frame; PR 4b2) differ by a multiple of 3. |
+| **T2** | Same as T1, but the coding lengths differ by a non-multiple of 3 (frameshift). An unstitchable slice may be joined at its N-terminus only. |
 | **T4** | Exactly one slice translates. The other is translated in its frame **up to** its first stop codon (a truncated product; nothing if it has no frame). The product is joined at its N-terminus only if it is ≥ `params.ptc_threshold` × the translated slice's length. Otherwise, or if it cannot be joined, it goes to `psq_T4_orphan.fasta`. |
 | ~~T3~~ | **Removed in PR 4b.** It re-translated in a guessed frame when the annotated frame failed. |
 | Skip | One of four reasons: low count; FDR outside `-q`; masked nucleotides; or, new in PR 4a, the event lies outside the annotated coding region (both slices are identical after trimming). The canonical is written if `-c` is set. |
@@ -726,7 +726,7 @@ currently can't be installed and run from scratch.
 | 4a | ✅ **Drop pure-UTR exons**: strand-agnostic `_trim`, `SKIPPED_OUTSIDE_CDS`, second-start retry removed ([audit](reports/2026-11-10-utr-exon-trimming-audit.md)) | Sci-integrity | Done 2026-11-10 |
 | 4a2 | ✅ **RI slice composition** (HIGH-11): slice 1 is the retained exon alone ([audit](reports/2026-11-10-ri-slice-audit.md)) | Sci-integrity | Done 2026-11-10 |
 | 4b | ✅ **Per-slice frame at the slice's 5′ end**, one-frame translation only; three-frame fallback, Tier 3 and `psq_T3*.fasta` removed (MED-2 closed) ([audit](reports/2026-11-10-phase-audit.md)) | Sci-integrity | Done 2026-11-10 |
-| 4b2 | **Frameshift test from coding lengths.** `Sequence.frameshift` compares raw slice lengths, which is wrong once slices have their own frames (PR 4b). It misclassifies T1/T2 for 17 chr15 junctions ([PR 4c audit §6](reports/2026-11-10-alt-termini-audit.md)). | Sci-integrity (regression) | PR 4b |
+| 4b2 | ✅ **Frameshift test from coding lengths.** `Sequence.frameshift` compared raw slice lengths, which is wrong once slices have their own frames (PR 4b). Fixed: 17 chr15 junctions reclassified, no sequence lost or created ([audit](reports/2026-11-10-frameshift-audit.md)) | Sci-integrity (regression) | Done 2026-11-10 |
 | 4c | **Alternative termini.** C-terminal: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only; write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). N-terminal: a slice lacking the gene's start codon that contains another annotated start is translated from it and joined C-terminally only ([phase audit §5.4](reports/2026-11-10-phase-audit.md)). Re-evaluated on the current pipeline in [the termini audit](reports/2026-11-10-alt-termini-audit.md); decisions approved 2026-11-10 (TSL ≤ 2 sites, one file per terminus, fate `SUCCESS TIER 1 ALT TERMINUS`). | Sci-integrity | PR 4b2 |
 | 5 | Stitch anchor checks (MED-3); MED-2 moves to PR 4b | Correctness | PR 1 |
 | 6 | Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2) | Sci-integrity | PR 1 |

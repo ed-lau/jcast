@@ -1,0 +1,28 @@
+baseline commit: 5c0a697; junctions: 1105
+
+T1/T2-eligible junctions whose slices have different frames: 17; old and new frameshift test disagree: 17
+
+junctions whose fate changed: 17; identical to the predicted set: True; every change in the predicted direction: True
+
+sequences lost from every file: 0; new sequences in no file before: 0
+
+fate transitions (baseline | candidate)
+      1  SUCCESS TIER 1 | SUCCESS TIER 2
+     16  SUCCESS TIER 2 | SUCCESS TIER 1
+
+FASTA records (file | baseline | candidate)
+      1  psq_T1.fasta | 170 | 171
+      1  psq_T1_orphan.fasta | 36 | 37
+      1  psq_T2.fasta | 23 | 23
+      1  psq_T2_orphan.fasta | 16 | 14
+      1  psq_T4.fasta | 235 | 235
+      1  psq_T4_orphan.fasta | 82 | 82
+      1  psq_canonical.fasta | 268 | 268
+
+FASTA diff (file | change | annotated protein_coding)
+      1  psq_T1.fasta | gained | True
+      2  psq_T1_orphan.fasta | gained | False
+      1  psq_T1_orphan.fasta | lost | False
+      1  psq_T2.fasta | gained | False
+      1  psq_T2.fasta | lost | True
+      2  psq_T2_orphan.fasta | lost | False

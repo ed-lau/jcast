@@ -10,6 +10,7 @@ the difference in CHANGELOG.md. History:
     PR 4a2 (RI slice 1 is the retained exon alone) changed 5; reports/2026-11-10-ri-slice-audit.md
     PR 4b candidate (per-slice frame, fallback kept) changed 73; reports/2026-11-10-phase-audit.md
     PR 4b final, 2679edb (three-frame fallback and Tier 3 removed) changed 15 more; same report, §9
+    PR 4b2 (frameshift test from coding lengths) changed 17; reports/2026-11-10-frameshift-audit.md
 """
 
 import argparse
@@ -32,16 +33,16 @@ EXPECTED_FATES = {
     'PARTIAL TIER 4': 302,
     'SKIPPED: Sequence discarded due to low coverage': 297,
     'SKIPPED: Splice event lies outside the annotated coding region': 92,
-    'SUCCESS TIER 1': 212,
-    'SUCCESS TIER 2': 45,
+    'SUCCESS TIER 1': 227,
+    'SUCCESS TIER 2': 30,
 }
 
 # file name -> (number of records, sha256 of the sorted sequences)
 EXPECTED_FASTA = {
-    'psq_T1.fasta': (170, 'deb5ea0f1affa286'),
-    'psq_T1_orphan.fasta': (36, '438f6a55c026d4db'),
-    'psq_T2.fasta': (23, '010ecb64b92d1164'),
-    'psq_T2_orphan.fasta': (16, '4d0bb71e15cfb681'),
+    'psq_T1.fasta': (171, '0e73f91b0da4d9f8'),
+    'psq_T1_orphan.fasta': (37, '041826f9b03defd5'),
+    'psq_T2.fasta': (23, '9ac16d570da8296e'),
+    'psq_T2_orphan.fasta': (14, '235b680d98d53459'),
     'psq_T4.fasta': (235, '30e0ea0b1ebb8a5b'),
     'psq_T4_orphan.fasta': (82, '201a22aa4faf736e'),
     'psq_canonical.fasta': (268, '6b891792cb75c69e'),

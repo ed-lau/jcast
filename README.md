@@ -136,8 +136,8 @@ coordinates, translation strand, frame, and tier (see below).
 | File | Contents |
 |---|---|
 | `psq_canonical.fasta` | Sequences identical to the canonical SwissProt/GTF protein for the gene. Headers follow UniProt convention. |
-| `psq_T1.fasta` | **Tier 1.** Both slices translate in their annotated reading frames with no premature stop codon (PTC). The slice lengths differ by a multiple of 3. Both slices are stitched into the canonical full-length protein. |
-| `psq_T2.fasta` | **Tier 2.** As T1, but the slice lengths differ by a non-multiple of 3 (frameshift). A slice that cannot be stitched at both ends may be joined at its N-terminus only. |
+| `psq_T1.fasta` | **Tier 1.** Both slices translate in their annotated reading frames with no premature stop codon (PTC), and the event does not shift the reading frame: the slices' coding lengths, measured from each slice's frame, differ by a multiple of 3. Both slices are stitched into the canonical full-length protein. |
+| `psq_T2.fasta` | **Tier 2.** As T1, but the coding lengths differ by a non-multiple of 3 (frameshift). A slice that cannot be stitched at both ends may be joined at its N-terminus only. |
 | `psq_T4.fasta` | **Tier 4.** Only one slice translates; the other hits a PTC. The PTC slice is translated *up to* its stop codon, giving a truncated product, which is joined to the canonical at its N-terminus. If it is shorter than `params.ptc_threshold` × the other slice, or cannot be joined, it goes to `psq_T4_orphan.fasta`. **Treat T4 with caution — exclude from MS searches unless you have a specific reason to include it.** |
 | `psq_T#_orphan.fasta` | Slices of that tier that translated but could not be stitched back to the canonical sequence. **Treat orphans with caution.** |
 
