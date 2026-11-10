@@ -7,7 +7,7 @@ import types
 
 import pytest
 
-from jcast import main, params
+from jcast import fates, main, params
 from jcast.junctions import Junction
 from jcast.sequences import Sequence
 
@@ -116,3 +116,58 @@ def test_bounds_without_tsl_column(gtf, rmats_results):
     junction.trim_cds(no_tsl)
 
     assert (junction.tx0, junction.tx1) == (44289030, 44413406)
+
+
+def _exon(junction, exon):
+    return getattr(junction, f'{exon}_es'), getattr(junction, f'{exon}_ee')
+
+
+def test_trim_drops_utr_exon(gtf, rmats_results):
+    """ exons lying entirely outside the coding region are removed (REVIEW.md PR 4a) """
+
+    junction = _junction(rmats_results.rmats_se, 6443)  # TMEM62, +: anchor is 5' UTR
+    junction.trim_cds(gtf)
+    assert _exon(junction, 'anc') == (-1, -1)
+    assert _exon(junction, 'alt1') == (43134257, 43134368)
+
+    junction = _junction(rmats_results.rmats_se, 6654)  # UBE3A, -: downstream exon is 5' UTR
+    junction.trim_cds(gtf)
+    assert _exon(junction, 'down') == (-1, -1)
+    assert _exon(junction, 'anc') == (25375465, 25375763)
+
+
+def test_trim_minus_strand_alternative_sites(gtf, rmats_results):
+    """ A5SS/A3SS on the - strand are trimmed at the bound their exons actually contain """
+
+    junction = _junction(rmats_results.rmats_a5ss, 3645)  # WDR73: start codon in the alternative exons
+    junction.trim_cds(gtf)
+    assert _exon(junction, 'alt1') == (84654227, 84654274)
+    assert _exon(junction, 'alt2') == (84654234, 84654274)
+
+    junction = _junction(rmats_results.rmats_a3ss, 1238)  # HDDC3: stop codon in the alternative exons
+    junction.trim_cds(gtf)
+    assert _exon(junction, 'alt1') == (90931275, 90931556)
+    assert _exon(junction, 'alt2') == (90931275, 90931405)
+
+
+def test_trim_retained_intron_region(gtf, rmats_results):
+    """ the retained region of an RI event is trimmed along with its flanking exons """
+
+    junction = _junction(rmats_results.rmats_ri, 3355)  # B2M, +: stop codon in the downstream exon
+    junction.trim_cds(gtf)
+    assert _exon(junction, 'down') == (44716329, 44716342)
+    assert _exon(junction, 'alt1') == (44715423, 44716342)
+
+
+def test_event_outside_cds_is_skipped(gtf, genome, rmats_results, tmp_path, monkeypatch):
+    """ a splice event lying entirely in the UTR is skipped; the canonical is still written with -c """
+
+    monkeypatch.setattr(params, 'use_gtf_only', True)
+    args = argparse.Namespace(out=str(tmp_path), read=1, model=False, canonical=True,
+                              mask='NnXx', qvalue=[0, 1])
+    junction = _junction(rmats_results.rmats_mxe, 433)  # ZNF592: both alternative exons are 5' UTR
+
+    fate = main._translate_one(junction, gtf, genome, args, pred_bound=args.read)
+
+    assert fate == fates.SKIPPED_OUTSIDE_CDS
+    assert [p.name for p in tmp_path.glob('psq_*.fasta')] == ['psq_canonical.fasta']

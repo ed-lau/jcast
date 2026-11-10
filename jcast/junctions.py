@@ -412,19 +412,9 @@ class Junction(object):
 
         self._trim()
 
-        # 2020-07-25 Check if the newly trimmed exon is actually part of a cds
-        # TODO: only doing that for MXE and SE for now and only getting second start site for now
-        cds = gtf.annot.query('gene_id == @self.gene_id & '
-                              'feature == "CDS" & '
-                              'transcript_biotype == "protein_coding" &'
-                              'start == @self.anc_es & '
-                              'end == @self.anc_ee')
-
-        # 2020-07-25 If the newly trimmed anchor is not part of a CDS exon, this may suggest there is a second start site
-        if len(cds) == 0 and self.num_start_codons > 1:
-            self._get_translated_region(gtf=gtf,
-                                        startsite_index=1)
-            self._trim()
+        # 2026-11-10 removed the retry with the second start site when the trimmed anchor was not a CDS exon.
+        # It re-trimmed to a narrower, gene-wide bound, and once exons outside the bounds are removed this
+        # deleted coding exons of the longest isoform; see reports/2026-11-10-utr-exon-trimming-audit.md
 
 
     def _trim(self):
@@ -432,123 +422,50 @@ class Junction(object):
         Core trim function that shaves off the UTRs
         :return: True
 
-        Trims the junction based on transcription start and end:
+        Trims every exon of the junction to the coding region [tx0, tx1]: an exon containing a bound is cut at
+        that bound, and an exon lying entirely outside the coding region is removed (coordinates set to -1).
+        The bounds are genomic, so the same rule applies to every junction type on either strand.
+        A bound of None means it could not be determined, and that side is not trimmed.
 
+        2026-11-10 replaces the per-type rules, which never removed whole UTR exons and on the - strand trimmed
+        A5SS/A3SS exons at the wrong bound; see reports/2026-11-10-utr-exon-trimming-audit.md
         """
 
-        #
-        # Subset the gtf file by the current gene_id
-        #
+        for exon in ['anc', 'alt1', 'alt2', 'down']:
+            es, ee = getattr(self, exon + '_es'), getattr(self, exon + '_ee')
 
-        if self.junction_type == 'MXE':
-            try:
-                if self.anc_ee > self.tx0 > self.anc_es:
-                    self.anc_es = self.tx0
+            # skip exons that are absent for this junction type or already removed
+            if es <= 0 or ee <= 0:
+                continue
 
-                if self.alt1_ee > self.tx0 > self.alt1_es:
-                    self.anc_es = -1
-                    self.anc_ee = -1
-                    self.alt1_es = self.tx0
+            if (self.tx0 is not None and ee < self.tx0) or (self.tx1 is not None and es > self.tx1):
+                es, ee = -1, -1
 
-                if self.alt2_ee > self.tx0 > self.alt2_es:
-                    self.anc_es = -1
-                    self.anc_ee = -1
-                    self.alt2_es = self.tx0
+            else:
+                if self.tx0 is not None and es < self.tx0 <= ee:
+                    es = self.tx0
+                if self.tx1 is not None and es <= self.tx1 < ee:
+                    ee = self.tx1
 
-            except TypeError or ValueError:
-                self.logger.info('Trimming start not performed.')
-
-            try:
-                if self.down_ee > self.tx1 > self.down_es:
-                    self.down_ee = self.tx1
-
-                if self.alt1_ee > self.tx1 > self.alt1_es:
-                    self.down_es = -1
-                    self.down_ee = -1
-                    self.alt1_ee = self.tx1
-
-                if self.alt2_ee > self.tx1 > self.alt2_es:
-                    self.down_es = -1
-                    self.down_ee = -1
-                    self.alt2_ee = self.tx1
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming end not performed.')
-
-        elif self.junction_type == 'SE':
-            try:
-                if self.anc_ee > self.tx0 > self.anc_es:
-                    self.anc_es = self.tx0
-
-                if self.alt1_ee > self.tx0 > self.alt1_es:
-                    self.anc_es = -1
-                    self.anc_ee = -1
-                    self.alt1_es = self.tx0
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming start not performed.')
-
-            try:
-                if self.down_ee > self.tx1 > self.down_es:
-                    self.down_ee = self.tx1
-
-                if self.alt1_ee > self.tx1 > self.alt1_es:
-                    self.down_es = -1
-                    self.down_ee = -1
-                    self.alt1_ee = self.tx1
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming end not performed.')
-
-        elif self.junction_type == 'RI':
-            try:
-                if self.anc_ee > self.tx0 > self.anc_es:
-                    self.anc_es = self.tx0
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming start not performed.')
-
-            try:
-                if self.down_ee > self.tx1 > self.down_es:
-                    self.down_ee = self.tx1
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming end not performed.')
-
-        elif self.junction_type == 'A5SS':
-            try:
-                if self.alt2_ee > self.tx0 > self.alt2_es:
-                    self.alt2_es = self.tx0
-
-                if self.alt1_ee > self.tx0 > self.alt1_es:
-                    self.alt1_es = self.tx0
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming start not performed.')
-
-            try:
-                if self.anc_ee > self.tx1 > self.anc_es:
-                    self.anc_ee = self.tx1
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming end not performed.')
-
-        elif self.junction_type == 'A3SS':
-            try:
-                if self.anc_ee > self.tx0 > self.anc_es:
-                    self.anc_es = self.tx0
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming start not performed.')
-
-            try:
-                if self.alt1_ee > self.tx1 > self.alt1_es:
-                    self.alt1_ee = self.tx1
-
-                if self.alt2_ee > self.tx1 > self.alt2_es:
-                    self.alt2_ee = self.tx1
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming end not performed.')
+            setattr(self, exon + '_es', es)
+            setattr(self, exon + '_ee', ee)
 
         return True
+
+    @property
+    def event_outside_cds(self) -> bool:
+        """
+        Whether trimming has left both slices with the same exons, i.e. the splice event lies entirely
+        outside the coding region and does not change the protein. Only meaningful after trim_cds.
+        The slices are composed as in Sequence.make_slice_localgenome.
+
+        :return: True if the two slices are identical
+        """
+
+        shared = ['anc', 'down'] if self.junction_type in ['MXE', 'SE', 'RI'] else ['anc']
+
+        def exons(names):
+            return sorted((getattr(self, n + '_es'), getattr(self, n + '_ee')) for n in names
+                          if getattr(self, n + '_es') > 0 and getattr(self, n + '_ee') > 0)
+
+        return exons(shared + ['alt1']) == exons(shared + ['alt2'])

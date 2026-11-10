@@ -62,6 +62,21 @@ GUI. Implementation is staged as the patch series described in
   none, and `psq_canonical.fasta` is unchanged. Re-running is recommended to
   recover C-terminal isoforms. See
   [reports/2026-11-03-tx1-translation-bounds-audit.md](reports/2026-11-03-tx1-translation-bounds-audit.md).
+- **Splice events are now trimmed to the coding region exon by exon (affects
+  output).**
+  - Exons lying entirely in the UTR are removed. Previously 172 of 1,105
+    chr15 junctions kept one, and some 5′-UTR translations were reported as
+    successes.
+  - A5SS/A3SS events on the `−` strand are trimmed at the correct bound.
+  - The retained region of RI events is trimmed.
+  - Events lying entirely outside the coding region are skipped with the new
+    fate `SKIPPED. Splice event lies outside the annotated coding region.`;
+    the canonical is still written with `-c`.
+
+  On chr15, 103 junctions change fate, 90 of them to the new skip.
+  `psq_T1.fasta` gains 5 sequences and loses none, and no sequence matching
+  an annotated protein is lost. See
+  [reports/2026-11-10-utr-exon-trimming-audit.md](reports/2026-11-10-utr-exon-trimming-audit.md).
 - GTFs without `transcript_support_level`: the translation-bound lookup now
   checks for the column instead of relying on exception handling, which
   could pass `None` to `len()` (REVIEW.md MED-7).
@@ -72,6 +87,8 @@ GUI. Implementation is staged as the patch series described in
   `pandas.core.computation.ops` location no longer exists).
 
 ### Removed
+- The retry with the gene's second start codon in `trim_cds`. Once UTR exons
+  are removed, it deleted exons coding in well-supported transcripts.
 - `pomegranate` dependency.
 - `CHANGES.txt` — content migrated to this file.
 - `TODO.md` — items (gff3 input, APPRIS-tag canonical, UniProt-failure
@@ -83,13 +100,13 @@ The following items are scheduled for v0.4.0 but live in subsequent focused
 PRs. See [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised) for the full
 table.
 
-- Replace `except TypeError or ValueError:` with the correct tuple form.
 - Treat soft-masked (lowercase) and ambiguous IUPAC bases safely in
   `make_pep`.
-- Drop exons lying entirely in the UTR (PR 4a); take the translation phase
-  from the first retained coding exon (PR 4b); treat annotated alternative
-  stop codons as natural C-termini, written to `psq_T1_alt_cterm.fasta`
-  (PR 4c).
+- Build the RI retained-intron slice from the retained exon alone; it
+  currently contains both flanking exons twice (PR 4a2).
+- Take the translation phase from the first retained coding exon (PR 4b).
+- Treat annotated alternative stop codons as natural C-termini, written to
+  `psq_T1_alt_cterm.fasta` (PR 4c).
 - Output-directory creation guarantee; route the UniProt cache through
   `args.out` (or the platform user-cache dir) instead of CWD.
 - Stitch-anchor uniqueness check in `stitch_to_canonical_aa`.

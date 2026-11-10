@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-10 |
-| **Status** | Pre-implementation evaluation. No production code changed. Proposed as PR 4c. It lands **after** PR 4 ([tx0/tx1 audit](2026-11-03-tx1-translation-bounds-audit.md)) and after PRs 4a (drop pure-UTR exons) and 4b (phase from the first retained coding exon). Those change the junction set analysed here, so the audit must be re-run before 4c is implemented and the figures below updated. |
+| **Status** | Pre-implementation evaluation. No production code changed. Proposed as PR 4c. It lands **after** PR 4 ([tx0/tx1 audit](2026-11-03-tx1-translation-bounds-audit.md)) and after PRs 4a (drop pure-UTR exons), 4a2 (RI slice composition) and 4b (phase from the first retained coding exon). Those change the junction set analysed here, so the audit must be re-run before 4c is implemented and the figures below updated. |
 | **Code audited** | JCAST v0.3.5a, commit `3ed17b0` (branch `v0.4.0-hardening`) with the PR 4 corrected bounds patched in at runtime. Tiering: [jcast/main.py:145-330](../jcast/main.py#L145-L330); translation: [jcast/helpers.py:157-243](../jcast/helpers.py#L157-L243); stitching: [jcast/sequences.py:465-525](../jcast/sequences.py#L465-L525) |
 | **Data** | Bundled chr15 test set: 1,105 rMATS junctions, Ensembl GRCh38.89 GTF, GRCh38 chr15 DNA |
 | **Environment** | Python 3.11.13, pandas 2.3.1, numpy 1.26.4, biopython 1.78, gtfparse 1.3.0 |
@@ -469,6 +469,10 @@ from PR 4 is still present.
 ---
 
 ## 9. Reproducing this audit
+
+> **Note (2026-11-10).** The script runs against the checked-out code. Later PRs (from PR 4a on) change
+> trimming, so to reproduce the evidence files here exactly, run it at commit `a555446`, where the
+> JCAST code is that of `3ed17b0`.
 
 From the repository root, with the package dependencies installed:
 

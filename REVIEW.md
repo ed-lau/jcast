@@ -291,6 +291,19 @@ No upper bounds, so it currently installs pomegranate 1.1.2 (breaks the
 import), gtfparse 3.0.5 (polars frame; `.to_csv` fails in `read_gtf`), and
 pandas 3.1. It also disagrees with `setup.py` on every bound. See §7.
 
+### HIGH-11 — RI slice 1 contains its flanking exons twice ✔ *(new, 2026-11-10)*
+
+[jcast/sequences.py:93-95](jcast/sequences.py#L93-L95). The rMATS RI
+`riExonStart_0base..riExonEnd` span (mapped to `alt1`) already runs from the
+upstream exon's start to the downstream exon's end. This is so in all 88
+chr15 rows. Yet slice 1 is built as `anc + alt1 + down`, so both flanks
+appear twice. UNC45A RI 916: 37 + 515 + 324 = 876 nt instead of 515.
+
+Most RI junctions therefore hit a frame-shifted stop codon and land in T4
+(57 of 88 under PR 4a; 1 is T1). Slice 1 should be `alt1` alone. Found
+during the PR 4a audit
+([report §6](reports/2026-11-10-utr-exon-trimming-audit.md)); fix in PR 4a2.
+
 ### MED-1 — `sum_sjc` returns `min(SJC, IJC)` ◎
 
 [jcast/junctions.py:245-274](jcast/junctions.py#L245-L274). The name, the
@@ -402,10 +415,10 @@ handlers first, and close the file handler when the run ends.
 
 ### LOW
 
-- [jcast/junctions.py:484-578](jcast/junctions.py#L484-L578)
-  `except TypeError or ValueError` should be `(TypeError, ValueError)`
+- ~~`except TypeError or ValueError` should be `(TypeError, ValueError)`
   (was HIGH-1). Only `TypeError` can occur here, so there is no observed
-  impact.
+  impact.~~ **Gone in PR 4a**: `_trim` was rewritten and tests `None`
+  bounds explicitly.
 - [jcast/helpers.py:232](jcast/helpers.py#L232): the terminal-stop tolerance
   accepts a stop followed by 0–1 trailing nt but rejects 2 trailing nt
   (`'ATGAAATAAG'` → `'MK'`, `'ATGAAATAAGG'` → `''`). Both cases are the same
@@ -486,9 +499,9 @@ both versions are listed in audit §8.
 
 | Audit §8 item | Decision |
 |---|---|
-| 1. Pure-UTR exons are never removed | Drop them. Translating UTR is outside JCAST's purpose. **PR 4a.** |
+| 1. Pure-UTR exons are never removed | Drop them. Translating UTR is outside JCAST's purpose. **Done in PR 4a.** |
 | 2. One gene-wide CDS envelope | Defer. Revisit after PR 4. |
-| 3. Second-start-site retry | Defer. Revisit after PR 4. |
+| 3. Second-start-site retry | Deferred, but **removed in PR 4a**: once UTR exons are removed, it deleted exons coding in TSL 1–2 transcripts in 20 junctions ([PR 4a audit §4.3](reports/2026-11-10-utr-exon-trimming-audit.md)). |
 | 4. Phase lookup after trimming | Take the phase from the first retained coding exon and enforce one-frame translation. **PR 4b.** |
 | 5. Three-frame fallback (MED-2) | Its output (T3) is not used downstream of JCAST. Remove it in PR 4b if that PR's audit shows it is no longer reached; otherwise defer. |
 
@@ -662,9 +675,10 @@ currently can't be installed and run from scratch.
 | 2 | `NaN` gene symbols (MED-7 was fixed in PR 4) | Compat | PR 1 |
 | 3 | Soft-masking / IUPAC (HIGH-2/3) | Correctness | PR 1 |
 | 4 | ✅ **`tx0`/`tx1` from start/stop codons** (§5.1) — regression test first; changelog entry | Sci-integrity | Done 2026-11-10 |
-| 4a | **Drop pure-UTR exons**: `_trim` removes any exon lying entirely outside [`tx0`, `tx1`] (tx1 audit §8 item 1). Own audit and golden update. | Sci-integrity | PR 4 |
-| 4b | **Phase from the first retained coding exon**, enforcing one-frame translation (tx1 audit §8 item 4). Retire the three-frame fallback (T3, MED-2) if the audit for this PR shows it is no longer reached; otherwise defer its removal. | Sci-integrity | PR 4a |
-| 4c | **Alternative C-termini**: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only and write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). Re-run that audit on 4a + 4b first. | Sci-integrity | PR 4b |
+| 4a | ✅ **Drop pure-UTR exons**: strand-agnostic `_trim`, `SKIPPED_OUTSIDE_CDS`, second-start retry removed ([audit](reports/2026-11-10-utr-exon-trimming-audit.md)) | Sci-integrity | Done 2026-11-10 |
+| 4a2 | **RI slice composition** (HIGH-11): slice 1 is the retained exon alone. Own audit and golden update. | Sci-integrity | PR 4a |
+| 4b | **Phase from the first retained coding exon**, enforcing one-frame translation (tx1 audit §8 item 4). Retire the three-frame fallback (T3, MED-2) if the audit for this PR shows it is no longer reached; otherwise defer its removal. Re-check ANXA2 SE 12446, GTF2A2 SE 11945 and ZFYVE19 SE 6502 (PR 4a audit §5.3). | Sci-integrity | PR 4a2 |
+| 4c | **Alternative C-termini**: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only and write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). Re-run that audit on 4a–4b first. | Sci-integrity | PR 4b |
 | 5 | Stitch anchor checks (MED-3); MED-2 moves to PR 4b | Correctness | PR 1 |
 | 6 | Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2) | Sci-integrity | PR 1 |
 | 7 | Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13) | Robustness | PR 1 |

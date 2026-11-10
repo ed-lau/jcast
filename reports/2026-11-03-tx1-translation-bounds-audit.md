@@ -455,6 +455,10 @@ the variant audited here.
 
 ## 9. Reproducing this audit
 
+> **Note (2026-11-10).** The script runs against the checked-out code. Later PRs (from PR 4a on) change
+> trimming, so to reproduce the evidence files here exactly, run it at commit `a555446`, where the
+> JCAST code is that of `3ed17b0`.
+
 From the repository root, in an environment with JCAST's dependencies:
 
 ```bash

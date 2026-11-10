@@ -223,6 +223,16 @@ def _translate_one(junction: Junction,
 
         return fates.SKIPPED_P_VALUE
 
+    # Discard junction if trimming to the coding region left both slices identical: the splice event
+    # lies in the UTR and does not change the protein.
+    if junction.event_outside_cds:
+
+        # Write canonical anyhow if the canonical flag is set.
+        if args.canonical:
+            sequence.write_canonical(out_dir=args.out)
+
+        return fates.SKIPPED_OUTSIDE_CDS
+
     # ---- Write the Tier 1 and Tier 2 results into fasta file ----
     if len(sequence.slice1_aa) > 0 and len(sequence.slice2_aa) > 0:
         # Tier 1: both translated without stop codon, no frameshift
