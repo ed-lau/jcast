@@ -11,7 +11,7 @@ the difference in CHANGELOG.md. History:
     PR 4b candidate (per-slice frame, fallback kept) changed 73; reports/2026-11-10-phase-audit.md
     PR 4b final, 2679edb (three-frame fallback and Tier 3 removed) changed 15 more; same report, §9
     PR 4b2, a0f3338 (frameshift test from coding lengths) changed 17; reports/2026-11-10-frameshift-audit.md
-    PR 4c (alternative C- and N-termini) changed 26; reports/2026-11-10-alt-termini-audit.md §10
+    PR 4c, e11cc86 (alternative C- and N-termini) changed 26; reports/2026-11-10-alt-termini-audit.md §10
 """
 
 import argparse
