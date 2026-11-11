@@ -10,7 +10,7 @@
 
 Writes final/summary.txt, final/fates.tsv and final/fasta_diff.tsv.
 
-Usage (from the repository root, at the PR 5 commit):
+Usage (from the repository root, at 2142711):
     python reports/stitch_audit/verify_5.py
 """
 

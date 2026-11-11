@@ -12,7 +12,7 @@ the difference in CHANGELOG.md. History:
     PR 4b final, 2679edb (three-frame fallback and Tier 3 removed) changed 15 more; same report, §9
     PR 4b2, a0f3338 (frameshift test from coding lengths) changed 17; reports/2026-11-10-frameshift-audit.md
     PR 4c, e11cc86 (alternative C- and N-termini) changed 26; reports/2026-11-10-alt-termini-audit.md §10
-    PR 5 (joining to the canonical: complete ends, unique anchors, anchor length 7) changed 1 fate and moved
+    PR 5, 2142711 (joining to the canonical: complete ends, unique anchors, anchor length 7) changed 1 fate and moved
         records between joined and orphan files; reports/2026-11-11-stitch-anchor-audit.md §9
 """
 
