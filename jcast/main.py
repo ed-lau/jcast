@@ -11,6 +11,7 @@ from jcast import params, fates, model
 from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
+from jcast.uniprot import UniProtFasta
 from jcast import __version__
 from jcast.logger import get_logger
 
@@ -47,6 +48,9 @@ def run_jcast(args) -> None:
     genome = ReadGenome(logger=logger,
                         path=args.genome,
                         )
+
+    # ---- Read the UniProt FASTA if supplied; otherwise canonicals come from the UniProt API ----
+    uniprot = UniProtFasta(logger=logger, path=args.uniprot) if getattr(args, 'uniprot', None) else None
 
     #
     # Model read count cutoff.
@@ -109,6 +113,7 @@ def run_jcast(args) -> None:
                                         genome=genome,
                                         args=args,
                                         pred_bound=min_count,
+                                        uniprot=uniprot,
                                         )
 
         #
@@ -143,6 +148,9 @@ def run_jcast(args) -> None:
                                                                                   ))
             logger.info(translate_one_partial(jx))
 
+    if uniprot is not None:
+        uniprot.write_outputs(out_dir=args.out)
+
     return True
 
 
@@ -151,6 +159,7 @@ def _translate_one(junction: Junction,
                    genome: ReadGenome,
                    args: argparse.Namespace,
                    pred_bound: int,
+                   uniprot: UniProtFasta = None,
                    ):
     """
     Get coordinates and translate one junction object.
@@ -160,6 +169,7 @@ def _translate_one(junction: Junction,
     :param genome: ReadGenome object
     :param args: parsed arguments
     :param pred_bound: read count cutoff
+    :param uniprot: UniProtFasta from --uniprot, or None to use the UniProt API
     :return:
     """
 
@@ -177,7 +187,7 @@ def _translate_one(junction: Junction,
     #
     # initiate a sequence object that copies most of the junction information
     #
-    sequence = Sequence(junction=junction)
+    sequence = Sequence(junction=junction, uniprot=uniprot)
 
     #
     # get nucleotide sequences of all slices using genome in memory
@@ -415,6 +425,14 @@ def main():
                         # type=bool,
                         )
 
+    parser.add_argument('--uniprot',
+                        help='UniProt FASTA (e.g. Swiss-Prot with isoforms for the species, optionally .gz) to take '
+                             'canonical proteins from instead of the UniProt API; genes without an entry use the GTF. '
+                             'Also writes jcast_uniprot_merged.fasta, psq_isoforms.tsv and uniprot_canonicals.tsv '
+                             '[default: none, use the API]',
+                        default=None,
+                        )
+
     parser.add_argument('--mask',
                         help='deprecated and ignored: slices containing any base other than A, C, G or T '
                              '(case-insensitive) are always skipped. Will be removed in the next release.',
@@ -453,7 +471,7 @@ def main():
     # parse all the arguments
     args = parser.parse_args()
 
-    for path in [args.gtf_file, args.genome]:
+    for path in [args.gtf_file, args.genome] + ([args.uniprot] if args.uniprot else []):
         if not os.path.isfile(path):
             parser.error(f'file not found: {path}')
 

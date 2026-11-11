@@ -3,11 +3,11 @@
 | | |
 |---|---|
 | **Date** | 2026-11-11 |
-| **Status** | Evaluation. Recommendations in §5; decisions requested in §6 and approved 2026-11-11 (§7), to be implemented as PR 14. No code changed. Measured at `8b0c024`. |
+| **Status** | Recommendations in §5; decisions requested in §6 and approved 2026-11-11 (§7); **implemented in PR 14 and verified (§8)**. The evaluation was measured at `8b0c024`. |
 | **Question** | (1) Should slices be joined to the canonical by genomic coordinates instead of anchor sequences? (2) Should the canonical come from a UniProt FASTA supplied by the user instead of per-gene API calls, with the post-run renaming against Swiss-Prot isoforms (currently an R script) built in? |
 | **Reproduce** | `python reports/uniprot_eval/evaluate_uniprot_fasta.py --uniprot <Swiss-Prot human FASTA with isoforms>` (≈ 2 min; needs the local `cache/uniprot-cache.db`) |
 | **Inputs** | UniProt release 2026_04 (4 Nov 2026), Swiss-Prot human with isoforms, downloaded from `https://rest.uniprot.org/uniprotkb/stream?compressed=true&format=fasta&includeIsoform=true&query=(proteome:UP000005640)+AND+(reviewed:true)`: 42,545 entries, 20,414 canonical. Ensembl 89 chr15 test set. API answers from the local cache, which an earlier run filled with 6,519 genes, 184 of them chr15 test genes. |
-| **Evidence** | [uniprot_eval/summary.txt](uniprot_eval/summary.txt) · [uniprot_eval/genes.tsv](uniprot_eval/genes.tsv) · [uniprot_eval/records.tsv](uniprot_eval/records.tsv) |
+| **Evidence** | [uniprot_eval/summary.txt](uniprot_eval/summary.txt) · [uniprot_eval/genes.tsv](uniprot_eval/genes.tsv) · [uniprot_eval/records.tsv](uniprot_eval/records.tsv) · verification: [uniprot_eval/final/](uniprot_eval/final/summary.txt) (`verify_14.py`) |
 
 ## 1. Summary
 
@@ -206,3 +206,73 @@ things change that:
 4. **The merged database contains `psq_T1` and `psq_T1_alt_*`**, with
    TrEMBL (`tr|`) records dropped. A later option may add T2 and T4.
 5. **Joining by coordinates is deferred.**
+
+## 8. Implementation and verification (PR 14)
+
+**What `--uniprot FASTA` does** ([jcast/uniprot.py](../jcast/uniprot.py)):
+- **Reads the FASTA once,** optionally gzipped, and logs its file name,
+  SHA-256, entry count and canonical count.
+- **Chooses each gene's canonical,** once per gene:
+  1. a UniProt canonical (accession without an isoform suffix) whose
+     sequence equals a protein translated from one of the gene's GTF
+     transcripts (any CDS-bearing transcript, any TSL);
+  2. else the canonical whose `GN=` is the rMATS gene symbol;
+  3. each only if exactly one entry matches, and reviewed (`sp|`) entries
+     before unreviewed (`tr|`) ones, should the file contain both;
+  4. else the GTF canonical, as with `use_gtf_only`.
+- **Makes no API calls,** including from `write_canonical`'s retry
+  (REVIEW.md MED-9), and does not use the UniProt cache.
+- **Writes three new files at the end of the run:**
+  - `uniprot_canonicals.tsv`: each gene's canonical and how it was chosen.
+  - `psq_isoforms.tsv`: every record of a `psq_*.fasta` (except
+    `psq_canonical`) whose sequence equals a UniProt entry.
+  - `jcast_uniprot_merged.fasta`: every entry of the supplied FASTA, then
+    the records of `psq_T1`, `psq_T1_alt_cterm`, `psq_T1_alt_nterm` and
+    `psq_T1_alt_both` that were joined to a Swiss-Prot canonical (`sp|`),
+    excluding those identical to a UniProt entry or to an earlier record.
+    Each is named `sp|<accession>-J<n>|<entry name>`, numbered per
+    accession, followed by its full JCAST header.
+- **Leaves the `psq_*.fasta` files unchanged** in content and format.
+  Without `--uniprot`, nothing changes.
+
+**Verification** (`python reports/uniprot_eval/verify_14.py --uniprot
+<Swiss-Prot 2026_04>`; [final/summary.txt](uniprot_eval/final/summary.txt)):
+
+| Check | Result |
+|---|---|
+| Canonical per gene vs the evaluation's "sequence, then name" mapping (§3.1) | Identical for all 294 genes: 267 by sequence, 8 by gene name, 1 GTF (JMJD7-PLA2G4B), 18 none |
+| Same accession as the cached API answer | 183 of 184 (AC012651.1: TrEMBL only; no GTF canonical at TSL ≤ 2, so none) |
+| UniProt API calls with `--uniprot` | 0 (the API method patched to raise) |
+| Fates, all 1,105 junctions, vs a run on the cached API answers | **0 changed** |
+| FASTA records in one run only | All from genes whose canonical differs, nearly all because the cache had no answer for them (the cache-only run writes their slices as orphans) |
+| Merged database vs the R script on the same `psq_T1` | Same 118 records (sequence, accession and entry name) |
+
+Three genes map by gene name although Ensembl 89 has no protein-coding
+transcript for them: SCAND2P, HERC2P3 and WHAMMP3, pseudogenes there with a
+Swiss-Prot entry of the same name. Their junctions write no slice
+records in either run; the only effect is that `-c` writes their Swiss-Prot
+canonical to `psq_canonical`.
+
+**Numbering in the merge.** The R script numbers every `psq_T1` record
+before dropping those identical to a UniProt entry, so its `-J` numbers
+have gaps. JCAST numbers only the records it keeps. The sequences and
+accessions are the same.
+
+**Tests** ([tests/test_uniprot.py](../tests/test_uniprot.py)), on a
+711-entry Swiss-Prot 2026_04 subset for the chr15 genes
+([tests/data/uniprot/](../tests/data/uniprot/README.md)):
+- a renamed gene (FAM214A → ATOSA) mapped by sequence;
+- the GTF fallback (JMJD7-PLA2G4B);
+- the choice order on a synthetic FASTA;
+- the merge and `psq_isoforms.tsv` on synthetic files;
+- a missing `--uniprot` file rejected by the CLI;
+- a golden run of the whole chr15 set through `run_jcast`: canonical
+  sources and every output file pinned. Its `psq_*` counts equal those
+  with the full release.
+
+**Follow-ups, not in PR 14:**
+- An option to add T2 and T4 to the merge (decision 4).
+- A helper that downloads a proteome and names the file by the
+  `X-UniProt-Release` response header. This would give the convenience of
+  naming a proteome while keeping the release on record.
+

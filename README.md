@@ -95,7 +95,7 @@ python -m jcast \
 ## Command-line options
 
 ```text
-usage: jcast [-h] [-o OUT] [-r READ] [-m] [-c] [--mask MASK]
+usage: jcast [-h] [-o OUT] [-r READ] [-m] [-c] [--uniprot UNIPROT] [--mask MASK]
              [-s {MXE,SE,RI,A5SS,A3SS} [...]] [-q q_lo q_hi]
              [--g_or_ln G_OR_LN]
              rmats_folder gtf_file genome
@@ -114,6 +114,8 @@ optional arguments:
                         [default: False]
   -c, --canonical       write canonical protein sequences even when a slice
                         is untranslatable [default: False]
+  --uniprot UNIPROT     UniProt FASTA to take canonical proteins from instead
+                        of the UniProt API (see below) [default: use the API]
   --mask MASK           deprecated and ignored: slices containing any base
                         other than A, C, G or T are always skipped. Will be
                         removed in the next release.
@@ -124,6 +126,37 @@ optional arguments:
   --g_or_ln G_OR_LN     experimental: low-end distribution selector
                         (0 = Gamma, otherwise LogNormal)
 ```
+
+### Canonicals from a UniProt FASTA (`--uniprot`, recommended)
+
+By default JCAST asks the UniProt API for each gene's canonical protein.
+With `--uniprot`, it reads a UniProt FASTA you supply instead. This needs
+no network access, and the file records which UniProt release was used.
+Download Swiss-Prot with isoforms for your species, for human:
+
+```bash
+curl -o uniprot_sprot_human_isoforms_2026_04.fasta.gz \
+  'https://rest.uniprot.org/uniprotkb/stream?compressed=true&format=fasta&includeIsoform=true&query=(proteome:UP000005640)+AND+(reviewed:true)'
+```
+
+Put the release in the file name, as above. The FASTA itself does not
+record it; the download's `X-UniProt-Release` response header does.
+
+Each gene's canonical is chosen as follows:
+1. the UniProt canonical whose sequence equals a protein translated from
+   one of the gene's GTF transcripts;
+2. else the one whose gene name (`GN=`) is the gene symbol;
+3. else the GTF canonical.
+
+A match is used only if it is unique. The run also writes:
+- `uniprot_canonicals.tsv`: the canonical chosen per gene, and how.
+- `psq_isoforms.tsv`: every JCAST record identical to a UniProt canonical
+  or isoform.
+- `jcast_uniprot_merged.fasta`: a search database. It holds every entry of
+  the supplied FASTA, then each `psq_T1` and `psq_T1_alt_*` record that was
+  joined to a Swiss-Prot canonical and is not identical to a UniProt entry.
+  Each is renamed `sp|<accession>-J<n>|<entry name>`, followed by its JCAST
+  header.
 
 The `--g_or_ln` flag is a development-only switch and will be removed in
 v0.4.0; see [REVIEW.md](REVIEW.md).
@@ -200,7 +233,8 @@ The `|`-separated fields are:
 12. Tier (`T1`, `T1_alt_cterm`, `T1_alt_nterm`, `T1_alt_both`, `T2`, `T4`).
 
 When the canonical comes from the GTF rather than UniProt
-(`use_gtf_only` in `jcast/params.py`), fields 1–3 are the Ensembl gene id,
+(`use_gtf_only` in `jcast/params.py`, or a gene without a UniProt entry
+with `--uniprot`), fields 1–3 are the Ensembl gene id,
 the gene symbol, and the gene id again. A gene that rMATS
 reports without a symbol (`NA`) is named `NoGeneName_<gene id>`.
 
@@ -250,14 +284,15 @@ python -m jcast /work/output \
   and some of these may still be genuine. Treat T4 outputs as candidates for
   follow-up validation, not as confirmed identifications.
 - **UniProt and GTF `.cached` files are written to the current working
-  directory** and the directory of the input GTF respectively — this fails on
+  directory** (the UniProt cache is not used with `--uniprot`) and the directory of the input GTF respectively — this fails on
   read-only volumes. Workaround: `cd` to a writable directory before running.
   Permanent fix is part of the v0.4.0 hardening release.
 
 ## FAQ
 
 **What do I do with the output files?**
-For a typical analysis, append `psq_T1.fasta` (and, if you want annotated
+With `--uniprot`, search `jcast_uniprot_merged.fasta`: Swiss-Prot plus the
+new T1 and T1 alternative-terminus isoforms. Otherwise, append `psq_T1.fasta` (and, if you want annotated
 alternative termini, `psq_T1_alt_cterm.fasta` / `psq_T1_alt_nterm.fasta`) to
 either `psq_canonical.fasta`
 (if you used `-c`) or your existing SwissProt canonical database, and search

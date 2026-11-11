@@ -21,6 +21,7 @@ from jcast.junctions import Junction
 from jcast import params
 
 from jcast.annots import AnnotatedTranscript
+from jcast.uniprot import gene_proteins
 
 STOP_CODONS = {'TAA', 'TAG', 'TGA'}
 
@@ -29,9 +30,11 @@ class Sequence(object):
 
     def __init__(self,
                  junction: Junction,
+                 uniprot=None,
                  ):
         """
         :param junction: the splice junction object
+        :param uniprot: UniProtFasta read from --uniprot, or None to get the canonical from the UniProt API
 
         Mostly copying properties of the junction object (already trimmed) to start a new sequence object. This
         sequence object will be used to make the nucleotide slices and translate into protein sequences.
@@ -40,6 +43,7 @@ class Sequence(object):
         self.logger = logging.getLogger('jcast')
 
         self.j = junction
+        self.uniprot = uniprot
         self.slice1_nt = None
         self.slice2_nt = None
         self.slice1_aa = ''
@@ -459,7 +463,16 @@ class Sequence(object):
         :return: True
         """
 
-        if params.use_gtf_only:
+        # a supplied UniProt FASTA, falling back to the GTF (reports/2026-11-11-uniprot-fasta-evaluation.md)
+        if self.uniprot is not None:
+            self.canonical_aa = self.uniprot.canonical(
+                self.j.gene_id,
+                self.j.gene_symbol,
+                proteins=lambda: gene_proteins(gtf, genome_index, self.j.gene_id),
+                gtf_canonical=lambda: self.get_canonical_aa_gtf(gtf, genome_index),
+            )
+
+        elif params.use_gtf_only:
             self.canonical_aa = self.get_canonical_aa_gtf(gtf,
                                                           genome_index)
             # Uniprot fallback
@@ -656,7 +669,7 @@ class Sequence(object):
 
         canonical = self.canonical_aa[:]
 
-        if len(self.canonical_aa[:]) == 0:
+        if len(self.canonical_aa[:]) == 0 and self.uniprot is None:
             # try to get the reviewed sequence
             self.get_canonical_aa_uniprot(reviewed='true')
             canonical = self.canonical_aa[:]

@@ -64,6 +64,29 @@ See
 and §9.
 
 ### Added
+- **`--uniprot FASTA`: canonicals from a supplied UniProt FASTA instead of the
+  UniProt API (PR 14).** Recommended mode: offline, and the file records
+  which UniProt release was used.
+  - **Choosing the canonical:** each gene's canonical is the UniProt
+    canonical whose sequence equals one of the gene's GTF-translated
+    proteins, else the one whose gene name (`GN=`) is the gene symbol.
+    Either must be unique, and reviewed entries come before unreviewed
+    ones. A gene with neither uses the GTF canonical.
+  - **New output files:**
+    - `uniprot_canonicals.tsv`: the canonical chosen per gene, and how.
+    - `psq_isoforms.tsv`: JCAST records identical to a UniProt canonical
+      or isoform.
+    - `jcast_uniprot_merged.fasta`: the supplied FASTA, plus the new
+      `psq_T1` and `psq_T1_alt_*` records joined to a Swiss-Prot canonical,
+      renamed `sp|<accession>-J<n>|<entry name>`. This replaces the post-run
+      R merge; on chr15 it gives the same records.
+  - **Unchanged:** without `--uniprot`, the API path is unchanged, and
+    the `psq_*.fasta` files keep their format.
+  - **On chr15:** with Swiss-Prot 2026_04, the canonical equals the cached
+    API answer for 183 of 184 genes; no junction changes fate.
+
+  See
+  [reports/2026-11-11-uniprot-fasta-evaluation.md](reports/2026-11-11-uniprot-fasta-evaluation.md).
 - **Alternative C- and N-termini (affects output).**
   - A slice whose first stop codon is an annotated protein-coding stop
     codon is complete at that end, not a premature stop. It is joined to
@@ -257,6 +280,9 @@ table.
 - Catch an exception in one junction, record it as that junction's fate,
   and continue, instead of aborting the whole run (PR 7).
 - Remove the deprecated `--mask` option (next release).
+- An option to add T2 and T4 records to `jcast_uniprot_merged.fasta`.
+- A helper that downloads a UniProt proteome and names the file by its
+  release (`X-UniProt-Release`).
 - With `-c`, write the canonical for every gene, whatever its junctions'
   tiers (REVIEW.md MED-14; 2 chr15 genes affected).
 - Output-directory creation guarantee; route the UniProt cache through

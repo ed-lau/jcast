@@ -436,6 +436,9 @@ set.
 
 ### MED-10 — A network failure aborts the entire run ◎ *(new)*
 
+*Avoidable since PR 14: with `--uniprot`, JCAST makes no network calls
+(MED-5 and MED-9 do not apply either). The API path is unchanged.*
+
 [jcast/sequences.py:429-431](jcast/sequences.py#L429-L431). Once its retries
 are exhausted, `rqs.get(...)` raises `requests.exceptions.ConnectionError` /
 `RetryError`, which nothing catches. A transient EBI outage hours into a run
@@ -766,7 +769,7 @@ currently can't be installed and run from scratch.
 | 11 | CI (GitHub Actions) | Infra | PRs 1, 10 |
 | 12 | argparse hygiene: drop `--g_or_ln`, `-s` reads only selected files (MED-8), `parser.error` not `assert` | UX | PR 1 |
 | 13 | GUI v0 → wizard (§10) | New surface | PRs 7, 12 |
-| 14 | `--uniprot FASTA`: canonical from a supplied UniProt FASTA (no API calls), GTF fallback, built-in Swiss-Prot merge ([evaluation](reports/2026-11-11-uniprot-fasta-evaluation.md)) | Reproducibility | PR 5 |
+| 14 | ✅ `--uniprot FASTA`: canonical from a supplied UniProt FASTA (no API calls), GTF fallback, built-in Swiss-Prot merge ([evaluation](reports/2026-11-11-uniprot-fasta-evaluation.md)) | Reproducibility | Done 2026-11-11 |
 
 ### Deferred to v0.5.x
 
