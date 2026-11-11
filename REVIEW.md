@@ -267,7 +267,7 @@ output. **MED** reduces robustness or gives wrong output in edge cases.
 **LOW** is UX or style. ✔ = reproduced by execution; ◎ = confirmed by
 reading.
 
-### HIGH-2 — `make_pep` hard-fails on non-ACGT bases ✔
+### HIGH-2 — `make_pep` hard-fails on non-ACGT bases ✔ — **fixed in PR 3**
 
 [jcast/helpers.py:226](jcast/helpers.py#L226). `code[nt[i:i+3]]` raises
 `KeyError` for lowercase (soft-masked) and IUPAC-ambiguous bases. Reproduced
@@ -275,11 +275,19 @@ for `atg…`, `NNN`, and `RAA` on both strands. Fix: `nt = str(nt).upper()`
 and `code.get(codon)`, with an explicit policy for unknown codons: either
 emit `X`, or treat it like a stop and skip.
 
-### HIGH-3 — `get_complementary` raises before its fallback ✔
+### HIGH-3 — `get_complementary` raises before its fallback ✔ — **fixed in PR 3**
 
 [jcast/helpers.py:148-152](jcast/helpers.py#L148-L152). `raise` makes the
 `comp += 'X'` line unreachable. Fix together with HIGH-2, ideally using
 `Bio.Seq.reverse_complement`, which already handles IUPAC codes and case.
+
+**PR 3** ([audit](reports/2026-11-11-masked-bases-audit.md)):
+- `get_local_nuc` uppercases genome sequence when it is read.
+- A slice with any base outside `ACGT` is skipped (`SKIPPED_MASKED`).
+- `make_pep` returns `''` for a codon it cannot translate.
+- `get_complementary` is `Bio.Seq.reverse_complement`.
+- `--mask` is deprecated and ignored.
+- On chr15, a soft-masked genome now reproduces the unmasked output exactly.
 
 ### HIGH-4 — `DataFrame.append` removed in pandas 2 ✔ — **fixed in PR 0**
 
@@ -575,10 +583,12 @@ all describe this as the skipped-junction count. The v0.3.2 changelog says
 Decide on one semantics, rename the property (`min_jc`), and update the
 header documentation.
 
-### 5.3 — Soft-masked / ambiguous bases ✔
+### 5.3 — Soft-masked / ambiguous bases ✔ — **fixed in PR 3**
 
-Covered by HIGH-2/3. The README's workaround (use an unmasked genome) is
-accurate.
+Covered by HIGH-2/3. The README's workaround also suggested hard-masked
+genomes, which silently skip every junction touching a repeat (19% on
+chr15). The PR 3 audit found this, and the README now advises unmasked or
+soft-masked genomes.
 
 ### 5.4 — Stitch anchors can mis-place sequence ◎
 
@@ -732,7 +742,7 @@ currently can't be installed and run from scratch.
 | 0 | ✅ **Unblock**: Appendix A model, lazy optional imports, `pd.concat`, drop `seaborn-white`, remove pomegranate, bound `gtfparse<2`, `pandas.errors.UndefinedVariableError` | Env | Done 2026-11-03 |
 | 1 | ✅ Paths not file handles (HIGH-8), then repair tests (HIGH-7) + golden e2e test | Tests | Done 2026-11-03 |
 | 2 | ✅ `NaN` gene symbols → `NoGeneName_<gene id>` (MED-7 was fixed in PR 4) | Compat | Done 2026-11-11 |
-| 3 | Soft-masking / IUPAC (HIGH-2/3) ([audit](reports/2026-11-11-masked-bases-audit.md); decisions approved 2026-11-11) | Correctness | PR 1 |
+| 3 | ✅ Soft-masking / IUPAC (HIGH-2/3): uppercase at retrieval, skip slices with non-ACGT bases, `--mask` deprecated ([audit](reports/2026-11-11-masked-bases-audit.md)) | Correctness | Done 2026-11-11 |
 | 4 | ✅ **`tx0`/`tx1` from start/stop codons** (§5.1) — regression test first; changelog entry | Sci-integrity | Done 2026-11-10 |
 | 4a | ✅ **Drop pure-UTR exons**: strand-agnostic `_trim`, `SKIPPED_OUTSIDE_CDS`, second-start retry removed ([audit](reports/2026-11-10-utr-exon-trimming-audit.md)) | Sci-integrity | Done 2026-11-10 |
 | 4a2 | ✅ **RI slice composition** (HIGH-11): slice 1 is the retained exon alone ([audit](reports/2026-11-10-ri-slice-audit.md)) | Sci-integrity | Done 2026-11-10 |

@@ -14,7 +14,6 @@ Skeleton placeholder. The real implementation collects:
   Step 2 — filters
     * q-value low/high
     * read-cutoff source: manual integer vs. mixture-model (-m)
-    * --mask character set
     * --canonical toggle
 
 and produces a RunConfig that the run panel hands to ``jcast.main.run_jcast``

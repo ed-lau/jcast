@@ -4,7 +4,7 @@
 
 SKIPPED_LOW_COUNT = 'SKIPPED. Sequence discarded due to low coverage. \n\n'
 SKIPPED_P_VALUE = 'SKIPPED. Sequence discarded due to difference across replicates. \n\n'
-SKIPPED_MASKED = 'SKIPPED. Sequence discarded due to masked regions. \n\n'
+SKIPPED_MASKED = 'SKIPPED. Sequence discarded due to masked or ambiguous bases. \n\n'
 SKIPPED_OUTSIDE_CDS = 'SKIPPED. Splice event lies outside the annotated coding region. \n\n'
 
 TIER1 = 'SUCCESS TIER 1. Retrieved phase: {0}. Used phase: {1}. No frameshift. \n\n'

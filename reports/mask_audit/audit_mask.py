@@ -9,8 +9,8 @@ exception; here each junction's exception is caught and recorded, so every affec
 
     audit:   both genomes at BASELINE_COMMIT (or --baseline); the soft-masked genome also without a GTF canonical
              (as in a default run, which takes the canonical from UniProt), so that only the slices are translated
-    verify:  both genomes in the working tree; each must reproduce the baseline unmasked run exactly
-             (fates and FASTA files)
+    verify:  the unmasked and soft-masked genomes in the working tree must each reproduce the baseline unmasked run
+             exactly (fates and FASTA files); the hard-masked genome in the working tree must raise nothing
 
 Also counts, from the chr15 GTF, how many protein-coding CDS contain soft-masked bases. Writes, into --out:
 
@@ -160,7 +160,9 @@ def main_(softmasked, baseline_commit, verify):
             'baseline_hardmasked': (baseline_repo, hardmasked, 'gtf'),
             'baseline_hardmasked_no_gtf_canonical': (baseline_repo, hardmasked, 'uniprot')}
     if verify:
-        runs.update({'candidate_unmasked': (REPO, UNMASKED, 'gtf'), 'candidate_softmasked': (REPO, softmasked, 'gtf')})
+        runs.update({'candidate_unmasked': (REPO, UNMASKED, 'gtf'), 'candidate_softmasked': (REPO, softmasked, 'gtf'),
+                     'candidate_hardmasked': (REPO, hardmasked, 'gtf'),
+                     'candidate_hardmasked_no_gtf_canonical': (REPO, hardmasked, 'uniprot')})
     try:
         res = {k: run(repo, work / k, g, c) for k, (repo, g, c) in runs.items()}
     finally:
@@ -210,6 +212,11 @@ def main_(softmasked, baseline_commit, verify):
             same_fates = all(res[name][k]['fate'] == ref[k]['fate'] for k in ref)
             out.append(f'{name}: fates identical to baseline_unmasked: {same_fates}; FASTA files identical: '
                        f'{fastas[name] == fastas["baseline_unmasked"]}\n')
+        for name, reference in [('candidate_hardmasked', 'baseline_hardmasked'),
+                                ('candidate_hardmasked_no_gtf_canonical', 'baseline_hardmasked_no_gtf_canonical')]:
+            out.append(T(f'{name}: fate transitions from {reference} (changed only)', collections.Counter(
+                (res[reference][k]['fate'].split(':')[0], res[name][k]['fate'])
+                for k in ref if res[name][k]['fate'] != res[reference][k]['fate'])))
         out.append(T('FASTA records (file | baseline_unmasked | candidate_softmasked)', collections.Counter(
             {(n, len(fastas['baseline_unmasked'].get(n, {})), len(fastas['candidate_softmasked'].get(n, {}))): 1
              for n in sorted(set(fastas['baseline_unmasked']) | set(fastas['candidate_softmasked']))})))

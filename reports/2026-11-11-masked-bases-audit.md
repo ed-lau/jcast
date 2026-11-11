@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **Date** | 2026-11-11 |
-| **Status** | Audit. Proposed fix in §6; decisions in §7 approved 2026-11-11 (option A; deprecate `--mask`; per-junction exceptions in PR 7). Baseline is commit `a784030`. |
+| **Status** | **Implemented in PR 3** (§8). Decisions in §7 approved 2026-11-11 (option A; deprecate `--mask`; per-junction exceptions in PR 7). Baseline is commit `a784030`. |
 | **Code** | `helpers.get_local_nuc`, `helpers.get_complementary`, `helpers.make_pep`, the `--mask` gate in `main._translate_one` |
 | **Environment** | Python 3.11.13, pandas 2.3.1, numpy 1.26.4, biopython 1.78, gtfparse 1.3.0 |
-| **Reproduce** | chr15: `python reports/mask_audit/audit_mask.py --softmasked Homo_sapiens.GRCh38.dna_sm.chromosome.15.fa.gz` at `a784030` (≈ 10 min, no network once the file is downloaded). Genome survey: `python reports/mask_audit/survey_genome.py --genome GRCh38.primary_assembly.genome.fa --gtf gencode.v50.primary_assembly.annotation.gtf --out reports/mask_audit/gencode_v50` (≈ 5 min) |
+| **Reproduce** | chr15: `python reports/mask_audit/audit_mask.py --softmasked Homo_sapiens.GRCh38.dna_sm.chromosome.15.fa.gz` (add `--verify` at the PR 3 commit for §8) (≈ 10 min, no network once the file is downloaded). Genome survey: `python reports/mask_audit/survey_genome.py --genome GRCh38.primary_assembly.genome.fa --gtf gencode.v50.primary_assembly.annotation.gtf --out reports/mask_audit/gencode_v50` (≈ 5 min) |
 | **Evidence** | [mask_audit/baseline/summary.txt](mask_audit/baseline/summary.txt) · [mask_audit/baseline/junctions.tsv](mask_audit/baseline/junctions.tsv) · [mask_audit/gencode_v50/](mask_audit/gencode_v50/) |
 
 ## 1. Summary
@@ -215,3 +215,40 @@ release; 3 → yes, in PR 7.
    with no partial output. Proposal: catch it per junction, log it, record
    a new `FAILURE (exception)` fate, and continue. That is MED-level
    robustness, better placed in PR 7 than mixed into this fix.
+
+## 8. Implementation and verification (PR 3)
+
+Implemented as proposed in §6, with the decisions in §7:
+
+- **Retrieval:** `helpers.get_local_nuc` returns the genome slice uppercased.
+- **The gate** in `main._translate_one` skips a junction if either slice
+  has a base outside `ACGT`. The fate now reads `SKIPPED. Sequence
+  discarded due to masked or ambiguous bases.`
+- **`helpers.make_pep`** uppercases its input and returns `''` for a codon
+  it cannot translate.
+- **`helpers.get_complementary`** is `Bio.Seq.reverse_complement`.
+- **`--mask`** defaults to `None`. If given, it is ignored and a
+  deprecation warning is logged.
+
+**Verification** (`audit_mask.py --verify`; evidence in
+[mask_audit/final/](mask_audit/final/)):
+
+| Check | Result |
+|---|---|
+| Unmasked genome, working tree vs baseline: fates and FASTA files | identical (1,105 fates; all 10 FASTA files) |
+| Soft-masked genome, working tree vs baseline **unmasked**: fates and FASTA files | identical |
+| Exceptions with the working tree (unmasked, soft-masked, hard-masked; with and without the GTF canonical) | 0 |
+| Hard-masked, default run: junctions skipped as masked | the same 206 as before; only the fate wording changed |
+| Hard-masked, `use_gtf_only`: the 239 junctions that raised | now get ordinary fates (59 T1, 6 T1 ALT TERMINUS, 6 T2, 53 T4, 8 FAILURE, 73 low coverage, 34 outside the coding region) |
+| Golden end-to-end test | unchanged |
+
+**Regression tests** ([tests/test_masking.py](../tests/test_masking.py)).
+14 of the 15 fail at `819cc53`; the plain uppercase `make_pep` case passes
+on both.
+
+| Test | Asserts |
+|---|---|
+| `test_make_pep_never_raises` | the six inputs of §2: lowercase translates as uppercase, and ambiguous codons give `''` |
+| `test_get_complementary_iupac` | IUPAC bases are complemented and case is kept |
+| `test_softmasked_genome_gives_unmasked_output` | MXE 430, SE 5739, SE 28030, SE 6592 on an all-lowercase chr15: same fate and FASTA records as unmasked |
+| `test_slice_with_ambiguous_base_is_skipped` | `N`, `n`, `R` or `y` inside a slice: `SKIPPED_MASKED` |

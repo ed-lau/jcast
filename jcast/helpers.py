@@ -7,6 +7,7 @@ import sqlite3 as sq
 import requests as rq
 
 from Bio import SeqIO
+from Bio.Seq import reverse_complement
 
 from jcast import constants
 
@@ -37,7 +38,8 @@ def get_local_nuc(genome_index,
     if es <= 0 or ee <= 0:
         return genome_index[chromosome][0:0]  # 2020-07-21 return SeqRecord rather than Seq
 
-    return genome_index[chromosome][es-1:ee]
+    # soft-masked (lowercase) bases are ordinary sequence (reports/2026-11-11-masked-bases-audit.md)
+    return genome_index[chromosome][es-1:ee].upper()
 
 
 def get_rest_nuc(species,
@@ -128,30 +130,18 @@ def get_complementary(nt: str,
     :return: Complementary sequence
 
     Function to get the complementary coding sequence on the reverse (-) DNA
-    strand of the coordinates being give. First reverses the input nucleotide
-    sequence, then get base-pairing nucleotide
+    strand of the coordinates being give. Ambiguous (IUPAC) bases are complemented
+    and case is kept.
 
     >>> get_complementary('ATGCAA')
     'TTGCAT'
 
+    >>> get_complementary('acgR')
+    'Ycgt'
+
     """
 
-    nt = nt[::-1]
-    comp = ''
-
-    bp = {'A': 'T',
-          'T': 'A',
-          'G': 'C',
-          'C': 'G'}
-
-    for n in nt:
-        try:
-            comp += bp[n]
-        except KeyError:
-            raise KeyError('Invalid nucleotide: ' + n)
-            comp += 'X'
-
-    return comp
+    return reverse_complement(str(nt))
 
 
 def make_pep(nt: str,
@@ -195,6 +185,15 @@ def make_pep(nt: str,
         >>> make_pep(rna_sequence, '-', 1, False)
         'IIF'
 
+    Lowercase (soft-masked) bases are translated as uppercase. A codon with any other base (N or another
+    IUPAC code) cannot be translated, so the whole sequence is untranslatable
+
+        >>> make_pep('atgaaatag', '+', 0)
+        'MK'
+
+        >>> make_pep('ATGRAATAG', '+', 0, False)
+        ''
+
     """
 
     #
@@ -206,6 +205,7 @@ def make_pep(nt: str,
     # if rMATS says the strand is negative, get the complementary sequence, which is the Watson-Crick pairing of the
     # original sequence in anti-parallel direction (5'-to-3' becomes 3'-to-5')
     #
+    nt = str(nt).upper()
     if strand == '-':
         nt = get_complementary(nt)
 
@@ -221,9 +221,11 @@ def make_pep(nt: str,
     #
     for i in range(pos0, len(nt) - 2, 3):
 
-        # TODO: Catch KeyErrors in codon table lookup
-        # TODO: Accommodate soft masking by converting nt to upper
-        aa = code[nt[i:i + 3]]
+        aa = code.get(nt[i:i + 3])
+
+        # a codon with an ambiguous base: untranslatable
+        if aa is None:
+            return ''
 
         if aa == 'X':
 

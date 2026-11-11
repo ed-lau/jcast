@@ -114,8 +114,9 @@ optional arguments:
                         [default: False]
   -c, --canonical       write canonical protein sequences even when a slice
                         is untranslatable [default: False]
-  --mask MASK           masked-nucleotide characters; slices containing any
-                        of them are skipped [default: NnXx]
+  --mask MASK           deprecated and ignored: slices containing any base
+                        other than A, C, G or T are always skipped. Will be
+                        removed in the next release.
   -s, --splice_type     splice types to translate [default: MXE SE RI A5SS A3SS]
   -q, --qvalue q_lo q_hi
                         keep junctions whose rMATS FDR is in this range
@@ -233,9 +234,16 @@ python -m jcast /work/output \
 
 ## Known issues
 
-- **Soft-masked (lowercase) genome sequences cause translation failure.** Use
-  an unmasked or hard-masked genome until this is fixed. (Tracked for v0.4.0;
-  see [REVIEW.md](REVIEW.md) HIGH-2/HIGH-3.)
+- **Use an unmasked or soft-masked genome, not a hard-masked one.**
+  - Soft-masked (lowercase) bases are read as ordinary sequence, so Ensembl
+    `dna_sm` or UCSC `hg38.fa` give exactly the same output as an unmasked
+    genome.
+  - Any slice containing N or another ambiguous base is skipped (fate
+    `SKIPPED ... masked or ambiguous bases`).
+  - A hard-masked genome (Ensembl `dna_rm`) replaces repeats with N, so
+    every junction touching a repeat is skipped: 19% of the chr15 test
+    junctions. See
+    [reports/2026-11-11-masked-bases-audit.md](reports/2026-11-11-masked-bases-audit.md).
 - **Tier 4 contains products truncated at a stop codon.** Alternative
   C-termini at an annotated stop codon go to `psq_T1_alt_cterm.fasta`
   instead. A stop codon that the annotation does not support stays in T4,

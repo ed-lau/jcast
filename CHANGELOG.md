@@ -103,11 +103,30 @@ and §9.
 - Dependency bounds aligned between `setup.py` and `requirements.txt`:
   `gtfparse>=1.3,<2` (3.x is polars-based and incompatible), `pandas>=1.5,<4`,
   and `numpy` / `scipy` declared explicitly.
+- **`--mask` is deprecated and ignored**, and logs a warning. Every base
+  outside `ACGT` is now skipped, which covers its old default (`NnXx`). It
+  will be removed in the next release.
+- The fate for skipped slices reads `masked or ambiguous bases` (was
+  `masked regions`).
+- The README no longer recommends hard-masked genomes. On chr15 they
+  silently skip 19% of junctions.
 - [README.md](README.md) rewritten to consolidate the install, quick-start,
   output-format, and FAQ content previously split between `README.md`,
   `TODO.md`, and the Quarto sources under `jcast_website/`.
 
 ### Fixed
+- **Soft-masked genomes aborted the run** (REVIEW.md HIGH-2/HIGH-3).
+  Lowercase bases raised `KeyError` in translation, and nothing caught it. On
+  chr15 with Ensembl's soft-masked genome, 147 junctions raised in a default
+  run, and the run stopped at the third junction. Genome sequence is now
+  uppercased when read, and gives exactly the output of the unmasked genome.
+- **Ambiguous bases no longer raise.** A slice containing any base outside
+  `ACGT` (N or another IUPAC code) is skipped, as N already was. Elsewhere,
+  e.g. the canonical translated from the GTF, a codon with an ambiguous base
+  makes the translation empty rather than raising. `get_complementary` now
+  uses Biopython's IUPAC-aware reverse complement; its fallback was
+  unreachable. See
+  [reports/2026-11-11-masked-bases-audit.md](reports/2026-11-11-masked-bases-audit.md).
 - **Gzipped genomes (`.fa.gz`) crashed every run** with `UnicodeDecodeError`.
   The GTF and genome arguments are now plain paths (no `argparse.FileType`),
   and missing files are reported by argparse.
@@ -213,8 +232,9 @@ The following items are scheduled for v0.4.0 but live in subsequent focused
 PRs. See [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised) for the full
 table.
 
-- Treat soft-masked (lowercase) and ambiguous IUPAC bases safely in
-  `make_pep`.
+- Catch an exception in one junction, record it as that junction's fate,
+  and continue, instead of aborting the whole run (PR 7).
+- Remove the deprecated `--mask` option (next release).
 - With `-c`, write the canonical for every gene, whatever its junctions'
   tiers (REVIEW.md MED-14; 2 chr15 genes affected).
 - Output-directory creation guarantee; route the UniProt cache through

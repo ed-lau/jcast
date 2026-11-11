@@ -28,6 +28,10 @@ def run_jcast(args) -> None:
     logger.info(args)
     logger.info(__version__)
 
+    if getattr(args, 'mask', None) is not None:
+        logger.warning('--mask is deprecated and ignored: slices containing any base other than A, C, G or T are '
+                       'always skipped. It will be removed in the next release.')
+
     # ---- Read in rMATS files ----
     rmats_results = RmatsResults(logger=logger,
                                  rmats_dir=args.rmats_folder,
@@ -182,16 +186,15 @@ def _translate_one(junction: Junction,
     #
     sequence.make_slice_localgenome(genome.genome)
 
-    # 2022-10-28: temporary fix to avoid hard masking
-    if args.mask:
-        for m in args.mask:
-            if m in sequence.slice1_nt or m in sequence.slice2_nt:
+    # skip slices with any base outside ACGT: N (hard-masked or a gap) or another IUPAC code. The genome sequence is
+    # uppercased on retrieval, so soft-masked bases are kept (reports/2026-11-11-masked-bases-audit.md)
+    if not set(str(sequence.slice1_nt.seq) + str(sequence.slice2_nt.seq)) <= set('ACGT'):
 
-                # Write canonical anyhow if the canonical flag is set.
-                if args.canonical:
-                    sequence.write_canonical(out_dir=args.out)
+        # Write canonical anyhow if the canonical flag is set.
+        if args.canonical:
+            sequence.write_canonical(out_dir=args.out)
 
-                return fates.SKIPPED_MASKED
+        return fates.SKIPPED_MASKED
 
     # ---- Translate to peptides. This happens before the filters so we can write the canonical sequence ----
     sequence.get_canonical_aa(gtf=gtf, genome_index=genome.genome)
@@ -413,9 +416,9 @@ def main():
                         )
 
     parser.add_argument('--mask',
-                        help='masked nucleotides; slices will not be translated if '
-                             'containing one of these letters [default: NnXx]',
-                        default='NnXx',
+                        help='deprecated and ignored: slices containing any base other than A, C, G or T '
+                             '(case-insensitive) are always skipped. Will be removed in the next release.',
+                        default=None,
                         )
 
     parser.add_argument('-s', '--splice_type',

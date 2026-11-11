@@ -1,0 +1,105 @@
+baseline commit: a784030; junctions: 1105; soft-masked genome: Homo_sapiens.GRCh38.dna_sm.chromosome.15.fa.gz
+
+baseline_unmasked: junctions raising an exception: 0 (0 genes); first in run order: -
+
+baseline_softmasked: junctions raising an exception: 393 (130 genes); first in run order: ('MXE', '430')
+
+baseline_unmasked_no_gtf_canonical: junctions raising an exception: 0 (0 genes); first in run order: -
+
+baseline_softmasked_no_gtf_canonical: junctions raising an exception: 147 (82 genes); first in run order: ('MXE', '430')
+
+baseline_hardmasked: junctions raising an exception: 239 (76 genes); first in run order: ('MXE', '431')
+
+baseline_hardmasked_no_gtf_canonical: junctions raising an exception: 0 (0 genes); first in run order: -
+
+candidate_unmasked: junctions raising an exception: 0 (0 genes); first in run order: -
+
+candidate_softmasked: junctions raising an exception: 0 (0 genes); first in run order: -
+
+candidate_hardmasked: junctions raising an exception: 0 (0 genes); first in run order: -
+
+candidate_hardmasked_no_gtf_canonical: junctions raising an exception: 0 (0 genes); first in run order: -
+
+baseline_softmasked_no_gtf_canonical exceptions: exception type and location
+     89  EXCEPTION KeyError | helpers.py:get_complementary <- helpers.py:make_pep <- sequences.py:<listcomp>
+     58  EXCEPTION KeyError | helpers.py:make_pep <- sequences.py:<listcomp> <- sequences.py:translate
+
+baseline_softmasked exceptions: unmasked fate of the junction
+     29  FAILURE
+    119  PARTIAL TIER 4
+    120  SKIPPED: Sequence discarded due to low coverage
+     34  SKIPPED: Splice event lies outside the annotated coding region
+     74  SUCCESS TIER 1
+     10  SUCCESS TIER 1 ALT TERMINUS
+      7  SUCCESS TIER 2
+
+baseline_softmasked exceptions: exception type and location
+     37  EXCEPTION KeyError | helpers.py:get_complementary <- helpers.py:make_pep <- sequences.py:<listcomp>
+    179  EXCEPTION KeyError | helpers.py:get_complementary <- helpers.py:make_pep <- sequences.py:translate_annotated_transcriptfrom_gtf
+     36  EXCEPTION KeyError | helpers.py:make_pep <- sequences.py:<listcomp> <- sequences.py:translate
+    141  EXCEPTION KeyError | helpers.py:make_pep <- sequences.py:translate_annotated_transcriptfrom_gtf <- sequences.py:get_canonical_aa_gtf
+
+baseline_softmasked: fate of junctions not raising, compared with unmasked
+    124  FAILURE | FAILURE
+    170  PARTIAL TIER 4 | PARTIAL TIER 4
+    177  SKIPPED: Sequence discarded due to low coverage | SKIPPED: Sequence discarded due to low coverage
+     58  SKIPPED: Splice event lies outside the annotated coding region | SKIPPED: Splice event lies outside the annotated coding region
+     15  SUCCESS TIER 1 ALT TERMINUS | SUCCESS TIER 1 ALT TERMINUS
+    145  SUCCESS TIER 1 | SUCCESS TIER 1
+     23  SUCCESS TIER 2 | SUCCESS TIER 2
+
+baseline_hardmasked: fate transitions from baseline_unmasked (changed only)
+      8  FAILURE | EXCEPTION KeyError
+     43  FAILURE | SKIPPED
+     53  PARTIAL TIER 4 | EXCEPTION KeyError
+     83  PARTIAL TIER 4 | SKIPPED
+     73  SKIPPED: Sequence discarded due to low coverage | EXCEPTION KeyError
+     60  SKIPPED: Sequence discarded due to low coverage | SKIPPED
+     34  SKIPPED: Splice event lies outside the annotated coding region | EXCEPTION KeyError
+      5  SUCCESS TIER 1 ALT TERMINUS | EXCEPTION KeyError
+      5  SUCCESS TIER 1 ALT TERMINUS | SKIPPED
+     60  SUCCESS TIER 1 | EXCEPTION KeyError
+     14  SUCCESS TIER 1 | SKIPPED
+      6  SUCCESS TIER 2 | EXCEPTION KeyError
+      1  SUCCESS TIER 2 | SKIPPED
+
+baseline_hardmasked_no_gtf_canonical: fate transitions from baseline_unmasked_no_gtf_canonical (changed only)
+     43  FAILURE | SKIPPED
+     83  PARTIAL TIER 4 | SKIPPED
+     60  SKIPPED: Sequence discarded due to low coverage | SKIPPED
+      6  SUCCESS TIER 1 ALT TERMINUS | SKIPPED
+     13  SUCCESS TIER 1 | SKIPPED
+      1  SUCCESS TIER 2 | SKIPPED
+
+chr15 protein_coding: 2678 transcripts (583 genes); CDS with any soft-masked base: 712 (290 genes); soft-masked CDS bases: 76,172 of 3,487,082 (2.18%)
+
+chr15 protein_coding, TSL 1-2: 1389 transcripts (520 genes); CDS with any soft-masked base: 420 (214 genes); soft-masked CDS bases: 32,687 of 2,272,536 (1.44%)
+
+candidate_unmasked: fates identical to baseline_unmasked: True; FASTA files identical: True
+
+candidate_softmasked: fates identical to baseline_unmasked: True; FASTA files identical: True
+
+candidate_hardmasked: fate transitions from baseline_hardmasked (changed only)
+      8  EXCEPTION KeyError | FAILURE
+     53  EXCEPTION KeyError | PARTIAL TIER 4
+     73  EXCEPTION KeyError | SKIPPED: Sequence discarded due to low coverage
+     34  EXCEPTION KeyError | SKIPPED: Splice event lies outside the annotated coding region
+      6  EXCEPTION KeyError | SUCCESS TIER 1 ALT TERMINUS
+     59  EXCEPTION KeyError | SUCCESS TIER 1
+      6  EXCEPTION KeyError | SUCCESS TIER 2
+    206  SKIPPED | SKIPPED: Sequence discarded due to masked or ambiguous bases
+
+candidate_hardmasked_no_gtf_canonical: fate transitions from baseline_hardmasked_no_gtf_canonical (changed only)
+    206  SKIPPED | SKIPPED: Sequence discarded due to masked or ambiguous bases
+
+FASTA records (file | baseline_unmasked | candidate_softmasked)
+      1  psq_T1.fasta | 173 | 173
+      1  psq_T1_alt_cterm.fasta | 18 | 18
+      1  psq_T1_alt_cterm_orphan.fasta | 2 | 2
+      1  psq_T1_alt_nterm.fasta | 4 | 4
+      1  psq_T1_orphan.fasta | 35 | 35
+      1  psq_T2.fasta | 23 | 23
+      1  psq_T2_orphan.fasta | 14 | 14
+      1  psq_T4.fasta | 226 | 226
+      1  psq_T4_orphan.fasta | 76 | 76
+      1  psq_canonical.fasta | 268 | 268
