@@ -184,6 +184,10 @@ and §9.
 - GTFs without `transcript_support_level`: the translation-bound lookup now
   checks for the column instead of relying on exception handling, which
   could pass `None` to `len()` (REVIEW.md MED-7).
+- **rMATS rows without a gene symbol** (`NA`) are named
+  `NoGeneName_<gene id>` in FASTA headers, as v0.3.5a intended. pandas reads
+  `NA` as `NaN`, so the v0.3.5a check (`is None`) never fired. Headers carried
+  `nan` and `str(junction)` raised `TypeError`.
 - `-m` on pandas ≥ 2: `DataFrame.append` replaced with `pd.concat`.
 - `-m` on matplotlib ≥ 3.6: removed the `seaborn-white` style call.
 - GTFs without `transcript_support_level` on pandas ≥ 2: catch

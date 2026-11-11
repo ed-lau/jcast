@@ -3,6 +3,7 @@
 """ Tests for splice junction related functions """
 
 import argparse
+import shutil
 import types
 
 import pytest
@@ -10,8 +11,10 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 
 from jcast import fates, main, params
-from jcast.junctions import Junction
+from jcast.junctions import Junction, RmatsResults
 from jcast.sequences import Sequence
+
+from tests.conftest import RMATS
 
 
 @pytest.mark.network
@@ -294,3 +297,28 @@ def test_frameshift_counts_each_slice_frame(gtf, genome, rmats_results, tmp_path
 
     assert junction.slice_phases == (0, 2)
     assert fate.startswith('SUCCESS TIER 2')
+
+
+@pytest.mark.parametrize('na', ['NA', '"NA"', ''])
+def test_missing_gene_symbol(na, gtf, genome, logger, tmp_path, monkeypatch):
+    """ rMATS writes NA when a gene has no symbol; pandas reads it as NaN (REVIEW.md, PR 2) """
+
+    rmats_dir = tmp_path / 'rmats'
+    shutil.copytree(RMATS, rmats_dir)
+    se = rmats_dir / 'SE.MATS.JC.txt'
+    lines = se.read_text().splitlines()
+    for i, line in enumerate(lines):
+        fields = line.split('\t')
+        if fields[0] == '5739':  # MFGE8, ENSG00000140545
+            lines[i] = '\t'.join(fields[:2] + [na] + fields[3:])
+    se.write_text('\n'.join(lines) + '\n')
+
+    junction = _junction(RmatsResults(logger=logger, rmats_dir=rmats_dir).rmats_se, 5739)
+    out_dir = tmp_path / 'out'
+    out_dir.mkdir()
+    _translate(junction, gtf, genome, out_dir, monkeypatch)
+
+    assert junction.gene_symbol == 'NoGeneName_ENSG00000140545'
+    assert 'NoGeneName_ENSG00000140545' in str(junction)
+    headers = [r.id for r in SeqIO.parse(out_dir / 'psq_T1.fasta', 'fasta')]
+    assert headers and all('|NoGeneName_ENSG00000140545|' in h for h in headers)

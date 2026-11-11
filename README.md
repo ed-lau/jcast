@@ -198,6 +198,11 @@ The `|`-separated fields are:
 11. Skipped-junction read count, prefixed with `r`.
 12. Tier (`T1`, `T1_alt_cterm`, `T1_alt_nterm`, `T1_alt_both`, `T2`, `T4`).
 
+When the canonical comes from the GTF rather than UniProt
+(`use_gtf_only` in `jcast/params.py`), fields 1–3 are the Ensembl gene id,
+the gene symbol, and the gene id again. A gene that rMATS
+reports without a symbol (`NA`) is named `NoGeneName_<gene id>`.
+
 ## Worked example: ENCODE heart
 
 A representative full pipeline from FASTQ to JCAST database:
@@ -231,8 +236,6 @@ python -m jcast /work/output \
 - **Soft-masked (lowercase) genome sequences cause translation failure.** Use
   an unmasked or hard-masked genome until this is fixed. (Tracked for v0.4.0;
   see [REVIEW.md](REVIEW.md) HIGH-2/HIGH-3.)
-- **rMATS rows with `NA` gene names can fail.** A defensive substitution was
-  added in v0.3.5a; further fixes are planned.
 - **Tier 4 contains products truncated at a stop codon.** Alternative
   C-termini at an annotated stop codon go to `psq_T1_alt_cterm.fasta`
   instead. A stop codon that the annotation does not support stays in T4,

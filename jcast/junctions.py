@@ -213,8 +213,8 @@ class Junction(object):
         self.junction_type = kwargs['jxn_type']
         self.gene_symbol = kwargs['gene_symbol']
 
-        # 2022-05-21 If no symbol
-        if self.gene_symbol is None:
+        # rMATS writes NA for genes without a symbol, which pandas reads as NaN
+        if pd.isna(self.gene_symbol) or not str(self.gene_symbol).strip():
             self.gene_symbol = f'NoGeneName_{self.gene_id}'
 
         self.fdr = kwargs['fdr']

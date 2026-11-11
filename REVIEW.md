@@ -474,9 +474,13 @@ handlers first, and close the file handler when the run ends.
   accepts a stop followed by 0–1 trailing nt but rejects 2 trailing nt
   (`'ATGAAATAAG'` → `'MK'`, `'ATGAAATAAGG'` → `''`). Both cases are the same
   biologically.
-- [jcast/junctions.py:218](jcast/junctions.py#L218): `gene_symbol is None`
+- ~~[jcast/junctions.py:218](jcast/junctions.py#L218): `gene_symbol is None`
   never fires, because pandas parses `NA` as `NaN`. Use `pd.isna`. The README
-  "defensive substitution" for `NA` gene names is therefore ineffective.
+  "defensive substitution" for `NA` gene names is therefore ineffective.~~
+  **Fixed in PR 2**: `pd.isna` or blank gives `NoGeneName_<gene id>`.
+  Before, headers carried `nan`, and `str()`/`repr()` of the junction raised
+  `TypeError`. Nothing in the package calls them, so translation was
+  unaffected.
 - [jcast/helpers.py:29-34](jcast/helpers.py#L29-L34): chromosome-name
   reconciliation only strips `chr`. It never adds it (Ensembl rMATS +
   GENCODE genome → `KeyError`).
@@ -727,7 +731,7 @@ currently can't be installed and run from scratch.
 |---|---|---|---|
 | 0 | ✅ **Unblock**: Appendix A model, lazy optional imports, `pd.concat`, drop `seaborn-white`, remove pomegranate, bound `gtfparse<2`, `pandas.errors.UndefinedVariableError` | Env | Done 2026-11-03 |
 | 1 | ✅ Paths not file handles (HIGH-8), then repair tests (HIGH-7) + golden e2e test | Tests | Done 2026-11-03 |
-| 2 | `NaN` gene symbols (MED-7 was fixed in PR 4) | Compat | PR 1 |
+| 2 | ✅ `NaN` gene symbols → `NoGeneName_<gene id>` (MED-7 was fixed in PR 4) | Compat | Done 2026-11-11 |
 | 3 | Soft-masking / IUPAC (HIGH-2/3) | Correctness | PR 1 |
 | 4 | ✅ **`tx0`/`tx1` from start/stop codons** (§5.1) — regression test first; changelog entry | Sci-integrity | Done 2026-11-10 |
 | 4a | ✅ **Drop pure-UTR exons**: strand-agnostic `_trim`, `SKIPPED_OUTSIDE_CDS`, second-start retry removed ([audit](reports/2026-11-10-utr-exon-trimming-audit.md)) | Sci-integrity | Done 2026-11-10 |
