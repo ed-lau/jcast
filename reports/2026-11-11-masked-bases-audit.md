@@ -6,7 +6,7 @@
 | **Status** | **Implemented in PR 3** (§8). Decisions in §7 approved 2026-11-11 (option A; deprecate `--mask`; per-junction exceptions in PR 7). Baseline is commit `a784030`. |
 | **Code** | `helpers.get_local_nuc`, `helpers.get_complementary`, `helpers.make_pep`, the `--mask` gate in `main._translate_one` |
 | **Environment** | Python 3.11.13, pandas 2.3.1, numpy 1.26.4, biopython 1.78, gtfparse 1.3.0 |
-| **Reproduce** | chr15: `python reports/mask_audit/audit_mask.py --softmasked Homo_sapiens.GRCh38.dna_sm.chromosome.15.fa.gz` (add `--verify` at the PR 3 commit for §8) (≈ 10 min, no network once the file is downloaded). Genome survey: `python reports/mask_audit/survey_genome.py --genome GRCh38.primary_assembly.genome.fa --gtf gencode.v50.primary_assembly.annotation.gtf --out reports/mask_audit/gencode_v50` (≈ 5 min) |
+| **Reproduce** | chr15: `python reports/mask_audit/audit_mask.py --softmasked Homo_sapiens.GRCh38.dna_sm.chromosome.15.fa.gz` (add `--verify` at `fcdc0ee` for §8) (≈ 10 min, no network once the file is downloaded). Genome survey: `python reports/mask_audit/survey_genome.py --genome GRCh38.primary_assembly.genome.fa --gtf gencode.v50.primary_assembly.annotation.gtf --out reports/mask_audit/gencode_v50` (≈ 5 min) |
 | **Evidence** | [mask_audit/baseline/summary.txt](mask_audit/baseline/summary.txt) · [mask_audit/baseline/junctions.tsv](mask_audit/baseline/junctions.tsv) · [mask_audit/gencode_v50/](mask_audit/gencode_v50/) |
 
 ## 1. Summary
@@ -243,7 +243,7 @@ Implemented as proposed in §6, with the decisions in §7:
 | Golden end-to-end test | unchanged |
 
 **Regression tests** ([tests/test_masking.py](../tests/test_masking.py)).
-14 of the 15 fail at `819cc53`; the plain uppercase `make_pep` case passes
+14 of the 15 fail at `819cc53` (before PR 3); the plain uppercase `make_pep` case passes
 on both.
 
 | Test | Asserts |
