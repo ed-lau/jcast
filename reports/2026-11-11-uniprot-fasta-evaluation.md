@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-11 |
-| **Status** | Recommendations in §5; decisions requested in §6 and approved 2026-11-11 (§7); **implemented in PR 14 and verified (§8)**. The evaluation was measured at `8b0c024`. |
+| **Status** | Recommendations in §5; decisions requested in §6 and approved 2026-11-11 (§7); **implemented in `0f3b409` and verified (§8)**. The evaluation was measured at `8b0c024`. |
 | **Question** | (1) Should slices be joined to the canonical by genomic coordinates instead of anchor sequences? (2) Should the canonical come from a UniProt FASTA supplied by the user instead of per-gene API calls, with the post-run renaming against Swiss-Prot isoforms (currently an R script) built in? |
 | **Reproduce** | `python reports/uniprot_eval/evaluate_uniprot_fasta.py --uniprot <Swiss-Prot human FASTA with isoforms>` (≈ 2 min; needs the local `cache/uniprot-cache.db`) |
 | **Inputs** | UniProt release 2026_04 (4 Nov 2026), Swiss-Prot human with isoforms, downloaded from `https://rest.uniprot.org/uniprotkb/stream?compressed=true&format=fasta&includeIsoform=true&query=(proteome:UP000005640)+AND+(reviewed:true)`: 42,545 entries, 20,414 canonical. Ensembl 89 chr15 test set. API answers from the local cache, which an earlier run filled with 6,519 genes, 184 of them chr15 test genes. |
