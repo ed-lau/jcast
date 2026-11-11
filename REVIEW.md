@@ -370,7 +370,7 @@ frames were read correctly, the fallback changed only 15 chr15 junctions,
 and no annotated sequence depended on it
 ([phase audit §5.3](reports/2026-11-10-phase-audit.md)).
 
-### MED-3 — Stitch anchor is not checked for uniqueness or order ◎
+### MED-3 — Stitch anchor is not checked for uniqueness or order ◎ — **fixed in PR 5**
 
 [jcast/sequences.py:506-510](jcast/sequences.py#L506-L510). `str.find`
 takes the first occurrence of the 10-mer, and nothing checks
@@ -378,6 +378,14 @@ takes the first occurrence of the 10-mer, and nothing checks
 *before* the start anchor duplicates canonical sequence. Require
 `count == 1` for each anchor and `merge0 <= merge1`, or else send the slice to
 orphan.
+
+**PR 5** ([audit](reports/2026-11-11-stitch-anchor-audit.md)):
+- The uniqueness and order checks were added.
+- The audit found that most wrong joins had a different cause: a peptide
+  was joined at an end that was already complete (a stop codon, or the
+  gene's start codon). Those ends are no longer joined.
+- The anchor length is now 7 (was 10).
+- On chr15 against genomic coordinates: 0 wrong joins (was 12 of 998).
 
 ### MED-4 — Output directory never created before the log file opens ◎
 
@@ -590,7 +598,7 @@ genomes, which silently skip every junction touching a repeat (19% on
 chr15). The PR 3 audit found this, and the README now advises unmasked or
 soft-masked genomes.
 
-### 5.4 — Stitch anchors can mis-place sequence ◎
+### 5.4 — Stitch anchors can mis-place sequence ◎ — **fixed in PR 5**
 
 See MED-3.
 
@@ -749,7 +757,7 @@ currently can't be installed and run from scratch.
 | 4b | ✅ **Per-slice frame at the slice's 5′ end**, one-frame translation only; three-frame fallback, Tier 3 and `psq_T3*.fasta` removed (MED-2 closed) ([audit](reports/2026-11-10-phase-audit.md)) | Sci-integrity | Done 2026-11-10 |
 | 4b2 | ✅ **Frameshift test from coding lengths.** `Sequence.frameshift` compared raw slice lengths, which is wrong once slices have their own frames (PR 4b). Fixed: 17 chr15 junctions reclassified, no sequence lost or created ([audit](reports/2026-11-10-frameshift-audit.md)) | Sci-integrity (regression) | Done 2026-11-10 |
 | 4c | ✅ **Alternative termini** (done 2026-11-10; [audit and verification](reports/2026-11-10-alt-termini-audit.md)). C-terminal: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only; write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). N-terminal: a slice lacking the gene's start codon that contains another annotated start is translated from it and joined C-terminally only ([phase audit §5.4](reports/2026-11-10-phase-audit.md)). Re-evaluated on the current pipeline in [the termini audit](reports/2026-11-10-alt-termini-audit.md); decisions approved 2026-11-10 (TSL ≤ 2 sites, one file per terminus, fate `SUCCESS TIER 1 ALT TERMINUS`). | Sci-integrity | Done 2026-11-10 |
-| 5 | Stitch anchor checks (MED-3); MED-2 moves to PR 4b | Correctness | PR 1 |
+| 5 | ✅ **Joining to the canonical** (MED-3): complete ends not joined, unique ordered anchors, anchor length 7 ([audit](reports/2026-11-11-stitch-anchor-audit.md)) | Correctness | Done 2026-11-11 |
 | 6 | Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2) | Sci-integrity | PR 1 |
 | 7 | Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13); catch an exception per junction, record it as a fate and continue instead of aborting the run ([masked-bases audit §7](reports/2026-11-11-masked-bases-audit.md#7-decisions-requested)) | Robustness | PR 1 |
 | 8 | Network resilience + `write_canonical` fallback (MED-9/10); `-c` writes the canonical on every path (MED-14) | Robustness | PR 1 |

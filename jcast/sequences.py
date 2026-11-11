@@ -233,12 +233,13 @@ class Sequence(object):
             return False
 
         canonical = str(self.canonical_aa.seq)
-        length = params.aa_stitch_length
+        length = params.aa_terminus_length
         suffixes, products, peptides = [], [], []
         for k, p in enumerate(plans):
             aa = h.make_pep(nts[k].seq, self.j.strand, p['start'], terminate=False)
             product = self._join(aa, {(True, True): 'none', (True, False): 'c',
-                                      (False, True): 'n', (False, False): 'both'}[(p['n'], p['c'])])
+                                      (False, True): 'n', (False, False): 'both'}[(p['n'], p['c'])],
+                                 slice_index=k, start=p['start'])
             if product is None:
                 suffix = {(True, True): 'T1_alt_both', (True, False): 'T1_alt_nterm',
                           (False, True): 'T1_alt_cterm', (False, False): 'T1'}[(p['n'], p['c'])]
@@ -261,26 +262,60 @@ class Sequence(object):
         self.translated_phase = str(p1) if p1 == p2 else f'{p1}/{p2}'
         return True
 
-    def _join(self, aa: str, mode: str):
+    def _join(self, aa: str, mode: str, slice_index: int = None, start: int = None):
         """
-        Join a peptide to the canonical: 'both' ends (as stitch_to_canonical_aa), 'n' (N-terminus only),
-        'c' (C-terminus only) or 'none' (the peptide alone). None if there is no canonical, the peptide is shorter
-        than the joint, or the joint is not found.
+        Join a peptide to the canonical: 'both' ends, 'both_or_n' (both ends if possible, else the N-terminus only),
+        'n' (N-terminus only), 'c' (C-terminus only) or 'none' (the peptide alone). None if there is no canonical,
+        the peptide is shorter than the anchor, or an anchor is not found.
+
+        The peptide is placed by its first and last params.aa_stitch_length residues (the anchors). An anchor is used
+        only if it occurs exactly once in the canonical, and a join at both ends needs the start anchor not to be
+        after the end anchor (REVIEW.md MED-3). If slice_index and start (the peptide's translation start in that
+        slice) are given, an end that is already complete is not joined: a peptide ending at a stop codon has its
+        C-terminus, one starting at the gene's start codon its N-terminus.
+
+        See reports/2026-11-11-stitch-anchor-audit.md
+
+        :return: the joined SeqRecord, or None
         """
 
         canonical = self.canonical_aa
         length = params.aa_stitch_length
+        if mode == 'none':
+            return canonical[:0] + aa
         if len(canonical) == 0 or len(aa) < length:
             return None
 
-        m0, m1 = canonical.seq.find(aa[:length]), canonical.seq.find(aa[-length:])
-        if mode == 'both':
-            return canonical[:m0] + aa + canonical[m1 + length:] if m0 != -1 and m1 != -1 else None
-        if mode == 'n':
-            return canonical[:m0] + aa if m0 != -1 else None
-        if mode == 'c':
-            return canonical[:0] + aa + canonical[m1 + length:] if m1 != -1 else None
-        return canonical[:0] + aa
+        n_complete = False
+        if slice_index is not None and start in range(len(self.slice_nt(slice_index))) and mode != 'c':
+            n_complete = self.j.slice_positions()[slice_index][start] == \
+                (self.j.tx0 if self.j.strand == '+' else self.j.tx1)
+            if self.ends_at_stop(slice_index, start, aa):
+                mode = 'n'
+
+        def unique(anchor):
+            i = canonical.seq.find(anchor)
+            return i if i != -1 and canonical.seq.find(anchor, i + 1) == -1 else -1
+
+        m0, m1 = unique(aa[:length]), unique(aa[-length:])
+        before = canonical[:0] if n_complete else (canonical[:m0] if m0 != -1 else None)
+        if mode in ('both', 'both_or_n') and before is not None and m1 != -1 and (n_complete or m0 <= m1):
+            return before + aa + canonical[m1 + length:]
+        if mode in ('n', 'both_or_n') and before is not None:
+            return before + aa
+        if mode == 'c' and m1 != -1:
+            return canonical[:0] + aa + canonical[m1 + length:]
+        return None
+
+    def slice_nt(self, slice_index: int) -> str:
+        """ a slice's nucleotides in transcript orientation, uppercase """
+        nt = str([self.slice1_nt, self.slice2_nt][slice_index].seq).upper()
+        return nt if self.j.strand == '+' else h.get_complementary(nt)
+
+    def ends_at_stop(self, slice_index: int, start: int, aa: str) -> bool:
+        """ whether the peptide translated from start in the slice is followed by a stop codon """
+        end = start + 3 * len(aa)
+        return self.slice_nt(slice_index)[end:end + 3] in STOP_CODONS
 
     def translate_forced(self,
                          slice_to_translate: int,
@@ -586,47 +621,22 @@ class Sequence(object):
         file as closely as possible to the actual spectra in a mass spectrometry experiment to strengthen the
         hypotheses being tested in the database search.
 
+        The slice is placed by its anchors, and a complete end is not joined (see _join).
+
         :param slice_to_stitch: int     1 or 2
         :param slice_has_ptc:   bool    allows stitching to only n-terminus
         :return: True
         """
 
 
-        canonical = self.canonical_aa[:]
-
-        # don't stitch if there is no canonical
-        if len(canonical) == 0:
-            return True
-
-        # stitch length
-        stitch_length = params.aa_stitch_length
-        assert type(stitch_length) is int and stitch_length >= 6, 'Stitch length must be integer and at least 6'
-
-        # which slice to stitch
-        if slice_to_stitch == 1:
-            slice_ = self.slice1_aa
-        elif slice_to_stitch == 2:
-            slice_ = self.slice2_aa
-        else:
+        if slice_to_stitch not in [1, 2]:
             raise Exception('slice must be 1 or 2.')
+        assert type(params.aa_stitch_length) is int and params.aa_stitch_length >= 6, \
+            'Stitch length must be integer and at least 6'
 
-        # if the slice is too short, do not stitch
-        if len(slice_) < stitch_length:
-            return True
-
-        # find out where the first (stitch_length) amino acids meets the UniProt canonical sequences
-        merge0, merge1 = canonical.seq.find(slice_[:stitch_length]), canonical.seq.find(slice_[-stitch_length:])
-
-        # slice stitches to canonical at both ends:
-        if merge0 != -1 and merge1 != -1:
-            stitched = canonical[:merge0] + slice_ + canonical[merge1+stitch_length:]
-
-        # slice has ptc but beginning stitches to canonical
-        elif slice_has_ptc and merge0 != -1:
-            stitched = canonical[:merge0] + slice_
-
-        else:
-            stitched = None
+        k = slice_to_stitch - 1
+        stitched = self._join([self.slice1_aa, self.slice2_aa][k], 'both_or_n' if slice_has_ptc else 'both',
+                              slice_index=k, start=self.translated_phases[k])
 
         if stitched:
             if slice_to_stitch == 1:

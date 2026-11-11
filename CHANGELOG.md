@@ -14,7 +14,7 @@ fixes, scientific-integrity audits, and the introduction of an optional Qt
 GUI. Implementation is staged as the patch series described in
 [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised).
 
-### Tiers in v0.4.0 (summary of PRs 4–4c)
+### Tiers in v0.4.0 (summary of PRs 4–5)
 
 How a junction is translated and tiered has changed substantially. Every
 change has an audit under [reports/](reports/README.md).
@@ -29,13 +29,14 @@ change has an audit under [reports/](reports/README.md).
 | Alternative termini | A stop at an alternative annotated stop codon read as premature (T4/FAIL); slices without the start codon read from mid-CDS | **T1 ALT TERMINUS**: annotated alternative stop and start codons end and start the slice; written to `psq_T1_alt_cterm` / `psq_T1_alt_nterm` / `psq_T1_alt_both.fasta` (PR 4c) |
 | No annotated frame | Three-frame guess, keeping the last frame tried | The slice is not translated |
 | Tiers | T1, T2, T3, T4 | **T1, T1 ALT TERMINUS, T2, T4.** T3 and `psq_T3*.fasta` removed |
+| Joining to the canonical | First occurrence of a 10-residue anchor at each end, even at an end that is already complete | A complete end (stop codon, gene start codon) is not joined; anchors of 7 residues must occur once, in order (PR 5) |
 
 Cumulative effect on the bundled chr15 data:
 
 | Fate | v0.3.5a | v0.4.0 |
 |---|---|---|
-| T1 | 185 | 219 |
-| T1 ALT TERMINUS | – | 25 |
+| T1 | 185 | 220 |
+| T1 ALT TERMINUS | – | 24 |
 | T2 | 25 | 30 |
 | T3 | 2 | – |
 | T4 | 236 | 289 |
@@ -43,8 +44,8 @@ Cumulative effect on the bundled chr15 data:
 | Skipped, low count | 297 | 297 |
 | Skipped, outside the coding region | – | 92 |
 
-`psq_T1.fasta` grows from 152 to 173 records. The new
-`psq_T1_alt_cterm.fasta` and `psq_T1_alt_nterm.fasta` hold 18 and 4.
+`psq_T1.fasta` grows from 152 to 179 records. The new
+`psq_T1_alt_cterm.fasta` and `psq_T1_alt_nterm.fasta` hold 18 and 5.
 `psq_canonical.fasta` is unchanged (268). Re-running is recommended for any analysis that used RI
 output, C-terminal events or lower tiers.
 
@@ -103,6 +104,12 @@ and §9.
 - Dependency bounds aligned between `setup.py` and `requirements.txt`:
   `gtfparse>=1.3,<2` (3.x is polars-based and incompatible), `pandas>=1.5,<4`,
   and `numpy` / `scipy` declared explicitly.
+- **Anchor length for joining to the canonical: 10 → 7 residues**
+  (`params.aa_stitch_length`). 7 is where repeated anchors and chance
+  matches level off across the MANE Select proteome. On chr15, joins
+  missed for want of a long-enough shared end fall from 17 to 3.
+  Alternative-termini file routing still compares 10 residues (new
+  `params.aa_terminus_length`).
 - **`--mask` is deprecated and ignored**, and logs a warning. Every base
   outside `ACGT` is now skipped, which covers its old default (`NnXx`). It
   will be removed in the next release.
@@ -115,6 +122,21 @@ and §9.
   `TODO.md`, and the Quarto sources under `jcast_website/`.
 
 ### Fixed
+- **Joining slices to the canonical (affects output; REVIEW.md MED-3).**
+  On chr15, 12 of 998 joins were wrong, and 10 of them gave exactly the
+  canonical, so the isoform was lost:
+  - A Tier 4 peptide ending at its premature stop codon was joined at its
+    C-terminus too. It is now joined at its N-terminus only.
+  - A peptide starting at the gene's start codon was joined at its
+    N-terminus. It is now joined at its C-terminus only.
+  - An anchor occurring more than once took its first occurrence. An anchor
+    is now used only if it occurs once, and the start anchor must come
+    before the end anchor; otherwise the slice is written as an orphan.
+
+  Verified against genomic coordinates on chr15: 0 wrong joins (was 12).
+  One junction changes fate (GTF2A2 SE 11945, T1 ALT TERMINUS → T1). Its
+  7-residue peptide can now be joined and gives the canonical. See
+  [reports/2026-11-11-stitch-anchor-audit.md](reports/2026-11-11-stitch-anchor-audit.md).
 - **Soft-masked genomes aborted the run** (REVIEW.md HIGH-2/HIGH-3).
   Lowercase bases raised `KeyError` in translation, and nothing caught it. On
   chr15 with Ensembl's soft-masked genome, 147 junctions raised in a default
@@ -239,7 +261,6 @@ table.
   tiers (REVIEW.md MED-14; 2 chr15 genes affected).
 - Output-directory creation guarantee; route the UniProt cache through
   `args.out` (or the platform user-cache dir) instead of CWD.
-- Stitch-anchor uniqueness check in `stitch_to_canonical_aa`.
 - Bump Python floor to 3.10.
 - GitHub Actions CI matrix across 3.10–3.13.
 - Drop the dev-only `--g_or_ln` flag.

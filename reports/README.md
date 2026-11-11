@@ -27,7 +27,7 @@ network.
 | [Alternative C-termini (first evaluation)](2026-11-10-alt-cterm-tiering-audit.md) | 4c | Superseded by the next row. Measured on PR 4 alone. | `a555446` (`python reports/cterm_audit/audit_cterm.py`) |
 | [Alternative C- and N-termini on the current pipeline](2026-11-10-alt-termini-audit.md) | 4c (and 4b2) | **Implemented in PR 4c** (§10), after PR 4b2, which fixes the regression it found (§6). | evaluation: `919f6c7` (`audit_termini.py`); expected after 4b2: `a0f3338` (`audit_termini.py --out …/expected_after_4b2`); verification: `e11cc86` (`verify_4c.py`) |
 | [Soft-masked and ambiguous genome bases](2026-11-11-masked-bases-audit.md) | 3 | **Implemented in `fcdc0ee`** (§8); decisions approved 2026-11-11 (§7) | audit: `819cc53`; verification: `fcdc0ee` (`python reports/mask_audit/audit_mask.py --softmasked …dna_sm.chromosome.15.fa.gz [--verify]`); genome survey with `survey_genome.py` (GENCODE GRCh38 + v50 GTF, not bundled) |
-| [Joining slices to the canonical; anchor length](2026-11-11-stitch-anchor-audit.md) | 5 | Audit; decisions approved 2026-11-11 (§8) | `887a98a` (`python reports/stitch_audit/audit_stitch.py`); proteome survey with `survey_anchors.py` (GENCODE v50, not bundled) |
+| [Joining slices to the canonical; anchor length](2026-11-11-stitch-anchor-audit.md) | 5 | **Implemented in PR 5** (§9); decisions approved 2026-11-11 (§8) | audit: `887a98a` (`python reports/stitch_audit/audit_stitch.py`); verification: PR 5 commit (`verify_5.py`); proteome survey with `survey_anchors.py` (GENCODE v50, not bundled) |
 
 Each script compares a baseline commit with the working tree, or patches
 the candidate in at runtime, so later code changes its output. To reproduce
@@ -83,9 +83,13 @@ every output file's contents. Its values at each stage:
 | PR 4b final: fallback and T3 removed | `2679edb` | 157 | 302 | 297 | 92 | 212 | 45 | – | 170 |
 | PR 4b2: frameshift test from coding lengths | `a0f3338` | 157 | 302 | 297 | 92 | 227 | 30 | – | 171 |
 | PR 4c: alternative termini (+ T1 ALT 25) | `e11cc86` | 153 | 289 | 297 | 92 | 219 | 30 | – | 173 |
+| PR 5: joining to the canonical (+ T1 ALT 24) | PR 5 | 153 | 289 | 297 | 92 | 220 | 30 | – | 179 |
 
-`psq_canonical.fasta` has 268 records at every stage. At no stage is a
-`psq_T1.fasta` sequence matching an annotated protein lost.
+`psq_canonical.fasta` has 268 records at every stage. Up to PR 4c, no
+`psq_T1.fasta` sequence matching an annotated protein is lost at any stage.
+PR 5 removes one: CD276-201. It came only from a join at the wrong copy of
+a repeated anchor
+([stitch audit §9](2026-11-11-stitch-anchor-audit.md#9-implementation-and-verification-pr-5)).
 
 ## New defects found during the audits
 
@@ -104,6 +108,11 @@ every output file's contents. Its values at each stage:
   on chr15, 206 of 1,105 junctions (20 successes) are skipped as masked.
 - **One exception aborts the whole run**, found in the PR 3 audit: the
   per-junction loop catches nothing. Approved for PR 7.
+- **Joins at an already-complete end returned the canonical**, found in
+  the PR 5 audit. A T4 peptide ending at its stop codon was joined
+  C-terminally; a peptide starting at the gene's start codon was joined
+  N-terminally. 10 of 12 wrong joins on chr15 gave exactly the canonical.
+  Fixed in PR 5.
 - **The T4 length threshold was mis-documented.** It decides whether the
   truncated product is joined to the canonical, not whether it is written.
   Corrected in the README and REVIEW.md with PR 4b.

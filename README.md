@@ -143,7 +143,7 @@ coordinates, translation strand, frame, and tier (see below).
 | `psq_T1_alt_both.fasta` | **Tier 1, both termini alternative.** The slice starts at an alternative annotated start codon and ends at an alternative annotated stop codon (created only when needed). |
 | `psq_T2.fasta` | **Tier 2.** As T1, but the coding lengths differ by a non-multiple of 3 (frameshift). A slice that cannot be stitched at both ends may be joined at its N-terminus only. |
 | `psq_T4.fasta` | **Tier 4.** Only one slice translates; the other hits a PTC. The PTC slice is translated *up to* its stop codon, giving a truncated product, which is joined to the canonical at its N-terminus. If it is shorter than `params.ptc_threshold` × the other slice, or cannot be joined, it goes to `psq_T4_orphan.fasta`. **Treat T4 with caution — exclude from MS searches unless you have a specific reason to include it.** |
-| `psq_T#_orphan.fasta` | Slices of that tier that translated but could not be stitched back to the canonical sequence. **Treat orphans with caution.** |
+| `psq_T#_orphan.fasta` | Slices of that tier that translated but could not be stitched back to the canonical sequence: no unique 7-residue anchor at an end that needs joining. **Treat orphans with caution.** |
 
 There is no Tier 3 from v0.4.0. It re-translated in a guessed frame when the
 annotated frame failed, and was removed together with the three-frame

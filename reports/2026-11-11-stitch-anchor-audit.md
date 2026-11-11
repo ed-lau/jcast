@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-11 |
-| **Status** | Audit. Decisions in §8 approved 2026-11-11: rule "unique + complete ends", anchor length 7, a separate terminus-comparison length kept at 10, no command-line option. Baseline is commit `887a98a`. |
+| **Status** | **Implemented in PR 5** (§9). Decisions in §8 approved 2026-11-11: rule "unique + complete ends", anchor length 7, a separate terminus-comparison length kept at 10, no command-line option. Baseline is commit `887a98a`. |
 | **Code** | `Sequence.stitch_to_canonical_aa` and `Sequence._join` ([jcast/sequences.py](../jcast/sequences.py)); `params.aa_stitch_length` |
 | **Environment** | Python 3.11.13, pandas 2.3.1, numpy 1.26.4, biopython 1.78, gtfparse 1.3.0 |
 | **Reproduce** | chr15: `python reports/stitch_audit/audit_stitch.py` at `887a98a` (≈ 4 min, no network; the UniProt part needs the local `cache/uniprot-cache.db`). Proteome: `python reports/stitch_audit/survey_anchors.py --gtf gencode.v50.annotation.gtf --transcripts gencode.v50.transcripts.fa.gz --out reports/stitch_audit/gencode_v50` (≈ 2 min) |
@@ -279,3 +279,78 @@ anchor not found 58, end anchor not found 235). See
 3. **Exposing the anchor length:** should it be a command-line option?
    Today it is only in `params.py`. My recommendation is no: keep it in
    `params.py` and document the measured choice.
+
+## 9. Implementation and verification (PR 5)
+
+Implemented as approved in §8:
+
+- **One method for every join.** `Sequence._join` now serves both
+  `stitch_to_canonical_aa` (T1, T2, T4) and the alternative-termini path.
+  - It uses an anchor only if the anchor occurs once.
+  - A join at both ends needs the start anchor not to be after the end
+    anchor.
+  - Given the slice and its translation start, it does not join an end
+    that is already complete (`Sequence.ends_at_stop`; the gene's start
+    codon).
+- **Anchor length:** `params.aa_stitch_length` is 7.
+- **Terminus comparison:** the alternative-termini path compares termini
+  over the new `params.aa_terminus_length`, kept at 10.
+
+**Verification** ([verify_5.py](stitch_audit/verify_5.py); evidence in
+[stitch_audit/final/](stitch_audit/final/)):
+
+| Check | Result |
+|---|---|
+| Pipeline joins differing from the audited rule (unique + complete ends, k = 7) | 0 of 994 distinct |
+| Pipeline joins against the genomic truth | 927 correct, **0 wrong**, 3 missed (CD276 A3SS 1316 × 2 by decision, NPTN A3SS 1317), 64 unjoined (correct) |
+| Junctions whose fate changed | 1: GTF2A2 SE 11945, T1 ALT TERMINUS → T1 |
+| Annotated proteins in some output file before but in none now | 1: CD276-201 |
+| Annotated proteins in some output file now but in none before | 7 |
+| Golden test | updated (below) |
+
+- **The 994 distinct joins (998 in the audit)** differ because some
+  products now differ, which changes which calls are distinct.
+- **GTF2A2 SE 11945:** its slice-2 peptide is 7 residues long.
+  - With a 10-residue anchor it could not be joined, so it was written to
+    `psq_T1_alt_cterm_orphan` and the junction counted as ALT TERMINUS.
+  - Joined now, it gives exactly the canonical (109 aa), as does slice 1:
+    an internal event ending at the canonical's stop codon is plain T1.
+- **CD276-201** (316 aa, the 2Ig isoform) was produced only by the wrong
+  join of §4. The first occurrence of the repeated anchor happened to give
+  an annotated isoform. The junction does not support that isoform, and
+  the genomic truth places the slice in the other copy of the domain.
+  Under the approved rule the slice is not joined (§8, decision 1).
+- **The 7 annotated proteins now written include RGMA-201, GALK2-201,
+  BLOC1S6-201, EMC4-201 and RPS27L-201.** These are T4 products that are
+  annotated protein-coding isoforms ending at their own stop codon. Before,
+  they were joined C-terminally into the canonical.
+
+**FASTA records** (baseline `f1db483` → PR 5):
+
+| File | Before | After |
+|---|---|---|
+| `psq_T1` | 173 | 179 |
+| `psq_T1_alt_cterm` | 18 | 18 |
+| `psq_T1_alt_cterm_orphan` | 2 | 0 |
+| `psq_T1_alt_nterm` | 4 | 5 |
+| `psq_T1_orphan` | 35 | 28 |
+| `psq_T2` | 23 | 32 |
+| `psq_T2_orphan` | 14 | 4 |
+| `psq_T4` | 226 | 251 |
+| `psq_T4_orphan` | 76 | 61 |
+| `psq_canonical` | 268 | 268 |
+
+Records move from the orphan files to the joined files. Every changed
+record, with its annotated matches, is in
+[final/fasta_diff.tsv](stitch_audit/final/fasta_diff.tsv).
+
+**Regression tests** ([tests/test_stitch.py](../tests/test_stitch.py)). All
+five fail at `f1db483`.
+
+| Test | Asserts |
+|---|---|
+| `test_peptide_ending_at_a_stop_is_not_joined_c_terminally` | UBE2Q2 SE 19972: the T4 record is the 197-aa truncated product, not the canonical |
+| `test_peptide_starting_at_the_gene_start_is_not_joined_n_terminally` | COMMD4 SE 5917: the product starts MSSVKL (175 aa) |
+| `test_repeated_anchor_is_not_joined` | CD276 A3SS 1316: slice 1 is an orphan |
+| `test_join_rule_on_synthetic_canonical` | unique anchors join; a repeated anchor or a start anchor after the end anchor does not |
+| `test_short_peptide_is_joined` | GTF2A2 SE 11950: the 7-residue peptide is joined (giving the canonical), not orphaned |

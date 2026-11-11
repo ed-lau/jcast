@@ -142,7 +142,11 @@ def worker(out_dir, canonical_from):
     def recording_stitch(self, slice_to_stitch, slice_has_ptc=False):
         k = slice_to_stitch - 1
         before = [self.slice1_stitched, self.slice2_stitched][k]
-        result = stitch(self, slice_to_stitch, slice_has_ptc)
+        current['in_stitch'] = True  # since PR 5, stitch_to_canonical_aa calls _join: record the call once
+        try:
+            result = stitch(self, slice_to_stitch, slice_has_ptc)
+        finally:
+            current['in_stitch'] = False
         after = [self.slice1_stitched, self.slice2_stitched][k]
         if len(self.canonical_aa) > 0:
             record(self, k, [self.slice1_aa, self.slice2_aa][k], 'both_or_n' if slice_has_ptc else 'both',
@@ -152,9 +156,9 @@ def worker(out_dir, canonical_from):
 
     join = Sequence._join
 
-    def recording_join(self, aa, mode):
-        product = join(self, aa, mode)
-        if mode != 'none' and len(self.canonical_aa) > 0:
+    def recording_join(self, aa, mode, **kwargs):
+        product = join(self, aa, mode, **kwargs)
+        if mode != 'none' and len(self.canonical_aa) > 0 and not current.get('in_stitch'):
             k = next((i for i, nt in enumerate([self.slice1_nt, self.slice2_nt])
                       if aa in starts.get((str(nt.seq).upper(), self.j.strand), {})), 0)
             record(self, k, aa, mode, product)
@@ -247,6 +251,28 @@ def join(canonical, aa, mode, k, rule, ends_at_stop=False, starts_at_start=False
     return None
 
 
+def truth(c):
+    """
+    The correct product: the canonical joined where the peptide's end codons lie in it. A peptide ending at a stop
+    codon has a complete C-terminus, and one starting at the gene's start codon a complete N-terminus; neither is
+    joined at that end.
+    """
+    can, aa, t0, t1 = c['canonical'], c['aa'], c['true_first'], c['true_last']
+    if c['starts_at_start'] and c['mode'] != 'c':
+        t0, before = 0, ''
+    else:
+        before = can[:t0]
+    if c['ends_at_stop'] and c['mode'] != 'c':
+        return before + aa if t0 != -1 else None
+    if c['mode'] in ('both', 'both_or_n') and t0 != -1 and t1 != -1:
+        return before + aa + can[t1 + 1:]
+    if c['mode'] in ('n', 'both_or_n') and t0 != -1:
+        return before + aa
+    if c['mode'] == 'c' and t1 != -1:
+        return aa + can[t1 + 1:]
+    return None
+
+
 def classify(product, truth):
     if product is None:
         return 'unjoined (correct)' if truth is None else 'missed join'
@@ -274,27 +300,6 @@ def main_():
             seen.add(key)
             calls.append(c)
     usable = [c for c in calls if c.get('true_first') is not None and c.get('coords_ok')]
-
-    def truth(c):
-        """
-        The correct product: the canonical joined where the peptide's end codons lie in it. A peptide ending at a stop
-        codon has a complete C-terminus, and one starting at the gene's start codon a complete N-terminus; neither is
-        joined at that end.
-        """
-        can, aa, t0, t1 = c['canonical'], c['aa'], c['true_first'], c['true_last']
-        if c['starts_at_start'] and c['mode'] != 'c':
-            t0, before = 0, ''
-        else:
-            before = can[:t0]
-        if c['ends_at_stop'] and c['mode'] != 'c':
-            return before + aa if t0 != -1 else None
-        if c['mode'] in ('both', 'both_or_n') and t0 != -1 and t1 != -1:
-            return before + aa + can[t1 + 1:]
-        if c['mode'] in ('n', 'both_or_n') and t0 != -1:
-            return before + aa
-        if c['mode'] == 'c' and t1 != -1:
-            return aa + can[t1 + 1:]
-        return None
 
     rows = []
     for c in usable:

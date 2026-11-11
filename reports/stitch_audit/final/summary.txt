@@ -1,0 +1,43 @@
+baseline commit: f1db483; candidate: working tree; anchor length 7
+
+1. distinct joins: 994; differing from the audited rule (unique + complete ends): 0
+
+pipeline joins against the genomic truth
+    927  correct join
+      3  missed join
+     64  unjoined (correct)
+
+2. junctions whose fate changed: 1
+
+fate transitions (baseline | candidate)
+      1  SUCCESS TIER 1 ALT TERMINUS | SUCCESS TIER 1
+
+FASTA records (file | baseline | candidate)
+      1  psq_T1.fasta | 173 | 179
+      1  psq_T1_alt_cterm.fasta | 18 | 18
+      1  psq_T1_alt_cterm_orphan.fasta | 2 | 0
+      1  psq_T1_alt_nterm.fasta | 4 | 5
+      1  psq_T1_orphan.fasta | 35 | 28
+      1  psq_T2.fasta | 23 | 32
+      1  psq_T2_orphan.fasta | 14 | 4
+      1  psq_T4.fasta | 226 | 251
+      1  psq_T4_orphan.fasta | 76 | 61
+      1  psq_canonical.fasta | 268 | 268
+
+FASTA diff (file | change | matches an annotated protein_coding protein)
+      6  psq_T1.fasta | gained | False
+      2  psq_T1.fasta | gained | True
+      1  psq_T1.fasta | lost | False
+      1  psq_T1.fasta | lost | True
+      1  psq_T1_alt_cterm_orphan.fasta | lost | False
+      1  psq_T1_alt_cterm_orphan.fasta | lost | True
+      1  psq_T1_alt_nterm.fasta | gained | True
+      2  psq_T1_orphan.fasta | gained | False
+      9  psq_T1_orphan.fasta | lost | False
+      9  psq_T2.fasta | gained | False
+     10  psq_T2_orphan.fasta | lost | False
+     20  psq_T4.fasta | gained | False
+      5  psq_T4.fasta | gained | True
+     15  psq_T4_orphan.fasta | lost | False
+
+annotated proteins in some file before but in none now: 1; now in some file but in none before: 7

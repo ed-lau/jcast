@@ -12,6 +12,8 @@ the difference in CHANGELOG.md. History:
     PR 4b final, 2679edb (three-frame fallback and Tier 3 removed) changed 15 more; same report, §9
     PR 4b2, a0f3338 (frameshift test from coding lengths) changed 17; reports/2026-11-10-frameshift-audit.md
     PR 4c, e11cc86 (alternative C- and N-termini) changed 26; reports/2026-11-10-alt-termini-audit.md §10
+    PR 5 (joining to the canonical: complete ends, unique anchors, anchor length 7) changed 1 fate and moved
+        records between joined and orphan files; reports/2026-11-11-stitch-anchor-audit.md §9
 """
 
 import argparse
@@ -34,22 +36,21 @@ EXPECTED_FATES = {
     'PARTIAL TIER 4': 289,
     'SKIPPED: Sequence discarded due to low coverage': 297,
     'SKIPPED: Splice event lies outside the annotated coding region': 92,
-    'SUCCESS TIER 1': 219,
-    'SUCCESS TIER 1 ALT TERMINUS': 25,
+    'SUCCESS TIER 1': 220,
+    'SUCCESS TIER 1 ALT TERMINUS': 24,
     'SUCCESS TIER 2': 30,
 }
 
 # file name -> (number of records, sha256 of the sorted sequences)
 EXPECTED_FASTA = {
-    'psq_T1.fasta': (173, 'a1da79ac3fcbfa1d'),
+    'psq_T1.fasta': (179, '7a0e54e6a2429bdb'),
     'psq_T1_alt_cterm.fasta': (18, 'a03a3ea8d813b497'),
-    'psq_T1_alt_cterm_orphan.fasta': (2, '5d868b031916ef70'),
-    'psq_T1_alt_nterm.fasta': (4, '7568cec87e87018a'),
-    'psq_T1_orphan.fasta': (35, 'd513f69e3ebf8a66'),
-    'psq_T2.fasta': (23, '9ac16d570da8296e'),
-    'psq_T2_orphan.fasta': (14, '235b680d98d53459'),
-    'psq_T4.fasta': (226, '82fa2931291ef376'),
-    'psq_T4_orphan.fasta': (76, '7d46b747eb9912ac'),
+    'psq_T1_alt_nterm.fasta': (5, '23308f0425bc53f7'),
+    'psq_T1_orphan.fasta': (28, '74e92926935b4169'),
+    'psq_T2.fasta': (32, '7de083cc139ce928'),
+    'psq_T2_orphan.fasta': (4, '1d36e928107ebb61'),
+    'psq_T4.fasta': (251, 'fbffa9c9a25efc40'),
+    'psq_T4_orphan.fasta': (61, '20f43f8614d5f67d'),
     'psq_canonical.fasta': (268, '6b891792cb75c69e'),
 }
 
