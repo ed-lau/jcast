@@ -26,6 +26,7 @@ network.
 | [Frameshift test from coding lengths](2026-11-10-frameshift-audit.md) | 4b2 | Implemented in `a0f3338` | `a0f3338` (`python reports/frameshift_audit/audit_frameshift.py`) |
 | [Alternative C-termini (first evaluation)](2026-11-10-alt-cterm-tiering-audit.md) | 4c | Superseded by the next row. Measured on PR 4 alone. | `a555446` (`python reports/cterm_audit/audit_cterm.py`) |
 | [Alternative C- and N-termini on the current pipeline](2026-11-10-alt-termini-audit.md) | 4c (and 4b2) | **Implemented in PR 4c** (§10), after PR 4b2, which fixes the regression it found (§6). | evaluation: `919f6c7` (`audit_termini.py`); expected after 4b2: `a0f3338` (`audit_termini.py --out …/expected_after_4b2`); verification: `e11cc86` (`verify_4c.py`) |
+| [Soft-masked and ambiguous genome bases](2026-11-11-masked-bases-audit.md) | 3 | Audit; decisions approved 2026-11-11 (§7) | `a784030` (`python reports/mask_audit/audit_mask.py --softmasked …dna_sm.chromosome.15.fa.gz`); genome survey with `survey_genome.py` (GENCODE GRCh38 + v50 GTF, not bundled) |
 
 Each script compares a baseline commit with the working tree, or patches
 the candidate in at runtime, so later code changes its output. To reproduce
@@ -45,6 +46,7 @@ first.
 | 2026-11-10 | Alternative C-terminal isoforms go to a separate `psq_T1_alt_cterm.fasta` | [C-terminal audit §7](2026-11-10-alt-cterm-tiering-audit.md) |
 | 2026-11-10 | PR 4c: annotated sites at TSL ≤ 2; one file per terminus (`psq_T1_alt_cterm`, `psq_T1_alt_nterm`, `psq_T1_alt_both`, each with `_orphan`); one fate `SUCCESS TIER 1 ALT TERMINUS`; frameshift test waived only for a slice ending at an internal annotated stop | [termini audit §7](2026-11-10-alt-termini-audit.md#7-decisions-needed) |
 | 2026-11-10 | PR 4b2: fix the frameshift test (coding lengths) before PR 4c | [termini audit §6](2026-11-10-alt-termini-audit.md#6-regression-found-the-frameshift-test-ignores-per-slice-frames-proposed-pr-4b2) |
+| 2026-11-11 | PR 3: uppercase genome sequence at retrieval; skip a slice with any base outside `ACGT` (as for N); keep `--mask` but deprecate it (no effect; remove in the next release); catch an exception per junction, record it and continue (in PR 7) | [masked-bases audit §7](2026-11-11-masked-bases-audit.md#7-decisions-requested) |
 
 ## Current tiers (after PR 4c)
 
@@ -95,6 +97,11 @@ every output file's contents. Its values at each stage:
 - **`-c` does not write the canonical for genes whose junctions all
   succeed** (REVIEW.md MED-14; 2 chr15 genes), found while verifying
   PR 4c. Scheduled for PR 8.
+- **Hard-masked genomes silently drop junctions**, found in the PR 3 audit
+  (§4.2). The README recommended them as a workaround for soft-masking;
+  on chr15, 206 of 1,105 junctions (20 successes) are skipped as masked.
+- **One exception aborts the whole run**, found in the PR 3 audit: the
+  per-junction loop catches nothing. Approved for PR 7.
 - **The T4 length threshold was mis-documented.** It decides whether the
   truncated product is joined to the canonical, not whether it is written.
   Corrected in the README and REVIEW.md with PR 4b.
