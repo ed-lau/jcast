@@ -1,0 +1,97 @@
+junctions: chr15 test set; join attempts recorded (GTF canonical): 1095; distinct: 998; with genomic truth (coordinates reproduce the canonical): 998; coordinates failed: 0; no translation start found: 0
+
+join attempts by mode (distinct)
+    675  both
+    264  both_or_n
+      4  c
+     55  n
+
+current rule (first occurrence), k = 10
+    880  correct join
+     42  missed join
+     64  unjoined (correct)
+     12  wrong join (misplaced)
+
+rule unique, k = 10
+    880  correct join
+     44  missed join
+     64  unjoined (correct)
+     10  wrong join (misplaced)
+
+rule consistent, k = 10
+    882  correct join
+     42  missed join
+     64  unjoined (correct)
+     10  wrong join (misplaced)
+
+rule first+ends, k = 10
+    915  correct join
+     17  missed join
+     64  unjoined (correct)
+      2  wrong join (misplaced)
+
+rule unique+ends, k = 10
+    915  correct join
+     19  missed join
+     64  unjoined (correct)
+
+rule consistent+ends, k = 10
+    917  correct join
+     17  missed join
+     64  unjoined (correct)
+
+current -> consistent+ends, k = 10 (changed only)
+     25  missed join | correct join
+     12  wrong join (misplaced) | correct join
+
+join attempts by mode | ends at a stop codon | starts at the gene's start codon
+    537  both | False | False
+    116  both | False | True
+     19  both | True | False
+      3  both | True | True
+     22  both_or_n | False | False
+      9  both_or_n | False | True
+    195  both_or_n | True | False
+     38  both_or_n | True | True
+      4  c | False | False
+     47  n | True | False
+      8  n | True | True
+
+anchor multiplicity in the GTF canonical, k = 10
+    314  end anchor x0
+    678  end anchor x1
+      6  peptide shorter than the anchor
+     66  start anchor x0
+    924  start anchor x1
+      2  start anchor x2+
+
+UniProt-cache run: join attempts 858; distinct 776; genes 146
+
+anchor multiplicity in the UniProt canonical, k = 10
+    235  end anchor x0
+    535  end anchor x1
+      6  peptide shorter than the anchor
+     58  start anchor x0
+    712  start anchor x1
+
+consistent+ends, k = 5: wrong and missed joins
+  missed join              A3SS 1317 NPTN slice 2 both len 94; start anchor x1, end anchor x0; true 280..377; found [280] []
+
+consistent+ends, k = 10: wrong and missed joins
+  missed join              MXE 2295 FSD2 slice 2 both len 220; start anchor x1, end anchor x0; true 0..328; found [0] []
+  missed join              MXE 3735 SNRPN slice 1 both_or_n len 8; peptide shorter than the anchor; true 0..-1; found [] []
+  missed join              SE 5731 POLG slice 2 both_or_n len 26; start anchor x0, end anchor x0; true 747..-1; found [] []
+  missed join              SE 5916 COMMD4 slice 2 both len 7; peptide shorter than the anchor; true 0..30; found [24] [24]
+  missed join              SE 6080 MAP2K5 slice 2 both len 33; start anchor x1, end anchor x0; true 324..366; found [324] []
+  missed join              SE 6220 SLTM slice 2 both len 30; start anchor x1, end anchor x0; true 84..195; found [84] []
+  missed join              SE 11945 GTF2A2 slice 2 n len 7; peptide shorter than the anchor; true 102..108; found [102] [102]
+  missed join              SE 11950 GTF2A2 slice 2 both len 7; peptide shorter than the anchor; true 102..108; found [102] [102]
+  missed join              SE 11950 GTF2A2 slice 2 both_or_n len 7; peptide shorter than the anchor; true 102..108; found [102] [102]
+  missed join              SE 25665 FSD2 slice 2 both len 39; start anchor x1, end anchor x0; true 213..328; found [213] []
+  missed join              SE 25667 FSD2 slice 1 both len 252; start anchor x1, end anchor x0; true 0..328; found [0] []
+  missed join              SE 38357 MORF4L1 slice 2 both len 37; start anchor x1, end anchor x0; true 91..154; found [91] []
+  missed join              RI 924 FURIN slice 2 both_or_n len 38; start anchor x0, end anchor x0; true 420..-1; found [] []
+  missed join              RI 4558 MORF4L1 slice 1 both_or_n len 46; start anchor x0, end anchor x0; true 147..-1; found [] []
+  missed join              A5SS 804 TRPM7 slice 1 both_or_n len 13; start anchor x0, end anchor x0; true 1531..-1; found [] []
+  missed join              A3SS 1317 NPTN slice 2 both len 94; start anchor x1, end anchor x0; true 280..377; found [280] []
+  missed join              A3SS 1348 SLTM slice 2 both len 147; start anchor x0, end anchor x1; true 187..351; found [] [342]

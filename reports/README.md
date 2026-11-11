@@ -27,6 +27,7 @@ network.
 | [Alternative C-termini (first evaluation)](2026-11-10-alt-cterm-tiering-audit.md) | 4c | Superseded by the next row. Measured on PR 4 alone. | `a555446` (`python reports/cterm_audit/audit_cterm.py`) |
 | [Alternative C- and N-termini on the current pipeline](2026-11-10-alt-termini-audit.md) | 4c (and 4b2) | **Implemented in PR 4c** (§10), after PR 4b2, which fixes the regression it found (§6). | evaluation: `919f6c7` (`audit_termini.py`); expected after 4b2: `a0f3338` (`audit_termini.py --out …/expected_after_4b2`); verification: `e11cc86` (`verify_4c.py`) |
 | [Soft-masked and ambiguous genome bases](2026-11-11-masked-bases-audit.md) | 3 | **Implemented in `fcdc0ee`** (§8); decisions approved 2026-11-11 (§7) | audit: `819cc53`; verification: `fcdc0ee` (`python reports/mask_audit/audit_mask.py --softmasked …dna_sm.chromosome.15.fa.gz [--verify]`); genome survey with `survey_genome.py` (GENCODE GRCh38 + v50 GTF, not bundled) |
+| [Joining slices to the canonical; anchor length](2026-11-11-stitch-anchor-audit.md) | 5 | Audit; decisions approved 2026-11-11 (§8) | `887a98a` (`python reports/stitch_audit/audit_stitch.py`); proteome survey with `survey_anchors.py` (GENCODE v50, not bundled) |
 
 Each script compares a baseline commit with the working tree, or patches
 the candidate in at runtime, so later code changes its output. To reproduce
@@ -47,6 +48,7 @@ first.
 | 2026-11-10 | PR 4c: annotated sites at TSL ≤ 2; one file per terminus (`psq_T1_alt_cterm`, `psq_T1_alt_nterm`, `psq_T1_alt_both`, each with `_orphan`); one fate `SUCCESS TIER 1 ALT TERMINUS`; frameshift test waived only for a slice ending at an internal annotated stop | [termini audit §7](2026-11-10-alt-termini-audit.md#7-decisions-needed) |
 | 2026-11-10 | PR 4b2: fix the frameshift test (coding lengths) before PR 4c | [termini audit §6](2026-11-10-alt-termini-audit.md#6-regression-found-the-frameshift-test-ignores-per-slice-frames-proposed-pr-4b2) |
 | 2026-11-11 | PR 3: uppercase genome sequence at retrieval; skip a slice with any base outside `ACGT` (as for N); keep `--mask` but deprecate it (no effect; remove in the next release); catch an exception per junction, record it and continue (in PR 7) | [masked-bases audit §7](2026-11-11-masked-bases-audit.md#7-decisions-requested) |
+| 2026-11-11 | PR 5: join a peptide only at an end that is not already complete (stop codon, gene start codon); use an anchor only if it occurs once, start before end; anchor length 7; terminus comparison stays at 10 | [stitch audit §8](2026-11-11-stitch-anchor-audit.md#8-decisions-requested) |
 
 ## Current tiers (after PR 4c)
 
