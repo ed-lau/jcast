@@ -1,0 +1,13 @@
+all: <PR 16 run> -> <prototype all>
+
+  junctions.tsv: 599,644 -> 599,644 rows
+  psq_T1.fasta: 22,521 -> 22,542 records
+  psq_T1_orphan.fasta: 3,675 -> 3,639 records
+  psq_T2.fasta: 6,458 -> 6,464 records
+  psq_T2_orphan.fasta: 399 -> 393 records
+  psq_T4.fasta: 42,929 -> 43,009 records
+  psq_T4_orphan.fasta: 9,627 -> 9,503 records
+  psq_canonical.fasta: 13,474 -> 13,573 records
+  uniprot_canonicals.tsv: 17,068 -> 17,068 rows
+  canonical sources changed: {('none', 'gtf'): 99}
+  their records: joined 0 -> 107; orphan 200 -> 34

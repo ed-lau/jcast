@@ -1,0 +1,32 @@
+GTF /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/gencode.v50.primary_assembly.annotation.gtf; run <PR 16 a85f8fc, -m -c --uniprot -p 16, user's whole genome>
+
+GTF: 78,941 genes, 20,131 of type protein_coding
+  protein-coding genes with a transcript the rule takes: 17,162; with an Ensembl_canonical transcript: 20,131
+  protein-coding genes the rule gives a transcript, its choice against the Ensembl_canonical transcript: same coding sequence 14,002, other: Ensembl_canonical passes the rule but is shorter 1,937, other: Ensembl_canonical does not pass the rule 1,223
+
+run: 17,068 genes; without a canonical: 3,522
+protein-coding genes without a canonical: 388; their orphan records: 384
+     211  CDS only in transcripts not of type protein_coding; with an Ensembl_canonical transcript: 211 (of type protein_coding with a CDS: 0)
+     153  protein_coding transcripts of TSL 3-5 or NA only; with an Ensembl_canonical transcript: 153 (of type protein_coding with a CDS: 153)
+      24  TSL <= 2 protein_coding transcripts lack a start or stop codon; with an Ensembl_canonical transcript: 24 (of type protein_coding with a CDS: 24)
+  V1, Ensembl_canonical of type protein_coding with start and stop codons: 99 genes, 200 orphan records
+  V2, Ensembl_canonical with any CDS: 388 genes, 384 orphan records
+  Ensembl_canonical tagged readthrough_transcript: yes: 370 genes (82 with V1; MANE_Select 0), 376 orphan records (192 of genes with V1)
+  Ensembl_canonical tagged readthrough_transcript: no: 18 genes (17 with V1; MANE_Select 8), 8 orphan records (8 of genes with V1)
+  their Ensembl_canonical transcripts: type {'nonsense_mediated_decay': 211, 'protein_coding': 177}; TSL {'1': 7, '2': 92, '3': 51, '4': 29, '5': 103, 'NA': 106}; codons {'start stop': 242, 'stop': 94, 'start ': 34, 'neither': 18}; MANE_Select 8
+other genes without a canonical: 3,134; their orphan records: 0
+   3,133  no transcript with a CDS; with an Ensembl_canonical transcript: 3,133 (of type protein_coding with a CDS: 0)
+       1  CDS only in transcripts not of type protein_coding; with an Ensembl_canonical transcript: 1 (of type protein_coding with a CDS: 0)
+  V1, Ensembl_canonical of type protein_coding with start and stop codons: 0 genes, 0 orphan records
+  V2, Ensembl_canonical with any CDS: 1 genes, 0 orphan records
+  Ensembl_canonical tagged readthrough_transcript: yes: 125 genes (0 with V1; MANE_Select 0), 0 orphan records (0 of genes with V1)
+  Ensembl_canonical tagged readthrough_transcript: no: 3,009 genes (0 with V1; MANE_Select 19), 0 orphan records (0 of genes with V1)
+  their Ensembl_canonical transcripts: type {'lncRNA': 2895, 'transcribed_unprocessed_pseudogene': 178, 'transcribed_unitary_pseudogene': 32, 'retained_intron': 18, 'unprocessed_pseudogene': 6, 'transcribed_processed_pseudogene': 2, 'artifact': 2, 'TR_V_gene': 1}; TSL {'1': 157, '2': 219, '3': 199, '4': 78, '5': 175, 'NA': 2306}; codons {'start ': 1}; MANE_Select 19
+
+orphan records of protein-coding genes without a canonical, by whether the same event (splice type, slice, chromosome, anchor and alternative exon) has a record under another gene:
+  readthrough no: under no other gene: 8
+  readthrough yes: joined under another gene: 14
+  readthrough yes: under no other gene: 362
+the run's genes with a GTF canonical (102): the rule's choice against the Ensembl_canonical transcript: {'same coding sequence': 86, 'other': 16}
+rMATS SE: 260,199 events, 260,199 distinct by coordinates (an event is reported under one gene only)
+  SE events of the 370 readthrough genes without a canonical: 2,793; the skipped exon is an annotated exon of another protein-coding gene: 1,247 (45%)
