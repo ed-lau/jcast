@@ -9,14 +9,14 @@ import scipy.special as special
 import scipy.stats as stats
 
 
-def general_mixture_model(sum_sjc_array,
+def general_mixture_model(min_jc_array,
                           max_iter=500,
                           tol=1e-6,
                           min_weight=0.05):
-    """Model skip junction histogram with a Gamma (trace) + Normal (expressed) mixture, fitted by EM.
+    """Model the junction read count histogram with a Gamma (trace) + Normal (expressed) mixture, fitted by EM.
 
         Args:
-            sum_sjc_array(numpy array): rMATS skipped-junction count results matrix (counts + 1).
+            min_jc_array(numpy array): junction read counts (Junction.min_jc) plus 1.
             max_iter(int): Maximum number of EM iterations.
             tol(float): Relative change in log-likelihood at which EM is considered converged.
             min_weight(float): Fit is treated as degenerate if either component weight falls below this.
@@ -24,10 +24,11 @@ def general_mixture_model(sum_sjc_array,
             ln_sjc(numpy array): Natural log of read counts from rMATS.
             params(tuple): (gamma shape, gamma rate, normal mean, normal sd, gamma weight, normal weight),
                 or None if the fit is degenerate.
-            min_count(int): Minimum number of reads to consider a sequence to be meaningfully expressed and not
-                trace, or None if the fit is degenerate.
+            min_count(int): The read count cutoff: a junction with at least this many reads is at or above the
+                boundary between the two components (meaningfully expressed, not trace). None if the fit is
+                degenerate.
     """
-    ln_sjc = np.log(np.asarray(sum_sjc_array, dtype=float).ravel())
+    ln_sjc = np.log(np.asarray(min_jc_array, dtype=float).ravel())
     x = np.clip(ln_sjc, 1e-6, None)
 
     # Initialize the gamma on the lower half of the data and the normal on the upper half.
@@ -68,14 +69,17 @@ def general_mixture_model(sum_sjc_array,
 
     params = (shape, rate, mu, sd, weights[0], weights[1])
 
-    # Decision boundary: where the weighted densities cross between the gamma mode and the normal mean.
+    # Decision boundary b: where the weighted densities cross between the gamma mode and the normal mean. The model is
+    # fitted to ln(count + 1), so a junction is at or above b when count + 1 >= e^b, i.e. count >= ceil(e^b) - 1.
+    # 2026-11-12 this returned ceil(e^b), on the count + 1 scale, which was then compared to read counts with <=: the
+    # cut was two reads above the boundary (reports/2026-11-12-thresholds-runs-canonical-audit.md §2.3)
     grid = np.linspace(max((shape - 1) / rate, 1e-3), mu, 2000)
     diff = (weights[0] * stats.gamma.pdf(grid, shape, scale=1 / rate)
             - weights[1] * stats.norm.pdf(grid, mu, sd))
     crossings = np.flatnonzero(np.diff(np.sign(diff)))
     if len(crossings) == 0:
         return ln_sjc, None, None
-    min_count = math.ceil(np.exp(grid[crossings[0] + 1]))
+    min_count = math.ceil(np.exp(grid[crossings[0] + 1])) - 1
 
     return ln_sjc, params, min_count
 
@@ -90,7 +94,7 @@ def plot_general_mixture_model(ln_sjc,
         Args:
             ln_sjc(numpy array): Natural log of read counts from rMATS.
             params(tuple): Output of general_mixture_model.
-            min_count(int): Minimum number of reads to consider a sequence to be meaningfully expressed and not trace.
+            min_count(int): The read count cutoff from general_mixture_model.
             write_dir(str): Path to directory for plot output.
             filename(str): Name of plot output file.
         Returns:
@@ -105,9 +109,9 @@ def plot_general_mixture_model(ln_sjc,
 
     fig, ax = plt.subplots(constrained_layout=True, figsize=(10, 4))
     ax.hist(ln_sjc, bins=50, histtype='bar', density=True, ec='red', alpha=0.5)
-    ax.set_xlabel('Natural logarithm of total skipped junction counts')
+    ax.set_xlabel('Natural logarithm of read count + 1')
     ax.set_ylabel('Frequency')
-    ax.set_title('Skipped junction count distributions')
+    ax.set_title('Junction read counts (smaller of summed inclusion and skipping junction reads)')
     ax.set_ylim(0, 1)
 
     ax.plot(x, eval_dist0, color="C0")
@@ -115,41 +119,41 @@ def plot_general_mixture_model(ln_sjc,
     ax.plot(x, eval_dist0 + eval_dist1, color="black")
     ax.fill_between(x, 0, eval_dist0, color="C0", alpha=0.2)
     ax.fill_between(x, 0, eval_dist1, color="C3", alpha=0.2)
-    ax.axvline(linewidth=2, ls='--', color='black', x=np.log(min_count))
-    ax.text(np.log(min_count) + math.log(1.25), 0.75, "min_counts = " + str(min_count))
+    ax.axvline(linewidth=2, ls='--', color='black', x=np.log(min_count + 1))
+    ax.text(np.log(min_count + 1) + math.log(1.25), 0.75, "cutoff = " + str(min_count) + " reads")
 
     # Second axis for untransformed reads
     tcks = ax.get_xticks()
     ax2 = ax.twiny()
     ax2.set_xlim(ax.get_xlim())
     ax2.set_xticks(tcks[1:-1])
-    ax2.set_xlabel('Untransformed total splice junction read counts')
-    ax2.set_xticklabels(np.exp(tcks[1:-1]).astype(int))
+    ax2.set_xlabel('Read count')
+    ax2.set_xticklabels((np.exp(tcks[1:-1]) - 1).round().astype(int))
 
     fig.savefig(fname=os.path.join(write_dir, filename + '.pdf'))
     plt.close(fig)
 
 
-def gaussian_mixture(sum_sjc_array):
+def gaussian_mixture(min_jc_array):
     """
     Given a numpy array containing all splice junction sum SJC values, return a
     sci-kit learn Gaussian mixture model, along with the power transform object and
     the estimated minimum read count at the decision boundary
 
-    :param sum_sjc_array: numpy array of junction counts
+    :param min_jc_array: numpy array of junction counts
     :return: pt, gmm, min_count: scikit-learn power transform, gaussian mixture model, decision boundary
     """
     from sklearn.mixture import GaussianMixture
     from sklearn.preprocessing import PowerTransformer
 
     pt = PowerTransformer(method='box-cox')
-    pt.fit(sum_sjc_array)
-    sum_sjc_array_transformed = pt.transform(sum_sjc_array)
+    pt.fit(min_jc_array)
+    min_jc_array_transformed = pt.transform(min_jc_array)
 
     gmm = GaussianMixture(n_components=2,
                           covariance_type='diag',
                           random_state=1,
-                          ).fit(sum_sjc_array_transformed)
+                          ).fit(min_jc_array_transformed)
 
     # Sort the classification components so the high-read distribution appears second
     order = gmm.means_.argsort(axis=0)[:, 0]
@@ -173,7 +177,7 @@ def gaussian_mixture(sum_sjc_array):
     return pt, gmm, min_count
 
 
-def plot_model(sum_sjc_array,
+def plot_model(min_jc_array,
                pt,
                gmm,
                min_count: int,
@@ -181,7 +185,7 @@ def plot_model(sum_sjc_array,
                filename: str,
                ):
     """
-    :param sum_sjc_array: numpy array of junction counts
+    :param min_jc_array: numpy array of junction counts
     :param pt: scikit-learn power transform
     :param gmm: scikit-learn gaussian mixture model
     :param min_count: int decision boundary count
@@ -191,7 +195,7 @@ def plot_model(sum_sjc_array,
     """
     import matplotlib.pyplot as plt
 
-    sum_sjc_array_transformed = pt.transform(sum_sjc_array)
+    min_jc_array_transformed = pt.transform(min_jc_array)
 
     weights = gmm.weights_
     means = gmm.means_
@@ -199,7 +203,7 @@ def plot_model(sum_sjc_array,
 
     # Plot out the model figure and decision boundary
     fig, ax = plt.subplots(constrained_layout=True)
-    ax.hist(sum_sjc_array_transformed, bins=50, histtype='bar', density=True, ec='red', alpha=0.5)
+    ax.hist(min_jc_array_transformed, bins=50, histtype='bar', density=True, ec='red', alpha=0.5)
     ax.set_xlabel('Box-Cox transformed total skipped junction counts')
     ax.set_ylabel('Frequency')
     ax.set_title('Skipped junction count distributions')
@@ -214,7 +218,7 @@ def plot_model(sum_sjc_array,
     ax2.set_xticklabels(new_tcks[1:-1])
     ax2.axvline(linewidth=4, ls='--', color='blue', x=pt.transform(np.array([[min_count]])))
 
-    f_axis = sum_sjc_array_transformed.copy().ravel()
+    f_axis = min_jc_array_transformed.copy().ravel()
     f_axis.sort()
     ax.plot(f_axis, weights[0] * stats.norm.pdf(f_axis, means[0], np.sqrt(covars[0])).ravel(), c='red')
     ax.plot(f_axis, weights[1] * stats.norm.pdf(f_axis, means[1], np.sqrt(covars[1])).ravel(), c='blue')

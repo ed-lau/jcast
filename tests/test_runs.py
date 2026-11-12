@@ -115,15 +115,16 @@ def test_failing_junction_does_not_stop_the_run(tmp_path, monkeypatch, capsys, c
             raise RuntimeError('injected fault')
         return translate_one(junction, *args, **kwargs)
 
+    # -r 2: at -r 1 another junction writes the same sequences as the failing one
     normal = tmp_path / 'normal'
-    main.run_jcast(_args(normal, cache_dir, splice_type={'SE'}))
+    main.run_jcast(_args(normal, cache_dir, splice_type={'SE'}, read=2))
     capsys.readouterr()
 
     monkeypatch.setattr(main, '_translate_one', faulty)
     outs = {}
     for processes in (1, 3):
         outs[processes] = tmp_path / f'fault_p{processes}'
-        main.run_jcast(_args(outs[processes], cache_dir, splice_type={'SE'}, processes=processes))
+        main.run_jcast(_args(outs[processes], cache_dir, splice_type={'SE'}, processes=processes, read=2))
         err = capsys.readouterr().err
         assert err.count('Junction SE 11950 of gene') == 1 and 'injected fault' in err
         assert 'Traceback' not in err and '1 junction(s) failed with an exception' in err
@@ -142,10 +143,10 @@ def test_failing_junction_does_not_stop_the_run(tmp_path, monkeypatch, capsys, c
 
     # every other junction's output is unchanged: only records of the failing junction can be missing
     monkeypatch.setattr(main, '_translate_one', translate_one)
-    args = _args(tmp_path / 'alone', cache_dir)
+    args = _args(tmp_path / 'alone', cache_dir, read=2)
     from jcast.uniprot import UniProtFasta
     fate, records = main._translate_safely(_junction(rmats_results.rmats_se, int(FAULT[1])), gtf, genome, args,
-                                           pred_bound=1, uniprot=UniProtFasta(logging.getLogger('jcast-test'),
+                                           pred_bound=2, uniprot=UniProtFasta(logging.getLogger('jcast-test'),
                                                                               UNIPROT))
     own = {str(r.seq) for _, _, r in records}
     with_fault, without = _sequences(outs[1]), _sequences(normal)

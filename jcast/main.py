@@ -104,14 +104,14 @@ def _run(args, logger) -> bool:
         # Make a numpy array of all junction SJC sum counts
         rmats_results.get_junction_count_array()
 
-        ln_sjc, mix_params, min_count = model.general_mixture_model(sum_sjc_array=rmats_results.sum_sjc_array)
+        ln_sjc, mix_params, min_count = model.general_mixture_model(min_jc_array=rmats_results.min_jc_array)
 
         if min_count is None:
             logger.warning(f'Mixture model fit was degenerate; falling back to -r {args.read}.')
             min_count = args.read
         else:
             logger.info('Mixture model parameters (gamma shape, gamma rate, normal mean, normal sd, weights): '
-                        f'{[round(float(p), 3) for p in mix_params]}; modeled min_count {min_count}.')
+                        f'{[round(float(p), 3) for p in mix_params]}; modeled read count cutoff {min_count}.')
             model.plot_general_mixture_model(
                 ln_sjc,
                 mix_params,
@@ -122,10 +122,10 @@ def _run(args, logger) -> bool:
 
         # Gaussian mixture model implementation
         """
-        pt, gmm, min_count = model.gaussian_mixture(sum_sjc_array=rmats_results.sum_sjc_array)
+        pt, gmm, min_count = model.gaussian_mixture(min_jc_array=rmats_results.min_jc_array)
 
         # Plot out the model
-        model.plot_model(sum_sjc_array=rmats_results.sum_sjc_array,
+        model.plot_model(min_jc_array=rmats_results.min_jc_array,
                          pt=pt,
                          gmm=gmm,
                          min_count=min_count,
@@ -136,6 +136,9 @@ def _run(args, logger) -> bool:
     # If the m flag is not set, use the r argument value as min count
     else:
         min_count = args.read
+
+    logger.info(f'Translating junctions with a read count of at least {min_count} (-{"m" if args.model else "r"}): '
+                f'the smaller of the summed inclusion and skipping junction counts. Others are skipped.')
 
     # ---- Worker processes (-p). Started before any progress bar, so no thread exists when they are forked ----
     pool = None
@@ -359,10 +362,37 @@ def _translate_one(junction: Junction,
     :param gtf: ReadAnnotations object
     :param genome: ReadGenome object
     :param args: parsed arguments
-    :param pred_bound: read count cutoff
+    :param pred_bound: read count cutoff: a junction with fewer reads (Junction.min_jc) is skipped
     :param uniprot: UniProtFasta from --uniprot, or None to use the UniProt API
     :return:
     """
+
+    # ---- Filters first: the read count, then the FDR. A skipped junction is not translated; with -c, its gene's
+    # canonical is still written. 2026-11-12 the filters ran after slicing, translation and the canonical lookup, and
+    # most of a run went on junctions it then skipped (reports/2026-11-12-log-audit.md §3). A junction is kept if its
+    # read count is at least the cutoff; it used to need one read more
+    # (reports/2026-11-12-thresholds-runs-canonical-audit.md §2) ----
+    q_lo, q_hi = args.qvalue
+    if junction.min_jc < pred_bound:
+        skipped = fates.SKIPPED_LOW_COUNT
+    elif not q_lo <= junction.fdr <= q_hi:
+        skipped = fates.SKIPPED_P_VALUE
+    else:
+        skipped = None
+
+    if skipped:
+        #
+        # If the canonical flag is set, append the canonical
+        # Sp to the gene_canonical output even if none of the transcript slices are stitchable
+        # back to the canonical protein. This avoids not having any protein level representation
+        # of a gene potentially in the proteome.
+        #
+        if args.canonical:
+            sequence = Sequence(junction=junction, uniprot=uniprot)
+            sequence.get_canonical_aa(gtf=gtf, genome_index=genome.genome)
+            sequence.write_canonical(out_dir=args.out)
+
+        return skipped
 
     #
     # trim slice coordinates by translation starts and ends
@@ -397,35 +427,9 @@ def _translate_one(junction: Junction,
 
         return fates.SKIPPED_MASKED
 
-    # ---- Translate to peptides. This happens before the filters so we can write the canonical sequence ----
+    # ---- Translate to peptides ----
     sequence.get_canonical_aa(gtf=gtf, genome_index=genome.genome)
     sequence.translate()
-
-    # ---- Filter by junction read counts - discard junction if the min read count is below threshold
-    # If the -r argument is set directly and the -m flag is not, use the -r integer for count filtering
-    # If the -m flag is set, use the modeled count for filtering instead of the -r argument value ----
-    if (not args.model and junction.sum_sjc <= args.read) or (args.model and junction.sum_sjc <= pred_bound):
-        #
-        # If the canonical flag is set, append the canonical
-        # Sp to the gene_canonical output even if none of the transcript slices are stitchable
-        # back to the canonical protein. This avoids not having any protein level representation
-        # of a gene potentially in the proteome.
-        #
-        if args.canonical:
-            sequence.write_canonical(out_dir=args.out)
-
-        return fates.SKIPPED_LOW_COUNT
-
-    # Discard junction if the corrected P value of this read count is outside of threshold
-    # This is used to include or discard junctions that are inconsistently found on both replicates.
-    q_lo, q_hi = args.qvalue
-    if not q_lo <= junction.fdr <= q_hi:
-
-        # Write canonical anyhow if the canonical flag is set.
-        if args.canonical:
-            sequence.write_canonical(out_dir=args.out)
-
-        return fates.SKIPPED_P_VALUE
 
     # Discard junction if trimming to the coding region left both slices identical: the splice event
     # lies in the UTR and does not change the protein.
@@ -610,13 +614,16 @@ def main():
                         )
 
     parser.add_argument('-r', '--read',
-                        help='the lowest skipped junction read count for a junction to be translated [default: 1]',
+                        help='the lowest read count for a junction to be translated: the smaller of its inclusion and '
+                             'skipping junction counts, each summed over samples and replicates [default: 1, which '
+                             'keeps every junction]',
                         default=1,
                         type=int,
                         )
 
     parser.add_argument('-m', '--model',
-                        help='models junction read count cutoff using a Gaussian mixture model [default: False]',
+                        help='take the read count cutoff from a Gamma + Normal mixture model of the read counts, '
+                             'instead of -r (used only if the fit fails) [default: False]',
                         action='store_true',
                         default=False,
                         #type=bool,

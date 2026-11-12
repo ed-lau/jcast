@@ -361,11 +361,13 @@ during the PR 4a audit
 ([audit](reports/2026-11-10-ri-slice-audit.md)): 5 RI fates change, and
 58 duplicated-sequence RI records are replaced, mostly in T4.
 
-### MED-1 — `sum_sjc` returns `min(SJC, IJC)` ◎
+### MED-1 — `sum_sjc` returns `min(SJC, IJC)` ◎ — **fixed in PR 6**
 
 [jcast/junctions.py:245-274](jcast/junctions.py#L245-L274). The name, the
 README header field 11 ("skipped-junction read count"), and the plot axis
 label all say SJC. See §5.2.
+
+*2026-11-12, PR 6:* the minimum is kept (both isoforms need reads) and the property is renamed `min_jc`. Help text, README header field 11 and the plot now describe it ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md) §2.1).
 
 ### MED-2 — Three-frame fallback keeps the *last* frame; can discard a good one ◎ — **closed in PR 4b (fallback removed)**
 
@@ -460,7 +462,7 @@ are exhausted, `rqs.get(...)` raises `requests.exceptions.ConnectionError` /
 kills it. Catch the exception, log it, return an empty record, and let the
 junction fall through to orphan/fail.
 
-### MED-11 — Read-count thresholds are off by one, twice ◎ *(new)*
+### MED-11 — Read-count thresholds are off by one, twice ◎ *(new)* — **fixed in PR 6**
 
 - **`-r`**: the help text and README say "minimum read count for a junction
   to be translated", but [jcast/main.py:196](jcast/main.py#L196) skips when
@@ -472,6 +474,8 @@ junction fall through to orphan/fail.
 Neither is catastrophic, but both make reported cutoffs disagree with what
 was applied. Pick one convention (`keep if count >= threshold`), document it,
 and log the effective threshold.
+
+*2026-11-12, PR 6:* a junction is kept if its count ≥ the cutoff, for `-r` and `-m`. The model returns its cutoff in reads. Measured before the fix: `-m` cut two reads above the boundary, dropping 3,410 of 131,233 whole-genome junctions. Default `-r 1` now keeps every junction ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md) §2, §7).
 
 ### MED-12 — Output is not idempotent ◎ *(new)* — **fixed in PR 7**
 
@@ -605,13 +609,15 @@ evaluated in
 That work, extended to alternative N-termini, is PR 4c. All audits and
 decisions are indexed in [reports/README.md](reports/README.md).
 
-### 5.2 — `sum_sjc` is `min(SJC, IJC)` ◎
+### 5.2 — `sum_sjc` is `min(SJC, IJC)` ◎ — **resolved in PR 6**
 
 The cutoff model, the FASTA header (`r<count>`), the plot axis, and the README
 all describe this as the skipped-junction count. The v0.3.2 changelog says
 "sum of all replicates", and the 2022-05 switch to `min` is undocumented.
 Decide on one semantics, rename the property (`min_jc`), and update the
 header documentation.
+
+*2026-11-12, PR 6:* see MED-1.
 
 ### 5.3 — Soft-masked / ambiguous bases ✔ — **fixed in PR 3**
 
@@ -780,10 +786,10 @@ currently can't be installed and run from scratch.
 | 4b2 | ✅ **Frameshift test from coding lengths.** `Sequence.frameshift` compared raw slice lengths, which is wrong once slices have their own frames (PR 4b). Fixed: 17 chr15 junctions reclassified, no sequence lost or created ([audit](reports/2026-11-10-frameshift-audit.md)) | Sci-integrity (regression) | Done 2026-11-10 |
 | 4c | ✅ **Alternative termini** (done 2026-11-10; [audit and verification](reports/2026-11-10-alt-termini-audit.md)). C-terminal: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only; write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). N-terminal: a slice lacking the gene's start codon that contains another annotated start is translated from it and joined C-terminally only ([phase audit §5.4](reports/2026-11-10-phase-audit.md)). Re-evaluated on the current pipeline in [the termini audit](reports/2026-11-10-alt-termini-audit.md); decisions approved 2026-11-10 (TSL ≤ 2 sites, one file per terminus, fate `SUCCESS TIER 1 ALT TERMINUS`). | Sci-integrity | Done 2026-11-10 |
 | 5 | ✅ **Joining to the canonical** (MED-3): complete ends not joined, unique ordered anchors, anchor length 7 ([audit](reports/2026-11-11-stitch-anchor-audit.md)) | Correctness | Done 2026-11-11 |
-| 6 | Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): keep if count ≥ threshold; default `-r 1` (no filter); `-m` cut at the model's boundary, reported in reads; the count stays min(IJC, SJC), renamed `min_jc`; the read-count and FDR filters applied first ([log audit](reports/2026-11-12-log-audit.md)) | Sci-integrity | PR 1 |
+| 6 | ✅ Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): keep if count ≥ threshold; default `-r 1` (no filter); `-m` cut at the model's boundary, reported in reads; the count stays min(IJC, SJC), renamed `min_jc`; the read-count and FDR filters applied first ([log audit](reports/2026-11-12-log-audit.md)) | Sci-integrity | Done 2026-11-12 |
 | 7 | ✅ Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13); catch an exception per junction, record it as a fate and continue instead of aborting the run ([masked-bases audit §7](reports/2026-11-11-masked-bases-audit.md#7-decisions-requested)). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): refuse a directory holding JCAST output unless `--overwrite`; a failing junction writes nothing; caches in the user cache directory (`platformdirs`, `--cache_dir`), GTF cache keyed by path, size and mtime, written atomically, as a pickle | Robustness | Done 2026-11-12 |
 | 8 | Network resilience + `write_canonical` fallback (MED-9/10); `-c` writes the canonical on every path (MED-14). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): `-c` on every path, masked junctions included; a failed API lookup fails the junction (timeout, 429 retried); `write_canonical`'s fallback removed; gene names used for `--uniprot` only when unique in the GTF ([mapping audit](reports/2026-11-12-uniprot-mapping-audit.md)) | Robustness | PRs 1, 7 |
-| 9 | ✅ Per-gene GTF index, in-memory FASTA de-dup ([parallel audit](reports/2026-11-12-parallel-audit.md)); *filter before canonical lookup not done* | Performance | Done 2026-11-12 |
+| 9 | ✅ Per-gene GTF index, in-memory FASTA de-dup ([parallel audit](reports/2026-11-12-parallel-audit.md)); filtering before the canonical lookup done in PR 6 | Performance | Done 2026-11-12 |
 | 10 | Packaging: pyproject metadata, Python ≥ 3.10, fix `find_packages`/`data_files`, bounds | Env | PR 0 |
 | 11 | CI (GitHub Actions) | Infra | PRs 1, 10 |
 | 12 | argparse hygiene: drop `--g_or_ln`, `-s` reads only selected files (MED-8), `parser.error` not `assert` | UX | PR 1 |

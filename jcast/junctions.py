@@ -41,7 +41,7 @@ class RmatsResults(object):
         self.rmats_a3ss = self._read_rmats_a3ss()
 
         self.rmats_list = [self.rmats_mxe, self.rmats_se, self.rmats_ri, self.rmats_a5ss, self.rmats_a3ss]
-        self.sum_sjc_array = None
+        self.min_jc_array = None
 
 
 
@@ -152,7 +152,7 @@ class RmatsResults(object):
 
     def get_junction_count_array(self):
         """
-        Output an array of all the junction SJC sum counts for this set of rMATS results
+        Output an array of every junction's read count (Junction.min_jc) plus 1, for the read count model
         :return: True
         """
 
@@ -160,7 +160,7 @@ class RmatsResults(object):
 
         junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
 
-        self.sum_sjc_array = np.array([[j.sum_sjc + 1] for j in junctions])
+        self.min_jc_array = np.array([[j.min_jc + 1] for j in junctions])
 
         return True
 
@@ -247,15 +247,15 @@ class Junction(object):
                + self.junction_type + ' ' + self.gene_symbol + ' ' + self.name
 
     @property
-    def sum_sjc(self):
+    def min_jc(self):
         """
-        Returns the sum of all SJCs in the junction. if rMATS was run with one technical replicate,
-        the count field is an int, otherwise it is a list. Currently this takes the skipped junction count (SJC)
-        as filtering criterion because the majority of translatable events are probably SE (skipped exon).
-        Essentially this filters out alternative junctions that are very rarely skipped (high inclusion
-        level of the exons) that are not likely to be translatable.
+        The junction's read count: the smaller of its inclusion junction counts (IJC) and its skipping junction counts
+        (SJC), each summed over both samples and their replicates. If rMATS was run with one replicate, a count field is
+        an int, otherwise a comma-separated list. Both isoforms are translated, so both need read support; this is
+        what -r and -m filter on, and the r<count> field of FASTA headers.
 
-        2022-05-21: This now returns the min of SJC and IJC sums
+        2022-05-21: This now returns the min of SJC and IJC sums (it was the sum of SJC). 2026-11-12 renamed from
+        sum_sjc, which described the old count; see reports/2026-11-12-thresholds-runs-canonical-audit.md §2.1
 
         :return:
         """

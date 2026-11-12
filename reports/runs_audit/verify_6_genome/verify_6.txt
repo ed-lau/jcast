@@ -1,0 +1,16 @@
+rmats /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats
+gtf /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/gencode.v50.primary_assembly.annotation.gtf
+genome /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/GRCh38.primary_assembly.genome.fa
+uniprot /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/20261111_human_uniprot_swissprot_isoform.fasta
+
+m_p16: before 1842538 `-r 39 -p 16`; after 1842538 + working tree `-m -p 16` (cutoff logged: 40)
+  output files: 15; identical: True
+  FAILURE: before 33609, after 33609
+  PARTIAL TIER 4: before 48272, after 48272
+  SKIPPED. Sequence discarded due to low coverage: before 468411, after 468411
+  SKIPPED. Splice event lies outside the annotated coding region: before 14997, after 14997
+  SUCCESS TIER 1: before 24965, after 24965
+  SUCCESS TIER 1 ALT TERMINUS: before 3555, after 3555
+  SUCCESS TIER 2: before 5835, after 5835
+  junction loop: before 748 s, after 240 s
+

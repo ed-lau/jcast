@@ -1,0 +1,59 @@
+rmats tests/data/rmats
+gtf tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf
+genome tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz
+uniprot tests/data/uniprot/uniprot_sprot_human_isoforms_chr15_2026_04.fasta.gz
+
+r1: before 1842538 `-r 0`; after 1842538 + working tree `-r 1` (cutoff logged: 1)
+  output files: 13; identical: True
+  FAILURE: before 207, after 207
+  PARTIAL TIER 4: before 403, after 403
+  SKIPPED. Splice event lies outside the annotated coding region: before 119, after 119
+  SUCCESS TIER 1: before 301, after 301
+  SUCCESS TIER 1 ALT TERMINUS: before 26, after 26
+  SUCCESS TIER 2: before 49, after 49
+  junction loop: before 15 s, after 15 s
+
+r2: before 1842538 `-r 1`; after 1842538 + working tree `-r 2` (cutoff logged: 2)
+  output files: 12; identical: True
+  FAILURE: before 153, after 153
+  PARTIAL TIER 4: before 289, after 289
+  SKIPPED. Sequence discarded due to low coverage: before 297, after 297
+  SKIPPED. Splice event lies outside the annotated coding region: before 92, after 92
+  SUCCESS TIER 1: before 220, after 220
+  SUCCESS TIER 1 ALT TERMINUS: before 24, after 24
+  SUCCESS TIER 2: before 30, after 30
+  junction loop: before 14 s, after 11 s
+
+r10: before 1842538 `-r 9`; after 1842538 + working tree `-r 10` (cutoff logged: 10)
+  output files: 11; identical: True
+  FAILURE: before 44, after 44
+  PARTIAL TIER 4: before 93, after 93
+  SKIPPED. Sequence discarded due to low coverage: before 839, after 839
+  SKIPPED. Splice event lies outside the annotated coding region: before 26, after 26
+  SUCCESS TIER 1: before 86, after 86
+  SUCCESS TIER 1 ALT TERMINUS: before 9, after 9
+  SUCCESS TIER 2: before 8, after 8
+  junction loop: before 13 s, after 4 s
+
+m: before 1842538 `-r 25`; after 1842538 + working tree `-m` (cutoff logged: 26)
+  output files: 10; identical: True
+  FAILURE: before 22, after 22
+  PARTIAL TIER 4: before 33, after 33
+  SKIPPED. Sequence discarded due to low coverage: before 983, after 983
+  SKIPPED. Splice event lies outside the annotated coding region: before 9, after 9
+  SUCCESS TIER 1: before 50, after 50
+  SUCCESS TIER 1 ALT TERMINUS: before 3, after 3
+  SUCCESS TIER 2: before 5, after 5
+  junction loop: before 13 s, after 2 s
+
+r2_p3: before 1842538 `-r 1 -p 3`; after 1842538 + working tree `-r 2 -p 3` (cutoff logged: 2)
+  output files: 12; identical: True
+  FAILURE: before 153, after 153
+  PARTIAL TIER 4: before 289, after 289
+  SKIPPED. Sequence discarded due to low coverage: before 297, after 297
+  SKIPPED. Splice event lies outside the annotated coding region: before 92, after 92
+  SUCCESS TIER 1: before 220, after 220
+  SUCCESS TIER 1 ALT TERMINUS: before 24, after 24
+  SUCCESS TIER 2: before 30, after 30
+  junction loop: before 6 s, after 4 s
+

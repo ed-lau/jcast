@@ -123,10 +123,13 @@ optional arguments:
                         directory for the GTF cache and the UniProt API cache
                         [default: the user cache directory, e.g.
                         ~/Library/Caches/jcast or ~/.cache/jcast]
-  -r, --read READ       minimum skipped-junction read count for a junction to
-                        be translated [default: 1]
-  -m, --model           model the read-count cutoff via a mixture model
-                        [default: False]
+  -r, --read READ       the lowest read count for a junction to be translated:
+                        the smaller of its inclusion and skipping junction
+                        counts, each summed over samples and replicates
+                        [default: 1, which keeps every junction]
+  -m, --model           take the read count cutoff from a Gamma + Normal
+                        mixture model of the read counts, instead of -r
+                        (used only if the fit fails) [default: False]
   -c, --canonical       write canonical protein sequences even when a slice
                         is untranslatable [default: False]
   --uniprot UNIPROT     UniProt FASTA to take canonical proteins from instead
@@ -234,6 +237,11 @@ all, is still a premature stop (T4).
 
 How a junction is processed (v0.4.0):
 
+0. **Filters.** A junction whose read count (header field 11) is below the
+   cutoff, or whose rMATS FDR is outside `-q`, is skipped before anything
+   else. The cutoff is `-r`, or the `-m` model's boundary in reads; a
+   junction with exactly that many reads is kept. With `-c`, a skipped
+   junction's gene still gets its canonical written.
 1. **Trimming.** Every exon is trimmed to the gene's annotated coding region.
    This runs from the most upstream start codon to the most distal stop
    codon of protein-coding transcripts with transcript support level ≤
@@ -274,7 +282,9 @@ The `|`-separated fields are:
 8. Anchor exon `start:end`.
 9. Alternative exon `start:end`.
 10. Translated strand and that slice's phase (e.g. `+2`).
-11. Skipped-junction read count, prefixed with `r`.
+11. Read count, prefixed with `r`: the smaller of the junction's inclusion
+    and skipping junction counts, each summed over samples and replicates.
+    This is the count `-r` and `-m` filter on.
 12. Tier (`T1`, `T1_alt_cterm`, `T1_alt_nterm`, `T1_alt_both`, `T2`, `T4`).
 
 When the canonical comes from the GTF rather than UniProt

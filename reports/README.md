@@ -99,12 +99,19 @@ every output file's contents. Its values at each stage:
 | PR 4b2: frameshift test from coding lengths | `a0f3338` | 157 | 302 | 297 | 92 | 227 | 30 | – | 171 |
 | PR 4c: alternative termini (+ T1 ALT 25) | `e11cc86` | 153 | 289 | 297 | 92 | 219 | 30 | – | 173 |
 | PR 5: joining to the canonical (+ T1 ALT 24) | `2142711` | 153 | 289 | 297 | 92 | 220 | 30 | – | 179 |
+| PR 6: `-r 1` keeps every junction (+ T1 ALT 26) | PR 6 | 207 | 403 | 0 | 119 | 301 | 49 | – | 244 |
 
-`psq_canonical.fasta` has 268 records at every stage. Up to PR 4c, no
+`psq_canonical.fasta` has 268 records at every stage up to PR 5, and 266
+from PR 6: two genes whose junctions are now translated lost the canonical
+their skipped junctions wrote (MED-14). Up to PR 4c, no
 `psq_T1.fasta` sequence matching an annotated protein is lost at any stage.
 PR 5 removes one: CD276-201. It came only from a join at the wrong copy of
 a repeated anchor
 ([stitch audit §9](2026-11-11-stitch-anchor-audit.md#9-implementation-and-verification-pr-5)).
+
+PR 6 changes the test because its `read=1` now keeps every junction; with
+`-r 2` the output is byte for byte that of PR 5
+([PR 6–8 audit §9](2026-11-12-thresholds-runs-canonical-audit.md#9-implementation-and-verification-pr-6)).
 
 PR 14 leaves this test unchanged: it does not use `--uniprot`. The new
 `tests/test_uniprot.py::test_chr15_uniprot` pins the same run with

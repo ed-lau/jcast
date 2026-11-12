@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-12 |
-| **Status** | Proposals in §2.4, §3.6 and §4.4; decisions requested in §6 and taken 2026-11-12 (§7). **PR 7 implemented in `460005d` and verified (§8).** PRs 6 and 8 to follow. The audit was measured at `8b845aa`. |
+| **Status** | Proposals in §2.4, §3.6 and §4.4; decisions requested in §6 and taken 2026-11-12 (§7). **PR 7 implemented in `460005d` (§8); PR 6 implemented and verified (§9).** PR 8 to follow. The audit was measured at `8b845aa`. |
 | **Question** | Do the read-count cutoffs apply what they say (PR 6)? What goes wrong in real runs: output directory, reruns, one failing junction, the logger, the caches (PR 7)? Does `-c` write every gene's canonical, and what does a UniProt API failure do to a run (PR 8)? |
 | **Reproduce** | `python reports/runs_audit/audit_runs.py [--rmats <dir> --jcast_out <dir> --uniprot <fasta>]` (≈ 10 min on chr15; the whole-genome arguments add read counts and `-c` coverage from an existing run) · `python reports/runs_audit/bench_gtf_cache.py --cached <gtf>.cached --scratch <dir>` |
 | **Inputs** | The chr15 test set (1,105 junctions); the 12 rMATS sets in `tests/data/model/`; the user's whole-genome run of 2026-11-12 (NMDI RNA-seq, 599,644 junctions; GENCODE v50; Swiss-Prot 2026_04; `-m -c --uniprot -p 8`), not bundled. |
@@ -626,4 +626,79 @@ separately:
   16.8 at the start, so the times are approximate.
 
 **Golden tests:** unchanged.
+
+## 9. Implementation and verification: PR 6
+
+**What changed:**
+
+- **The rule:** `_translate_one` skips a junction when
+  `junction.min_jc < cutoff`; it was `<=`. The cutoff is `-r`, or the
+  model's cutoff with `-m`, or `-r` again if the fit is degenerate.
+  - The default `-r 1` keeps every junction (decision 2).
+  - The effective cutoff is logged at the start of the run.
+- **The model** ([jcast/model.py](../jcast/model.py)):
+  - `general_mixture_model` returns ⌈e^b⌉ − 1, the cutoff in reads, where
+    it returned ⌈e^b⌉ on the count + 1 scale.
+  - The plot draws the cutoff at ln(cutoff + 1) and labels it in reads.
+    The top axis now shows read counts, not count + 1.
+- **The count** is `Junction.min_jc` (was `sum_sjc`), and
+  `RmatsResults.min_jc_array` (was `sum_sjc_array`).
+  - The `-r` and `-m` help, README header field 11 and the plot describe
+    it.
+  - Header values are unchanged.
+- **Filters first** ([log audit](2026-11-12-log-audit.md) decision 1):
+  - The read-count and FDR filters are the first step of `_translate_one`.
+  - A skipped junction is not trimmed, sliced or translated. With `-c` it
+    looks up and writes its gene's canonical, as before.
+- **Tests:**
+  - The model's recorded cutoffs move by one read (15, 7, 16 → 14, 6, 15).
+  - New tests: the cutoff is the smallest count at or above the boundary;
+    `-r N` keeps a junction with N reads; a skipped junction is not
+    trimmed and still writes its canonical with `-c`.
+  - The two golden tests are updated (`read=1` now keeps every junction).
+  - 99 tests in all.
+
+**Verification** ([runs_audit/verify_6_chr15/verify_6.txt](runs_audit/verify_6_chr15/verify_6.txt),
+`verify_6.py`). The rule is a shift of one read, so the code after must
+reproduce the code before at one read less. Code under test frozen in git
+worktrees: before = `1842538`; after = `1842538` plus this change. All
+runs used the CLI with `-c --uniprot`.
+
+| chr15 | Before | After | Output files | Fates |
+|---|---|---|---|---|
+| default | `-r 0` | `-r 1` | 13, identical | identical (no skips; T1 301) |
+| | `-r 1` | `-r 2` | 12, identical | identical (297 skipped) |
+| | `-r 9` | `-r 10` | 11, identical | identical (839 skipped) |
+| model | `-r 25` | `-m` (cutoff 26 reads; was 27 on the count + 1 scale) | 10, identical | identical: 122 junctions kept, as in §2.3 |
+| 3 processes | `-r 1 -p 3` | `-r 2 -p 3` | 12, identical | identical |
+
+The junction loop is shorter wherever junctions are skipped: 13 s → 4 s
+at `-r 10`, and 13 s → 2 s with `-m`.
+
+The chr15 golden values match the audit's prediction for `-r 1` read
+literally ([threshold_fates.tsv](runs_audit/audit/threshold_fates.tsv),
+second column) in every fate and every file's record count:
+- T1 301, T2 49, T4 403, FAILURE 207;
+- `psq_T1` 244, `psq_canonical` 266.
+
+**Whole genome**
+([runs_audit/verify_6_genome/verify_6.txt](runs_audit/verify_6_genome/verify_6.txt)):
+the user's full run of 599,644 junctions, with `-m -p 16` (after) against
+`-r 39 -p 16` (before).
+
+| | Before (`-r 39`) | After (`-m`, cutoff 40 reads) |
+|---|---|---|
+| Output files (15) | | **identical** |
+| Skipped, low coverage | 468,411 | 468,411 |
+| Translated (599,644 − skipped) | 131,233 | **131,233**, as predicted in §2.3; the old `-m` kept 127,823 |
+| T1 / T1 ALT / T2 / T4 / FAILURE | 24,965 / 3,555 / 5,835 / 48,272 / 33,609 | identical |
+| Junction loop, 16 processes | 748 s | **240 s** (filters first) |
+
+**Golden tests:**
+- `test_chr15_golden`: T1 220 → 301, T2 30 → 49, T4 289 → 403,
+  FAILURE 153 → 207, low-coverage skips 297 → 0; `psq_T1` 179 → 244,
+  `psq_canonical` 268 → 266.
+- `test_chr15_uniprot`: `psq_T1` 186 → 253, `psq_canonical` 275 → 272.
+- The canonical records lost are the MED-14 effect predicted in §2.2. PR 8
+  writes the canonical on every path.
 

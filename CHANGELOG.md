@@ -127,6 +127,42 @@ and §9.
 - [CHANGELOG.md](CHANGELOG.md) (this file), replacing the older `CHANGES.txt`.
 
 ### Changed
+- **Read-count cutoffs mean what they say (PR 6).** A junction is kept if
+  its read count is **at least** the cutoff; it used to need one read more.
+  - **`-r N`** keeps junctions with N reads. **The default `-r 1` now keeps
+    every junction:** rMATS reports no junction with 0 reads. Before, it
+    dropped those with 1 read.
+    - On chr15, 297 more junctions are translated and `psq_T1` grows from
+      179 to 244 records.
+    - For the previous default behaviour, pass `-r 2`. An explicit
+      `-r N` now keeps one read lower than before.
+  - **`-m` cuts at the model's own boundary.** It used to cut two reads
+    above it: once because the model is fitted to ln(count + 1), once from
+    the comparison.
+    - The cutoff is logged, and drawn in `model.pdf`, in reads.
+    - On the 600,000-junction whole-genome test run, 3,410 more
+      junctions pass (cutoff 40 reads, was effectively 42).
+  - **The count is unchanged but now named for what it is:** the smaller of
+    the summed inclusion and skipping junction counts (`Junction.min_jc`,
+    was `sum_sjc`).
+    - Help text, README header field 11 and the plot said "skipped
+      junction count".
+    - The FASTA header's `r<count>` value is unchanged.
+  - The effective cutoff is logged at the start of every run.
+
+  See [reports/2026-11-12-thresholds-runs-canonical-audit.md](reports/2026-11-12-thresholds-runs-canonical-audit.md) §2 and §9.
+- **Filters first (PR 6).** The read-count and FDR filters run before
+  trimming, translation and the canonical lookup. A skipped junction only
+  writes its gene's canonical with `-c`.
+  - Before, every junction was translated and logged first. On a
+    whole-genome `-m` run, 79% of junctions were skipped, after taking
+    about 78% of the run time.
+  - No output file changes. A junction that is both below the cutoff and
+    masked now reports low coverage.
+  - Without `-c`, `uniprot_canonicals.tsv` lists only the genes of
+    translated junctions.
+
+  See [reports/2026-11-12-log-audit.md](reports/2026-11-12-log-audit.md).
 - **Each run writes a fresh output directory (PR 7).**
   - `-o` is created if it does not exist. Before, it had to exist, even the
     default `out/`.

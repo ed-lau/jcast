@@ -147,19 +147,21 @@ def test_cli_rejects_missing_uniprot(monkeypatch, capsys):
 
 EXPECTED_SOURCES = {'sp by sequence': 267, 'sp by gene name': 8, 'gtf': 1, 'none': 18}
 
-# file name -> (number of records, sha256 of the sorted sequences); the psq_* counts equal those with the full
-# Swiss-Prot release (reports/uniprot_eval/final/summary.txt)
+# file name -> (number of records, sha256 of the sorted sequences). PR 14 pinned these at -r 1 keeping counts >= 2, when
+# the psq_* counts equalled those with the full Swiss-Prot release (reports/uniprot_eval/final/summary.txt); since PR 6,
+# -r 1 keeps every junction (reports/2026-11-12-thresholds-runs-canonical-audit.md §7)
 EXPECTED_OUTPUT = {
-    'jcast_uniprot_merged.fasta': (837, 'ae0c7dbd861c6401'),
-    'psq_T1.fasta': (186, 'e0b10eeb667ea281'),
+    'jcast_uniprot_merged.fasta': (893, '9c31b68b076a7d7c'),
+    'psq_T1.fasta': (253, '7daf17dd26a5b455'),
     'psq_T1_alt_cterm.fasta': (18, 'd94f4fd7852b9ba4'),
-    'psq_T1_alt_nterm.fasta': (5, '27dba54f3901b341'),
-    'psq_T1_orphan.fasta': (20, '2c58a9c687ebc0e8'),
-    'psq_T2.fasta': (30, '3cf4c8d07ca0496c'),
-    'psq_T2_orphan.fasta': (4, '1d36e928107ebb61'),
-    'psq_T4.fasta': (253, '8f95944b38a6b041'),
-    'psq_T4_orphan.fasta': (56, '1fa74d326d663bc8'),
-    'psq_canonical.fasta': (275, 'a148ed9072de78f0'),
+    'psq_T1_alt_cterm_orphan.fasta': (2, 'af4d8be95cb5dd05'),
+    'psq_T1_alt_nterm.fasta': (6, '4ecca3ae6061a2d6'),
+    'psq_T1_orphan.fasta': (28, 'bf2cbed6e747a093'),
+    'psq_T2.fasta': (47, '068c0166f5e601b9'),
+    'psq_T2_orphan.fasta': (6, '105037b254205e97'),
+    'psq_T4.fasta': (351, '5057eeedae64959e'),
+    'psq_T4_orphan.fasta': (77, 'ace037b31473c649'),
+    'psq_canonical.fasta': (272, '8408b54aa8228c4a'),
 }
 
 
