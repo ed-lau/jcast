@@ -34,6 +34,10 @@ calling to other resources like APPRIS (e.g. see DET1_HUMAN).
 Because of the prominence of Uniprot in proteomics work
 we have chosen to use Uniprot for now.
 
+2026-11-11: with --uniprot, canonicals come from a supplied UniProt FASTA instead of the API (by sequence, then gene
+name), and genes without an entry fall back to the GTF; use_gtf_only is then ignored. See
+reports/2026-11-11-uniprot-fasta-evaluation.md
+
 """
 use_gtf_only = False  # use GTF but not Uniprot to get canonical transcripts
 uniprot_max_retries = 10  # max number of retries if retrieving sequences from Uniprot

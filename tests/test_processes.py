@@ -17,7 +17,7 @@ from tests.test_uniprot import UNIPROT, _no_api
 
 def _run(tmp_path, name, processes):
     """ run_jcast on the chr15 test set with --uniprot; returns the output directory """
-    logging.getLogger('jcast').handlers = []     # get_logger adds handlers on every call (REVIEW.md MED-12)
+    logging.getLogger('jcast').handlers = []     # get_logger adds handlers on every call (REVIEW.md MED-13)
     gtf_copy = tmp_path / HUMAN_GTF.name
     if not gtf_copy.exists():
         gtf_copy.write_bytes(HUMAN_GTF.read_bytes())

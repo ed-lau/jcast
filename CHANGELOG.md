@@ -303,6 +303,8 @@ table.
   and continue, instead of aborting the whole run (PR 7).
 - Remove the deprecated `--mask` option (next release).
 - An option to add T2 and T4 records to `jcast_uniprot_merged.fasta`.
+- `--uniprot` (and, from a subprocess or with another start method, `-p`)
+  in the GUI.
 - A helper that downloads a UniProt proteome and names the file by its
   release (`X-UniProt-Release`).
 - With `-c`, write the canonical for every gene, whatever its junctions'

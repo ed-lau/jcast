@@ -208,6 +208,10 @@ coordinates, translation strand, frame, and tier (see below).
 | `psq_T2.fasta` | **Tier 2.** As T1, but the coding lengths differ by a non-multiple of 3 (frameshift). A slice that cannot be stitched at both ends may be joined at its N-terminus only. |
 | `psq_T4.fasta` | **Tier 4.** Only one slice translates; the other hits a PTC. The PTC slice is translated *up to* its stop codon, giving a truncated product, which is joined to the canonical at its N-terminus. If it is shorter than `params.ptc_threshold` × the other slice, or cannot be joined, it goes to `psq_T4_orphan.fasta`. **Treat T4 with caution — exclude from MS searches unless you have a specific reason to include it.** |
 | `psq_T#_orphan.fasta` | Slices of that tier that translated but could not be stitched back to the canonical sequence: no unique 7-residue anchor at an end that needs joining. **Treat orphans with caution.** |
+| `uniprot_canonicals.tsv` | With `--uniprot`: the canonical chosen for each gene, and how (by sequence, by gene name, from the GTF, or none). |
+| `psq_isoforms.tsv` | With `--uniprot`: every JCAST record identical to a UniProt canonical or isoform, with its accession. |
+| `jcast_uniprot_merged.fasta` | With `--uniprot`: a search database, made of the supplied UniProt FASTA plus the new `psq_T1` and `psq_T1_alt_*` records, renamed `sp\|<accession>-J<n>\|<entry name>`. |
+| `logfile.log` | Each junction's outcome (fate), the canonical chosen per gene, and the run's settings. |
 
 There is no Tier 3 from v0.4.0. It re-translated in a guessed frame when the
 annotated frame failed, and was removed together with the three-frame
@@ -309,6 +313,12 @@ python -m jcast /work/output \
     every junction touching a repeat is skipped: 19% of the chr15 test
     junctions. See
     [reports/2026-11-11-masked-bases-audit.md](reports/2026-11-11-masked-bases-audit.md).
+- **Use a new or empty output directory, and create it first.** JCAST
+  does not create the directory. It appends to output files already there,
+  and skips sequences they already contain, so a rerun into the same
+  directory mixes runs. Both are planned fixes (PR 7).
+- **The GUI does not yet offer `--uniprot` or `-p`.** Use the command line
+  for these.
 - **Tier 4 contains products truncated at a stop codon.** Alternative
   C-termini at an annotated stop codon go to `psq_T1_alt_cterm.fasta`
   instead. A stop codon that the annotation does not support stays in T4,

@@ -3,6 +3,15 @@
 *Review date: 2026-11-03. Reviewed version: v0.3.5a (HEAD `89a9dea` plus the
 uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 
+> **Status, 2026-11-12.** The sections below record the state at the review
+> date. Progress since then is tracked in the roadmap
+> ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–5, 9, 14 and 15 are done.
+> JCAST installs and runs on current Python, pandas and numpy. The tiering
+> issues of §5 are fixed, each with an audit under
+> [reports/](reports/README.md). `--uniprot` and `-p` make a whole-genome
+> run take about 15 minutes, where it used to take days. Open: PRs 6, 7, 8,
+> 10–13.
+
 This document is the developer-facing companion to [README.md](README.md) and
 [CHANGELOG.md](CHANGELOG.md). It catalogs the current state of the codebase,
 correctness and scientific-integrity issues, and the hardening roadmap to
@@ -797,7 +806,15 @@ currently can't be installed and run from scratch.
 
 The PySide6 plan from the first review (wizard → model preview → run panel,
 `QThread` worker calling `run_jcast`, optional `jcast[gui]` extra) still
-stands. The skeleton in [jcast/gui/](jcast/gui/) imports and launches. Points
+stands.
+
+**`-p` from the GUI needs a different start method (added 2026-11-12).**
+- `-p` forks its workers (PR 15). Forking a process that runs Qt threads
+  is unsafe: the child copies locks that other threads may hold.
+- So the GUI must keep `processes=1` (the default) when it calls
+  `run_jcast` in-process. Alternatively, it can run `python -m jcast` as a
+  subprocess, or the pool can use `spawn` or `forkserver` for GUI runs.
+- `--uniprot` has no such constraint and should be exposed. The skeleton in [jcast/gui/](jcast/gui/) imports and launches. Points
 the first review missed:
 
 - **Logger handler stacking (MED-13)** must be fixed before the GUI can run

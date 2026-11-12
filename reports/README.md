@@ -11,9 +11,14 @@ change, with:
 The roadmap is [REVIEW.md §9](../REVIEW.md#9-v040-hardening-roadmap-revised).
 User-facing changes are in [CHANGELOG.md](../CHANGELOG.md).
 
-All audits use the bundled chr15 test set (1,105 rMATS junctions, Ensembl
+Most audits use the bundled chr15 test set (1,105 rMATS junctions, Ensembl
 GRCh38.89) in GTF-only mode with UniProt stubbed out, so they need no
-network.
+network. There are two exceptions:
+- **The UniProt FASTA evaluation** uses a Swiss-Prot release and the local
+  UniProt API cache.
+- **The parallel audit** uses a whole-genome run (GENCODE v50, GRCh38,
+  about 600,000 junctions). Those inputs are not bundled; its scripts take
+  the paths as arguments.
 
 ## Audits
 
