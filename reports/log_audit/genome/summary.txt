@@ -1,0 +1,12 @@
+/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/jcast/logfile.log: 1.01 GB, 4215762 messages, 599644 junctions, 1689 bytes per junction
+line prefix and suffix (time stamp, level, module, function): 0.25 GB (24.3%)
+  slice nucleotides (Retrieved nucleotide …): 1199288 messages, 619 MB (61.1%)
+  slice peptides (Translated AA …): 536003 messages, 115 MB (11.4%)
+  junction start (>>>>>> Doing …): 599644 messages, 73 MB (7.2%)
+  coding region (Transcription start … end …): 599644 messages, 72 MB (7.1%)
+  fate: 599644 messages, 66 MB (6.5%)
+  slice frames (Retrieved phases): 599644 messages, 55 MB (5.4%)
+  PTC slice peptide (Force-Translated AA …): 47119 messages, 9 MB (0.9%)
+  orphan notice (Slice … does not stitch …): 17699 messages, 2 MB (0.2%)
+  canonical chosen (Canonical for …): 17068 messages, 2 MB (0.2%)
+  other: 9 messages, 0 MB (0.0%)

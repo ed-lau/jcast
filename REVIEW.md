@@ -780,9 +780,9 @@ currently can't be installed and run from scratch.
 | 4b2 | ✅ **Frameshift test from coding lengths.** `Sequence.frameshift` compared raw slice lengths, which is wrong once slices have their own frames (PR 4b). Fixed: 17 chr15 junctions reclassified, no sequence lost or created ([audit](reports/2026-11-10-frameshift-audit.md)) | Sci-integrity (regression) | Done 2026-11-10 |
 | 4c | ✅ **Alternative termini** (done 2026-11-10; [audit and verification](reports/2026-11-10-alt-termini-audit.md)). C-terminal: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only; write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). N-terminal: a slice lacking the gene's start codon that contains another annotated start is translated from it and joined C-terminally only ([phase audit §5.4](reports/2026-11-10-phase-audit.md)). Re-evaluated on the current pipeline in [the termini audit](reports/2026-11-10-alt-termini-audit.md); decisions approved 2026-11-10 (TSL ≤ 2 sites, one file per terminus, fate `SUCCESS TIER 1 ALT TERMINUS`). | Sci-integrity | Done 2026-11-10 |
 | 5 | ✅ **Joining to the canonical** (MED-3): complete ends not joined, unique ordered anchors, anchor length 7 ([audit](reports/2026-11-11-stitch-anchor-audit.md)) | Correctness | Done 2026-11-11 |
-| 6 | Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): keep if count ≥ threshold; default `-r 1` (no filter); `-m` cut at the model's boundary, reported in reads; the count stays min(IJC, SJC), renamed `min_jc` | Sci-integrity | PR 1 |
+| 6 | Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): keep if count ≥ threshold; default `-r 1` (no filter); `-m` cut at the model's boundary, reported in reads; the count stays min(IJC, SJC), renamed `min_jc`; the read-count and FDR filters applied first ([log audit](reports/2026-11-12-log-audit.md)) | Sci-integrity | PR 1 |
 | 7 | ✅ Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13); catch an exception per junction, record it as a fate and continue instead of aborting the run ([masked-bases audit §7](reports/2026-11-11-masked-bases-audit.md#7-decisions-requested)). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): refuse a directory holding JCAST output unless `--overwrite`; a failing junction writes nothing; caches in the user cache directory (`platformdirs`, `--cache_dir`), GTF cache keyed by path, size and mtime, written atomically, as a pickle | Robustness | Done 2026-11-12 |
-| 8 | Network resilience + `write_canonical` fallback (MED-9/10); `-c` writes the canonical on every path (MED-14). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): `-c` on every path, masked junctions included; a failed API lookup fails the junction (timeout, 429 retried); the fallback's removal pending | Robustness | PRs 1, 7 |
+| 8 | Network resilience + `write_canonical` fallback (MED-9/10); `-c` writes the canonical on every path (MED-14). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): `-c` on every path, masked junctions included; a failed API lookup fails the junction (timeout, 429 retried); `write_canonical`'s fallback removed; gene names used for `--uniprot` only when unique in the GTF ([mapping audit](reports/2026-11-12-uniprot-mapping-audit.md)) | Robustness | PRs 1, 7 |
 | 9 | ✅ Per-gene GTF index, in-memory FASTA de-dup ([parallel audit](reports/2026-11-12-parallel-audit.md)); *filter before canonical lookup not done* | Performance | Done 2026-11-12 |
 | 10 | Packaging: pyproject metadata, Python ≥ 3.10, fix `find_packages`/`data_files`, bounds | Env | PR 0 |
 | 11 | CI (GitHub Actions) | Infra | PRs 1, 10 |
@@ -790,6 +790,8 @@ currently can't be installed and run from scratch.
 | 13 | GUI v0 → wizard (§10) | New surface | PRs 7, 12 |
 | 14 | ✅ `--uniprot FASTA`: canonical from a supplied UniProt FASTA (no API calls), GTF fallback, built-in Swiss-Prot merge ([evaluation](reports/2026-11-11-uniprot-fasta-evaluation.md)) | Reproducibility | Done 2026-11-11 |
 | 15 | ✅ Parallel junctions: `-p/--processes` (fork; workers return records, the main process writes in order); one process without `--uniprot` ([parallel audit](reports/2026-11-12-parallel-audit.md)) | Performance | Done 2026-11-12 |
+| 16 | Run record: per-junction `junctions.tsv`, a small log with an end-of-run summary, sequences only with `--verbose`, no `~module~function` suffix ([log audit](reports/2026-11-12-log-audit.md)) | UX | PRs 7, 8 |
+| 17 | GTF canonical from GENCODE's `Ensembl_canonical` tag when no transcript passes the TSL ≤ 2 / start-and-stop filter (384 coding genes have no canonical in the whole-genome run; the tag covers 173) — audit first ([mapping audit](reports/2026-11-12-uniprot-mapping-audit.md)) | Sci-integrity | PR 16 |
 
 ### Deferred to v0.5.x
 
@@ -797,7 +799,7 @@ currently can't be installed and run from scratch.
 - `Config` dataclass replacing module-state `params.py` (prerequisite for a
   clean GUI parameter panel).
 - Split `sequences.py` into translation / canonical / stitch modules.
-- gff3 input; APPRIS-tag canonical selection; "longest sequence" fallback when
+- gff3 input; APPRIS-tag canonical selection (the `Ensembl_canonical` fallback moved to v0.4.0 as PR 17); "longest sequence" fallback when
   UniProt fails.
 - ~~Optional concurrency.~~ Done in PR 15 (`-p`, with `--uniprot`).
 - StringTie input support.

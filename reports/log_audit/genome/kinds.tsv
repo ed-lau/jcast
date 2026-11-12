@@ -1,0 +1,11 @@
+kind	messages	bytes	share	bytes_per_junction
+slice nucleotides (Retrieved nucleotide …)	1199288	618686411	0.611	1032
+slice peptides (Translated AA …)	536003	114955966	0.114	192
+junction start (>>>>>> Doing …)	599644	73184588	0.072	122
+coding region (Transcription start … end …)	599644	71571754	0.071	119
+fate	599644	66122071	0.065	110
+slice frames (Retrieved phases)	599644	54699435	0.054	91
+PTC slice peptide (Force-Translated AA …)	47119	8886506	0.009	15
+orphan notice (Slice … does not stitch …)	17699	2407064	0.002	4
+canonical chosen (Canonical for …)	17068	2069013	0.002	3
+other	9	2017	0.000	0
