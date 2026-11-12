@@ -91,6 +91,78 @@ def _api_cache_put(cache_id, fasta) -> bool:
         con.close()
 
 
+def _annotated_transcripts(cds, gtf_gene) -> list:
+    """
+    The transcripts of these CDS rows that have annotated start and stop codons; transcripts with the same exons are
+    one, named by all of them
+
+    :param cds: CDS rows of the gene's candidate transcripts
+    :param gtf_gene: all rows of the gene
+    :return: list of AnnotatedTranscript
+    """
+    annotated_transcripts = []
+
+    for tx in sorted(cds['transcript_name'].drop_duplicates()):
+        tx_tbl = cds.query('transcript_name == @tx').sort_values(by=['exon_number'])
+        tx_exons = [ex for ex in zip(tx_tbl['start'], tx_tbl['end'])]
+        tx_protein_id = tx_tbl['protein_id'].drop_duplicates()
+
+
+        try:
+            tx_start_codon = gtf_gene.query('feature == "start_codon" & '
+                                            'transcript_name == @tx')[['start', 'end']].values.tolist()[0]
+            tx_end_codon = gtf_gene.query('feature == "stop_codon" & '
+                                            'transcript_name == @tx')[['start', 'end']].values.tolist()[0]
+            tx_frame = gtf_gene.query('feature == "start_codon" & '
+                                      'transcript_name == @tx')['frame'].drop_duplicates().values[0]
+
+        # some tsl-1 protein_coding CDS (from havana) have no start/stop codons in gtf. skip these for now.
+        # note that some have stop codon but not start codon. we should deal with these cases.
+        except IndexError:
+            # tx_start_codon = [None, None]
+            # tx_end_codon = [None, None]
+            # tx_frame = None
+            continue
+        # TODO: these pandas queries are ugly - any tidier way to get the cell values?
+
+        # check if the transcript is already the same as one with exactly the same exon arrangements
+        # if not then add the transcript to the pile
+        already_exists = False
+        if len(annotated_transcripts) > 0:
+            for at in annotated_transcripts:
+                if tx_exons == at.exons:
+                    already_exists = True
+                    at.transcript_name += ', {0}'.format(tx)
+
+        if not already_exists:
+            annotated_transcripts += [AnnotatedTranscript(transcript_name=tx,
+                                                          protein_id=tx_protein_id,
+                                                          exons=tx_exons,
+                                                          start_codon=tx_start_codon,
+                                                          end_codon=tx_end_codon,
+                                                          starting_translation_phase=tx_frame,
+                                        )
+            ]
+
+    return annotated_transcripts
+
+
+def _ensembl_canonical_cds(gtf_gene):
+    """
+    The CDS rows of the gene's protein_coding transcript tagged Ensembl_canonical, unless it is also tagged
+    readthrough_transcript; none for a GTF without these tags, such as the human and rat GTFs of the tests. gtfparse
+    joins a row's tags with commas, and tags are matched whole: GENCODE also has Ensembl_canonical_extended
+
+    :param gtf_gene: all rows of the gene
+    :return: data frame
+    """
+    if 'tag' not in gtf_gene.columns:
+        return gtf_gene.iloc[:0]
+    coding = gtf_gene.query('feature == "CDS" & transcript_biotype == "protein_coding"')
+    tags = [set(t.split(',')) if isinstance(t, str) else set() for t in coding['tag']]
+    return coding.loc[['Ensembl_canonical' in t and 'readthrough_transcript' not in t for t in tags]]
+
+
 class Sequence(object):
 
     def __init__(self,
@@ -461,53 +533,13 @@ class Sequence(object):
         filter_tx = gtf_gene.query('feature == "CDS" & '
                                    'transcript_biotype == "protein_coding" & '
                                    'transcript_support_level <= @tsl')
-        coding_tx = sorted(filter_tx['transcript_name'].drop_duplicates())
+        annotated_transcripts = _annotated_transcripts(filter_tx, gtf_gene)
 
-        # for each qualifying transcripts, get all the CDS
-
-        annotated_transcripts = []
-
-        for tx in coding_tx:
-            tx_tbl = filter_tx.query('transcript_name == @tx').sort_values(by=['exon_number'])
-            tx_exons = [ex for ex in zip(tx_tbl['start'], tx_tbl['end'])]
-            tx_protein_id = tx_tbl['protein_id'].drop_duplicates()
-
-
-            try:
-                tx_start_codon = gtf_gene.query('feature == "start_codon" & '
-                                                'transcript_name == @tx')[['start', 'end']].values.tolist()[0]
-                tx_end_codon = gtf_gene.query('feature == "stop_codon" & '
-                                                'transcript_name == @tx')[['start', 'end']].values.tolist()[0]
-                tx_frame = gtf_gene.query('feature == "start_codon" & '
-                                          'transcript_name == @tx')['frame'].drop_duplicates().values[0]
-
-            # some tsl-1 protein_coding CDS (from havana) have no start/stop codons in gtf. skip these for now.
-            # note that some have stop codon but not start codon. we should deal with these cases.
-            except IndexError:
-                # tx_start_codon = [None, None]
-                # tx_end_codon = [None, None]
-                # tx_frame = None
-                continue
-            # TODO: these pandas queries are ugly - any tidier way to get the cell values?
-
-            # check if the transcript is already the same as one with exactly the same exon arrangements
-            # if not then add the transcript to the pile
-            already_exists = False
-            if len(annotated_transcripts) > 0:
-                for at in annotated_transcripts:
-                    if tx_exons == at.exons:
-                        already_exists = True
-                        at.transcript_name += ', {0}'.format(tx)
-
-            if not already_exists:
-                annotated_transcripts += [AnnotatedTranscript(transcript_name=tx,
-                                                              protein_id=tx_protein_id,
-                                                              exons=tx_exons,
-                                                              start_codon=tx_start_codon,
-                                                              end_codon=tx_end_codon,
-                                                              starting_translation_phase=tx_frame,
-                                            )
-                ]
+        # if none qualifies, the transcript tagged Ensembl_canonical, at any TSL, if it is protein_coding with start and
+        # stop codons and is not a readthrough transcript: a readthrough spans two genes, and this gene's slices joined
+        # to it would read as fusion proteins (2026-11-12; reports/2026-11-12-ensembl-canonical-audit.md)
+        if not annotated_transcripts:
+            annotated_transcripts = _annotated_transcripts(_ensembl_canonical_cds(gtf_gene), gtf_gene)
 
         # the longest coding transcript is assumed to be canonical
         if len(annotated_transcripts) > 0:

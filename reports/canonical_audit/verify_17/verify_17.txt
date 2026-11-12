@@ -1,0 +1,15 @@
+before: 21e178f; after: 21e178f + working tree
+
+chr15 -r 1: 14 output files; identical before and after: yes; log summary identical: yes
+chr15 -m: 11 output files; identical before and after: yes; log summary identical: yes
+
+genome -m -c --uniprot -p 16:
+  after and the prototype (no_readthrough): 16 output files; identical: yes; log summary identical: yes
+  before and after: junctions.tsv 599,644 rows, 202 differ; every column but canonical_source, canonical_accession, files, new_records unchanged (fates, phases, coding regions): yes
+  before and after: jcast_uniprot_merged.fasta identical: yes
+  before and after: psq_isoforms.tsv identical: yes
+  before: Time: 5 min 22 s in all, of which 4 min 12 s translating junctions.
+  prototype: Time: 4 min 05 s in all, of which 3 min 03 s translating junctions.
+  after: Time: 5 min 25 s in all, of which 4 min 20 s translating junctions.
+  before and after, by gene: compare_pr17.txt
+

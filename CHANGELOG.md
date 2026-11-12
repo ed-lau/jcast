@@ -202,6 +202,30 @@ and §9.
 
   See [reports/2026-11-12-log-audit.md](reports/2026-11-12-log-audit.md)
   §7.
+- **The GTF canonical falls back to the `Ensembl_canonical` transcript
+  (PR 17).** The fallback applies when no transcript passes the GTF rule
+  (protein-coding, TSL ≤ 2, start and stop codons).
+  - **The transcript taken** is the one the GTF tags `Ensembl_canonical`,
+    at any TSL, if it is protein-coding, has start and stop codons, and is
+    not tagged `readthrough_transcript`.
+  - **Where it applies:** where the GTF canonical is used, i.e. with
+    `--uniprot` for a gene that matches no Swiss-Prot entry, and in
+    GTF-only runs. The API path is unchanged.
+  - **On the user's whole-genome run** (GENCODE v50):
+    - 17 genes get a canonical, 8 of them MANE Select. Most are recent
+      loci whose transcripts have no support level yet.
+    - `psq_canonical` grows from 13,474 to 13,491 records, and 2 orphan
+      records now join.
+    - No fate changes, and `jcast_uniprot_merged.fasta` is unchanged.
+  - **Readthrough genes get no GTF canonical,** by design. In that run they
+    are 370 of the 371 protein-coding genes still without a canonical.
+    Their transcripts span two neighbouring genes, so slices joined to them
+    would read as fusion proteins.
+  - **GTFs without the tag,** such as the bundled Ensembl 89 chr15, are
+    unaffected.
+
+  See [reports/2026-11-12-ensembl-canonical-audit.md](reports/2026-11-12-ensembl-canonical-audit.md)
+  §10.
 - **Each run writes a fresh output directory (PR 7).**
   - `-o` is created if it does not exist. Before, it had to exist, even the
     default `out/`.

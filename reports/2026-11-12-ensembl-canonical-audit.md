@@ -3,11 +3,11 @@
 | | |
 |---|---|
 | **Date** | 2026-11-12 |
-| **Status** | Decisions approved 2026-11-12 (§9): option 1, the fallback without readthrough transcripts, as PR 17. Audit measured at `ae3d937`, with a prototype (two audit-only variants) run on the whole genome (§6). |
+| **Status** | Decisions approved 2026-11-12 (§9): option 1, the fallback without readthrough transcripts. **Implemented in PR 17** (§10). Audit measured at `ae3d937`, with a prototype (two audit-only variants) run on the whole genome (§6). |
 | **Question** | When no transcript passes the GTF canonical rule (protein_coding, TSL ≤ 2, annotated start and stop codons), should JCAST take the transcript GENCODE tags `Ensembl_canonical`? Scheduled as PR 17 by the [mapping audit](2026-11-12-uniprot-mapping-audit.md#7-decisions-2026-11-12) decision 3, which counted 173 of 384 coding genes that it would cover. |
-| **Reproduce** | `python reports/canonical_audit/audit_canonical.py genes --gtf <gtf> --run <output dir> --rmats <dir>` (≈ 1 min with the GTF cache) · `… compare --before <dir> --after <dir> --label <name>` |
+| **Reproduce** | `python reports/canonical_audit/audit_canonical.py genes --gtf <gtf> --run <output dir> --rmats <dir>` (≈ 1 min with the GTF cache) · `… compare --before <dir> --after <dir> --label <name>` · PR 17: `python reports/canonical_audit/verify_17.py --before <checkout> --after <checkout> [--genome_before <dir> --genome_prototype <dir> --genome_after <dir>]` (≈ 4 min) |
 | **Inputs** | The user's whole-genome data (599,644 junctions, GENCODE v50, GRCh38, Swiss-Prot human with isoforms 2026_04), run with `-m -c --uniprot -p 16` at PR 16 (`a85f8fc`; output identical to `f181966`, [log audit §7](2026-11-12-log-audit.md#7-implementation-and-verification-pr-16-a85f8fc)). Not bundled. |
-| **Evidence** | [canonical_audit/genome/summary.txt](canonical_audit/genome/summary.txt) · [genes.tsv](canonical_audit/genome/genes.tsv) (one row per gene of the run without a canonical) · [compare_all.txt](canonical_audit/genome/compare_all.txt) · [compare_no_readthrough.txt](canonical_audit/genome/compare_no_readthrough.txt) · [prototype.diff](canonical_audit/prototype.diff) |
+| **Evidence** | [canonical_audit/genome/summary.txt](canonical_audit/genome/summary.txt) · [genes.tsv](canonical_audit/genome/genes.tsv) (one row per gene of the run without a canonical) · [compare_all.txt](canonical_audit/genome/compare_all.txt) · [compare_no_readthrough.txt](canonical_audit/genome/compare_no_readthrough.txt) · [prototype.diff](canonical_audit/prototype.diff) · PR 17: [canonical_audit/verify_17/verify_17.txt](canonical_audit/verify_17/verify_17.txt) · [compare_pr17.txt](canonical_audit/verify_17/compare_pr17.txt) |
 
 ## 1. Summary
 
@@ -245,3 +245,66 @@ Whichever option is taken:
    are better left as orphans than joined to fusion proteins.
 2. **The README says that readthrough genes get no canonical, and why.**
    Approved, with PR 17.
+
+## 10. Implementation and verification: PR 17
+
+**What changed** ([sequences.py](../jcast/sequences.py)):
+- `Sequence.get_annotated_transcripts_gtf` applies the rule as before.
+  If no transcript passes, it takes the CDS rows of the gene's transcript
+  tagged `Ensembl_canonical` (`_ensembl_canonical_cds`):
+  - of type protein_coding;
+  - not tagged `readthrough_transcript`;
+  - at any TSL.
+
+  The same start- and stop-codon test then applies
+  (`_annotated_transcripts`, the rule's loop, moved out unchanged).
+- Tags are split on commas and matched whole. A GTF without a `tag`
+  column gets no fallback.
+- This is the prototype's `no_readthrough` variant without its switch.
+  The fallback rows are computed only for a gene the rule gives nothing;
+  the prototype computed them for every gene.
+
+**Tests** ([tests/test_gtf_canonical.py](../tests/test_gtf_canonical.py),
+10 tests, on a synthetic GENCODE-style GTF):
+- a gene with TSL NA transcripts only gets the tagged transcript, not a
+  longer untagged one, translated from its start codon;
+- no canonical when the tagged transcript is a readthrough or an NMD
+  transcript, lacks a start or a stop codon, or carries only
+  `Ensembl_canonical_extended`;
+- a gene with a transcript that passes the rule keeps the rule's choice;
+- no fallback for a GTF without tags. The bundled human and rat GTFs
+  (Ensembl 89 and 100) carry no `Ensembl_canonical` tag.
+
+With the fallback switched off, the 3 tests of the tagged gene fail. All
+148 tests pass. Both golden tests are unchanged.
+
+**Verification**
+([verify_17.py](canonical_audit/verify_17.py),
+[verify_17.txt](canonical_audit/verify_17/verify_17.txt)). The code
+before is `21e178f` and the code after is its working tree, each frozen
+in a git worktree.
+- **chr15** (`-c --uniprot`, with `-r 1` and with `-m`): every output
+  file is identical, and so is the log's summary.
+- **Whole genome** (`-m -c --uniprot -p 16`):
+  - The run after is byte-identical to the prototype's `no_readthrough`
+    run (§6): all 16 output files but the log and `model.pdf`, and the
+    log's summary.
+  - Against the run before
+    ([compare_pr17.txt](canonical_audit/verify_17/compare_pr17.txt)), as
+    in §6:
+    - 17 genes go from no canonical to a GTF canonical;
+    - `psq_canonical` 13,474 → 13,491; `psq_T1` +1 and `psq_T4` +1;
+      their orphan files −3 and −2;
+    - 202 rows of `junctions.tsv` differ, in the canonical, the files
+      and the records written only. Fates, frames and coding regions are
+      unchanged;
+    - `jcast_uniprot_merged.fasta` and `psq_isoforms.tsv` are identical.
+  - **Still without a canonical:** 371 protein-coding genes, holding
+    376 orphan records. 370 are readthrough genes, and hold all 376. The
+    other is CNTNAP3C, whose `Ensembl_canonical` CDS is incomplete
+    (`cds_end_NF`).
+  - **Time:** no measurable change. Run back to back on a busy machine
+    (load average above 30), the junctions took 4 min 12 s to translate
+    before and 4 min 20 s after. A first run after took 3 min 47 s, also
+    under load; the prototype took 3 min 03 s on a quieter machine. Both
+    the repeated runs reproduce the first runs' output exactly.

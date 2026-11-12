@@ -185,6 +185,27 @@ UniProt's own Ensembl cross-references for 99.35% of protein-coding genes
 that have a Swiss-Prot entry
 ([reports/2026-11-12-uniprot-mapping-audit.md](reports/2026-11-12-uniprot-mapping-audit.md)).
 
+**The GTF canonical** is the longest coding sequence among the gene's
+protein-coding transcripts that have transcript support level ≤
+`params.tsl_threshold` (2) and annotated start and stop codons. If none
+qualifies, it is the transcript the GTF tags `Ensembl_canonical`, as
+GENCODE GTFs do, at any support level, if:
+- it is protein-coding;
+- it has annotated start and stop codons;
+- it is not tagged `readthrough_transcript`.
+
+**Readthrough genes get no GTF canonical** unless one of their
+transcripts passes the first rule.
+- A readthrough transcript spans two neighbouring genes.
+- rMATS reports each event under one gene only. In a whole-genome human
+  run, 45% of the readthrough genes' skipped-exon events skip an exon of
+  another protein-coding gene.
+- Joined to a readthrough canonical, their slices would read as fusion
+  proteins, so they are written as orphans (`_orphan` files).
+- In that run (GENCODE v50, Swiss-Prot), 370 of the 371 protein-coding
+  genes left without a canonical are readthrough genes
+  ([reports/2026-11-12-ensembl-canonical-audit.md](reports/2026-11-12-ensembl-canonical-audit.md)).
+
 **Swiss-Prot or Swiss-Prot + TrEMBL.**
 - For human, Swiss-Prot is recommended.
 - A FASTA that also holds TrEMBL entries (`reviewed:false`) is accepted.
