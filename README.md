@@ -130,8 +130,9 @@ optional arguments:
   -m, --model           take the read count cutoff from a Gamma + Normal
                         mixture model of the read counts, instead of -r
                         (used only if the fit fails) [default: False]
-  -c, --canonical       write canonical protein sequences even when a slice
-                        is untranslatable [default: False]
+  -c, --canonical       write the canonical protein of every gene with a
+                        junction to psq_canonical.fasta, whatever the
+                        junction's fate [default: False]
   --uniprot UNIPROT     UniProt FASTA to take canonical proteins from instead
                         of the UniProt API (see below) [default: use the API]
   -p, --processes PROCESSES
@@ -152,8 +153,11 @@ optional arguments:
 ### Canonicals from a UniProt FASTA (`--uniprot`, recommended)
 
 By default JCAST asks the UniProt API for each gene's canonical protein.
-With `--uniprot`, it reads a UniProt FASTA you supply instead. This needs
-no network access, and the file records which UniProt release was used.
+If a request fails after its retries, or is refused, that junction fails
+(`FAILURE (exception)`, see below) rather than going on without a
+canonical, and the run continues. With `--uniprot`, JCAST reads a UniProt
+FASTA you supply instead. This needs no network access, and the file
+records which UniProt release was used.
 Download Swiss-Prot with isoforms for your species, for human:
 
 ```bash
@@ -167,10 +171,29 @@ record it; the download's `X-UniProt-Release` response header does.
 Each gene's canonical is chosen as follows:
 1. the UniProt canonical whose sequence equals a protein translated from
    one of the gene's GTF transcripts;
-2. else the one whose gene name (`GN=`) is the gene symbol;
+2. else the one whose gene name (`GN=`) is the gene symbol, if no other
+   gene in the GTF has that symbol;
 3. else the GTF canonical.
 
-A match is used only if it is unique. The run also writes:
+A match is used only if it is unique. No identifiers are mapped: GTFs
+carry no UniProt accessions. On a whole human genome this agrees with
+UniProt's own Ensembl cross-references for 99.35% of protein-coding genes
+that have a Swiss-Prot entry
+([reports/2026-11-12-uniprot-mapping-audit.md](reports/2026-11-12-uniprot-mapping-audit.md)).
+
+**Swiss-Prot or Swiss-Prot + TrEMBL.**
+- For human, Swiss-Prot is recommended.
+- A FASTA that also holds TrEMBL entries (`reviewed:false`) is accepted.
+  TrEMBL entries are used only after Swiss-Prot, by the same rules.
+- Adding TrEMBL gives a canonical to some genes that have neither a
+  Swiss-Prot entry nor a GTF canonical. In a whole human genome that is
+  203 genes. Their records can then be joined instead of written as
+  orphans.
+- For species with little Swiss-Prot coverage, include TrEMBL.
+- Records joined to a TrEMBL canonical are named `tr|…`. They are left out
+  of `jcast_uniprot_merged.fasta`, which merges Swiss-Prot only.
+
+The run also writes:
 - `uniprot_canonicals.tsv`: the canonical chosen per gene, and how.
 - `psq_isoforms.tsv`: every JCAST record identical to a UniProt canonical
   or isoform.

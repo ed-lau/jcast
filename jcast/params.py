@@ -41,6 +41,7 @@ reports/2026-11-11-uniprot-fasta-evaluation.md
 """
 use_gtf_only = False  # use GTF but not Uniprot to get canonical transcripts
 uniprot_max_retries = 10  # max number of retries if retrieving sequences from Uniprot
+uniprot_timeout = 30  # seconds to wait for each UniProt API request (connect, and between bytes read)
 aa_stitch_length = 7  # anchor length (residues) for joining a translated slice to the canonical
 aa_terminus_length = 10  # residues compared at each end to decide whether a product's terminus differs from the canonical
 

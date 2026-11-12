@@ -16,6 +16,7 @@ the difference in CHANGELOG.md. History:
         records between joined and orphan files; reports/2026-11-11-stitch-anchor-audit.md §9
     PR 6 (keep a junction if its read count >= -r; -r 1 now keeps every junction) translates the 297 junctions with 1
         read; reports/2026-11-12-thresholds-runs-canonical-audit.md §9
+    PR 8 (-c writes the canonical on every path) adds 3 canonical records, one per gene with a canonical; same report §10
 """
 
 import argparse
@@ -53,7 +54,7 @@ EXPECTED_FASTA = {
     'psq_T2_orphan.fasta': (6, '105037b254205e97'),
     'psq_T4.fasta': (350, '37e01ff952fcd5eb'),
     'psq_T4_orphan.fasta': (82, '0d2597931bd80267'),
-    'psq_canonical.fasta': (266, '2d5de4ca94513af5'),
+    'psq_canonical.fasta': (269, '65fff2c723304758'),
 }
 
 

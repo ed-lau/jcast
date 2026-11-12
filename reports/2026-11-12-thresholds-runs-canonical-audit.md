@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-12 |
-| **Status** | Proposals in §2.4, §3.6 and §4.4; decisions requested in §6 and taken 2026-11-12 (§7). **PR 7 implemented in `460005d` (§8); PR 6 implemented in `05a6931` (§9).** PR 8 to follow. The audit was measured at `8b845aa`. |
+| **Status** | Proposals in §2.4, §3.6 and §4.4; decisions requested in §6 and taken 2026-11-12 (§7). **PR 7 implemented in `460005d` (§8); PR 6 implemented in `05a6931` (§9); PR 8 implemented and verified (§10).** The audit was measured at `8b845aa`. |
 | **Question** | Do the read-count cutoffs apply what they say (PR 6)? What goes wrong in real runs: output directory, reruns, one failing junction, the logger, the caches (PR 7)? Does `-c` write every gene's canonical, and what does a UniProt API failure do to a run (PR 8)? |
 | **Reproduce** | `python reports/runs_audit/audit_runs.py [--rmats <dir> --jcast_out <dir> --uniprot <fasta>]` (≈ 10 min on chr15; the whole-genome arguments add read counts and `-c` coverage from an existing run) · `python reports/runs_audit/bench_gtf_cache.py --cached <gtf>.cached --scratch <dir>` |
 | **Inputs** | The chr15 test set (1,105 junctions); the 12 rMATS sets in `tests/data/model/`; the user's whole-genome run of 2026-11-12 (NMDI RNA-seq, 599,644 junctions; GENCODE v50; Swiss-Prot 2026_04; `-m -c --uniprot -p 8`), not bundled. |
@@ -701,4 +701,103 @@ the user's full run of 599,644 junctions, with `-m -p 16` (after) against
 - `test_chr15_uniprot`: `psq_T1` 186 → 253, `psq_canonical` 275 → 272.
 - The canonical records lost are the MED-14 effect predicted in §2.2. PR 8
   writes the canonical on every path.
+
+## 10. Implementation and verification: PR 8
+
+**What changed:**
+
+- **`-c` on every path** ([jcast/main.py](../jcast/main.py)):
+  - `_translate_one` builds the `Sequence`, runs the tiering steps (now
+    `_translate`), and then, with `-c`, writes the gene's canonical.
+  - If the path never looked the canonical up (a skipped or masked
+    junction), it is looked up first. A new `Sequence.canonical_looked_up`
+    records whether it was.
+  - The per-path `write_canonical` calls are gone.
+  - A junction that raises writes nothing, its canonical included (PR 7).
+- **`write_canonical`** writes the canonical if there is one; the API
+  fallback is removed (decision 9).
+- **API failures** ([jcast/sequences.py](../jcast/sequences.py)):
+  - A connection error, a timeout, or a retryable status (429 and 5xx)
+    after the retries raises the new `UniProtAPIError`. So does any other
+    answer than 200.
+  - The EBI Proteins API answers 200 with an empty body for a gene
+    without an entry (checked 2026-11-12), so "no entry" still gives an
+    empty canonical.
+  - Requests time out after 30 s (`params.uniprot_timeout`), and 429 is
+    retried.
+  - The end-of-run warning counts failures by exception type, and suggests
+    `--uniprot` for API failures.
+- **Gene names under `--uniprot`**
+  ([mapping audit](2026-11-12-uniprot-mapping-audit.md) decision 4):
+  - `ReadAnnotations` counts the genes per `gene_name`.
+  - `UniProtFasta` matches by name only if `annots.gene_name_is_unique`.
+- **README:**
+  - `-c` help;
+  - API failures;
+  - the mapping rules, and the Swiss-Prot + TrEMBL option (mapping audit
+    decision 2).
+- **Tests:** 15 new in `tests/test_canonical.py`, 114 in all.
+  - The `-c` paths: a T1 junction (TSPAN3), and a masked junction with GTF
+    canonicals and with `--uniprot`.
+  - No API request for an empty canonical.
+  - Each kind of API failure, and its effect in a run.
+  - The unique-name rule.
+  - Golden `psq_canonical`: 266 → 269, and 272 → 276 with `--uniprot`.
+
+**Verification** ([runs_audit/verify_8/verify_8.txt](runs_audit/verify_8/verify_8.txt),
+`verify_8.py`). Code under test frozen in git worktrees: before =
+`f40573d`; after = `f40573d` plus this change.
+
+- **chr15 through the CLI with `-c --uniprot`** (`-r 1`, `-r 2`,
+  `-r 1 -p 3`):
+  - Every output file except `psq_canonical.fasta` is byte for byte
+    identical.
+  - `psq_canonical.fasta` only gains records: 272 → 276 at `-r 1`
+    (TSPAN3, CELF6, DIS3L, FBXL22), and 275 → 276 at `-r 2` (TSPAN3).
+  - Every gene with a canonical now has a record: 276 of 276.
+- **The API path on chr15** (`-c`, API replaced by a stub serving the local
+  cache):
+
+  | | Before | After |
+  |---|---|---|
+  | API answering | 1,008 requests (244 from `write_canonical`) | 764 requests; fates and every `psq_T*` file identical; `psq_canonical` 181 → 184 |
+  | Every request refused (HTTP 429) | run completes; every joined record moved to orphans (`psq_T1` 0, `psq_T4_orphan` 724) | all 1,105 junctions `FAILURE (exception). UniProtAPIError`; nothing written; the run completes and warns |
+  | Network down | all 1,105 `FAILURE (exception)` (PR 7 already) | the same, as `UniProtAPIError` |
+
+- **Whole genome** ([runs_audit/verify_8/genome_pair.txt](runs_audit/verify_8/genome_pair.txt)
+  and the genome part of `verify_8.txt`): the user's full run,
+  `-m -c --uniprot -p 16`, before and after.
+  - **Fates identical.**
+  - **Files identical except four:** `psq_canonical.fasta`,
+    `uniprot_canonicals.tsv`, `psq_T4.fasta` and `psq_T4_orphan.fasta`.
+    `jcast_uniprot_merged.fasta` and `psq_isoforms.tsv` are identical.
+  - **`-c` coverage complete:** every one of the 13,546 genes with a
+    canonical has its record.
+    - The check flags GPR89A, whose GTF canonical is identical to GPR89B's
+      (455 residues, checked). It is written once, under GPR89B's header,
+      because records are de-duplicated by sequence.
+    - Before: 5 of 13,622 missing (PDK4, GPC4, HMOX1, MORN2, and
+      GPR89A as above).
+  - **`psq_canonical.fasta`: 13,518 → 13,474 records.**
+    - Gained 5: the 4 MED-14 genes, and the second PINX1's own GTF
+      canonical.
+    - Lost 49: all Swiss-Prot entries that were by-name canonicals of
+      genes whose name is not unique (below). They remain in
+      `jcast_uniprot_merged.fasta`.
+  - **The unique-name rule changed the canonical of 77 genes,** not 1 as
+    the [mapping audit](2026-11-12-uniprot-mapping-audit.md#8-addendum-the-unique-name-rule-on-the-whole-genome-pr-8)
+    expected.
+    - GENCODE v50 has 484 gene names used by more than one gene.
+    - 72 of the 77 are non-coding: lncRNA and pseudogene loci sharing a
+      name, such as two PMS2P3s, or a lncRNA named CAST. They produce no
+      records.
+    - 5 are coding loci named like another gene: the second PINX1, PDE8B,
+      KYAT1, HERC3 and DUSP13B. In every case the other gene of that
+      name, the established one, still maps by sequence and keeps the
+      entry.
+    - **Records moved:** 2 T4 records of the novel HERC3-named locus
+      (ENSG00000287542) are now orphans.
+
+**Golden tests:** `psq_canonical` 266 → 269 (GTF-only) and 272 → 276
+(`--uniprot`). Every other file and fate is unchanged.
 

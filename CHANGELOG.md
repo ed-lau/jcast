@@ -33,21 +33,27 @@ change has an audit under [reports/](reports/README.md).
 
 Cumulative effect on the bundled chr15 data:
 
-| Fate | v0.3.5a | v0.4.0 |
-|---|---|---|
-| T1 | 185 | 220 |
-| T1 ALT TERMINUS | – | 24 |
-| T2 | 25 | 30 |
-| T3 | 2 | – |
-| T4 | 236 | 289 |
-| FAIL | 360 | 153 |
-| Skipped, low count | 297 | 297 |
-| Skipped, outside the coding region | – | 92 |
+| Fate | v0.3.5a | v0.4.0, `-r 2` (as v0.3.5a's `-r 1`) | v0.4.0, default `-r 1` |
+|---|---|---|---|
+| T1 | 185 | 220 | 301 |
+| T1 ALT TERMINUS | – | 24 | 26 |
+| T2 | 25 | 30 | 49 |
+| T3 | 2 | – | – |
+| T4 | 236 | 289 | 403 |
+| FAIL | 360 | 153 | 207 |
+| Skipped, low count | 297 | 297 | 0 |
+| Skipped, outside the coding region | – | 92 | 119 |
 
-`psq_T1.fasta` grows from 152 to 179 records. The new
-`psq_T1_alt_cterm.fasta` and `psq_T1_alt_nterm.fasta` hold 18 and 5.
-`psq_canonical.fasta` is unchanged (268). Re-running is recommended for any analysis that used RI
-output, C-terminal events or lower tiers.
+Changes to the output files:
+- **`psq_T1.fasta`:** 152 records in v0.3.5a; 179 in v0.4.0 at `-r 2`;
+  244 at the new default `-r 1` (PR 6).
+- **New files:** `psq_T1_alt_cterm.fasta` and `psq_T1_alt_nterm.fasta`
+  hold 18 and 5 at `-r 2`.
+- **`psq_canonical.fasta`:** 268 records up to PR 5; 269 from PR 8, with
+  one record for every gene that has a canonical.
+
+Re-running is recommended for any analysis that used RI output,
+C-terminal events or lower tiers.
 
 **Decisions recorded during PR 4b.** The candidate carried two switches for
 the audit only, `three_frame_fallback` and `frame_for_start_less_slice`.
@@ -241,6 +247,43 @@ and §9.
   `TODO.md`, and the Quarto sources under `jcast_website/`.
 
 ### Fixed
+- **`-c` now writes every gene's canonical (PR 8).**
+  - Before, the T1, T2 and T4 paths wrote it only when a translated slice
+    equalled it. Masked junctions never wrote it: the masked-base check
+    came before the canonical lookup.
+  - Missing before: 1 chr15 gene at `-r 2` and 4 at `-r 1` (with
+    `--uniprot`), and 5 of
+    13,622 genes in a whole-genome run (REVIEW.md MED-14).
+- **`write_canonical` no longer asks the UniProt API again** for an empty
+  canonical (PR 8).
+  - It sent two requests and discarded the answers, so it never wrote
+    anything; it also did so in GTF-only mode (MED-9).
+  - On chr15 this was 244 of 1,008 requests.
+- **UniProt API failures no longer abort the run or silently change it
+  (PR 8; MED-10).**
+  - A connection error, timeout or server error after the retries now
+    fails that junction (`FAILURE (exception)`, PR 7). Before, it aborted
+    the run.
+  - So does any refusal, such as HTTP 429 (too many requests). Before, a
+    refusal was taken as "no canonical", which moved all the gene's
+    records to orphan files: chr15 `psq_T1` 149 → 0 when every request
+    was refused.
+  - Requests now time out after 30 s (`params.uniprot_timeout`); they
+    could hang forever. 429 is retried like server errors.
+  - The end-of-run warning counts API failures and suggests `--uniprot`.
+
+  See [reports/2026-11-12-thresholds-runs-canonical-audit.md](reports/2026-11-12-thresholds-runs-canonical-audit.md) §4 and §10.
+- **`--uniprot` matches a gene name only if no other gene in the GTF has
+  it (PR 8).**
+  - GENCODE v50 has 484 names shared by several genes. For example, two
+    genes are named PINX1, and the second took PINX1's Swiss-Prot entry by
+    name.
+  - In a whole-genome run, 77 genes lose a by-name canonical. 72 are
+    duplicated lncRNA or pseudogene loci; 5 are coding loci named like an
+    established gene, which keeps the entry by sequence.
+  - 2 T4 records become orphans. 49 Swiss-Prot entries of duplicated
+    pseudogene names leave `psq_canonical.fasta`; they stay in the merged
+    database. See [reports/2026-11-12-uniprot-mapping-audit.md](reports/2026-11-12-uniprot-mapping-audit.md).
 - **A second run in the same process logged every line twice,** once
   into the first run's log (REVIEW.md MED-13). Matters for the GUI,
   notebooks and tests. Each run now closes its log when it ends (PR 7).

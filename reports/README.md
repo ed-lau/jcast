@@ -34,9 +34,9 @@ network. There are two exceptions:
 | [Soft-masked and ambiguous genome bases](2026-11-11-masked-bases-audit.md) | 3 | **Implemented in `fcdc0ee`** (§8); decisions approved 2026-11-11 (§7) | audit: `819cc53`; verification: `fcdc0ee` (`python reports/mask_audit/audit_mask.py --softmasked …dna_sm.chromosome.15.fa.gz [--verify]`); genome survey with `survey_genome.py` (GENCODE GRCh38 + v50 GTF, not bundled) |
 | [Joining slices to the canonical; anchor length](2026-11-11-stitch-anchor-audit.md) | 5 | **Implemented in `2142711`** (§9); decisions approved 2026-11-11 (§8) | audit: `887a98a` (`python reports/stitch_audit/audit_stitch.py`); verification: `2142711` (`verify_5.py`); proteome survey with `survey_anchors.py` (GENCODE v50, not bundled) |
 | [Run time on a whole genome; parallel junctions](2026-11-12-parallel-audit.md) | 9, 15 | **PR 9 implemented in `cde553d`** (§8); **PR 15 implemented in `9d2865e`** (§9); decisions approved 2026-11-12 (§7) | audit: `000deb1` (`python reports/parallel_audit/audit_parallel.py --rmats … --gtf … --genome … --uniprot …`); PR 9 verification: `cde553d` (`verify_runs.py`, §8); PR 15 verification: `9d2865e` (`verify_runs.py … --run p16=.:16`, §9); whole-genome inputs not bundled |
-| [Read-count thresholds; robustness of real runs; canonicals under `-c`](2026-11-12-thresholds-runs-canonical-audit.md) | 6, 7, 8 | Decisions taken 2026-11-12 (§7). **PR 7 implemented in `460005d`** (§8); **PR 6 in `05a6931`** (§9); PR 8 to follow | audit: `8b845aa` (`python reports/runs_audit/audit_runs.py [--rmats … --jcast_out … --uniprot …]`; `bench_gtf_cache.py --cached … --scratch …`); PR 7 verification: `460005d` (`verify_7.py --before … --after …` and `reports/parallel_audit/verify_runs.py`, §8); PR 6 verification: `05a6931` (`verify_6.py --pair …`, §9); whole-genome inputs not bundled |
+| [Read-count thresholds; robustness of real runs; canonicals under `-c`](2026-11-12-thresholds-runs-canonical-audit.md) | 6, 7, 8 | Decisions taken 2026-11-12 (§7). **PR 7 implemented in `460005d`** (§8); **PR 6 in `05a6931`** (§9); **PR 8 implemented** (§10) | audit: `8b845aa` (`python reports/runs_audit/audit_runs.py [--rmats … --jcast_out … --uniprot …]`; `bench_gtf_cache.py --cached … --scratch …`); PR 7 verification: `460005d` (`verify_7.py --before … --after …` and `reports/parallel_audit/verify_runs.py`, §8); PR 6 verification: `05a6931` (`verify_6.py --pair …`, §9); PR 8 verification: `verify_8.py --before … --after … [--genome_before … --genome_after … --uniprot_full …]` (§10); whole-genome inputs not bundled |
 | [The run log's size and content](2026-11-12-log-audit.md) | 6, 16 | Decisions approved 2026-11-12 (§6): filter first, **done in PR 6 (`05a6931`)**; `junctions.tsv`, a small log and `--verbose` as PR 16 | audit: `8b845aa` (`python reports/log_audit/audit_log.py --log …`; `time_filter_first.py`); whole-genome log not bundled |
-| [How `--uniprot` maps genes to UniProt entries](2026-11-12-uniprot-mapping-audit.md) | 8, 17 | Decisions approved 2026-11-12 (§7): mapping kept; unique-name rule and TrEMBL note with PR 8; `Ensembl_canonical` fallback as PR 17 | audit: `8b845aa` (`python reports/mapping_audit/audit_mapping.py --jcast_out … --uniprot … --gtf_cached … --xrefs … --gtf … --genome …`); whole-genome inputs and UniProt cross-references (release 2026_04) not bundled |
+| [How `--uniprot` maps genes to UniProt entries](2026-11-12-uniprot-mapping-audit.md) | 8, 17 | Decisions approved 2026-11-12 (§7): mapping kept; unique-name rule and TrEMBL note **done in PR 8** (its measured effect: §8); `Ensembl_canonical` fallback as PR 17 | audit: `8b845aa` (`python reports/mapping_audit/audit_mapping.py --jcast_out … --uniprot … --gtf_cached … --xrefs … --gtf … --genome …`); whole-genome inputs and UniProt cross-references (release 2026_04) not bundled |
 | [A supplied UniProt FASTA; joining by coordinates](2026-11-11-uniprot-fasta-evaluation.md) | 14 | **Implemented in `0f3b409`** (§8); decisions approved 2026-11-11 (§7) | evaluation: `8b0c024` (`python reports/uniprot_eval/evaluate_uniprot_fasta.py --uniprot <Swiss-Prot FASTA>`); verification: `0f3b409` (`verify_14.py --uniprot <Swiss-Prot FASTA>`); both need the local UniProt cache |
 
 Each script compares a baseline commit with the working tree, or patches
@@ -100,10 +100,12 @@ every output file's contents. Its values at each stage:
 | PR 4c: alternative termini (+ T1 ALT 25) | `e11cc86` | 153 | 289 | 297 | 92 | 219 | 30 | – | 173 |
 | PR 5: joining to the canonical (+ T1 ALT 24) | `2142711` | 153 | 289 | 297 | 92 | 220 | 30 | – | 179 |
 | PR 6: `-r 1` keeps every junction (+ T1 ALT 26) | `05a6931` | 207 | 403 | 0 | 119 | 301 | 49 | – | 244 |
+| PR 8: `-c` writes the canonical on every path (fates and `psq_T*` unchanged) | PR 8 | 207 | 403 | 0 | 119 | 301 | 49 | – | 244 |
 
 `psq_canonical.fasta` has 268 records at every stage up to PR 5, and 266
 from PR 6: two genes whose junctions are now translated lost the canonical
-their skipped junctions wrote (MED-14). Up to PR 4c, no
+their skipped junctions wrote (MED-14). From PR 8 it has 269, one for every
+gene with a canonical. Up to PR 4c, no
 `psq_T1.fasta` sequence matching an annotated protein is lost at any stage.
 PR 5 removes one: CD276-201. It came only from a join at the wrong copy of
 a repeated anchor
@@ -119,6 +121,9 @@ PR 14 leaves this test unchanged: it does not use `--uniprot`. The new
 records, `psq_canonical` 275, and `jcast_uniprot_merged.fasta` 837 (711
 UniProt entries + 126 JCAST records)
 ([UniProt evaluation §8](2026-11-11-uniprot-fasta-evaluation.md#8-implementation-and-verification-pr-14)).
+- **From PR 6 (`-r 1` keeps every junction):** `psq_T1` 253, `psq_canonical`
+  272, and `jcast_uniprot_merged.fasta` 893.
+- **From PR 8:** `psq_canonical` 276, one for every gene with a canonical.
 
 ## New defects found during the audits
 
@@ -131,17 +136,27 @@ UniProt entries + 126 JCAST records)
   Fixed in PR 4b2.
 - **`-c` does not write the canonical for genes whose junctions all
   succeed** (REVIEW.md MED-14; 2 chr15 genes), found while verifying
-  PR 4c. Scheduled for PR 8.
+  PR 4c. The PR 6–8 audit found that masked junctions never wrote it
+  either. Fixed in PR 8.
 - **Hard-masked genomes silently drop junctions**, found in the PR 3 audit
   (§4.2). The README recommended them as a workaround for soft-masking;
   on chr15, 206 of 1,105 junctions (20 successes) are skipped as masked.
 - **One exception aborts the whole run**, found in the PR 3 audit: the
-  per-junction loop catches nothing. Approved for PR 7.
+  per-junction loop catches nothing. Fixed in PR 7.
 - **Joins at an already-complete end returned the canonical**, found in
   the PR 5 audit. A T4 peptide ending at its stop codon was joined
   C-terminally; a peptide starting at the gene's start codon was joined
   N-terminally. 10 of 12 wrong joins on chr15 gave exactly the canonical.
   Fixed in PR 5.
+- **A half-written GTF cache was read without error**, found in the
+  [PR 6–8 audit](2026-11-12-thresholds-runs-canonical-audit.md) (§3.5). A run started while another wrote the cache
+  read half the genes. Fixed in PR 7.
+- **A refused UniProt API request silently orphaned every record**, found
+  in the [PR 6–8 audit](2026-11-12-thresholds-runs-canonical-audit.md) (§4.3). HTTP 429 and other refusals were
+  taken as "no canonical". Fixed in PR 8.
+- **`-m` cut two reads above the model's boundary**, found in the
+  [PR 6–8 audit](2026-11-12-thresholds-runs-canonical-audit.md) (§2.3): 3,410 of 131,233 whole-genome junctions
+  dropped. Fixed in PR 6.
 - **The T4 length threshold was mis-documented.** It decides whether the
   truncated product is joined to the canonical, not whether it is written.
   Corrected in the README and REVIEW.md with PR 4b.

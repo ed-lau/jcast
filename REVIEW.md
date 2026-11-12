@@ -443,7 +443,7 @@ and then raises `FileNotFoundError` (this is the existing `TODO` at main.py:35).
 The check also uses `assert`, which is stripped under `python -O`; use
 `parser.error`.
 
-### MED-9 — `write_canonical`'s UniProt fallback is a no-op ◎ *(new)*
+### MED-9 — `write_canonical`'s UniProt fallback is a no-op ◎ *(new)* — **fixed in PR 8**
 
 [jcast/sequences.py:537-543](jcast/sequences.py#L537-L543). It calls
 `get_canonical_aa_uniprot()` but discards the return value instead of
@@ -451,7 +451,9 @@ assigning `self.canonical_aa`. The fallback never writes anything, yet still
 costs a network request, and it does so even when `params.use_gtf_only` is
 set.
 
-### MED-10 — A network failure aborts the entire run ◎ *(new)*
+*2026-11-12, PR 8:* the fallback is removed. It never wrote anything: the canonical is already looked up, with `-c`, on every path ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md) §7 item 9).
+
+### MED-10 — A network failure aborts the entire run ◎ *(new)* — **fixed in PR 8**
 
 *Avoidable since PR 14: with `--uniprot`, JCAST makes no network calls
 (MED-5 and MED-9 do not apply either). The API path is unchanged.*
@@ -461,6 +463,8 @@ are exhausted, `rqs.get(...)` raises `requests.exceptions.ConnectionError` /
 `RetryError`, which nothing catches. A transient EBI outage hours into a run
 kills it. Catch the exception, log it, return an empty record, and let the
 junction fall through to orphan/fail.
+
+*2026-11-12, PR 8:* a failed or refused request raises `UniProtAPIError`, and that junction fails (`FAILURE (exception)`, PR 7). The run continues. The audit found a worse case than the abort: a refusal such as HTTP 429 was taken as "no canonical" and silently orphaned every record. Requests now time out after 30 s, and 429 is retried ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md) §4.3).
 
 ### MED-11 — Read-count thresholds are off by one, twice ◎ *(new)* — **fixed in PR 6**
 
@@ -487,7 +491,7 @@ write to a temp dir and move it into place.
 
 *2026-11-12, PR 7:* a directory holding JCAST output is refused unless `--overwrite`, which removes that output first. The log is written fresh.
 
-### MED-14 — `-c` does not guarantee the canonical for genes whose junctions all succeed ◎ *(new, 2026-11-10)*
+### MED-14 — `-c` does not guarantee the canonical for genes whose junctions all succeed ◎ *(new, 2026-11-10)* — **fixed in PR 8**
 
 With `-c`, the skip, FAILURE and (from PR 4c) alternative-terminus paths
 write the gene's canonical. T1, T2 and T4 write it only when a slice
@@ -495,6 +499,8 @@ stitches into it exactly. On chr15, 2 protein-coding genes get no canonical
 record despite `-c`. The documented intent is that the canonical is written
 even when isoform translation fails. Write it on every path when `-c` is set
 (PR 8, with MED-9).
+
+*2026-11-12, PR 8:* `_translate_one` writes the canonical after every path, looking it up first where the path had not, e.g. masked junctions. Coverage is now complete: chr15 276 of 276 genes with `--uniprot`, and the whole genome (§10 of the audit).
 
 ### MED-13 — `get_logger` stacks handlers on every call ◎ *(new; matters for the GUI)* — **fixed in PR 7**
 
@@ -788,7 +794,7 @@ currently can't be installed and run from scratch.
 | 5 | ✅ **Joining to the canonical** (MED-3): complete ends not joined, unique ordered anchors, anchor length 7 ([audit](reports/2026-11-11-stitch-anchor-audit.md)) | Correctness | Done 2026-11-11 |
 | 6 | ✅ Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): keep if count ≥ threshold; default `-r 1` (no filter); `-m` cut at the model's boundary, reported in reads; the count stays min(IJC, SJC), renamed `min_jc`; the read-count and FDR filters applied first ([log audit](reports/2026-11-12-log-audit.md)) | Sci-integrity | Done 2026-11-12 |
 | 7 | ✅ Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13); catch an exception per junction, record it as a fate and continue instead of aborting the run ([masked-bases audit §7](reports/2026-11-11-masked-bases-audit.md#7-decisions-requested)). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): refuse a directory holding JCAST output unless `--overwrite`; a failing junction writes nothing; caches in the user cache directory (`platformdirs`, `--cache_dir`), GTF cache keyed by path, size and mtime, written atomically, as a pickle | Robustness | Done 2026-11-12 |
-| 8 | Network resilience + `write_canonical` fallback (MED-9/10); `-c` writes the canonical on every path (MED-14). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): `-c` on every path, masked junctions included; a failed API lookup fails the junction (timeout, 429 retried); `write_canonical`'s fallback removed; gene names used for `--uniprot` only when unique in the GTF ([mapping audit](reports/2026-11-12-uniprot-mapping-audit.md)) | Robustness | PRs 1, 7 |
+| 8 | ✅ Network resilience + `write_canonical` fallback (MED-9/10); `-c` writes the canonical on every path (MED-14). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): `-c` on every path, masked junctions included; a failed API lookup fails the junction (timeout, 429 retried); `write_canonical`'s fallback removed; gene names used for `--uniprot` only when unique in the GTF ([mapping audit](reports/2026-11-12-uniprot-mapping-audit.md)) | Robustness | Done 2026-11-12 |
 | 9 | ✅ Per-gene GTF index, in-memory FASTA de-dup ([parallel audit](reports/2026-11-12-parallel-audit.md)); filtering before the canonical lookup done in PR 6 | Performance | Done 2026-11-12 |
 | 10 | Packaging: pyproject metadata, Python ≥ 3.10, fix `find_packages`/`data_files`, bounds | Env | PR 0 |
 | 11 | CI (GitHub Actions) | Infra | PRs 1, 10 |

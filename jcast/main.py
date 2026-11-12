@@ -3,6 +3,7 @@
 """jcast.main: Main function."""
 
 import os
+import collections
 import glob
 import argparse
 import logging
@@ -162,8 +163,11 @@ def _run(args, logger) -> bool:
         uniprot.write_outputs(out_dir=args.out)
 
     if failed:
-        logger.warning(f'{failed} junction(s) failed with an exception and wrote nothing (fate FAILURE (exception)). '
-                       f'Their tracebacks are in {os.path.join(args.out, "logfile.log")}.')
+        logger.warning(f'{sum(failed.values())} junction(s) failed with an exception and wrote nothing (fate FAILURE '
+                       f'(exception)). Their tracebacks are in {os.path.join(args.out, "logfile.log")}.')
+        if failed['UniProtAPIError']:
+            logger.warning(f'{failed["UniProtAPIError"]} of them failed on a UniProt API request, after retries. Rerun, '
+                           f'or use --uniprot with a UniProt FASTA, which needs no network.')
 
     return True
 
@@ -172,9 +176,9 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
     """
     Translate every junction of the selected splice types, in file order, in this process or in the pool
 
-    :return: the number of junctions that failed with an exception
+    :return: the junctions that failed with an exception, counted by the exception's type
     """
-    failed = 0
+    failed = collections.Counter()
 
     #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
@@ -204,7 +208,7 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
                                                                                       ))
                 fate = _write_worker_result(result, logger, uniprot)
                 logger.info(fate)
-                failed += _count_failure(jx, fate, failed, logger)
+                _count_failure(jx, fate, failed, logger)
             continue
 
         # ---- Single threaded for loop ----
@@ -222,20 +226,20 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
             for output, suffix, seqrecord in records:
                 h.write_seqrecord_to_fasta(seqrecord, output, suffix)
             logger.info(fate)
-            failed += _count_failure(jx, fate, failed, logger)
+            _count_failure(jx, fate, failed, logger)
 
     return failed
 
 
-def _count_failure(junction, fate, failed, logger) -> int:
-    """ 1 if the junction failed with an exception, else 0. The first failure is also shown on the console """
+def _count_failure(junction, fate, failed, logger) -> None:
+    """ Count a junction that failed with an exception, by its type. The first is also shown on the console """
     if not fate.startswith(fates.EXCEPTION.split('.')[0]):
-        return 0
+        return
     if not failed:
         logger.warning('Junction {0} {1} of gene {2} {3} failed: {4} The run continues; the traceback of each failed '
                        'junction is in the log.'.format(junction.junction_type, junction.name, junction.gene_symbol,
                                                         junction.gene_id, fate.split('. ', 1)[1].strip()))
-    return 1
+    failed[fate.split('. ', 1)[1].split(':', 1)[0]] += 1
 
 
 def _translate_safely(junction, gtf, genome, args, pred_bound, uniprot):
@@ -364,11 +368,38 @@ def _translate_one(junction: Junction,
     :param args: parsed arguments
     :param pred_bound: read count cutoff: a junction with fewer reads (Junction.min_jc) is skipped
     :param uniprot: UniProtFasta from --uniprot, or None to use the UniProt API
-    :return:
+    :return: the junction's fate
     """
 
-    # ---- Filters first: the read count, then the FDR. A skipped junction is not translated; with -c, its gene's
-    # canonical is still written. 2026-11-12 the filters ran after slicing, translation and the canonical lookup, and
+    sequence = Sequence(junction=junction, uniprot=uniprot)
+    fate = _translate(junction, sequence, gtf, genome, args, pred_bound)
+
+    # ---- -c: the gene's canonical is written whatever the junction's fate. This avoids not having any protein level
+    # representation of a gene potentially in the proteome. 2026-11-12 the T1, T2 and T4 paths wrote it only when a
+    # slice joined to it exactly, and the masked path before it was looked up (REVIEW.md MED-14;
+    # reports/2026-11-12-thresholds-runs-canonical-audit.md §4.1) ----
+    if args.canonical:
+        if not sequence.canonical_looked_up:
+            sequence.get_canonical_aa(gtf=gtf, genome_index=genome.genome)
+        sequence.write_canonical(out_dir=args.out)
+
+    return fate
+
+
+def _translate(junction: Junction,
+               sequence: Sequence,
+               gtf: ReadAnnotations,
+               genome: ReadGenome,
+               args: argparse.Namespace,
+               pred_bound: int,
+               ) -> str:
+    """
+    The steps of _translate_one up to the junction's fate: filter, trim, translate, tier, and write the slices.
+
+    :return: the junction's fate
+    """
+
+    # ---- Filters first: the read count, then the FDR. A skipped junction is not translated. 2026-11-12 the filters ran after slicing, translation and the canonical lookup, and
     # most of a run went on junctions it then skipped (reports/2026-11-12-log-audit.md §3). A junction is kept if its
     # read count is at least the cutoff; it used to need one read more
     # (reports/2026-11-12-thresholds-runs-canonical-audit.md §2) ----
@@ -381,17 +412,6 @@ def _translate_one(junction: Junction,
         skipped = None
 
     if skipped:
-        #
-        # If the canonical flag is set, append the canonical
-        # Sp to the gene_canonical output even if none of the transcript slices are stitchable
-        # back to the canonical protein. This avoids not having any protein level representation
-        # of a gene potentially in the proteome.
-        #
-        if args.canonical:
-            sequence = Sequence(junction=junction, uniprot=uniprot)
-            sequence.get_canonical_aa(gtf=gtf, genome_index=genome.genome)
-            sequence.write_canonical(out_dir=args.out)
-
         return skipped
 
     #
@@ -406,11 +426,6 @@ def _translate_one(junction: Junction,
     junction.get_translated_phase(gtf)
 
     #
-    # initiate a sequence object that copies most of the junction information
-    #
-    sequence = Sequence(junction=junction, uniprot=uniprot)
-
-    #
     # get nucleotide sequences of all slices using genome in memory
     # (anchor, alternative-1, alternative-2, downstream)
     # conjoin alternative exons to make slice 1 and 2,
@@ -420,11 +435,6 @@ def _translate_one(junction: Junction,
     # skip slices with any base outside ACGT: N (hard-masked or a gap) or another IUPAC code. The genome sequence is
     # uppercased on retrieval, so soft-masked bases are kept (reports/2026-11-11-masked-bases-audit.md)
     if not set(str(sequence.slice1_nt.seq) + str(sequence.slice2_nt.seq)) <= set('ACGT'):
-
-        # Write canonical anyhow if the canonical flag is set.
-        if args.canonical:
-            sequence.write_canonical(out_dir=args.out)
-
         return fates.SKIPPED_MASKED
 
     # ---- Translate to peptides ----
@@ -434,11 +444,6 @@ def _translate_one(junction: Junction,
     # Discard junction if trimming to the coding region left both slices identical: the splice event
     # lies in the UTR and does not change the protein.
     if junction.event_outside_cds:
-
-        # Write canonical anyhow if the canonical flag is set.
-        if args.canonical:
-            sequence.write_canonical(out_dir=args.out)
-
         return fates.SKIPPED_OUTSIDE_CDS
 
     # ---- Alternative termini: a slice that ends at an annotated stop codon, or that lacks the gene's start codon
@@ -449,11 +454,6 @@ def _translate_one(junction: Junction,
                               suffix='T1',
                               slice_suffixes=sequence.alt_suffixes,
                               )
-
-        # Write canonical anyhow if the canonical flag is set: these junctions were mostly FAILURE or T4 before,
-        # and the FAILURE path writes it.
-        if args.canonical:
-            sequence.write_canonical(out_dir=args.out)
         alt_files = [s for s in sequence.alt_suffixes if s.startswith('T1_alt')]
         if alt_files:
             return fates.TIER1_ALT_TERMINUS.format(sequence.j.phase_label,
@@ -548,16 +548,6 @@ def _translate_one(junction: Junction,
     # if nothing works, write FAIL fate
     #
     else:
-        #
-        # salvage the canonical sequence in the long slice if it matches Sp exactly.
-        # note that this means if we identify a gene in RNA-seq, we will append the canonical
-        # Sp to the gene_canonical output even if none of the transcript slices are stitchable
-        # back to the canonical protein. This is to avoid not having any protein level representation
-        # of a gene potentially in the proteome.
-        #
-        if args.canonical:
-            sequence.write_canonical(out_dir=args.out)
-
         return fates.FAIL
 
 

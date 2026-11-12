@@ -161,7 +161,7 @@ EXPECTED_OUTPUT = {
     'psq_T2_orphan.fasta': (6, '105037b254205e97'),
     'psq_T4.fasta': (351, '5057eeedae64959e'),
     'psq_T4_orphan.fasta': (77, 'ace037b31473c649'),
-    'psq_canonical.fasta': (272, '8408b54aa8228c4a'),
+    'psq_canonical.fasta': (276, '9f547139112f68ae'),
 }
 
 

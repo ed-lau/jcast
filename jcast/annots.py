@@ -33,6 +33,7 @@ class ReadAnnotations(object):
 
         self.annot = pd.DataFrame()
         self.by_gene = {}
+        self.gene_name_counts = {}
 
         self.read_gtf()
 
@@ -82,6 +83,12 @@ class ReadAnnotations(object):
         # time (2026-11-12; reports/2026-11-12-parallel-audit.md)
         self.by_gene = {g: rows for g, rows in self.annot.groupby('gene_id', sort=False)}
 
+        # gene name -> number of genes with it: names are not unique (e.g. two GENCODE v50 genes are PINX1), so a name
+        # identifies a gene's UniProt entry only if no other gene has it (reports/2026-11-12-uniprot-mapping-audit.md)
+        if 'gene_name' in self.annot.columns:
+            genes = self.annot[['gene_id', 'gene_name']].drop_duplicates('gene_id')
+            self.gene_name_counts = genes['gene_name'].value_counts().to_dict()
+
         return None
 
 
@@ -126,6 +133,11 @@ def _write_cache(annot: pd.DataFrame, cached_gtf: str, logger: logging.Logger) -
                 os.remove(old)
             except OSError:
                 pass
+
+
+def gene_name_is_unique(gtf, gene_name) -> bool:
+    """ False if more than one gene in the GTF has this name; True for a name the GTF does not have """
+    return getattr(gtf, 'gene_name_counts', {}).get(gene_name, 0) <= 1
 
 
 def gene_rows(gtf, gene_id) -> pd.DataFrame:

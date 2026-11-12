@@ -93,7 +93,7 @@ class UniProtFasta(object):
 
         self.chosen = {}        # gene id -> (gene symbol, source, accession, canonical SeqRecord)
 
-    def canonical(self, gene_id, gene_symbol, proteins, gtf_canonical):
+    def canonical(self, gene_id, gene_symbol, proteins, gtf_canonical, unique_name=True):
         """
         The gene's canonical: a UniProt canonical whose sequence equals one of the gene's GTF-translated proteins,
         else the one whose gene name (GN=) is the gene symbol, in each case only if exactly one entry matches and
@@ -103,22 +103,24 @@ class UniProtFasta(object):
         :param gene_symbol: gene symbol
         :param proteins: callable returning the gene's GTF-translated proteins
         :param gtf_canonical: callable returning the GTF canonical SeqRecord (possibly empty)
+        :param unique_name: whether no other gene in the GTF has this symbol; if not, the name is not used
+            (2026-11-12; reports/2026-11-12-uniprot-mapping-audit.md §7)
         :return: SeqRecord
         """
         if gene_id not in self.chosen:
-            self.chosen[gene_id] = self._choose(gene_id, gene_symbol, proteins, gtf_canonical)
+            self.chosen[gene_id] = self._choose(gene_id, gene_symbol, proteins, gtf_canonical, unique_name)
             # tagged so that, with -p > 1, the main process logs it once per gene, as a serial run does
             self.logger.info('Canonical for {0} {1}: {2} {3}'.format(gene_id, gene_symbol, *self.chosen[gene_id][1:3]),
                              extra={'jcast_canonical_for': gene_id})
         return self.chosen[gene_id][3]
 
-    def _choose(self, gene_id, gene_symbol, proteins, gtf_canonical):
+    def _choose(self, gene_id, gene_symbol, proteins, gtf_canonical, unique_name=True):
         gene_proteins_ = proteins()
         for db in ['sp', 'tr']:
             by_sequence = sorted({a for p in gene_proteins_ for a in self.canonicals[db].get(p, [])})
             if len(by_sequence) == 1:
                 return gene_symbol, f'{db} by sequence', by_sequence[0], self.records[by_sequence[0]]
-            by_name = self.by_gene_name[db].get(gene_symbol, [])
+            by_name = self.by_gene_name[db].get(gene_symbol, []) if unique_name else []
             if len(by_name) == 1:
                 return gene_symbol, f'{db} by gene name', by_name[0], self.records[by_name[0]]
         record = gtf_canonical()

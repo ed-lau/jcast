@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-12 |
-| **Status** | Audit. Options in §5; decisions requested in §6 and approved 2026-11-12 (§7). No code changed. Measured at `8b845aa`. |
+| **Status** | Audit. Options in §5; decisions requested in §6 and approved 2026-11-12 (§7). Measured at `8b845aa`. Decision 4 implemented in PR 8; its measured effect is larger than §4 suggested (§8). |
 | **Question** | Under `--uniprot`, where does the Ensembl-to-UniProt mapping come from, and how complete is it next to the UniProt API that JCAST uses without it? Raised with the decisions on the [PR 6–8 audit](2026-11-12-thresholds-runs-canonical-audit.md#7-decisions-2026-11-12). Extends the chr15 comparison of the [UniProt FASTA evaluation §3.1](2026-11-11-uniprot-fasta-evaluation.md#31-mapping-a-swiss-prot-entry-to-each-gene) to a whole genome. |
 | **Reproduce** | `python reports/mapping_audit/audit_mapping.py --jcast_out <run> --uniprot <its FASTA> --gtf_cached <gtf>.cached --xrefs <file>.tsv.gz --gtf <gtf> --genome <fa>` (≈ 5 min; downloads the cross-references if the file is missing) |
 | **Inputs** | <ul><li>The user's whole-genome run of 2026-11-12: `-m -c --uniprot -p 8`, 17,068 genes, GENCODE v50, Swiss-Prot human with isoforms 2026_04.</li><li>UniProt's Ensembl cross-references for every human UniProtKB entry that has one (262,883 entries, 23,750 genes), release 2026_04, from `rest.uniprot.org`. These are what the API looks a gene up by.</li><li>The local API cache: the API's actual answers for 6,519 of these genes, from an earlier run.</li></ul> None is bundled. |
@@ -212,4 +212,33 @@ so mapping by name can assign another gene's protein.
    own audit first.
 4. **Map by gene name only when the name is unique in the GTF.**
    Approved, with PR 8.
+
+## 8. Addendum: the unique-name rule on the whole genome (PR 8)
+
+§4 found one gene where a gene name assigned another gene's entry (PINX1),
+and implied that the unique-name rule (decision 4) would change one gene.
+That was an underestimate. §4 only compared names against UniProt's
+cross-references. Duplicated names among non-coding loci have no
+cross-reference, so it did not count them.
+
+Measured on the whole-genome run when verifying PR 8 (PR 6–8 audit §10):
+
+- **484 gene names in GENCODE v50 belong to more than one gene.**
+- **77 genes of the run lose a by-name canonical:**
+  - 72 are lncRNA and pseudogene loci sharing a name, such as two
+    PMS2P3s, two CROCCP3s, or a lncRNA named CAST. They produce no
+    records.
+  - 5 are coding loci named like an established gene: the second PINX1,
+    PDE8B, KYAT1, HERC3 and DUSP13B. In each case the established gene of
+    that name maps by sequence and keeps the entry.
+- **Output:**
+  - 2 T4 records of the HERC3-named novel locus become orphans.
+  - 49 Swiss-Prot entries of duplicated pseudogene names are no longer
+    written to `psq_canonical.fasta` under `-c`. They remain in
+    `jcast_uniprot_merged.fasta`.
+
+The rule behaves as decided: a name shared by two genes identifies
+neither. A refinement could prefer the gene with an HGNC id; 55 of the
+77 have one, including some pseudogene pairs where both copies do. It
+was not adopted.
 

@@ -21,10 +21,18 @@ from jcast import helpers as h
 from jcast.junctions import Junction
 from jcast import params
 
-from jcast.annots import AnnotatedTranscript, gene_rows
+from jcast.annots import AnnotatedTranscript, gene_rows, gene_name_is_unique
 from jcast.uniprot import gene_proteins
 
 STOP_CODONS = {'TAA', 'TAG', 'TGA'}
+
+class UniProtAPIError(RuntimeError):
+    """
+    A UniProt API request failed after its retries, or was refused. The junction fails (PR 7) rather than going on
+    without a canonical, which would move all its records to orphan files depending on the network
+    (reports/2026-11-12-thresholds-runs-canonical-audit.md §4.3)
+    """
+
 
 # The UniProt API's answers, by gene id, in the cache directory. 2026-11-12 it was cache/uniprot-cache.db under the
 # working directory; see reports/2026-11-12-thresholds-runs-canonical-audit.md §3.5
@@ -107,6 +115,7 @@ class Sequence(object):
         self.slice2_aa = ''
 
         self.canonical_aa = SeqRecord(Seq(''), annotations={'molecule_type': 'extended_protein'})
+        self.canonical_looked_up = False            # get_canonical_aa has run (the canonical may still be empty)
 
         self.slice1_stitched = None
         self.slice2_stitched = None
@@ -520,13 +529,17 @@ class Sequence(object):
         :return: True
         """
 
-        # a supplied UniProt FASTA, falling back to the GTF (reports/2026-11-11-uniprot-fasta-evaluation.md)
+        self.canonical_looked_up = True
+
+        # a supplied UniProt FASTA, falling back to the GTF (reports/2026-11-11-uniprot-fasta-evaluation.md); the gene
+        # name is used only if no other gene in the GTF has it (reports/2026-11-12-uniprot-mapping-audit.md §7)
         if self.uniprot is not None:
             self.canonical_aa = self.uniprot.canonical(
                 self.j.gene_id,
                 self.j.gene_symbol,
                 proteins=lambda: gene_proteins(gtf, genome_index, self.j.gene_id),
                 gtf_canonical=lambda: self.get_canonical_aa_gtf(gtf, genome_index),
+                unique_name=gene_name_is_unique(gtf, self.j.gene_symbol),
             )
 
         elif params.use_gtf_only:
@@ -601,6 +614,10 @@ class Sequence(object):
         """
         get the canonical sequences from Uniprot
 
+        A gene without an entry gets an empty record. A request that fails after its retries (connection errors, a
+        timeout, HTTP 429 and 5xx) or is refused (any other answer than 200) raises UniProtAPIError. 2026-11-12 a
+        refused request was taken as "no entry", and a failed one aborted the run (REVIEW.md MED-10)
+
         :param reviewed: get only reviewed sequence
         :return: canonical aa seqrecord
         """
@@ -629,29 +646,29 @@ class Sequence(object):
 
             retries = Retry(total=params.uniprot_max_retries,
                             backoff_factor=0.1,
-                            status_forcelist=[500, 502, 503, 504])
+                            status_forcelist=[429, 500, 502, 503, 504])
 
             rqs = rq.Session()
             rqs.mount('https://', HTTPAdapter(max_retries=retries))
-            ret = rqs.get(server + ext, headers={"Accept": "text/x-fasta"})
+            try:
+                ret = rqs.get(server + ext, headers={"Accept": "text/x-fasta"}, timeout=params.uniprot_timeout)
+            except rq.exceptions.RequestException as e:
+                raise UniProtAPIError('UniProt API request for {0} failed after {1} retries: {2}'.format(
+                    self.j.gene_id, params.uniprot_max_retries, e)) from e
 
-            if not ret.ok:
-                self.logger.warning('Failed retrieval for {0} after {1} retries.'.format(self.j.gene_id,
-                                                                                         params.uniprot_max_retries)
-                                    )
+            if ret.status_code != 200:
+                raise UniProtAPIError('UniProt API request for {0} refused: HTTP {1}'.format(self.j.gene_id,
+                                                                                            ret.status_code))
 
-            if ret.status_code == 200 and ret.text != '':
+            if ret.text != '':
                 record = list(SeqIO.parse(StringIO(ret.text), 'fasta'))[0]
                 if _api_cache_put(cache_id, record.format('fasta')):
                     self.logger.info('Sequence retrieved from Uniprot and written into local cache.')
 
-            elif ret.status_code == 200 and ret.text == '':
+            else:
                 self.logger.info('Retrieved empty fasta from Ensembl for {0}'.format(self.j.gene_id))
                 # TODO: A known issue where Uniprot sequences do not exist for some Ensembl genes
                 # TODO: Rather than fix this we will simply use the GTF in future versions.
-
-            elif ret.status_code != 200:
-                self.logger.warning('Retrieval of protein sequence failed.')
 
         return record
 
@@ -696,22 +713,16 @@ class Sequence(object):
                         out_dir,
                         ) -> None:
         """
-        write canonical sequences to fasta file
+        write the canonical sequence to the fasta file, if the gene has one
+
+        2026-11-12 an empty canonical was requested from the UniProt API again, twice, and the answer discarded: it
+        never wrote anything (REVIEW.md MED-9; reports/2026-11-12-thresholds-runs-canonical-audit.md §7)
+
         :param out_dir: output directory
         """
 
-        canonical = self.canonical_aa[:]
-
-        if len(self.canonical_aa[:]) == 0 and self.uniprot is None:
-            # try to get the reviewed sequence
-            self.get_canonical_aa_uniprot(reviewed='true')
-            canonical = self.canonical_aa[:]
-            # try to get unreviewed sequence
-            if len(self.canonical_aa[:]) == 0:
-                self.get_canonical_aa_uniprot(reviewed='false')
-
         if len(self.canonical_aa[:]) > 0:
-            h.write_seqrecord_to_fasta(canonical, out_dir, 'canonical')
+            h.write_seqrecord_to_fasta(self.canonical_aa[:], out_dir, 'canonical')
 
         return None
 
