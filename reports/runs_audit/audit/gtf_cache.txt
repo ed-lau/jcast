@@ -1,0 +1,4 @@
+/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/gencode.v50.primary_assembly.annotation.gtf.cached: 11254876 rows, 27 columns; pandas 2.3.1
+tab-separated: 2.69 GB, read 49.3 s
+pickle: 1.88 GB, written 8.8 s, read 8.5 s
+identical table and column types: True

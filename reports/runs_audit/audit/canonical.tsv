@@ -1,0 +1,8 @@
+run	gene_id	gene_symbol	fates or canonical source
+chr15 GTF only	ENSG00000140391	TSPAN3	SUCCESS TIER 1 1
+chr15 --uniprot	ENSG00000140391	TSPAN3	SUCCESS TIER 1 1
+whole genome	ENSG00000004799.10		sp by sequence
+whole genome	ENSG00000076716.11		sp by sequence
+whole genome	ENSG00000100292.19		sp by sequence
+whole genome	ENSG00000117262.21		gtf
+whole genome	ENSG00000188010.18		sp by sequence
