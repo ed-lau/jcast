@@ -1,0 +1,14 @@
+rMATS subset: 2000 junctions (seed 3) of /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats
+gtf /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/gencode.v50.primary_assembly.annotation.gtf
+genome /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/GRCh38.primary_assembly.genome.fa
+uniprot /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/20261111_human_uniprot_swissprot_isoform.fasta
+machine: 24 CPUs; load average at start 3.4
+
+run	commit	processes	wall_s	junction_loop_s	junctions_per_s	files_identical	messages_identical_from_first_junction
+before	bfb8ba2	-	1153	1062	1.9	True	True
+after	bfb8ba2 + working tree	-	141	43	46.6	True	True
+
+after: start-up messages (before the first junction) differ:
+  - INFO~Namespace(rmats_folder='/private/tmp/claude-501/-Users-edwardlau-projects-jcast/fa32f03b-a7c7-415c-a05e-91dd5a015849/scratchpad/pa/verify_runs_8r
+  + INFO~Namespace(rmats_folder='/private/tmp/claude-501/-Users-edwardlau-projects-jcast/fa32f03b-a7c7-415c-a05e-91dd5a015849/scratchpad/pa/verify_runs_8r
+output files: jcast_uniprot_merged.fasta 870442a4a5b0d078, psq_T1.fasta 87c791512f578641, psq_T1_alt_cterm.fasta b310d9ce8385d6ec, psq_T1_alt_cterm_orphan.fasta fbf13a3e80133ba2, psq_T1_alt_nterm.fasta 612acefe51b7fb5a, psq_T1_alt_nterm_orphan.fasta dd669a5e70e39047, psq_T1_orphan.fasta ee17a98d4660fc15, psq_T2.fasta a5d67101946a0072, psq_T2_orphan.fasta 15796292f76c43cb, psq_T4.fasta 0de56dd6317e3979, psq_T4_orphan.fasta f4d5fc586d623fb6, psq_canonical.fasta 113fd60081fe13ff, psq_isoforms.tsv 2c1260938e13a9a9, uniprot_canonicals.tsv ea18efa5bec33966

@@ -113,6 +113,14 @@ and §9.
 - [CHANGELOG.md](CHANGELOG.md) (this file), replacing the older `CHANGES.txt`.
 
 ### Changed
+- **About 25× faster on a whole genome, with identical output (PR 9).**
+  - **GTF lookups:** the GTF is indexed by gene once, instead of being
+    filtered whole (11 M rows for GENCODE) several times per junction.
+  - **FASTA writes:** written sequences are kept in memory, instead of the
+    output file being re-read before every write.
+  - **Measured:** on 2,000 junctions of a whole-genome run, 1.9 → 46.6
+    junctions/s, with every output file and log message identical. See
+    [reports/2026-11-12-parallel-audit.md](reports/2026-11-12-parallel-audit.md).
 - **Read-count cutoff model (`-m`) no longer uses `pomegranate`.** pomegranate
   1.x removed the API JCAST used (`ImportError: cannot import name
   'GeneralMixtureModel'`), and 0.x no longer builds on current Python. The same

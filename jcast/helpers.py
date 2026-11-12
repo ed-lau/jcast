@@ -245,12 +245,20 @@ def make_pep(nt: str,
     return pep
 
 
+# output file -> (its size after our last write, the sequences in it), so a write need not re-read the file
+_written = {}
+
+
 def write_seqrecord_to_fasta(seqrecord,
                              output,
                              suffix,
                              ):
     """
-    Write Biopython SeqRecord to the fasta file after checking whether the SeqRecord is already inside the file.
+    Write Biopython SeqRecord to the fasta file unless a record with the same sequence is already in it.
+
+    The sequences in each file are kept in memory. The file is read again only if its size differs from that after
+    our last write (first use, a file from an earlier run, or one changed by something else). 2026-11-12: it used to
+    be re-read before every write; see reports/2026-11-12-parallel-audit.md
 
     :param seqrecord:   Biopython SeqRecord object
     :param output:
@@ -260,18 +268,21 @@ def write_seqrecord_to_fasta(seqrecord,
 
     outfile = os.path.join(output, 'psq_' + suffix + '.fasta')
 
-    # if the file already exists, open it and amend that record.
-    existing_records = []
-    if os.path.exists(outfile):
-        for existing_record in SeqIO.parse(outfile, 'fasta'):
-            existing_records.append(existing_record)
+    size = os.path.getsize(outfile) if os.path.exists(outfile) else None
+    cached = _written.get(outfile)
+    if cached is not None and cached[0] == size:
+        sequences = cached[1]
+    else:
+        sequences = {str(r.seq) for r in SeqIO.parse(outfile, 'fasta')} if size is not None else set()
+        _written[outfile] = (size, sequences)
 
     # Test if the slice is already in the fasta, then do not write the new sequence into the fasta file.
-    for read_record in existing_records:
-        if read_record.seq == seqrecord.seq:
-            return True
+    if str(seqrecord.seq) in sequences:
+        return True
 
     with open(outfile, 'a') as output_handle:
         SeqIO.write(seqrecord, output_handle, 'fasta')
+    sequences.add(str(seqrecord.seq))
+    _written[outfile] = (os.path.getsize(outfile), sequences)
 
     return True

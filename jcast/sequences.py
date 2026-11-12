@@ -20,7 +20,7 @@ from jcast import helpers as h
 from jcast.junctions import Junction
 from jcast import params
 
-from jcast.annots import AnnotatedTranscript
+from jcast.annots import AnnotatedTranscript, gene_rows
 from jcast.uniprot import gene_proteins
 
 STOP_CODONS = {'TAA', 'TAG', 'TGA'}
@@ -385,7 +385,7 @@ class Sequence(object):
         """
 
         # first, subset the gtf by the gene under question
-        gtf_gene = gtf.annot.query('gene_id == @self.j.gene_id')
+        gtf_gene = gene_rows(gtf, self.j.gene_id)
 
         # then get a list of all transcripts that are protein_coding, has coding sequences,
         # and has transcript support level equal to or below the threashold

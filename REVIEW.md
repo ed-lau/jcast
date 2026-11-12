@@ -764,7 +764,7 @@ currently can't be installed and run from scratch.
 | 6 | Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2) | Sci-integrity | PR 1 |
 | 7 | Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13); catch an exception per junction, record it as a fate and continue instead of aborting the run ([masked-bases audit §7](reports/2026-11-11-masked-bases-audit.md#7-decisions-requested)) | Robustness | PR 1 |
 | 8 | Network resilience + `write_canonical` fallback (MED-9/10); `-c` writes the canonical on every path (MED-14) | Robustness | PR 1 |
-| 9 | Per-gene GTF index, in-memory FASTA de-dup, filter before canonical lookup ([parallel audit](reports/2026-11-12-parallel-audit.md)) | Performance | PR 1 (golden test guards it) |
+| 9 | ✅ Per-gene GTF index, in-memory FASTA de-dup ([parallel audit](reports/2026-11-12-parallel-audit.md)); *filter before canonical lookup not done* | Performance | Done 2026-11-12 |
 | 10 | Packaging: pyproject metadata, Python ≥ 3.10, fix `find_packages`/`data_files`, bounds | Env | PR 0 |
 | 11 | CI (GitHub Actions) | Infra | PRs 1, 10 |
 | 12 | argparse hygiene: drop `--g_or_ln`, `-s` reads only selected files (MED-8), `parser.error` not `assert` | UX | PR 1 |

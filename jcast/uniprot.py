@@ -15,6 +15,8 @@ import re
 from Bio import SeqIO
 from Bio.Seq import Seq
 
+from jcast.annots import gene_rows
+
 # JCAST files whose records joined to a Swiss-Prot canonical go into the merged database
 MERGE_TIERS = ['T1', 'T1_alt_cterm', 'T1_alt_nterm', 'T1_alt_both']
 
@@ -36,7 +38,8 @@ def gene_proteins(gtf, genome_index, gene_id) -> set:
     :param gene_id: gene id
     :return: set of protein sequences (without the stop)
     """
-    cds = gtf.annot.query('gene_id == @gene_id & feature == "CDS"')
+    rows = gene_rows(gtf, gene_id)
+    cds = rows[rows['feature'] == 'CDS']
     proteins = set()
     for _, t in cds.groupby('transcript_id'):
         t = t.sort_values('start')

@@ -187,3 +187,48 @@ speedup at high worker counts.
    there, and the help text and README say why.
 4. **Fork on macOS and Linux; serial on Windows.**
 
+## 8. Implementation and verification: PR 9
+
+**What changed** (no change to output):
+- **Per-gene GTF index.** `ReadAnnotations` groups the GTF rows by gene
+  once, after reading (4.6 s for GENCODE v50).
+  - `annots.gene_rows(gtf, gene_id)` returns a gene's rows in file order,
+    or an empty table for an unknown gene.
+  - It replaces the four whole-GTF filters: `trim_cds`,
+    `get_translated_phase`, `get_annotated_transcripts_gtf` and
+    `uniprot.gene_proteins`.
+  - An annotation object without the index (a test double, older audit
+    scripts) is still filtered as before.
+- **In-memory de-duplication.** `write_seqrecord_to_fasta` keeps the
+  sequences of each output file in memory, with the file's size after its
+  last write.
+  - It reads the file again only if the size differs: on first use, for a
+    file from an earlier run, or for one changed or deleted by something
+    else.
+  - So it skips exactly the records the re-read did.
+
+**Verification on the whole genome**
+([parallel_audit/genome_verify_9/verify.txt](parallel_audit/genome_verify_9/verify.txt)).
+2,000 junctions sampled at random (seed 3) from the five rMATS files were
+run through the real CLI (`python -m jcast … -c -r 1 -q 0 1 --uniprot …`),
+once from `bfb8ba2` and once from PR 9:
+
+| | Junctions/s | Junction loop | Whole run (incl. ≈ 95 s loading) | Output files | Log messages |
+|---|---|---|---|---|---|
+| Before (`bfb8ba2`) | 1.9 | 1,062 s | 1,153 s | – | – |
+| PR 9 | 46.6 | 43 s | 141 s | **identical** (14 files) | **identical** from the first junction |
+
+That is **24.6× faster per junction.** The only differing message is the
+logged arguments, which contain each run's output directory. On chr15
+([parallel_audit/chr15_verify_9/](parallel_audit/chr15_verify_9/verify.txt)),
+it is 1.7× faster, with identical files and messages.
+
+**Tests:** all 78 tests pass, including both golden tests.
+[tests/test_index_and_dedup.py](../tests/test_index_and_dedup.py) checks:
+- the index against the filter;
+- an unknown gene;
+- the fallback without an index;
+- duplicates;
+- a file from an earlier run;
+- a file deleted, or appended to by something else, between writes.
+

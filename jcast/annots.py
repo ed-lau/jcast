@@ -27,6 +27,7 @@ class ReadAnnotations(object):
         self.path = os.fspath(path)
 
         self.annot = pd.DataFrame()
+        self.by_gene = {}
 
         self.read_gtf()
 
@@ -54,7 +55,26 @@ class ReadAnnotations(object):
         if 'transcript_biotype' not in self.annot.columns:
             self.annot['transcript_biotype'] = self.annot['transcript_type']
 
+        # every lookup filters by gene first: index the rows by gene once instead of scanning the whole GTF each
+        # time (2026-11-12; reports/2026-11-12-parallel-audit.md)
+        self.by_gene = {g: rows for g, rows in self.annot.groupby('gene_id', sort=False)}
+
         return None
+
+
+def gene_rows(gtf, gene_id) -> pd.DataFrame:
+    """
+    The GTF rows of one gene, in file order: from the per-gene index if the annotation has one, else by filtering.
+
+    :param gtf: ReadAnnotations, or any object with an annot data frame
+    :param gene_id: gene id
+    :return: data frame
+    """
+    by_gene = getattr(gtf, 'by_gene', None)
+    if by_gene:
+        rows = by_gene.get(gene_id)
+        return gtf.annot.iloc[:0] if rows is None else rows
+    return gtf.annot.query('gene_id == @gene_id')
 
 
 class ReadGenome(object):

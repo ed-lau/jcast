@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 
 from jcast import params
+from jcast.annots import gene_rows
 
 
 class RmatsResults(object):
@@ -291,7 +292,7 @@ class Junction(object):
         :return: True
         """
         # Subset the gtf file
-        gtf0 = gtf.annot.query('gene_id == @self.gene_id')
+        gtf0 = gene_rows(gtf, self.gene_id)
 
         #
         # 	Get the translation start and end positions
@@ -359,7 +360,7 @@ class Junction(object):
         """
 
         # Subset the gtf file
-        gtf0 = gtf.annot.query('gene_id == @self.gene_id')
+        gtf0 = gene_rows(gtf, self.gene_id)
         coding = gtf0.query('feature == "CDS" & transcript_biotype == "protein_coding"')
 
         tsl = params.tsl_threshold
