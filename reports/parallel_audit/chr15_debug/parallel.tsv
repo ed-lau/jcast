@@ -1,0 +1,4 @@
+workers	seconds	junctions_per_s	speedup_vs_1	identical_to_serial	peak_memory_gb
+1	10.9	55.2	1.0	True	0.4
+2	5.5	108.3	2.0	True	0.5
+4	3.0	198.9	3.6	True	0.6

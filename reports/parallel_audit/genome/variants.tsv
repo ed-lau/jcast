@@ -1,0 +1,5 @@
+variant	seconds	junctions_per_s	speedup	identical_output	identical_fates
+current	187.2	1.60	1.0	True	True
+gene_index	9.7	31.06	19.4	True	True
+memory_dedup	186.9	1.61	1.0	True	True
+gene_index+memory_dedup	9.0	33.20	20.7	True	True
