@@ -187,7 +187,7 @@ speedup at high worker counts.
    there, and the help text and README say why.
 4. **Fork on macOS and Linux; serial on Windows.**
 
-## 8. Implementation and verification: PR 9
+## 8. Implementation and verification: PR 9 (`cde553d`)
 
 **What changed** (no change to output):
 - **Per-gene GTF index.** `ReadAnnotations` groups the GTF rows by gene
