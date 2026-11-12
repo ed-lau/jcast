@@ -232,7 +232,7 @@ it is 1.7× faster, with identical files and messages.
 - a file from an earlier run;
 - a file deleted, or appended to by something else, between writes.
 
-## 9. Implementation and verification: PR 15
+## 9. Implementation and verification: PR 15 (`9d2865e`)
 
 **What changed** ([jcast/main.py](../jcast/main.py)):
 - **`-p/--processes N`,** default 1.
