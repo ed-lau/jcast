@@ -64,6 +64,20 @@ See
 and §9.
 
 ### Added
+- **`-p/--processes N`: translate junctions in N processes (PR 15).**
+  - **Same output:** the output files and the log are the same as with one
+    process. Workers only translate; the main process writes everything in
+    rMATS file order.
+  - **Measured on a whole-genome sample:** 16 processes give 736 junctions/s,
+    11.3× one process, so a 600,000-junction run takes about 15 minutes.
+  - **Default 1.**
+  - **Requires `--uniprot`:** without it, canonicals come from the UniProt
+    API and its local cache, which cannot be shared between processes.
+  - **macOS and Linux only:** Windows runs with one process. The commented-out
+    2020 thread-pool code is removed.
+
+  See
+  [reports/2026-11-12-parallel-audit.md](reports/2026-11-12-parallel-audit.md).
 - **`--uniprot FASTA`: canonicals from a supplied UniProt FASTA instead of the
   UniProt API (PR 14).** Recommended mode: offline, and the file records
   which UniProt release was used.

@@ -770,7 +770,7 @@ currently can't be installed and run from scratch.
 | 12 | argparse hygiene: drop `--g_or_ln`, `-s` reads only selected files (MED-8), `parser.error` not `assert` | UX | PR 1 |
 | 13 | GUI v0 → wizard (§10) | New surface | PRs 7, 12 |
 | 14 | ✅ `--uniprot FASTA`: canonical from a supplied UniProt FASTA (no API calls), GTF fallback, built-in Swiss-Prot merge ([evaluation](reports/2026-11-11-uniprot-fasta-evaluation.md)) | Reproducibility | Done 2026-11-11 |
-| 15 | Parallel junctions: `-p/--processes` (fork; workers return records, the main process writes in order); one process without `--uniprot` ([parallel audit](reports/2026-11-12-parallel-audit.md)) | Performance | PRs 9, 14 |
+| 15 | ✅ Parallel junctions: `-p/--processes` (fork; workers return records, the main process writes in order); one process without `--uniprot` ([parallel audit](reports/2026-11-12-parallel-audit.md)) | Performance | Done 2026-11-12 |
 
 ### Deferred to v0.5.x
 
@@ -780,8 +780,7 @@ currently can't be installed and run from scratch.
 - Split `sequences.py` into translation / canonical / stitch modules.
 - gff3 input; APPRIS-tag canonical selection; "longest sequence" fallback when
   UniProt fails.
-- Optional concurrency. Note that FASTA appends and the shared SQLite cache
-  are not thread-safe today.
+- ~~Optional concurrency.~~ Done in PR 15 (`-p`, with `--uniprot`).
 - StringTie input support.
 
 ### Deferred to v1.0

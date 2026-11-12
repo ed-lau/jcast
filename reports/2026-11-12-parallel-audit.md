@@ -232,3 +232,64 @@ it is 1.7× faster, with identical files and messages.
 - a file from an earlier run;
 - a file deleted, or appended to by something else, between writes.
 
+## 9. Implementation and verification: PR 15
+
+**What changed** ([jcast/main.py](../jcast/main.py)):
+- **`-p/--processes N`,** default 1.
+- **When N > 1:** after the inputs are loaded, `run_jcast` forks a pool of
+  N worker processes. This happens before any progress bar exists, and
+  tqdm's monitor thread is turned off, so no thread is running at the
+  fork.
+- **The workers:** each receives junctions in chunks of 20 and runs
+  `_translate_one` unchanged. Two things are captured instead of written:
+  - the records it would write (`helpers._collected`);
+  - its log records.
+  It returns those, the fate, and the canonical it chose for the gene.
+- **The main process:** it takes results in junction order, as the pool's
+  `imap` returns them, and for each junction:
+  - logs the junction line;
+  - replays the worker's log records;
+  - writes the records through the same de-duplicating writer;
+  - logs the fate.
+  It also drives the progress bar.
+- **Each gene's canonical is logged once,** at the gene's first junction, as
+  in a single process. The log line is tagged with the gene, and the main
+  process drops it if another worker already reported that gene. The
+  choices are merged for `uniprot_canonicals.tsv`.
+- **More than one process needs `--uniprot`:**
+  - the CLI rejects `-p` > 1 without it, with the reason;
+  - `run_jcast` called directly warns and uses one process;
+  - so does a platform without fork (Windows).
+
+**Verification on the whole genome**
+([parallel_audit/genome_verify_15/verify.txt](parallel_audit/genome_verify_15/verify.txt)).
+20,000 junctions sampled at random (seed 4) were run through the CLI with
+`-p` 1, 4, 8 and 16, and each run was compared with `-p 1`:
+
+| `-p` | Junctions/s | Speedup | Junction loop | Whole run (incl. ≈ 95 s loading) | Output files | Log messages |
+|---|---|---|---|---|---|---|
+| 1 | 65.2 | 1.0 | 307 s | 406 s | – | – |
+| 4 | 208.6 | 3.2 | 96 s | 188 s | identical | identical |
+| 8 | 393.2 | 6.0 | 51 s | 140 s | identical | identical |
+| 16 | 736.4 | 11.3 | 27 s | 119 s | identical | identical |
+
+The log differs only before the first junction: the arguments (output
+directory) and the line `Translating junctions in N worker processes.`
+Memory was not measured here. The audit's prototype of the same design used
+10.1 GB in all with 16 workers, against 8.6 GB with one (§4).
+
+**Projected for the full data set** (599,644 junctions, at the rates above):
+
+| | Time |
+|---|---|
+| Before PR 9 | ≈ 60 h or more |
+| PR 9, `-p 1` | ≈ 2.6 h + 1.5 min loading |
+| PR 15, `-p 16` | ≈ 14 min + 1.5 min loading |
+
+**Tests:** all 82 tests pass.
+[tests/test_processes.py](../tests/test_processes.py) checks:
+- the chr15 set with `-p 3`, which gives byte-identical files and identical
+  log messages to `-p 1`;
+- the one-process rule without `--uniprot`;
+- the CLI's rejection of `-p 2` without `--uniprot`, and of `-p 0`.
+

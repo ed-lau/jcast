@@ -5,9 +5,12 @@
 import os
 from functools import partial
 import argparse
+import logging
+import multiprocessing
 import tqdm
 
 from jcast import params, fates, model
+from jcast import helpers as h
 from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
@@ -95,6 +98,34 @@ def run_jcast(args) -> None:
     # If the m flag is not set, use the r argument value as min count
     else:
         min_count = args.read
+
+    # ---- Worker processes (-p). Started before any progress bar, so no thread exists when they are forked ----
+    pool = None
+    processes = _number_of_processes(args, uniprot, logger)
+    if processes > 1:
+        _WORKER.update(gtf=gtf, genome=genome, args=args, pred_bound=min_count, uniprot=uniprot, reported=set())
+        pool = multiprocessing.get_context('fork').Pool(processes, initializer=_init_worker)
+        logger.info(f'Translating junctions in {processes} worker processes.')
+
+    try:
+        _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool)
+    except BaseException:
+        if pool is not None:
+            pool.terminate()
+        raise
+    if pool is not None:
+        pool.close()
+        pool.join()
+
+    if uniprot is not None:
+        uniprot.write_outputs(out_dir=args.out)
+
+    return True
+
+
+def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool) -> None:
+    """ Translate every junction of the selected splice types, in file order, in this process or in the pool """
+
     #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
     #
@@ -116,24 +147,21 @@ def run_jcast(args) -> None:
                                         uniprot=uniprot,
                                         )
 
-        #
-        # Concurrent futures
-        #
-        # import concurrent.futures
-        # with concurrent.futures.ThreadPoolExecutor(max_workers=os.cpu_count()-1) as pool:
-        #     for i, f in enumerate(tqdm.tqdm(pool.map(
-        #             translate_one_partial,
-        #             junctions,
-        #     ),
-        #             total=len(junctions),
-        #             desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
-        #     )):
-        #         logger.info('>>>>>> Doing {0} junction {1} for gene {2} {3}'.format(junctions[i].junction_type,
-        #                                                                               junctions[i].name,
-        #                                                                               junctions[i].gene_symbol,
-        #                                                                               junctions[i].gene_id,
-        #                                                                           ))
-        #         logger.info(f)
+        # ---- Worker processes translate; this process logs and writes each junction's result in file order, so
+        # the output and the log are those of a single process (reports/2026-11-12-parallel-audit.md) ----
+        if pool is not None:
+            results = pool.imap(_translate_in_worker, junctions, chunksize=JUNCTIONS_PER_TASK)
+            for jx, result in tqdm.tqdm(zip(junctions, results),
+                                        total=len(junctions),
+                                        desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
+                                        ):
+                logger.info('>>>>>> Doing {0} junction {1} for gene {2} {3}'.format(jx.junction_type,
+                                                                                      jx.name,
+                                                                                      jx.gene_symbol,
+                                                                                      jx.gene_id,
+                                                                                      ))
+                logger.info(_write_worker_result(result, logger, uniprot))
+            continue
 
         # ---- Single threaded for loop ----
         for jx in tqdm.tqdm(junctions,
@@ -148,10 +176,94 @@ def run_jcast(args) -> None:
                                                                                   ))
             logger.info(translate_one_partial(jx))
 
-    if uniprot is not None:
-        uniprot.write_outputs(out_dir=args.out)
+    return None
 
-    return True
+
+# Junctions sent to a worker at a time
+JUNCTIONS_PER_TASK = 20
+
+# tqdm's monitor thread would still be running when a later run in the same process forks its workers
+tqdm.tqdm.monitor_interval = 0
+
+# Shared with the worker processes, which are forked after it is filled
+_WORKER = {}
+
+
+def _number_of_processes(args, uniprot, logger) -> int:
+    """
+    The number of processes to translate in: -p, but one without --uniprot (the UniProt API calls and the local
+    cache cannot be shared between processes) or where processes cannot be forked (Windows).
+    """
+    processes = getattr(args, 'processes', 1) or 1
+    if processes > 1 and uniprot is None:
+        logger.warning('-p/--processes > 1 needs --uniprot: canonicals from the UniProt API are fetched and cached '
+                       'by one process only. Running in 1 process.')
+        return 1
+    if processes > 1 and 'fork' not in multiprocessing.get_all_start_methods():
+        logger.warning('-p/--processes > 1 is not supported on this platform (no fork). Running in 1 process.')
+        return 1
+    return processes
+
+
+class _CaptureLog(logging.Handler):
+    """ In a worker: keep the junction's log records, to be logged by the main process """
+
+    def __init__(self):
+        super().__init__()
+        self.records = []
+
+    def emit(self, record):
+        record.msg, record.args, record.exc_info, record.exc_text = record.getMessage(), None, None, None
+        self.records.append(record)
+
+
+def _init_worker() -> None:
+    """ In each new worker: capture the jcast logger instead of writing to the log file and the console """
+    logger = logging.getLogger('jcast')
+    _WORKER['capture'] = _CaptureLog()
+    logger.handlers = [_WORKER['capture']]
+
+
+def _translate_in_worker(junction: Junction):
+    """
+    Translate one junction in a worker process.
+
+    :return: the fate; the records to write, as (output directory, file suffix, SeqRecord); the log records; and
+        the canonical this worker chose for the junction's gene, if not yet reported
+    """
+    _WORKER['capture'].records = []
+    h._collected = []
+    fate = _translate_one(junction, _WORKER['gtf'], _WORKER['genome'], _WORKER['args'],
+                          pred_bound=_WORKER['pred_bound'], uniprot=_WORKER['uniprot'])
+
+    chosen = {}
+    uniprot = _WORKER['uniprot']
+    if junction.gene_id in uniprot.chosen and junction.gene_id not in _WORKER['reported']:
+        chosen[junction.gene_id] = uniprot.chosen[junction.gene_id]
+        _WORKER['reported'].add(junction.gene_id)
+
+    return fate, h._collected, _WORKER['capture'].records, chosen
+
+
+def _write_worker_result(result, logger, uniprot) -> str:
+    """
+    In the main process: log and write one junction's result from a worker, as a single process would have.
+
+    :return: the fate
+    """
+    fate, records, log_records, chosen = result
+
+    # a gene's canonical is logged when first chosen; another worker may have chosen it again
+    for record in log_records:
+        if getattr(record, 'jcast_canonical_for', None) not in uniprot.chosen:
+            logger.handle(record)
+    for gene_id, choice in chosen.items():
+        uniprot.chosen.setdefault(gene_id, choice)
+
+    for output, suffix, seqrecord in records:
+        h.write_seqrecord_to_fasta(seqrecord, output, suffix)
+
+    return fate
 
 
 def _translate_one(junction: Junction,
@@ -433,6 +545,14 @@ def main():
                         default=None,
                         )
 
+    parser.add_argument('-p', '--processes',
+                        help='number of processes to translate junctions in; the output is the same for any number. '
+                             'More than 1 needs --uniprot (canonicals from the UniProt API are fetched and cached by '
+                             'one process only), and macOS or Linux [default: 1]',
+                        default=1,
+                        type=int,
+                        )
+
     parser.add_argument('--mask',
                         help='deprecated and ignored: slices containing any base other than A, C, G or T '
                              '(case-insensitive) are always skipped. Will be removed in the next release.',
@@ -470,6 +590,12 @@ def main():
 
     # parse all the arguments
     args = parser.parse_args()
+
+    if args.processes < 1:
+        parser.error('-p/--processes must be at least 1')
+    if args.processes > 1 and not args.uniprot:
+        parser.error('-p/--processes > 1 needs --uniprot: without it, canonicals come from the UniProt API, whose '
+                     'calls and local cache cannot be shared between processes')
 
     for path in [args.gtf_file, args.genome] + ([args.uniprot] if args.uniprot else []):
         if not os.path.isfile(path):

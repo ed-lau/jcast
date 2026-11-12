@@ -248,6 +248,10 @@ def make_pep(nt: str,
 # output file -> (its size after our last write, the sequences in it), so a write need not re-read the file
 _written = {}
 
+# In a worker process (-p > 1), records are collected here instead of written; the main process writes them in
+# junction order (main._translate_in_worker)
+_collected = None
+
 
 def write_seqrecord_to_fasta(seqrecord,
                              output,
@@ -265,6 +269,10 @@ def write_seqrecord_to_fasta(seqrecord,
     :param suffix:
     :return:
     """
+
+    if _collected is not None:
+        _collected.append((output, suffix, seqrecord))
+        return True
 
     outfile = os.path.join(output, 'psq_' + suffix + '.fasta')
 

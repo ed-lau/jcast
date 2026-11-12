@@ -66,8 +66,12 @@ python -m jcast \
     /data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa \
     -o encode_human_pancreas \
     -q 0 1 \
-    -r 1 -m -c
+    -r 1 -m -c \
+    --uniprot /data/uniprot/uniprot_sprot_human_isoforms_2026_04.fasta.gz \
+    -p 8
 ```
+
+The output directory must exist before the run.
 
 To launch the (optional) graphical interface:
 
@@ -95,7 +99,8 @@ python -m jcast \
 ## Command-line options
 
 ```text
-usage: jcast [-h] [-o OUT] [-r READ] [-m] [-c] [--uniprot UNIPROT] [--mask MASK]
+usage: jcast [-h] [-o OUT] [-r READ] [-m] [-c] [--uniprot UNIPROT] [-p PROCESSES]
+             [--mask MASK]
              [-s {MXE,SE,RI,A5SS,A3SS} [...]] [-q q_lo q_hi]
              [--g_or_ln G_OR_LN]
              rmats_folder gtf_file genome
@@ -116,6 +121,10 @@ optional arguments:
                         is untranslatable [default: False]
   --uniprot UNIPROT     UniProt FASTA to take canonical proteins from instead
                         of the UniProt API (see below) [default: use the API]
+  -p, --processes PROCESSES
+                        number of processes to translate junctions in; the
+                        output is the same for any number. More than 1 needs
+                        --uniprot, and macOS or Linux (see below) [default: 1]
   --mask MASK           deprecated and ignored: slices containing any base
                         other than A, C, G or T are always skipped. Will be
                         removed in the next release.
@@ -157,6 +166,28 @@ A match is used only if it is unique. The run also writes:
   joined to a Swiss-Prot canonical and is not identical to a UniProt entry.
   Each is renamed `sp|<accession>-J<n>|<entry name>`, followed by its JCAST
   header.
+
+### Several processes (`-p`)
+
+`-p N` translates junctions in N processes. The output files and the log
+are the same as with one process:
+- the worker processes only translate;
+- the main process writes every record and log line in rMATS file order.
+
+On a whole-genome run, 16 processes are about 11× faster than one.
+Memory barely grows, because the workers share the genome and GTF already
+loaded rather than copying them.
+
+`-p` above 1 has two requirements:
+- **`--uniprot`.** Without it, canonicals come from the UniProt API, one
+  request per gene. The answers are cached in a local database that
+  several processes cannot safely share, and concurrent requests would
+  load the EBI servers. The command line rejects `-p 2` without
+  `--uniprot`.
+- **macOS or Linux.** On Windows, JCAST warns and uses one process.
+
+Leave a core or two for the system: `-p` set to the number of cores minus
+2 is a reasonable maximum.
 
 The `--g_or_ln` flag is a development-only switch and will be removed in
 v0.4.0; see [REVIEW.md](REVIEW.md).
