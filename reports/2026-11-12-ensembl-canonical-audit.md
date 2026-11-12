@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-12 |
-| **Status** | Decisions approved 2026-11-12 (§9): option 1, the fallback without readthrough transcripts. **Implemented in PR 17** (§10). Audit measured at `ae3d937`, with a prototype (two audit-only variants) run on the whole genome (§6). |
+| **Status** | Decisions approved 2026-11-12 (§9): option 1, the fallback without readthrough transcripts. **Implemented in PR 17** (`8ddf8c3`, §10). Audit measured at `ae3d937`, with a prototype (two audit-only variants) run on the whole genome (§6). |
 | **Question** | When no transcript passes the GTF canonical rule (protein_coding, TSL ≤ 2, annotated start and stop codons), should JCAST take the transcript GENCODE tags `Ensembl_canonical`? Scheduled as PR 17 by the [mapping audit](2026-11-12-uniprot-mapping-audit.md#7-decisions-2026-11-12) decision 3, which counted 173 of 384 coding genes that it would cover. |
 | **Reproduce** | `python reports/canonical_audit/audit_canonical.py genes --gtf <gtf> --run <output dir> --rmats <dir>` (≈ 1 min with the GTF cache) · `… compare --before <dir> --after <dir> --label <name>` · PR 17: `python reports/canonical_audit/verify_17.py --before <checkout> --after <checkout> [--genome_before <dir> --genome_prototype <dir> --genome_after <dir>]` (≈ 4 min) |
 | **Inputs** | The user's whole-genome data (599,644 junctions, GENCODE v50, GRCh38, Swiss-Prot human with isoforms 2026_04), run with `-m -c --uniprot -p 16` at PR 16 (`a85f8fc`; output identical to `f181966`, [log audit §7](2026-11-12-log-audit.md#7-implementation-and-verification-pr-16-a85f8fc)). Not bundled. |
@@ -246,7 +246,7 @@ Whichever option is taken:
 2. **The README says that readthrough genes get no canonical, and why.**
    Approved, with PR 17.
 
-## 10. Implementation and verification: PR 17
+## 10. Implementation and verification: PR 17 (`8ddf8c3`)
 
 **What changed** ([sequences.py](../jcast/sequences.py)):
 - `Sequence.get_annotated_transcripts_gtf` applies the rule as before.

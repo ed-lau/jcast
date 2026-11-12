@@ -803,7 +803,7 @@ currently can't be installed and run from scratch.
 | 14 | ✅ `--uniprot FASTA`: canonical from a supplied UniProt FASTA (no API calls), GTF fallback, built-in Swiss-Prot merge ([evaluation](reports/2026-11-11-uniprot-fasta-evaluation.md)) | Reproducibility | Done 2026-11-11 |
 | 15 | ✅ Parallel junctions: `-p/--processes` (fork; workers return records, the main process writes in order); one process without `--uniprot` ([parallel audit](reports/2026-11-12-parallel-audit.md)) | Performance | Done 2026-11-12 |
 | 16 | ✅ Run record: per-junction `junctions.tsv`, a small log with an end-of-run summary, sequences only with `--verbose`, no `~module~function` suffix ([log audit](reports/2026-11-12-log-audit.md) §7; whole-genome log 346 MB → 5 kB, output unchanged) | UX | Done 2026-11-12 |
-| 17 | ✅ GTF canonical from GENCODE's `Ensembl_canonical` tag when no transcript passes the TSL ≤ 2 / start-and-stop filter: complete protein_coding transcripts, readthrough transcripts excluded ([`Ensembl_canonical` audit](reports/2026-11-12-ensembl-canonical-audit.md) §10; 17 genes in the whole-genome run, fates and merged database unchanged; 370 of the 371 coding genes still without a canonical are readthrough genes) | Sci-integrity | Done 2026-11-12 |
+| 17 | ✅ GTF canonical from GENCODE's `Ensembl_canonical` tag when no transcript passes the TSL ≤ 2 / start-and-stop filter: complete protein_coding transcripts, readthrough transcripts excluded ([`Ensembl_canonical` audit](reports/2026-11-12-ensembl-canonical-audit.md) §10, `8ddf8c3`; 17 genes in the whole-genome run, fates and merged database unchanged; 370 of the 371 coding genes still without a canonical are readthrough genes) | Sci-integrity | Done 2026-11-12 |
 
 ### Deferred to v0.5.x
 
