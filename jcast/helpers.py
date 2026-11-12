@@ -267,7 +267,8 @@ def write_seqrecord_to_fasta(seqrecord,
     :param seqrecord:   Biopython SeqRecord object
     :param output:
     :param suffix:
-    :return:
+    :return: True if the record was written (or collected, see _collected), False if its sequence was already in the
+        file
     """
 
     if _collected is not None:
@@ -286,7 +287,7 @@ def write_seqrecord_to_fasta(seqrecord,
 
     # Test if the slice is already in the fasta, then do not write the new sequence into the fasta file.
     if str(seqrecord.seq) in sequences:
-        return True
+        return False
 
     with open(outfile, 'a') as output_handle:
         SeqIO.write(seqrecord, output_handle, 'fasta')

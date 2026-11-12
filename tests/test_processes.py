@@ -27,11 +27,11 @@ def _run(tmp_path, name, processes, cache_dir, **extra):
 
 
 def _messages(out):
-    """ log messages from the first junction on, without timestamps """
+    """ log messages from the first junction on, without time stamps or the run time """
     lines = (out / 'logfile.log').read_text().split('\n')
     messages = [line.split('~', 1)[1] if line[:4].isdigit() else line for line in lines]
     first = next(i for i, m in enumerate(messages) if '>>>>>> Doing' in m)
-    return messages[first:]
+    return [m for m in messages[first:] if not m.startswith('INFO~Time: ')]
 
 
 @pytest.mark.slow
@@ -40,8 +40,9 @@ def test_processes_give_the_same_output_and_log(tmp_path, monkeypatch, cache_dir
     monkeypatch.setattr(Sequence, 'get_canonical_aa_uniprot', _no_api)
     monkeypatch.setattr(params, 'use_gtf_only', False)
 
-    one = _run(tmp_path, 'p1', 1, cache_dir)
-    three = _run(tmp_path, 'p3', 3, cache_dir)
+    # --verbose: each junction's steps are logged too
+    one = _run(tmp_path, 'p1', 1, cache_dir, verbose=True)
+    three = _run(tmp_path, 'p3', 3, cache_dir, verbose=True)
 
     files = sorted(p.name for p in one.iterdir() if p.name != 'logfile.log')
     assert files == sorted(p.name for p in three.iterdir() if p.name != 'logfile.log')

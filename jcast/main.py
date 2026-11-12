@@ -4,14 +4,17 @@
 
 import os
 import collections
+import datetime
 import glob
+import hashlib
 import argparse
 import logging
 import multiprocessing
+import time
 import traceback
 import tqdm
 
-from jcast import params, fates, model, cache
+from jcast import params, fates, model, cache, outcomes
 from jcast import helpers as h
 from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
@@ -22,7 +25,7 @@ from jcast.logger import get_logger, close_logger
 
 # The files a run writes into its output directory. A directory holding any of them is used again only with
 # --overwrite, which removes them first (reports/2026-11-12-thresholds-runs-canonical-audit.md §3.2)
-OUTPUT_FILES = ['logfile.log', 'model.pdf', MERGED_FILE, ISOFORMS_FILE, CANONICALS_FILE]
+OUTPUT_FILES = ['logfile.log', 'model.pdf', outcomes.JUNCTIONS_FILE, MERGED_FILE, ISOFORMS_FILE, CANONICALS_FILE]
 OUTPUT_PATTERN = 'psq_*.fasta'
 
 
@@ -57,19 +60,42 @@ def run_jcast(args) -> None:
     cache.set_directory(getattr(args, 'cache_dir', None))
 
     # ---- Main logger setup ----
-    logger = get_logger('jcast', args.out)
+    logger = get_logger('jcast', args.out, verbose=getattr(args, 'verbose', False))
     try:
-        if found:
-            logger.info(f'--overwrite: removed the output of an earlier run: {", ".join(found)}.')
-        return _run(args, logger)
+        return _run(args, logger, removed=found)
     finally:
         close_logger(logger)
 
 
-def _run(args, logger) -> bool:
-    """ The run, logging to logger """
-    logger.info(args)
-    logger.info(__version__)
+def _describe(path, checksum: bool = True) -> str:
+    """ a file's path and size, and its sha256 or its modification time, for the log """
+    if checksum:
+        digest = hashlib.sha256()
+        with open(path, 'rb') as fh:
+            for chunk in iter(lambda: fh.read(1 << 20), b''):
+                digest.update(chunk)
+        identity = f'sha256 {digest.hexdigest()}'
+    else:
+        identity = 'modified ' + datetime.datetime.fromtimestamp(os.path.getmtime(path)).isoformat(' ', 'seconds')
+    return f'{os.path.abspath(path)} ({os.path.getsize(path):,} bytes, {identity})'
+
+
+def _run(args, logger, removed=()) -> bool:
+    """ The run, logging to logger; removed: the output of an earlier run that --overwrite removed """
+    started = time.monotonic()
+    logger.info(f'JCAST {__version__}')
+    logger.info(f'Arguments: {args}')
+    if removed:
+        logger.info(f'--overwrite: removed the output of an earlier run: {", ".join(removed)}.')
+
+    # ---- The inputs. The GTF and the genome (GBs) get no checksum: it would read them again, about 20 s for GENCODE
+    # and GRCh38 (reports/2026-11-12-log-audit.md §7) ----
+    for splice_type in outcomes.SPLICE_TYPES:
+        path = os.path.join(args.rmats_folder, f'{splice_type}.MATS.JC.txt')
+        if splice_type in args.splice_type and os.path.isfile(path):
+            logger.info(f'rMATS {splice_type}: {_describe(path)}')
+    logger.info(f'GTF: {_describe(args.gtf_file, checksum=False)}')
+    logger.info(f'Genome: {_describe(args.genome, checksum=False)}')
 
     if getattr(args, 'mask', None) is not None:
         logger.warning('--mask is deprecated and ignored: slices containing any base other than A, C, G or T are '
@@ -149,18 +175,28 @@ def _run(args, logger) -> bool:
         pool = multiprocessing.get_context('fork').Pool(processes, initializer=_init_worker)
         logger.info(f'Translating junctions in {processes} worker processes.')
 
+    table = outcomes.JunctionTable(args.out)
+    translating = time.monotonic()
     try:
-        failed = _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool)
+        failed = _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool, table)
     except BaseException:
         if pool is not None:
             pool.terminate()
         raise
+    finally:
+        table.close()
     if pool is not None:
         pool.close()
         pool.join()
+    translated = time.monotonic()
 
     if uniprot is not None:
         uniprot.write_outputs(out_dir=args.out)
+
+    # ---- The end-of-run summary (reports/2026-11-12-log-audit.md §4) ----
+    logger.info('\n'.join(['Summary.'] + table.summary(args.splice_type, args.out)))
+    logger.info(f'Time: {_duration(time.monotonic() - started)} in all, of which {_duration(translated - translating)} '
+                f'translating junctions.')
 
     if failed:
         logger.warning(f'{sum(failed.values())} junction(s) failed with an exception and wrote nothing (fate FAILURE '
@@ -172,9 +208,16 @@ def _run(args, logger) -> bool:
     return True
 
 
-def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool) -> int:
+def _duration(seconds: float) -> str:
+    """ e.g. 4 min 05 s """
+    minutes, seconds = divmod(round(seconds), 60)
+    return f'{minutes} min {seconds:02d} s' if minutes else f'{seconds} s'
+
+
+def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool, table) -> int:
     """
-    Translate every junction of the selected splice types, in file order, in this process or in the pool
+    Translate every junction of the selected splice types, in file order, in this process or in the pool; write
+    their records, and their rows of junctions.tsv
 
     :return: the junctions that failed with an exception, counted by the exception's type
     """
@@ -201,14 +244,9 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
                                         total=len(junctions),
                                         desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
                                         ):
-                logger.info('>>>>>> Doing {0} junction {1} for gene {2} {3}'.format(jx.junction_type,
-                                                                                      jx.name,
-                                                                                      jx.gene_symbol,
-                                                                                      jx.gene_id,
-                                                                                      ))
-                fate = _write_worker_result(result, logger, uniprot)
-                logger.info(fate)
-                _count_failure(jx, fate, failed, logger)
+                _log_start(jx, logger)
+                fate, records, found = _write_worker_result(result, logger, uniprot)
+                _finish(jx, fate, records, found, table, failed, logger)
             continue
 
         # ---- Single threaded for loop ----
@@ -216,19 +254,29 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
                             total=len(junctions),
                             desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
                             ):
-
-            logger.info('>>>>>> Doing {0} junction {1} for gene {2} {3}'.format(jx.junction_type,
-                                                                                  jx.name,
-                                                                                  jx.gene_symbol,
-                                                                                  jx.gene_id,
-                                                                                  ))
-            fate, records = _translate_safely(jx, gtf, genome, args, pred_bound=min_count, uniprot=uniprot)
-            for output, suffix, seqrecord in records:
-                h.write_seqrecord_to_fasta(seqrecord, output, suffix)
-            logger.info(fate)
-            _count_failure(jx, fate, failed, logger)
+            _log_start(jx, logger)
+            fate, records, found = _translate_safely(jx, gtf, genome, args, pred_bound=min_count, uniprot=uniprot)
+            _finish(jx, fate, records, found, table, failed, logger)
 
     return failed
+
+
+def _log_start(junction, logger) -> None:
+    logger.debug('>>>>>> Doing {0} junction {1} for gene {2} {3}'.format(junction.junction_type,
+                                                                          junction.name,
+                                                                          junction.gene_symbol,
+                                                                          junction.gene_id,
+                                                                          ))
+
+
+def _finish(junction, fate, records, found, table, failed, logger) -> None:
+    """ In the main process: write the junction's records, log its fate, and add its row to junctions.tsv """
+    new_records = 0
+    for output, suffix, seqrecord in records:
+        new_records += h.write_seqrecord_to_fasta(seqrecord, output, suffix)
+    logger.debug(fate.rstrip())
+    table.add(junction, fate, found, [suffix for _, suffix, _ in records], new_records)
+    _count_failure(junction, fate, failed, logger)
 
 
 def _count_failure(junction, fate, failed, logger) -> None:
@@ -250,20 +298,21 @@ def _translate_safely(junction, gtf, genome, args, pred_bound, uniprot):
     of its records are written. 2026-11-12 one exception used to abort the run; see
     reports/2026-11-12-thresholds-runs-canonical-audit.md §3.3
 
-    :return: the fate, and the records to write as (output directory, file suffix, SeqRecord)
+    :return: the fate; the records to write as (output directory, file suffix, SeqRecord); and what translating
+        found, for junctions.tsv (outcomes.outcome; {} after an exception)
     """
     h._collected = []
     try:
         fate = _translate_one(junction, gtf, genome, args, pred_bound=pred_bound, uniprot=uniprot)
-        records = h._collected
+        records, found = h._collected, outcomes.outcome(junction)
     except Exception as e:
         logging.getLogger('jcast').error('Junction {0} {1} of gene {2} {3} failed:\n{4}'.format(
             junction.junction_type, junction.name, junction.gene_symbol, junction.gene_id,
             traceback.format_exc().rstrip()), extra={'jcast_console': False})
-        fate, records = fates.EXCEPTION.format(type(e).__name__, ' '.join(str(e).split())), []
+        fate, records, found = fates.EXCEPTION.format(type(e).__name__, ' '.join(str(e).split())), [], {}
     finally:
         h._collected = None
-    return fate, records
+    return fate, records, found
 
 
 # Junctions sent to a worker at a time
@@ -315,12 +364,13 @@ def _translate_in_worker(junction: Junction):
     """
     Translate one junction in a worker process.
 
-    :return: the fate; the records to write, as (output directory, file suffix, SeqRecord); the log records; and
-        the canonical this worker chose for the junction's gene, if not yet reported
+    :return: the fate; the records to write, as (output directory, file suffix, SeqRecord); what translating found,
+        for junctions.tsv; the log records; and the canonical this worker chose for the junction's gene, if not yet
+        reported
     """
     _WORKER['capture'].records = []
-    fate, records = _translate_safely(junction, _WORKER['gtf'], _WORKER['genome'], _WORKER['args'],
-                                      pred_bound=_WORKER['pred_bound'], uniprot=_WORKER['uniprot'])
+    fate, records, found = _translate_safely(junction, _WORKER['gtf'], _WORKER['genome'], _WORKER['args'],
+                                             pred_bound=_WORKER['pred_bound'], uniprot=_WORKER['uniprot'])
 
     chosen = {}
     uniprot = _WORKER['uniprot']
@@ -328,16 +378,16 @@ def _translate_in_worker(junction: Junction):
         chosen[junction.gene_id] = uniprot.chosen[junction.gene_id]
         _WORKER['reported'].add(junction.gene_id)
 
-    return fate, records, _WORKER['capture'].records, chosen
+    return fate, records, found, _WORKER['capture'].records, chosen
 
 
-def _write_worker_result(result, logger, uniprot) -> str:
+def _write_worker_result(result, logger, uniprot) -> tuple:
     """
-    In the main process: log and write one junction's result from a worker, as a single process would have.
+    In the main process: log one junction's result from a worker, as a single process would have.
 
-    :return: the fate
+    :return: the fate, the records to write, and what translating found
     """
-    fate, records, log_records, chosen = result
+    fate, records, found, log_records, chosen = result
 
     # a gene's canonical is logged when first chosen; another worker may have chosen it again
     for record in log_records:
@@ -346,10 +396,7 @@ def _write_worker_result(result, logger, uniprot) -> str:
     for gene_id, choice in chosen.items():
         uniprot.chosen.setdefault(gene_id, choice)
 
-    for output, suffix, seqrecord in records:
-        h.write_seqrecord_to_fasta(seqrecord, output, suffix)
-
-    return fate
+    return fate, records, found
 
 
 def _translate_one(junction: Junction,
@@ -383,6 +430,7 @@ def _translate_one(junction: Junction,
             sequence.get_canonical_aa(gtf=gtf, genome_index=genome.genome)
         sequence.write_canonical(out_dir=args.out)
 
+    junction.canonical = sequence.canonical_source
     return fate
 
 
@@ -640,6 +688,14 @@ def main():
                              'one process only), and macOS or Linux [default: 1]',
                         default=1,
                         type=int,
+                        )
+
+    parser.add_argument('-v', '--verbose',
+                        help="also log each junction's steps and its sequences, at DEBUG level (large: 300 MB for "
+                             "a whole-genome -m run); without it, the log has the run's settings, warnings, errors "
+                             "and a summary, and each junction's outcome is in junctions.tsv [default: False]",
+                        action='store_true',
+                        default=False,
                         )
 
     parser.add_argument('--mask',

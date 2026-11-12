@@ -70,6 +70,22 @@ See
 and §9.
 
 ### Added
+- **`junctions.tsv`: one row per junction (PR 16).**
+  - **Contents:**
+    - the junction's type, id, gene, read count and FDR;
+    - its fate (short names such as `T1`, `skipped_low_count`,
+      `exception`), with the error for an exception;
+    - its slices' frames and coding region;
+    - its gene's canonical source and accession;
+    - the files its records went to, and how many were new.
+  - **Order:** rMATS file order, the same with any `-p`.
+  - **Size:** 110 bytes per junction, 66 MB for a 600,000-junction run.
+    It reads directly into R or pandas.
+
+  See [reports/2026-11-12-log-audit.md](reports/2026-11-12-log-audit.md)
+  §7.
+- **`-v/--verbose` (PR 16):** also log each junction's steps and
+  sequences, as every run did before (300 MB for a whole-genome `-m` run).
 - **`-p/--processes N`: translate junctions in N processes (PR 15).**
   - **Same output:** the output files and the log are the same as with one
     process. Workers only translate; the main process writes everything in
@@ -169,13 +185,30 @@ and §9.
     translated junctions.
 
   See [reports/2026-11-12-log-audit.md](reports/2026-11-12-log-audit.md).
+- **The log is small (PR 16).**
+  - **Contents:**
+    - the version, the arguments and the inputs (rMATS files with sha256;
+      GTF and genome with size and modification time);
+    - the model fit and cutoff;
+    - warnings and errors;
+    - an end-of-run summary: junctions by fate and splice type, records
+      per file, time taken.
+  - **Per-junction lines** are written only with `--verbose`. Each
+    junction's outcome is in `junctions.tsv`.
+  - **Line format:** lines end with the message; the
+    `~module:…~function:…` suffix is gone.
+  - **Size:** 346 MB → 5 kB for the user's whole-genome `-m` run (1 GB
+    before PR 6). No output file changes.
+
+  See [reports/2026-11-12-log-audit.md](reports/2026-11-12-log-audit.md)
+  §7.
 - **Each run writes a fresh output directory (PR 7).**
   - `-o` is created if it does not exist. Before, it had to exist, even the
     default `out/`.
   - **A directory that already holds JCAST output is refused** unless
     `--overwrite` is given (new option). `--overwrite` removes only JCAST's
-    own files: `logfile.log`, `psq_*.fasta`, `model.pdf` and the
-    `--uniprot` outputs.
+    own files: `logfile.log`, `psq_*.fasta`, `model.pdf`,
+    `junctions.tsv` (PR 16) and the `--uniprot` outputs.
   - Before, output was appended. Sequences already in a file were skipped,
     so a rerun into the same directory kept the first run's records: a
     `-r 30` run into a `-r 1` directory left the `-r 1` files byte for byte.

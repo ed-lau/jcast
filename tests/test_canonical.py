@@ -84,9 +84,9 @@ def test_canonical_written_for_a_masked_junction(gtf, genome, rmats_results, tmp
 def test_failing_junction_writes_no_canonical(gtf, genome, rmats_results, tmp_path, gtf_only, monkeypatch):
     """ a junction that raises writes nothing, its canonical included (PR 7) """
     monkeypatch.setattr(Sequence, 'translate', lambda self, log=True: 1 / 0)
-    fate, records = main._translate_safely(_junction(rmats_results.rmats_mxe, 441), gtf, genome, _args(tmp_path),
-                                           pred_bound=1, uniprot=None)
-    assert fate.startswith('FAILURE (exception). ZeroDivisionError') and records == []
+    fate, records, found = main._translate_safely(_junction(rmats_results.rmats_mxe, 441), gtf, genome,
+                                                  _args(tmp_path), pred_bound=1, uniprot=None)
+    assert fate.startswith('FAILURE (exception). ZeroDivisionError') and records == [] and found == {}
 
 
 # ---- write_canonical's API fallback (MED-9) ----
@@ -154,9 +154,9 @@ def test_api_failure_fails_the_junction(gtf, genome, rmats_results, tmp_path, ap
     monkeypatch.setattr(params, 'use_gtf_only', False)
     calls, install = api
     install(_response(429))
-    fate, records = main._translate_safely(_junction(rmats_results.rmats_mxe, 441), gtf, genome, _args(tmp_path),
-                                           pred_bound=1, uniprot=None)
-    assert fate.startswith('FAILURE (exception). UniProtAPIError') and records == []
+    fate, records, found = main._translate_safely(_junction(rmats_results.rmats_mxe, 441), gtf, genome,
+                                                  _args(tmp_path), pred_bound=1, uniprot=None)
+    assert fate.startswith('FAILURE (exception). UniProtAPIError') and records == [] and found == {}
 
 
 # ---- --uniprot: gene names only when unique in the GTF (mapping audit §7) ----

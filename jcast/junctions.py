@@ -232,6 +232,7 @@ class Junction(object):
         self.start_sites = set()
         self.stop_sites = set()
         self.num_start_codons = 0
+        self.canonical = None       # (source, accession) of the gene's canonical, once looked up
 
         self.logger = logging.getLogger('jcast')
 
@@ -389,9 +390,9 @@ class Junction(object):
         # a single phase only when both slices share it
         self.phase = phases[0] if phases[0] == phases[1] else None
 
-        self.logger.info('Transcription start: {0} Transcript end: {1}'.format(self.tx0,
-                                                                               self.tx1))
-        self.logger.info('Retrieved phases: {0}'.format(self.slice_phases))
+        self.logger.debug('Transcription start: {0} Transcript end: {1}'.format(self.tx0,
+                                                                                self.tx1))
+        self.logger.debug('Retrieved phases: {0}'.format(self.slice_phases))
 
     def _frames_at(self, cds, position: int) -> list:
         """

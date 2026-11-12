@@ -41,11 +41,21 @@ def _sequences(out):
     return {p.name: {str(r.seq) for r in SeqIO.parse(p, 'fasta')} for p in sorted(out.glob('psq_*.fasta'))}
 
 
+# log messages that differ between runs of the same input
+VARYING = ('INFO~Time: ', 'INFO~Translating junctions in ')
+
+
 def _messages(out):
-    """ log messages from the first junction on, without time stamps """
+    """ log messages from the read-count cutoff on, without time stamps, the run time or the number of processes """
     lines = (out / 'logfile.log').read_text().split('\n')
     messages = [line.split('~', 1)[1] if line[:4].isdigit() else line for line in lines]
-    return messages[next(i for i, m in enumerate(messages) if '>>>>>> Doing' in m):]
+    start = next(i for i, m in enumerate(messages) if 'Translating junctions with' in m)
+    return [m for m in messages[start:] if not m.startswith(VARYING)]
+
+
+def _table(out):
+    """ junctions.tsv """
+    return pd.read_table(out / 'junctions.tsv', dtype=str, keep_default_na=False)
 
 
 @pytest.fixture(autouse=True)
@@ -84,7 +94,8 @@ def test_overwrite_replaces_only_jcast_output(tmp_path, cache_dir):
     assert _sequences(reused) == _sequences(fresh)
     assert (reused / 'notes.txt').read_text() == 'mine'
     assert _messages(reused) == _messages(fresh)
-    assert (reused / 'logfile.log').read_text().count('~INFO~Namespace(') == 1
+    assert (reused / 'logfile.log').read_text().count('~INFO~Arguments: Namespace(') == 1
+    assert (reused / 'junctions.tsv').read_bytes() == (fresh / 'junctions.tsv').read_bytes()
 
 
 def test_cli_refuses_directory_with_output(tmp_path, monkeypatch, capsys):
@@ -131,23 +142,27 @@ def test_failing_junction_does_not_stop_the_run(tmp_path, monkeypatch, capsys, c
 
     # the same output and log in one process and in three
     assert _sequences(outs[1]) == _sequences(outs[3])
-    for name in _sequences(outs[1]):
+    for name in list(_sequences(outs[1])) + ['junctions.tsv']:
         assert (outs[1] / name).read_bytes() == (outs[3] / name).read_bytes(), name
     assert [m.replace(str(outs[1]), '<out>') for m in _messages(outs[1])] == \
            [m.replace(str(outs[3]), '<out>') for m in _messages(outs[3])]
 
+    # the failure is in junctions.tsv, and its traceback in the log
+    table = _table(outs[1])
+    assert len(table) == 720
+    failed = table[table['fate'] == 'exception']
+    assert failed[['junction_type', 'junction_id', 'fate_detail', 'files']].values.tolist() == \
+           [['SE', '11950', 'RuntimeError: injected fault', '']]
     log = (outs[1] / 'logfile.log').read_text()
-    assert log.count('>>>>>> Doing') == 720
-    assert log.count('FAILURE (exception). RuntimeError: injected fault.') == 1
-    assert 'Traceback (most recent call last)' in log
+    assert 'Traceback (most recent call last)' in log and '>>>>>> Doing' not in log
 
     # every other junction's output is unchanged: only records of the failing junction can be missing
     monkeypatch.setattr(main, '_translate_one', translate_one)
     args = _args(tmp_path / 'alone', cache_dir, read=2)
     from jcast.uniprot import UniProtFasta
-    fate, records = main._translate_safely(_junction(rmats_results.rmats_se, int(FAULT[1])), gtf, genome, args,
-                                           pred_bound=2, uniprot=UniProtFasta(logging.getLogger('jcast-test'),
-                                                                              UNIPROT))
+    fate, records, _ = main._translate_safely(_junction(rmats_results.rmats_se, int(FAULT[1])), gtf, genome, args,
+                                              pred_bound=2, uniprot=UniProtFasta(logging.getLogger('jcast-test'),
+                                                                                 UNIPROT))
     own = {str(r.seq) for _, _, r in records}
     with_fault, without = _sequences(outs[1]), _sequences(normal)
     assert set(with_fault) <= set(without)
@@ -160,9 +175,9 @@ def test_failing_junction_does_not_stop_the_run(tmp_path, monkeypatch, capsys, c
 def test_exception_fate(gtf, genome, rmats_results, tmp_path, monkeypatch):
     """ the failing junction's fate names the exception; its records are not kept """
     monkeypatch.setattr(main, '_translate_one', lambda *a, **k: (_ for _ in ()).throw(KeyError('chr99')))
-    fate, records = main._translate_safely(_junction(rmats_results.rmats_se, 6426), gtf, genome,
-                                           _args(tmp_path, tmp_path), pred_bound=1, uniprot=None)
-    assert fate.startswith("FAILURE (exception). KeyError: 'chr99'.") and records == []
+    fate, records, found = main._translate_safely(_junction(rmats_results.rmats_se, 6426), gtf, genome,
+                                                  _args(tmp_path, tmp_path), pred_bound=1, uniprot=None)
+    assert fate.startswith("FAILURE (exception). KeyError: 'chr99'.") and records == [] and found == {}
 
 
 # ---- the logger across runs (MED-13) ----

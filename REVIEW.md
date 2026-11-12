@@ -802,7 +802,7 @@ currently can't be installed and run from scratch.
 | 13 | GUI v0 → wizard (§10) | New surface | PRs 7, 12 |
 | 14 | ✅ `--uniprot FASTA`: canonical from a supplied UniProt FASTA (no API calls), GTF fallback, built-in Swiss-Prot merge ([evaluation](reports/2026-11-11-uniprot-fasta-evaluation.md)) | Reproducibility | Done 2026-11-11 |
 | 15 | ✅ Parallel junctions: `-p/--processes` (fork; workers return records, the main process writes in order); one process without `--uniprot` ([parallel audit](reports/2026-11-12-parallel-audit.md)) | Performance | Done 2026-11-12 |
-| 16 | Run record: per-junction `junctions.tsv`, a small log with an end-of-run summary, sequences only with `--verbose`, no `~module~function` suffix ([log audit](reports/2026-11-12-log-audit.md)) | UX | PRs 7, 8 |
+| 16 | ✅ Run record: per-junction `junctions.tsv`, a small log with an end-of-run summary, sequences only with `--verbose`, no `~module~function` suffix ([log audit](reports/2026-11-12-log-audit.md) §7; whole-genome log 346 MB → 5 kB, output unchanged) | UX | Done 2026-11-12 |
 | 17 | GTF canonical from GENCODE's `Ensembl_canonical` tag when no transcript passes the TSL ≤ 2 / start-and-stop filter (384 coding genes have no canonical in the whole-genome run; the tag covers 173) — audit first ([mapping audit](reports/2026-11-12-uniprot-mapping-audit.md)) | Sci-integrity | PR 16 |
 
 ### Deferred to v0.5.x

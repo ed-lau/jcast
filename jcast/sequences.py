@@ -116,6 +116,7 @@ class Sequence(object):
 
         self.canonical_aa = SeqRecord(Seq(''), annotations={'molecule_type': 'extended_protein'})
         self.canonical_looked_up = False            # get_canonical_aa has run (the canonical may still be empty)
+        self.canonical_source = None                # (source, accession) of the canonical, for junctions.tsv
 
         self.slice1_stitched = None
         self.slice2_stitched = None
@@ -195,11 +196,11 @@ class Sequence(object):
                 self.slice2_nt = alt2_nt + anc_nt
 
         for i_, s_ in enumerate([self.slice1_nt, self.slice2_nt]):
-            self.logger.info('Retrieved nucleotide for {0} {1} {2} slice {3}: {4}'.format(self.j.junction_type,
-                                                                                          self.j.name,
-                                                                                          self.j.gene_symbol,
-                                                                                          i_+1,
-                                                                                          s_.seq))
+            self.logger.debug('Retrieved nucleotide for {0} {1} {2} slice {3}: {4}'.format(self.j.junction_type,
+                                                                                           self.j.name,
+                                                                                           self.j.gene_symbol,
+                                                                                           i_+1,
+                                                                                           s_.seq))
 
     def translate(self,
                   log: bool = True,
@@ -227,7 +228,7 @@ class Sequence(object):
         if log:
             for i_, s_ in enumerate([self.slice1_aa, self.slice2_aa]):
                 if s_ != '':
-                    self.logger.info(
+                    self.logger.debug(
                         'Translated AA for {0} {1} {2} phase {3}{4} slice {5}: {6}'.format(
                             self.j.junction_type,
                             self.j.name,
@@ -430,15 +431,15 @@ class Sequence(object):
         elif slice_to_translate == 2:
             self.slice2_aa = force_translated_aa
 
-        self.logger.info('Force-Translated AA for {0} {1} {2} phase {3}{4} slice {5}: {6}'.format(self.j.junction_type,
-                                                                                                  self.j.name,
-                                                                                                  self.j.gene_symbol,
-                                                                                                  self.j.strand,
-                                                                                                  self.translated_phase,
-                                                                                                  slice_to_translate,
-                                                                                                  force_translated_aa,
-                                                                                                  )
-                         )
+        self.logger.debug('Force-Translated AA for {0} {1} {2} phase {3}{4} slice {5}: {6}'.format(self.j.junction_type,
+                                                                                                   self.j.name,
+                                                                                                   self.j.gene_symbol,
+                                                                                                   self.j.strand,
+                                                                                                   self.translated_phase,
+                                                                                                   slice_to_translate,
+                                                                                                   force_translated_aa,
+                                                                                                   )
+                          )
 
         return None
 
@@ -541,10 +542,12 @@ class Sequence(object):
                 gtf_canonical=lambda: self.get_canonical_aa_gtf(gtf, genome_index),
                 unique_name=gene_name_is_unique(gtf, self.j.gene_symbol),
             )
+            self.canonical_source = tuple(self.uniprot.chosen[self.j.gene_id][1:3])
 
         elif params.use_gtf_only:
             self.canonical_aa = self.get_canonical_aa_gtf(gtf,
                                                           genome_index)
+            self.canonical_source = ('gtf' if len(self.canonical_aa) > 0 else 'none', '')
             # Uniprot fallback
             # if len(self.canonical_aa) ==0:
             #    self.canonical_aa = self.get_canonical_aa_uniprot()
@@ -554,6 +557,12 @@ class Sequence(object):
             self.canonical_aa = self.get_canonical_aa_uniprot(reviewed='true')
             if len(self.canonical_aa[:]) == 0:
                 self.canonical_aa = self.get_canonical_aa_uniprot(reviewed='false')
+            # an API record's id is <sp or tr>|<accession>|<entry name>
+            fields = self.canonical_aa.id.split('|')
+            if len(self.canonical_aa) == 0:
+                self.canonical_source = ('none', '')
+            else:
+                self.canonical_source = (f'{fields[0]} by API', fields[1]) if len(fields) > 2 else ('API', '')
 
         return True
 
@@ -630,7 +639,7 @@ class Sequence(object):
 
         if read_fasta:
             record = list(SeqIO.parse(StringIO(read_fasta), 'fasta'))[0]
-            self.logger.info('Locally cached sequence retrieved for {0}.'.format(cache_id))
+            self.logger.debug('Locally cached sequence retrieved for {0}.'.format(cache_id))
 
         else:
 
@@ -640,7 +649,7 @@ class Sequence(object):
             ext = '/proteins/api/proteins/Ensembl:' + re.sub('\\..*', '', self.j.gene_id) + \
                   '?offset=0&size=1&reviewed=' + reviewed + '&isoform=0'
 
-            self.logger.info('Sequence not cached locally. Attempting to get from Uniprot: {0}'.format(
+            self.logger.debug('Sequence not cached locally. Attempting to get from Uniprot: {0}'.format(
                 server + ext
             ))
 
@@ -663,10 +672,10 @@ class Sequence(object):
             if ret.text != '':
                 record = list(SeqIO.parse(StringIO(ret.text), 'fasta'))[0]
                 if _api_cache_put(cache_id, record.format('fasta')):
-                    self.logger.info('Sequence retrieved from Uniprot and written into local cache.')
+                    self.logger.debug('Sequence retrieved from Uniprot and written into local cache.')
 
             else:
-                self.logger.info('Retrieved empty fasta from Ensembl for {0}'.format(self.j.gene_id))
+                self.logger.debug('Retrieved empty fasta from Ensembl for {0}'.format(self.j.gene_id))
                 # TODO: A known issue where Uniprot sequences do not exist for some Ensembl genes
                 # TODO: Rather than fix this we will simply use the GTF in future versions.
 
@@ -749,7 +758,7 @@ class Sequence(object):
                 unstitched = [self.slice1_aa, self.slice2_aa][i]
                 if len(unstitched) > 0:
 
-                    self.logger.info('Slice {0} does not stitch to canonical sequence. Writing to orphan file.'.format(
+                    self.logger.debug('Slice {0} does not stitch to canonical sequence. Writing to orphan file.'.format(
                         i+1
                     ))
 

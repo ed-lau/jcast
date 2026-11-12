@@ -184,12 +184,12 @@ class ReadGenome(object):
         if self.path.endswith('.gz'):
             with gzip.open(self.path, 'rt') as f:
                 self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta'))
-                self.logger.info('Read from zipped genome. \n\n')
+                self.logger.info('Read from zipped genome.')
 
         else:
             with open(self.path, 'rt') as f:
                 self.genome = SeqIO.to_dict(SeqIO.parse(f, 'fasta'))
-                self.logger.info('Read from genome. \n\n')
+                self.logger.info('Read from genome.')
 
         return True
 

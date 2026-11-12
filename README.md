@@ -103,7 +103,7 @@ python -m jcast \
 ```text
 usage: jcast [-h] [-o OUT] [--overwrite] [--cache_dir CACHE_DIR]
              [-r READ] [-m] [-c] [--uniprot UNIPROT] [-p PROCESSES]
-             [--mask MASK]
+             [-v] [--mask MASK]
              [-s {MXE,SE,RI,A5SS,A3SS} [...]] [-q q_lo q_hi]
              [--g_or_ln G_OR_LN]
              rmats_folder gtf_file genome
@@ -139,6 +139,10 @@ optional arguments:
                         number of processes to translate junctions in; the
                         output is the same for any number. More than 1 needs
                         --uniprot, and macOS or Linux (see below) [default: 1]
+  -v, --verbose         also log each junction's steps and its sequences,
+                        at DEBUG level (large: 300 MB for a whole-genome
+                        -m run); each junction's outcome is always in
+                        junctions.tsv [default: False]
   --mask MASK           deprecated and ignored: slices containing any base
                         other than A, C, G or T are always skipped. Will be
                         removed in the next release.
@@ -206,9 +210,10 @@ The run also writes:
 ### Several processes (`-p`)
 
 `-p N` translates junctions in N processes. The output files and the log
-are the same as with one process:
+are the same as with one process (except for the run time):
 - the worker processes only translate;
-- the main process writes every record and log line in rMATS file order.
+- the main process writes every record, row of `junctions.tsv` and log
+  line in rMATS file order.
 
 On a whole-genome run, 16 processes are about 11× faster than one.
 Memory barely grows, because the workers share the genome and GTF already
@@ -247,7 +252,8 @@ coordinates, translation strand, frame, and tier (see below).
 | `uniprot_canonicals.tsv` | With `--uniprot`: the canonical chosen for each gene, and how (by sequence, by gene name, from the GTF, or none). |
 | `psq_isoforms.tsv` | With `--uniprot`: every JCAST record identical to a UniProt canonical or isoform, with its accession. |
 | `jcast_uniprot_merged.fasta` | With `--uniprot`: a search database, made of the supplied UniProt FASTA plus the new `psq_T1` and `psq_T1_alt_*` records, renamed `sp\|<accession>-J<n>\|<entry name>`. |
-| `logfile.log` | Each junction's outcome (fate), the canonical chosen per gene, and the run's settings. |
+| `junctions.tsv` | One row per junction, in rMATS file order: its read count, FDR, fate, frames, coding region, canonical, and the files its records went to. See below. |
+| `logfile.log` | The run's settings and inputs, warnings and errors, and a summary: junctions by fate and splice type, records per file, and the time taken. With `-v`, also each junction's steps and sequences. |
 
 There is no Tier 3 from v0.4.0. It re-translated in a guessed frame when the
 annotated frame failed, and was removed together with the three-frame
@@ -279,11 +285,31 @@ How a junction is processed (v0.4.0):
    are never guessed.
 
 Skipped and failed junctions write no isoform sequences. Each junction's
-outcome (fate) is written to the log.
+outcome (fate) is a row of `junctions.tsv`.
 
 For a typical proteomics workflow, append `psq_T1.fasta` and
 `psq_canonical.fasta` to a base SwissProt database and search as usual.
 Including T2, T4 and orphans is possible but increases false-discovery risk.
+
+### `junctions.tsv`
+
+One row per junction of the selected splice types, in rMATS file order,
+tab-separated. It reads directly into R (`read.delim`) or pandas
+(`pd.read_table`).
+
+| Column | Contents |
+|---|---|
+| `junction_type`, `junction_id` | The rMATS splice type and row id. |
+| `gene_id`, `gene_symbol`, `chr`, `strand` | As in the rMATS row. |
+| `min_jc` | The read count that `-r` and `-m` filter on (header field 11). |
+| `fdr` | The rMATS FDR, which `-q` filters on. |
+| `fate` | `T1`, `T1_alt_terminus`, `T2`, `T4`, `fail` (no slice translates), `exception` (the junction raised an error; see the log), `skipped_low_count`, `skipped_fdr`, `skipped_masked` or `skipped_outside_cds`. |
+| `fate_detail` | For `T4`, the slice that hit the premature stop; for `exception`, the error. |
+| `slice1_phase`, `slice2_phase` | Each slice's annotated frame (0, 1 or 2). Empty if it has none, or if the junction was skipped before it was looked up. |
+| `cds_start`, `cds_end` | The coding region the slices were trimmed to. Empty if unknown on that side, or not looked up. |
+| `canonical_source`, `canonical_accession` | Where the gene's canonical came from: as in `uniprot_canonicals.tsv` with `--uniprot` (e.g. `sp by sequence`), `sp by API` or `tr by API` without it, `gtf`, or `none`. Empty if it was not looked up (a skipped junction without `-c`). |
+| `files` | The `psq_<name>.fasta` files of the junction's records, as `<name>`, `;`-separated. |
+| `new_records` | How many of its records were written. A record whose sequence is already in its file, from an earlier junction, is not written again. |
 
 ### Header format
 
@@ -365,9 +391,10 @@ python -m jcast /work/output \
 
   `<gtf>.cached` files written by earlier versions next to the GTF are no
   longer used and can be deleted.
-- **A junction that raises an error** is recorded with the fate
-  `FAILURE (exception)`, and the run continues. Its traceback is in
-  `logfile.log`, and the console reports how many junctions failed.
+- **A junction that raises an error** gets the fate `exception` in
+  `junctions.tsv`, with the error in `fate_detail`, and the run continues.
+  Its traceback is in `logfile.log`, and the console reports how many
+  junctions failed.
 - **The GUI does not yet offer `--uniprot` or `-p`.** Use the command line
   for these.
 - **Tier 4 contains products truncated at a stop codon.** Alternative
@@ -375,10 +402,6 @@ python -m jcast /work/output \
   instead. A stop codon that the annotation does not support stays in T4,
   and some of these may still be genuine. Treat T4 outputs as candidates for
   follow-up validation, not as confirmed identifications.
-- **UniProt and GTF `.cached` files are written to the current working
-  directory** (the UniProt cache is not used with `--uniprot`) and the directory of the input GTF respectively — this fails on
-  read-only volumes. Workaround: `cd` to a writable directory before running.
-  Permanent fix is part of the v0.4.0 hardening release.
 
 ## FAQ
 

@@ -110,8 +110,8 @@ class UniProtFasta(object):
         if gene_id not in self.chosen:
             self.chosen[gene_id] = self._choose(gene_id, gene_symbol, proteins, gtf_canonical, unique_name)
             # tagged so that, with -p > 1, the main process logs it once per gene, as a serial run does
-            self.logger.info('Canonical for {0} {1}: {2} {3}'.format(gene_id, gene_symbol, *self.chosen[gene_id][1:3]),
-                             extra={'jcast_canonical_for': gene_id})
+            self.logger.debug('Canonical for {0} {1}: {2} {3}'.format(gene_id, gene_symbol, *self.chosen[gene_id][1:3]),
+                              extra={'jcast_canonical_for': gene_id})
         return self.chosen[gene_id][3]
 
     def _choose(self, gene_id, gene_symbol, proteins, gtf_canonical, unique_name=True):
