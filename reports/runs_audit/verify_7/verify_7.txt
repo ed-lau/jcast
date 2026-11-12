@@ -1,0 +1,20 @@
+before: 82a309b; after: 82a309b + working tree
+
+identical (chr15, --uniprot, -c):
+  -p 1: 12 output files, identical: True; log from the first junction identical: True
+  -p 3: 12 output files, identical: True; log from the first junction identical: True
+
+failure modes (after):
+  1. missing -o directory: created; 847 records written
+  2. -r 30 into a directory holding a -r 1 run: refused: <work>/modes/r1 alre...; with --overwrite: psq files identical to -r 30 alone: True; runs in the log: 1
+  3. exception in junction SE 11950 (number 500), -p 1: run completed; junctions logged 1105 of 1105; exception fates 1; records 846 of 847; UniProt outputs written: True
+  3. exception in junction SE 11950 (number 500), -p 3: run completed; junctions logged 1105 of 1105; exception fates 1; records 846 of 847; UniProt outputs written: True
+  3. -p 1 and -p 3 psq files identical: True
+  4. two runs in one process: run 1 log unchanged by run 2: True; handlers after the runs: 0; log lines: 10814 and 10814
+  5. UniProt API cache: in the cache directory: True; under the working directory: False
+  5. API path from a read-only working directory: no error
+  5. GTF cache: files next to the GTF: ['annotation.gtf']; caches of it: 1; index column: []
+  5. GTF replaced by its first half under the same name: genes read 1152 (the old file has 2155); caches of it: 1
+  5. another run's partial cache present: not read: 97275 of 97275 rows
+  5. damaged cache: read again: 97275 of 97275 rows
+  5. GTF in a read-only directory: read without error, 2155 genes

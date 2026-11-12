@@ -15,20 +15,14 @@ from tests.conftest import HUMAN_GENOME, HUMAN_GTF, RMATS
 from tests.test_uniprot import UNIPROT, _no_api
 
 
-def _run(tmp_path, name, processes):
+def _run(tmp_path, name, processes, cache_dir, **extra):
     """ run_jcast on the chr15 test set with --uniprot; returns the output directory """
-    logging.getLogger('jcast').handlers = []     # get_logger adds handlers on every call (REVIEW.md MED-13)
-    gtf_copy = tmp_path / HUMAN_GTF.name
-    if not gtf_copy.exists():
-        gtf_copy.write_bytes(HUMAN_GTF.read_bytes())
     out = tmp_path / name
-    out.mkdir()
-    args = argparse.Namespace(rmats_folder=str(RMATS), gtf_file=str(gtf_copy), genome=str(HUMAN_GENOME),
+    args = argparse.Namespace(rmats_folder=str(RMATS), gtf_file=str(HUMAN_GTF), genome=str(HUMAN_GENOME),
                               out=str(out), read=1, model=False, canonical=True, mask=None, qvalue=[0, 1],
                               splice_type={'MXE', 'SE', 'RI', 'A5SS', 'A3SS'}, uniprot=str(UNIPROT),
-                              processes=processes)
+                              processes=processes, cache_dir=str(cache_dir), **extra)
     main.run_jcast(args)
-    logging.getLogger('jcast').handlers = []
     return out
 
 
@@ -42,12 +36,12 @@ def _messages(out):
 
 @pytest.mark.slow
 @pytest.mark.skipif('fork' not in multiprocessing.get_all_start_methods(), reason='needs fork')
-def test_processes_give_the_same_output_and_log(tmp_path, monkeypatch):
+def test_processes_give_the_same_output_and_log(tmp_path, monkeypatch, cache_dir):
     monkeypatch.setattr(Sequence, 'get_canonical_aa_uniprot', _no_api)
     monkeypatch.setattr(params, 'use_gtf_only', False)
 
-    one = _run(tmp_path, 'p1', 1)
-    three = _run(tmp_path, 'p3', 3)
+    one = _run(tmp_path, 'p1', 1, cache_dir)
+    three = _run(tmp_path, 'p3', 3, cache_dir)
 
     files = sorted(p.name for p in one.iterdir() if p.name != 'logfile.log')
     assert files == sorted(p.name for p in three.iterdir() if p.name != 'logfile.log')

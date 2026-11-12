@@ -127,6 +127,44 @@ and §9.
 - [CHANGELOG.md](CHANGELOG.md) (this file), replacing the older `CHANGES.txt`.
 
 ### Changed
+- **Each run writes a fresh output directory (PR 7).**
+  - `-o` is created if it does not exist. Before, it had to exist, even the
+    default `out/`.
+  - **A directory that already holds JCAST output is refused** unless
+    `--overwrite` is given (new option). `--overwrite` removes only JCAST's
+    own files: `logfile.log`, `psq_*.fasta`, `model.pdf` and the
+    `--uniprot` outputs.
+  - Before, output was appended. Sequences already in a file were skipped,
+    so a rerun into the same directory kept the first run's records: a
+    `-r 30` run into a `-r 1` directory left the `-r 1` files byte for byte.
+- **One failing junction no longer stops the run (PR 7).**
+  - An exception while translating a junction gives it the fate
+    `FAILURE (exception). <type>: <message>`, and the run continues.
+  - The junction writes nothing. Its traceback goes to the log.
+  - The first failure is shown on the console. At the end, a warning
+    counts the failed junctions. The exit status stays 0.
+  - The same holds with `-p`, where the failure now costs only that
+    junction instead of its batch of 20.
+- **Caches moved to the user cache directory (PR 7).**
+  - The location is `~/Library/Caches/jcast` on macOS or `~/.cache/jcast`
+    on Linux, or `--cache_dir` (new option).
+  - New dependency: `platformdirs`.
+  - **GTF cache:**
+    - It used to be `<gtf>.cached` next to the GTF. That failed in
+      read-only directories, was used even after the GTF changed, and
+      could be read half-written by a second run.
+    - It is now keyed by the GTF's path, size and modification time, and
+      renamed into place once complete.
+    - It is stored as a pickle of the same table. Reading the GENCODE v50
+      cache takes 8.5 s instead of 49 s.
+    - **The first run on each GTF builds it again;** old `.cached` files can
+      be deleted.
+  - **UniProt API cache:** it was `cache/uniprot-cache.db` under the
+    working directory. To keep earlier answers, move that file into the
+    cache directory.
+  - If a cache cannot be written, JCAST warns and runs without it.
+
+  See [reports/2026-11-12-thresholds-runs-canonical-audit.md](reports/2026-11-12-thresholds-runs-canonical-audit.md) §3 and §8.
 - **About 25× faster on a whole genome, with identical output (PR 9).**
   - **GTF lookups:** the GTF is indexed by gene once, instead of being
     filtered whole (11 M rows for GENCODE) several times per junction.
@@ -167,6 +205,9 @@ and §9.
   `TODO.md`, and the Quarto sources under `jcast_website/`.
 
 ### Fixed
+- **A second run in the same process logged every line twice,** once
+  into the first run's log (REVIEW.md MED-13). Matters for the GUI,
+  notebooks and tests. Each run now closes its log when it ends (PR 7).
 - **Joining slices to the canonical (affects output; REVIEW.md MED-3).**
   On chr15, 12 of 998 joins were wrong, and 10 of them gave exactly the
   canonical, so the isoform was lost:

@@ -2,13 +2,18 @@
 
 """ Genome annotations. """
 import os
+import glob
+import hashlib
 import logging
 import gzip
+import tempfile
 
 import gtfparse
 import pandas as pd
 from Bio import SeqIO
 #from Bio.Alphabet import generic_dna
+
+from jcast import cache
 
 
 class ReadAnnotations(object):
@@ -34,20 +39,38 @@ class ReadAnnotations(object):
 
     def read_gtf(self) -> None:
         """
-        Read gtf file based on the location and name supplied
+        Read gtf file based on the location and name supplied, from the cache if it was read before
+
+        The table is the GTF as gtfparse reads it, written as a tab-separated file and read back. That round trip
+        sets the column types the rest of JCAST relies on: exon_number is numeric (exons are sorted by it),
+        transcript_support_level 'NA' is missing, frame is an integer. The cache keeps that table as a pickle in
+        the cache directory, keyed by the GTF's path, size and modification time and the pandas version, and is
+        renamed into place once written, so a run never reads a partial cache.
+
+        2026-11-12 the cache was <gtf>.cached next to the GTF, keyed by its name only and written in place: stale
+        after the GTF changed, partial while another run wrote it, impossible in a read-only directory. See
+        reports/2026-11-12-thresholds-runs-canonical-audit.md §3.5
+
         :return:
         """
 
         self.logger.info("Reading GTF file. This could take a minute.")
 
-        # Writes cached gtf if it doesn't exist
-        cached_gtf = self.path + '.cached'
+        cache_dir = cache.directory('gtf')
+        cached_gtf = _cache_path(self.path, cache_dir) if cache_dir else None
 
-        if os.path.isfile(cached_gtf) is False:
-            self.annot = gtfparse.read_gtf(self.path)
-            self.annot.to_csv(cached_gtf, encoding='utf-8', sep='\t')
+        self.annot = None
+        if cached_gtf and os.path.isfile(cached_gtf):
+            try:
+                self.annot = pd.read_pickle(cached_gtf)
+                self.logger.info(f'Read the GTF from the cache {cached_gtf}.')
+            except Exception as e:
+                self.logger.warning(f'Cannot read the GTF cache {cached_gtf} ({e}); reading the GTF again.')
 
-        self.annot = pd.read_table(cached_gtf, sep='\t', low_memory=False)
+        if self.annot is None:
+            self.annot = _read_gtf_table(self.path, cache_dir)
+            if cached_gtf:
+                _write_cache(self.annot, cached_gtf, self.logger)
 
         # 2020-11-06 if Gencode GTF is used, column is transcript_type rather than transcript_biotype.
         # This will make the transcript_biotype column manually
@@ -60,6 +83,49 @@ class ReadAnnotations(object):
         self.by_gene = {g: rows for g, rows in self.annot.groupby('gene_id', sort=False)}
 
         return None
+
+
+def _digest(text: str) -> str:
+    return hashlib.sha256(text.encode()).hexdigest()[:12]
+
+
+def _cache_path(path: str, cache_dir: str) -> str:
+    """ <cache dir>/<GTF name>.<digest of its path>.<digest of its path, size, mtime and the pandas version>.pkl """
+    path = os.path.abspath(path)
+    stat = os.stat(path)
+    key = f'{path}\t{stat.st_size}\t{stat.st_mtime_ns}\tpandas {pd.__version__}'
+    return os.path.join(cache_dir, f'{os.path.basename(path)}.{_digest(path)}.{_digest(key)}.pkl')
+
+
+def _read_gtf_table(path: str, tmp_dir: str = None) -> pd.DataFrame:
+    """ The GTF through gtfparse, then written as a tab-separated file and read back, which sets the column types """
+    annot = gtfparse.read_gtf(path)
+    with tempfile.TemporaryDirectory(dir=tmp_dir) as d:
+        tsv = os.path.join(d, 'gtf.tsv')
+        annot.to_csv(tsv, encoding='utf-8', sep='\t', index=False)
+        return pd.read_table(tsv, sep='\t', low_memory=False)
+
+
+def _write_cache(annot: pd.DataFrame, cached_gtf: str, logger: logging.Logger) -> None:
+    """ Write the cache under a temporary name and rename it into place; then remove this GTF's older caches """
+    tmp = f'{cached_gtf}.{os.getpid()}.tmp'
+    try:
+        annot.to_pickle(tmp)
+        os.replace(tmp, cached_gtf)
+    except OSError as e:
+        logger.warning(f'Cannot write the GTF cache {cached_gtf} ({e}); the next run reads the GTF again.')
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        return
+    logger.info(f'Wrote the GTF cache {cached_gtf}.')
+
+    same_gtf = glob.escape(cached_gtf.rsplit('.', 2)[0]) + '.*.pkl'
+    for old in glob.glob(same_gtf):
+        if old != cached_gtf:
+            try:
+                os.remove(old)
+            except OSError:
+                pass
 
 
 def gene_rows(gtf, gene_id) -> pd.DataFrame:

@@ -57,6 +57,7 @@ setup(
                       'numpy>=1.20,<3',
                       'scipy>=1.7,<2',
                       'requests>=2,<3',
+                      'platformdirs>=2.5,<5',
                       'tqdm>=4,<5',
                       'matplotlib>=3.4,<4',
                       ],  # external packages as dependencies

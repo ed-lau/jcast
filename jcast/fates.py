@@ -13,3 +13,7 @@ TIER2 = 'SUCCESS TIER 2. Retrieved phase: {0}. Used phase: {1}. Frameshift. \n\n
 TIER4 = 'PARTIAL TIER 4. Slice {0} hit a premature termination codon. Translated fragment. \n\n'
 
 FAIL = 'FAILURE.  No alternative translation. \n\n'
+
+# an exception while translating the junction: it writes nothing, and the run continues
+# (reports/2026-11-12-thresholds-runs-canonical-audit.md §3.3)
+EXCEPTION = 'FAILURE (exception). {0}: {1}. \n\n'

@@ -396,23 +396,29 @@ orphan.
 - The anchor length is now 7 (was 10).
 - On chr15 against genomic coordinates: 0 wrong joins (was 12 of 998).
 
-### MED-4 — Output directory never created before the log file opens ◎
+### MED-4 — Output directory never created before the log file opens ◎ — **fixed in PR 7**
 
 [jcast/logger.py:16](jcast/logger.py#L16). Add
 `os.makedirs(args.out, exist_ok=True)` before `get_logger`.
 
-### MED-5 — UniProt SQLite cache written to CWD ◎
+*2026-11-12, PR 7:* `run_jcast` creates it.
+
+### MED-5 — UniProt SQLite cache written to CWD ◎ — **fixed in PR 7**
 
 [jcast/sequences.py:397-400](jcast/sequences.py#L397-L400). Use
 `platformdirs.user_cache_dir('jcast')` (machine-wide) or `args.out`. Wrap the
 `INSERT` in a try/except for read-only volumes.
 
-### MED-6 — GTF `.cached` written next to the input, keyed only by filename ◎
+*2026-11-12, PR 7:* the cache is in the user cache directory (`platformdirs`), or `--cache_dir`. If it cannot be opened or written, JCAST warns and runs without it ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md) §3.5).
+
+### MED-6 — GTF `.cached` written next to the input, keyed only by filename ◎ — **fixed in PR 7**
 
 [jcast/annots.py:45-49](jcast/annots.py#L45-L49). This fails on read-only
 reference volumes. It also serves a **stale cache** if the GTF is replaced
 under the same name, and `to_csv` writes the index as an unnamed extra column.
 Fix: cache in a user dir keyed on (path, size, mtime), with `index=False`.
+
+*2026-11-12, PR 7:* the cache is a pickle in the cache directory, keyed by path, size, mtime and the pandas version, and renamed into place once written. The audit found a worse failure: a second run read a half-written cache without error ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md) §3.5).
 
 ### MED-7 — `_get_translated_region` exception handling is broken on pandas ≥ 2 ✔ *(expanded)* — **fixed in PR 4**
 
@@ -467,13 +473,15 @@ Neither is catastrophic, but both make reported cutoffs disagree with what
 was applied. Pick one convention (`keep if count >= threshold`), document it,
 and log the effective threshold.
 
-### MED-12 — Output is not idempotent ◎ *(new)*
+### MED-12 — Output is not idempotent ◎ *(new)* — **fixed in PR 7**
 
 `psq_*.fasta` files are opened in append mode
 ([jcast/helpers.py:272](jcast/helpers.py#L272)), as is `logfile.log`.
 Re-running into the same `-o` with different parameters silently merges
 results across runs. Refuse a non-empty output dir without `--overwrite`, or
 write to a temp dir and move it into place.
+
+*2026-11-12, PR 7:* a directory holding JCAST output is refused unless `--overwrite`, which removes that output first. The log is written fresh.
 
 ### MED-14 — `-c` does not guarantee the canonical for genes whose junctions all succeed ◎ *(new, 2026-11-10)*
 
@@ -484,13 +492,15 @@ record despite `-c`. The documented intent is that the canonical is written
 even when isoform translation fails. Write it on every path when `-c` is set
 (PR 8, with MED-9).
 
-### MED-13 — `get_logger` stacks handlers on every call ◎ *(new; matters for the GUI)*
+### MED-13 — `get_logger` stacks handlers on every call ◎ *(new; matters for the GUI)* — **fixed in PR 7**
 
 [jcast/logger.py:30-31](jcast/logger.py#L30-L31). Each `run_jcast` call adds
 another `FileHandler` and `StreamHandler` to the same `'jcast'` logger. In a
 long-lived process (the GUI, tests, notebooks), run *n* logs every line *n*
 times and keeps writing into earlier runs' log files. Remove existing
 handlers first, and close the file handler when the run ends.
+
+*2026-11-12, PR 7:* `get_logger` closes and removes earlier handlers; `run_jcast` closes its own when it ends.
 
 ### LOW
 
@@ -771,7 +781,7 @@ currently can't be installed and run from scratch.
 | 4c | ✅ **Alternative termini** (done 2026-11-10; [audit and verification](reports/2026-11-10-alt-termini-audit.md)). C-terminal: a stop at an annotated protein-coding stop codon is not a PTC; join N-terminally only; write to `psq_T1_alt_cterm.fasta` ([report](reports/2026-11-10-alt-cterm-tiering-audit.md)). N-terminal: a slice lacking the gene's start codon that contains another annotated start is translated from it and joined C-terminally only ([phase audit §5.4](reports/2026-11-10-phase-audit.md)). Re-evaluated on the current pipeline in [the termini audit](reports/2026-11-10-alt-termini-audit.md); decisions approved 2026-11-10 (TSL ≤ 2 sites, one file per terminus, fate `SUCCESS TIER 1 ALT TERMINUS`). | Sci-integrity | Done 2026-11-10 |
 | 5 | ✅ **Joining to the canonical** (MED-3): complete ends not joined, unique ordered anchors, anchor length 7 ([audit](reports/2026-11-11-stitch-anchor-audit.md)) | Correctness | Done 2026-11-11 |
 | 6 | Threshold semantics (MED-11) and `sum_sjc` naming (MED-1 / §5.2). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): keep if count ≥ threshold; default `-r 1` (no filter); `-m` cut at the model's boundary, reported in reads; the count stays min(IJC, SJC), renamed `min_jc` | Sci-integrity | PR 1 |
-| 7 | Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13); catch an exception per junction, record it as a fate and continue instead of aborting the run ([masked-bases audit §7](reports/2026-11-11-masked-bases-audit.md#7-decisions-requested)). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): refuse a directory holding JCAST output unless `--overwrite`; a failing junction writes nothing; caches in the user cache directory (`platformdirs`, `--cache_dir`), GTF cache keyed by path, size and mtime, written atomically, as a pickle | Robustness | PR 1 |
+| 7 | ✅ Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13); catch an exception per junction, record it as a fate and continue instead of aborting the run ([masked-bases audit §7](reports/2026-11-11-masked-bases-audit.md#7-decisions-requested)). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): refuse a directory holding JCAST output unless `--overwrite`; a failing junction writes nothing; caches in the user cache directory (`platformdirs`, `--cache_dir`), GTF cache keyed by path, size and mtime, written atomically, as a pickle | Robustness | Done 2026-11-12 |
 | 8 | Network resilience + `write_canonical` fallback (MED-9/10); `-c` writes the canonical on every path (MED-14). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): `-c` on every path, masked junctions included; a failed API lookup fails the junction (timeout, 429 retried); the fallback's removal pending | Robustness | PRs 1, 7 |
 | 9 | ✅ Per-gene GTF index, in-memory FASTA de-dup ([parallel audit](reports/2026-11-12-parallel-audit.md)); *filter before canonical lookup not done* | Performance | Done 2026-11-12 |
 | 10 | Packaging: pyproject metadata, Python ≥ 3.10, fix `find_packages`/`data_files`, bounds | Env | PR 0 |

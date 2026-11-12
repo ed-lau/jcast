@@ -71,7 +71,9 @@ python -m jcast \
     -p 8
 ```
 
-The output directory must exist before the run.
+The output directory is created if needed. A directory that already holds
+JCAST output is refused, so two runs never mix; pass `--overwrite` to
+replace that output.
 
 To launch the (optional) graphical interface:
 
@@ -99,7 +101,8 @@ python -m jcast \
 ## Command-line options
 
 ```text
-usage: jcast [-h] [-o OUT] [-r READ] [-m] [-c] [--uniprot UNIPROT] [-p PROCESSES]
+usage: jcast [-h] [-o OUT] [--overwrite] [--cache_dir CACHE_DIR]
+             [-r READ] [-m] [-c] [--uniprot UNIPROT] [-p PROCESSES]
              [--mask MASK]
              [-s {MXE,SE,RI,A5SS,A3SS} [...]] [-q q_lo q_hi]
              [--g_or_ln G_OR_LN]
@@ -112,7 +115,14 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -o, --out OUT         output directory [default: out]
+  -o, --out OUT         output directory, created if needed [default: out]
+  --overwrite           replace the output of an earlier run in the output
+                        directory; without it, a directory holding JCAST
+                        output is refused [default: False]
+  --cache_dir CACHE_DIR
+                        directory for the GTF cache and the UniProt API cache
+                        [default: the user cache directory, e.g.
+                        ~/Library/Caches/jcast or ~/.cache/jcast]
   -r, --read READ       minimum skipped-junction read count for a junction to
                         be translated [default: 1]
   -m, --model           model the read-count cutoff via a mixture model
@@ -313,10 +323,18 @@ python -m jcast /work/output \
     every junction touching a repeat is skipped: 19% of the chr15 test
     junctions. See
     [reports/2026-11-11-masked-bases-audit.md](reports/2026-11-11-masked-bases-audit.md).
-- **Use a new or empty output directory, and create it first.** JCAST
-  does not create the directory. It appends to output files already there,
-  and skips sequences they already contain, so a rerun into the same
-  directory mixes runs. Both are planned fixes (PR 7).
+- **Caches.** JCAST keeps two caches in the user cache directory, or in
+  `--cache_dir`:
+  - **the GTF**, read into a table: about 2 GB for GENCODE. The first run
+    on a GTF builds it, about 5 minutes for GENCODE;
+    later runs read it in seconds. A changed GTF gets a new cache.
+  - **the UniProt API's answers**, used without `--uniprot`.
+
+  `<gtf>.cached` files written by earlier versions next to the GTF are no
+  longer used and can be deleted.
+- **A junction that raises an error** is recorded with the fate
+  `FAILURE (exception)`, and the run continues. Its traceback is in
+  `logfile.log`, and the console reports how many junctions failed.
 - **The GUI does not yet offer `--uniprot` or `-p`.** Use the command line
   for these.
 - **Tier 4 contains products truncated at a stop codon.** Alternative

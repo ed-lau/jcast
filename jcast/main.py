@@ -3,32 +3,70 @@
 """jcast.main: Main function."""
 
 import os
-from functools import partial
+import glob
 import argparse
 import logging
 import multiprocessing
+import traceback
 import tqdm
 
-from jcast import params, fates, model
+from jcast import params, fates, model, cache
 from jcast import helpers as h
 from jcast.junctions import Junction, RmatsResults
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
-from jcast.uniprot import UniProtFasta
+from jcast.uniprot import UniProtFasta, MERGED_FILE, ISOFORMS_FILE, CANONICALS_FILE
 from jcast import __version__
-from jcast.logger import get_logger
+from jcast.logger import get_logger, close_logger
+
+# The files a run writes into its output directory. A directory holding any of them is used again only with
+# --overwrite, which removes them first (reports/2026-11-12-thresholds-runs-canonical-audit.md §3.2)
+OUTPUT_FILES = ['logfile.log', 'model.pdf', MERGED_FILE, ISOFORMS_FILE, CANONICALS_FILE]
+OUTPUT_PATTERN = 'psq_*.fasta'
+
+
+def existing_outputs(out_dir) -> list:
+    """ JCAST output files already in a directory """
+    if not os.path.isdir(out_dir):
+        return []
+    found = [f for f in OUTPUT_FILES if os.path.isfile(os.path.join(out_dir, f))]
+    found += [os.path.basename(f) for f in glob.glob(os.path.join(glob.escape(out_dir), OUTPUT_PATTERN))]
+    return sorted(found)
 
 
 def run_jcast(args) -> None:
     """
     Main function for jcast
 
+    The output directory is created if needed. If it holds output of an earlier run, the run is refused unless
+    args.overwrite is set, which removes that output first: appending to it mixed the two runs (REVIEW.md MED-12).
+
     :param args: parsed arguments
     :return: None
     """
 
+    os.makedirs(args.out, exist_ok=True)
+    found = existing_outputs(args.out)
+    if found and not getattr(args, 'overwrite', False):
+        raise FileExistsError(f'{args.out} already holds JCAST output ({", ".join(found)}); '
+                              f'use --overwrite to replace it, or another output directory.')
+    for f in found:
+        os.remove(os.path.join(args.out, f))
+
+    cache.set_directory(getattr(args, 'cache_dir', None))
+
     # ---- Main logger setup ----
     logger = get_logger('jcast', args.out)
+    try:
+        if found:
+            logger.info(f'--overwrite: removed the output of an earlier run: {", ".join(found)}.')
+        return _run(args, logger)
+    finally:
+        close_logger(logger)
+
+
+def _run(args, logger) -> bool:
+    """ The run, logging to logger """
     logger.info(args)
     logger.info(__version__)
 
@@ -108,7 +146,7 @@ def run_jcast(args) -> None:
         logger.info(f'Translating junctions in {processes} worker processes.')
 
     try:
-        _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool)
+        failed = _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool)
     except BaseException:
         if pool is not None:
             pool.terminate()
@@ -120,11 +158,20 @@ def run_jcast(args) -> None:
     if uniprot is not None:
         uniprot.write_outputs(out_dir=args.out)
 
+    if failed:
+        logger.warning(f'{failed} junction(s) failed with an exception and wrote nothing (fate FAILURE (exception)). '
+                       f'Their tracebacks are in {os.path.join(args.out, "logfile.log")}.')
+
     return True
 
 
-def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool) -> None:
-    """ Translate every junction of the selected splice types, in file order, in this process or in the pool """
+def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool) -> int:
+    """
+    Translate every junction of the selected splice types, in file order, in this process or in the pool
+
+    :return: the number of junctions that failed with an exception
+    """
+    failed = 0
 
     #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
@@ -139,14 +186,6 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
         # ---- Get a list of junctions from each splice type ----
         junctions = [Junction(**rma.iloc[i].to_dict()) for i in range(len(rma))]
 
-        translate_one_partial = partial(_translate_one,
-                                        gtf=gtf,
-                                        genome=genome,
-                                        args=args,
-                                        pred_bound=min_count,
-                                        uniprot=uniprot,
-                                        )
-
         # ---- Worker processes translate; this process logs and writes each junction's result in file order, so
         # the output and the log are those of a single process (reports/2026-11-12-parallel-audit.md) ----
         if pool is not None:
@@ -160,7 +199,9 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
                                                                                       jx.gene_symbol,
                                                                                       jx.gene_id,
                                                                                       ))
-                logger.info(_write_worker_result(result, logger, uniprot))
+                fate = _write_worker_result(result, logger, uniprot)
+                logger.info(fate)
+                failed += _count_failure(jx, fate, failed, logger)
             continue
 
         # ---- Single threaded for loop ----
@@ -174,9 +215,48 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
                                                                                   jx.gene_symbol,
                                                                                   jx.gene_id,
                                                                                   ))
-            logger.info(translate_one_partial(jx))
+            fate, records = _translate_safely(jx, gtf, genome, args, pred_bound=min_count, uniprot=uniprot)
+            for output, suffix, seqrecord in records:
+                h.write_seqrecord_to_fasta(seqrecord, output, suffix)
+            logger.info(fate)
+            failed += _count_failure(jx, fate, failed, logger)
 
-    return None
+    return failed
+
+
+def _count_failure(junction, fate, failed, logger) -> int:
+    """ 1 if the junction failed with an exception, else 0. The first failure is also shown on the console """
+    if not fate.startswith(fates.EXCEPTION.split('.')[0]):
+        return 0
+    if not failed:
+        logger.warning('Junction {0} {1} of gene {2} {3} failed: {4} The run continues; the traceback of each failed '
+                       'junction is in the log.'.format(junction.junction_type, junction.name, junction.gene_symbol,
+                                                        junction.gene_id, fate.split('. ', 1)[1].strip()))
+    return 1
+
+
+def _translate_safely(junction, gtf, genome, args, pred_bound, uniprot):
+    """
+    Translate one junction, keeping its records to be written once it completes, in this process or a worker.
+
+    An exception fails this junction only: its traceback is logged (to the log file), its fate records it, and none
+    of its records are written. 2026-11-12 one exception used to abort the run; see
+    reports/2026-11-12-thresholds-runs-canonical-audit.md §3.3
+
+    :return: the fate, and the records to write as (output directory, file suffix, SeqRecord)
+    """
+    h._collected = []
+    try:
+        fate = _translate_one(junction, gtf, genome, args, pred_bound=pred_bound, uniprot=uniprot)
+        records = h._collected
+    except Exception as e:
+        logging.getLogger('jcast').error('Junction {0} {1} of gene {2} {3} failed:\n{4}'.format(
+            junction.junction_type, junction.name, junction.gene_symbol, junction.gene_id,
+            traceback.format_exc().rstrip()), extra={'jcast_console': False})
+        fate, records = fates.EXCEPTION.format(type(e).__name__, ' '.join(str(e).split())), []
+    finally:
+        h._collected = None
+    return fate, records
 
 
 # Junctions sent to a worker at a time
@@ -232,9 +312,8 @@ def _translate_in_worker(junction: Junction):
         the canonical this worker chose for the junction's gene, if not yet reported
     """
     _WORKER['capture'].records = []
-    h._collected = []
-    fate = _translate_one(junction, _WORKER['gtf'], _WORKER['genome'], _WORKER['args'],
-                          pred_bound=_WORKER['pred_bound'], uniprot=_WORKER['uniprot'])
+    fate, records = _translate_safely(junction, _WORKER['gtf'], _WORKER['genome'], _WORKER['args'],
+                                      pred_bound=_WORKER['pred_bound'], uniprot=_WORKER['uniprot'])
 
     chosen = {}
     uniprot = _WORKER['uniprot']
@@ -242,7 +321,7 @@ def _translate_in_worker(junction: Junction):
         chosen[junction.gene_id] = uniprot.chosen[junction.gene_id]
         _WORKER['reported'].add(junction.gene_id)
 
-    return fate, h._collected, _WORKER['capture'].records, chosen
+    return fate, records, _WORKER['capture'].records, chosen
 
 
 def _write_worker_result(result, logger, uniprot) -> str:
@@ -514,8 +593,21 @@ def main():
     #                     type=int)
 
     parser.add_argument('-o', '--out',
-                        help='name of the output files [default: psq_out]',
+                        help='output directory, created if needed [default: out]',
                         default='out')
+
+    parser.add_argument('--overwrite',
+                        help='replace the output of an earlier run in the output directory; without it, a directory '
+                             'holding JCAST output is refused [default: False]',
+                        action='store_true',
+                        default=False,
+                        )
+
+    parser.add_argument('--cache_dir',
+                        help='directory for the GTF cache and the UniProt API cache [default: the user cache '
+                             'directory, e.g. ~/Library/Caches/jcast or ~/.cache/jcast]',
+                        default=None,
+                        )
 
     parser.add_argument('-r', '--read',
                         help='the lowest skipped junction read count for a junction to be translated [default: 1]',
@@ -600,6 +692,11 @@ def main():
     for path in [args.gtf_file, args.genome] + ([args.uniprot] if args.uniprot else []):
         if not os.path.isfile(path):
             parser.error(f'file not found: {path}')
+
+    found = existing_outputs(args.out)
+    if found and not args.overwrite:
+        parser.error(f'output directory {args.out} already holds JCAST output ({", ".join(found)}); use --overwrite '
+                     f'to replace it, or another -o')
 
     # Check if the rMATS directory contains the expected files
     for splice_type in args.splice_type:

@@ -16,6 +16,7 @@ from urllib3.util.retry import Retry
 from io import StringIO
 import sqlite3 as sq
 
+from jcast import cache
 from jcast import helpers as h
 from jcast.junctions import Junction
 from jcast import params
@@ -24,6 +25,62 @@ from jcast.annots import AnnotatedTranscript, gene_rows
 from jcast.uniprot import gene_proteins
 
 STOP_CODONS = {'TAA', 'TAG', 'TGA'}
+
+# The UniProt API's answers, by gene id, in the cache directory. 2026-11-12 it was cache/uniprot-cache.db under the
+# working directory; see reports/2026-11-12-thresholds-runs-canonical-audit.md §3.5
+API_CACHE = 'uniprot-cache.db'
+_api_cache_warned = False
+
+
+def _api_cache_connect():
+    """ The API cache, or None (with one warning) if it cannot be opened """
+    global _api_cache_warned
+    directory = cache.directory()
+    if directory is None:
+        return None
+    try:
+        con = sq.connect(os.path.join(directory, API_CACHE))
+        con.execute('''CREATE TABLE IF NOT EXISTS sequences(pk INTEGER PRIMARY KEY, id TEXT, seq TEXT)''')
+        return con
+    except sq.Error as e:
+        if not _api_cache_warned:
+            logging.getLogger('jcast').warning(f'Cannot open the UniProt API cache in {directory} ({e}); '
+                                               f'running without it.')
+            _api_cache_warned = True
+        return None
+
+
+def _api_cache_get(cache_id):
+    """ The cached FASTA text for a gene id, or None """
+    con = _api_cache_connect()
+    if con is None:
+        return None
+    try:
+        row = con.execute('''SELECT id, seq FROM sequences WHERE id=:cache''', {'cache': cache_id}).fetchone()
+    except sq.Error:
+        row = None
+    finally:
+        con.close()
+    return row[1] if row else None
+
+
+def _api_cache_put(cache_id, fasta) -> bool:
+    """ Cache a gene's FASTA text; False (with one warning) if it cannot be written """
+    global _api_cache_warned
+    con = _api_cache_connect()
+    if con is None:
+        return False
+    try:
+        con.execute('''INSERT INTO sequences(id, seq) VALUES(:id, :seq)''', {'id': cache_id, 'seq': fasta})
+        con.commit()
+        return True
+    except sq.Error as e:
+        if not _api_cache_warned:
+            logging.getLogger('jcast').warning(f'Cannot write to the UniProt API cache ({e}); running without it.')
+            _api_cache_warned = True
+        return False
+    finally:
+        con.close()
 
 
 class Sequence(object):
@@ -551,24 +608,12 @@ class Sequence(object):
         record = SeqRecord(Seq(''), annotations={'molecule_type': 'extended_protein'})
 
         # cache retrieved sequences if available, otherwise retrieve from Ensembl
-        cache = self.j.gene_id
-
-        # Create cache folder if not exists
-        if not os.path.exists('cache'):
-            os.makedirs('cache')
-
-        con = sq.connect(os.path.join('cache', 'uniprot-cache.db'))
-        cur = con.cursor()
-        cur.execute('''CREATE TABLE IF NOT EXISTS sequences(pk INTEGER PRIMARY KEY, id TEXT, seq TEXT)''')
-
-        cur.execute('''SELECT id, seq FROM sequences WHERE id=:cache''',
-                    {'cache': cache})
-        read_fasta = cur.fetchone()
+        cache_id = self.j.gene_id
+        read_fasta = _api_cache_get(cache_id)
 
         if read_fasta:
-            record = list(SeqIO.parse(StringIO(read_fasta[1]), 'fasta'))[0]
-            self.logger.info('Locally cached sequence retrieved for {0}.'.format(cache))
-            con.close()
+            record = list(SeqIO.parse(StringIO(read_fasta), 'fasta'))[0]
+            self.logger.info('Locally cached sequence retrieved for {0}.'.format(cache_id))
 
         else:
 
@@ -594,31 +639,19 @@ class Sequence(object):
                 self.logger.warning('Failed retrieval for {0} after {1} retries.'.format(self.j.gene_id,
                                                                                          params.uniprot_max_retries)
                                     )
-                con.close() # TODO: change to with statement
 
             if ret.status_code == 200 and ret.text != '':
                 record = list(SeqIO.parse(StringIO(ret.text), 'fasta'))[0]
-
-                # TODO: Catch sqlite3.OperationalError if writing fails, such as in a remote volume.
-                cur.execute('''INSERT INTO sequences(id, seq) VALUES(:id, :seq)''',
-                            {'id': cache, 'seq': record.format('fasta')})
-                con.commit()
-                con.close()
-                self.logger.info('Sequence retrieved from Uniprot and written into local cache.')
+                if _api_cache_put(cache_id, record.format('fasta')):
+                    self.logger.info('Sequence retrieved from Uniprot and written into local cache.')
 
             elif ret.status_code == 200 and ret.text == '':
                 self.logger.info('Retrieved empty fasta from Ensembl for {0}'.format(self.j.gene_id))
                 # TODO: A known issue where Uniprot sequences do not exist for some Ensembl genes
                 # TODO: Rather than fix this we will simply use the GTF in future versions.
-                con.close()
 
             elif ret.status_code != 200:
                 self.logger.warning('Retrieval of protein sequence failed.')
-                con.close()
-
-            else:
-                con.close()
-                pass
 
         return record
 

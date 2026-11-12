@@ -169,17 +169,15 @@ def _digest(path):
 
 
 @pytest.mark.slow
-def test_chr15_uniprot(tmp_path, monkeypatch):
+def test_chr15_uniprot(tmp_path, monkeypatch, cache_dir):
     """ the whole chr15 test set through run_jcast with --uniprot: no API call, pinned canonicals and outputs """
     monkeypatch.setattr(Sequence, 'get_canonical_aa_uniprot', _no_api)
     monkeypatch.setattr(params, 'use_gtf_only', False)
-    gtf_copy = tmp_path / HUMAN_GTF.name
-    gtf_copy.write_bytes(HUMAN_GTF.read_bytes())
     out = tmp_path / 'out'
-    out.mkdir()
-    args = argparse.Namespace(rmats_folder=str(RMATS), gtf_file=str(gtf_copy), genome=str(HUMAN_GENOME),
+    args = argparse.Namespace(rmats_folder=str(RMATS), gtf_file=str(HUMAN_GTF), genome=str(HUMAN_GENOME),
                               out=str(out), read=1, model=False, canonical=True, mask=None, qvalue=[0, 1],
-                              splice_type={'MXE', 'SE', 'RI', 'A5SS', 'A3SS'}, uniprot=str(UNIPROT))
+                              splice_type={'MXE', 'SE', 'RI', 'A5SS', 'A3SS'}, uniprot=str(UNIPROT),
+                              cache_dir=str(cache_dir))
 
     main.run_jcast(args)
 

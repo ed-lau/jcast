@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-""" Shared fixtures. Test data is loaded once per session; caches are kept out of the repo. """
+""" Shared fixtures. Test data is loaded once per session; caches are kept in a temporary directory. """
 
 import logging
-import shutil
 from pathlib import Path
 
 import pytest
 
+from jcast import cache
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.junctions import RmatsResults
 
@@ -23,21 +23,22 @@ def logger():
     return logging.getLogger('jcast-test')
 
 
-def _read_gtf_copy(logger, tmp_path_factory, gtf_path):
-    """ Read a copy of the GTF so the .cached file is written to a temp dir, not next to the test data. """
-    tmp_gtf = tmp_path_factory.mktemp('gtf') / gtf_path.name
-    shutil.copy(gtf_path, tmp_gtf)
-    return ReadAnnotations(logger=logger, path=tmp_gtf)
+@pytest.fixture(scope='session')
+def cache_dir(tmp_path_factory):
+    """ The GTF and UniProt API caches, shared by the session's tests, never the user's cache directory """
+    path = tmp_path_factory.mktemp('cache')
+    cache.set_directory(path)
+    return path
 
 
 @pytest.fixture(scope='session')
-def gtf(logger, tmp_path_factory):
-    return _read_gtf_copy(logger, tmp_path_factory, HUMAN_GTF)
+def gtf(logger, cache_dir):
+    return ReadAnnotations(logger=logger, path=HUMAN_GTF)
 
 
 @pytest.fixture(scope='session')
-def rat_gtf(logger, tmp_path_factory):
-    return _read_gtf_copy(logger, tmp_path_factory, RAT_GTF)
+def rat_gtf(logger, cache_dir):
+    return ReadAnnotations(logger=logger, path=RAT_GTF)
 
 
 @pytest.fixture(scope='session')
@@ -51,6 +52,8 @@ def rmats_results(logger):
 
 
 @pytest.fixture(autouse=True)
-def _run_in_tmp_dir(tmp_path, monkeypatch):
-    """ The UniProt cache is written relative to the CWD (REVIEW.md MED-5); keep it out of the repo. """
+def _run_in_tmp_dir(tmp_path, monkeypatch, cache_dir):
+    """ Run each test in a temp dir, with the caches in the session's cache directory (run_jcast resets it from
+    args.cache_dir, so it is set again for every test) """
     monkeypatch.chdir(tmp_path)
+    cache.set_directory(cache_dir)

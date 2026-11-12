@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-12 |
-| **Status** | Audit. Proposals in §2.4, §3.6 and §4.4; decisions requested in §6 and taken 2026-11-12 (§7), item 9 pending. No code changed. Measured at `8b845aa`. |
+| **Status** | Proposals in §2.4, §3.6 and §4.4; decisions requested in §6 and taken 2026-11-12 (§7), item 9 pending. **PR 7 implemented and verified (§8).** PRs 6 and 8 to follow. The audit was measured at `8b845aa`. |
 | **Question** | Do the read-count cutoffs apply what they say (PR 6)? What goes wrong in real runs: output directory, reruns, one failing junction, the logger, the caches (PR 7)? Does `-c` write every gene's canonical, and what does a UniProt API failure do to a run (PR 8)? |
 | **Reproduce** | `python reports/runs_audit/audit_runs.py [--rmats <dir> --jcast_out <dir> --uniprot <fasta>]` (≈ 10 min on chr15; the whole-genome arguments add read counts and `-c` coverage from an existing run) · `python reports/runs_audit/bench_gtf_cache.py --cached <gtf>.cached --scratch <dir>` |
 | **Inputs** | The chr15 test set (1,105 junctions); the 12 rMATS sets in `tests/data/model/`; the user's whole-genome run of 2026-11-12 (NMDI RNA-seq, 599,644 junctions; GENCODE v50; Swiss-Prot 2026_04; `-m -c --uniprot -p 8`), not bundled. |
@@ -531,4 +531,98 @@ separately:
   canonicals for those genes.
 - Removing it changes no output and saves the requests: 346 of 1,110 on
   chr15 (§4.2).
+
+## 8. Implementation and verification: PR 7
+
+**What changed** (no change to output):
+
+- **Output directory** ([jcast/main.py](../jcast/main.py)):
+  - `run_jcast` creates `-o`.
+  - It refuses a directory holding JCAST output (`logfile.log`,
+    `psq_*.fasta`, `model.pdf`, the `--uniprot` outputs) unless
+    `--overwrite` is given. That option removes those files first, and
+    the log is opened for writing, not appending.
+  - The CLI reports the refusal through `parser.error`.
+- **Per-junction exceptions:**
+  - `_translate_safely` wraps `_translate_one` for both the serial path
+    and the `-p` workers.
+  - It collects the junction's records, and the main loop writes them
+    once the junction completes. Serial runs now write exactly as `-p`
+    workers do.
+  - On an exception:
+    - the traceback is logged at ERROR to the log file only;
+    - the fate is `FAILURE (exception). <type>: <message>`
+      ([jcast/fates.py](../jcast/fates.py));
+    - nothing of the junction is written.
+  - The console shows the first failure, and a warning at the end counts
+    them.
+- **Logger** ([jcast/logger.py](../jcast/logger.py)):
+  - `get_logger` closes and removes earlier handlers.
+  - `close_logger` closes the run's handlers when `run_jcast` ends, also
+    on error.
+  - A record tagged `jcast_console=False` goes to the file only.
+- **Caches** ([jcast/cache.py](../jcast/cache.py)):
+  - The user cache directory via `platformdirs` (new dependency), or
+    `--cache_dir`.
+  - **GTF** ([jcast/annots.py](../jcast/annots.py)):
+    - The table is still the GTF written as a tab-separated file and read
+      back, now through a temporary file, and without the index column.
+    - It is kept as a pickle named after the GTF's path digest, and its
+      path, size, mtime and pandas version digest.
+    - It is written to `<name>.<pid>.tmp` and renamed into place.
+    - Older caches of the same GTF are removed.
+    - A cache that cannot be read is rebuilt, with a warning.
+  - **API** ([jcast/sequences.py](../jcast/sequences.py)): the same
+    directory. A cache that cannot be opened or written gives one warning,
+    and the lookup proceeds without it.
+- **Tests:** 13 new in `tests/test_runs.py`, 95 in all.
+  - The conftest points the caches at a session temp directory. Tests no
+    longer clear logger handlers by hand.
+  - A test checks that the cached table equals the old `<gtf>.cached`
+    table without its index column.
+
+**Verification.** The code under test was frozen in git worktrees: before
+= `82a309b`; after = `82a309b` plus this change.
+
+- **chr15** ([runs_audit/verify_7/verify_7.txt](runs_audit/verify_7/verify_7.txt),
+  `verify_7.py`): with `-p 1` and `-p 3`, all 12 output files are byte
+  for byte identical before and after, and so is the log from the first
+  junction.
+
+  The failure modes of §3, rerun on the new code:
+
+  | §3 | Before (§3, runs.txt) | After |
+  |---|---|---|
+  | 3.1 missing `-o` | `FileNotFoundError` | created; 847 records written |
+  | 3.2 `-r 30` into a `-r 1` directory | output identical to the `-r 1` run, 2 runs in one log | refused; with `--overwrite`, `psq` files identical to `-r 30` alone, 1 run in the log |
+  | 3.3 exception in junction 500 | run aborted at junction 500 (`-p 1`) or 490 (`-p 3`); 410 or 405 of 847 records; no `--uniprot` outputs | run completed: 1,105 junctions, 1 exception fate, 846 of 847 records, `--uniprot` outputs written; `-p 1` and `-p 3` identical |
+  | 3.4 two runs in one process | run 2 also wrote into run 1's log (10,813 → 21,626 lines) | run 1's log unchanged; no handlers left after the runs |
+  | 3.5 API cache | under the working directory; `PermissionError` from a read-only one | in the cache directory; no error from a read-only working directory |
+  | 3.5 GTF cache next to the GTF | yes, with an index column | nothing next to the GTF; no index column |
+  | 3.5 GTF replaced under the same name | stale cache read (2,155 genes, not 1,152) | rebuilt: 1,152 genes; one cache per GTF |
+  | 3.5 partial cache | read without error: 48,431 of 97,275 rows | another run's partial file is never read; a damaged cache is rebuilt (97,275 rows) |
+  | 3.5 GTF in a read-only directory | `PermissionError` | read without error |
+
+- **Whole genome**
+  ([runs_audit/genome_verify_7/verify.txt](runs_audit/genome_verify_7/verify.txt),
+  `reports/parallel_audit/verify_runs.py`):
+  - 20,000 junctions sampled at random (seed 5) from the user's run, through
+    the CLI with `-c -r 1 --uniprot`.
+  - `HOME` pointed at a scratch directory, so the cache was built there.
+  - **All 15 output files are byte for byte identical before and after,
+    with `-p 1` and with `-p 16`.** So are the log messages from the first
+    junction on.
+  - The start-up messages differ only by the new cache lines.
+
+  | Run | Wall time | Junction loop | Start-up (wall − loop) |
+  |---|---|---|---|
+  | before, 1 process | 425 s | 341 s | 84 s |
+  | after, 1 process, building the GTF cache | 654 s | 308 s | 346 s (the cache took 4 min 56 s to build) |
+  | after, 16 processes, reading the cache | 63 s | 27 s | 36 s |
+
+  Building the cache from the 4.7 GB GENCODE GTF is a one-time cost per
+  GTF. Later runs start about 50 s sooner. The machine's load average was
+  16.8 at the start, so the times are approximate.
+
+**Golden tests:** unchanged.
 
