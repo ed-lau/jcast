@@ -1,4 +1,4 @@
-# Handoff — v0.4.0 hardening (2026-11-12)
+# Handoff — v0.4.0 hardening (2026-11-12, after PRs 6–8)
 
 For the next working session on the `v0.4.0-hardening` branch. It covers
 where things stand, how the work has been run, and what to do next.
@@ -6,27 +6,46 @@ where things stand, how the work has been run, and what to do next.
 ## State
 
 - **Branch:** `v0.4.0-hardening`, last commit at handoff in `git log`.
-- **Tests:** all 82 pass in about 2 minutes (`python -m pytest -q`; run
+- **Tests:** all 114 pass in about 2.5 minutes (`python -m pytest -q`; run
   only the fast ones with `-m 'not slow'`).
 - **Golden tests:**
-  - `tests/test_pipeline.py::test_chr15_golden` (GTF-only canonicals);
+  - `tests/test_pipeline.py::test_chr15_golden` (GTF-only canonicals). Its
+    `read=1` keeps every junction since PR 6.
   - `tests/test_uniprot.py::test_chr15_uniprot` (`--uniprot`, on the
     Swiss-Prot subset in `tests/data/uniprot/`).
-- **Done:** roadmap PRs 0–5, 9, 14 and 15 ([REVIEW.md §9](REVIEW.md#9-v040-hardening-roadmap-revised)).
+- **Done:** roadmap PRs 0–9, 14 and 15 ([REVIEW.md §9](REVIEW.md#9-v040-hardening-roadmap-revised)).
   Every output-changing PR has an audit, an evidence folder and a
   verification script, indexed in [reports/README.md](reports/README.md)
   with its decisions and commit hashes.
-- **Recent:**
-  - `--uniprot FASTA` (PR 14): canonicals from a supplied UniProt FASTA,
-    GTF fallback, built-in Swiss-Prot merge.
-  - A per-gene GTF index and in-memory de-duplication of writes (PR 9).
-  - `-p/--processes` (PR 15).
-  - A whole-genome run (about 600,000 junctions) now takes about 15 min
-    with `-p 16`, where it took days.
-- **In progress on the user's side:** a full whole-genome run with
-  `--uniprot -p 16` (NMDI RNA-seq data on
-  `/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq`). Ask how it
-  went; anything unexpected is the first thing to look at.
+- **Recent** ([PR 6–8 audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)
+  §8–10):
+  - **PR 7:**
+    - `-o` is created. A directory holding JCAST output is refused unless
+      `--overwrite`.
+    - A failing junction gets `FAILURE (exception)` and the run continues.
+    - Caches go in the user cache directory (`platformdirs`) or
+      `--cache_dir`; the GTF cache is a pickle, about 5 min to build for
+      GENCODE.
+    - Logger handlers no longer stack.
+  - **PR 6:**
+    - Keep a junction if its count ≥ the cutoff. The default `-r 1` keeps
+      every junction (the maintainer's choice).
+    - `-m` cuts at the model's boundary, in reads.
+    - `sum_sjc` is now `min_jc`.
+    - Filters run first: a whole-genome `-m` run's junction loop takes
+      240 s, down from 748 s.
+  - **PR 8:**
+    - `-c` writes every gene's canonical.
+    - `write_canonical`'s API fallback is removed.
+    - A failed or refused UniProt API request fails the junction.
+    - `--uniprot` uses gene names only when unique in the GTF. That
+      changed 77 genes, 72 of them non-coding
+      ([mapping audit §8](reports/2026-11-12-uniprot-mapping-audit.md#8-addendum-the-unique-name-rule-on-the-whole-genome-pr-8)).
+- **For the user's next whole-genome run:**
+  - Rerunning into an existing output directory needs `--overwrite`.
+  - The first run rebuilds the GTF cache once, in `~/Library/Caches/jcast`.
+  - The old `gencode.v50…gtf.cached` next to the GTF can be deleted.
+  - With `-m`, expect cutoff 40 and 131,233 junctions translated.
 
 ## How the work is run (agreed with the maintainer)
 
@@ -60,53 +79,53 @@ where things stand, how the work has been run, and what to do next.
 
 ## Next priorities
 
-1. **Follow up on the user's full run** (above).
-2. **PR 7: robustness of real runs.** Most pressing now that full runs are
-   routine.
-   - Create the output directory (MED-4). Today it must already exist.
-   - Fresh output per run (MED-12). Output is appended, and sequences
-     already in a file are skipped, so a rerun into the same directory
-     mixes runs.
-   - Catch an exception per junction, record it as a fate and continue
-     (decided in the masked-bases audit §7). With `-p`, an exception in
-     a worker currently aborts the run, as it does serially.
-   - Logger handlers accumulate across calls (MED-13); the tests clear
-     them by hand.
-   - The UniProt API cache is written to the working directory (MED-5);
-     the GTF `.cached` file sits next to the GTF (MED-6).
-3. **PR 6: threshold semantics** (MED-11: read-count cutoffs off by one)
-   and `sum_sjc` naming (MED-1 / §5.2). This changes output, so audit
-   first.
-4. **PR 8:**
-   - `-c` writes the canonical on every path (MED-14; 2 chr15 genes).
-   - `write_canonical`'s no-op API retry (MED-9).
-   - API network failures (MED-10; avoidable with `--uniprot`).
-   This changes output, so audit first.
-5. **Smaller items:**
+1. **PR 16: the run record** (decided;
+   [log audit §6](reports/2026-11-12-log-audit.md#6-decisions-2026-11-12)):
+   - a per-junction `junctions.tsv`;
+   - a small log with an end-of-run summary (fates per splice type,
+     records per file, failures, time);
+   - sequences only with `--verbose`;
+   - no `~module~function` suffix.
+2. **PR 17: the GTF canonical from GENCODE's `Ensembl_canonical` tag**
+   when no transcript passes the TSL ≤ 2 / start-and-stop filter. It
+   covers 173 of the 384 coding genes left without a canonical. It changes
+   output: audit first
+   ([mapping audit §5–7](reports/2026-11-12-uniprot-mapping-audit.md)).
+3. **Smaller items:**
    - PR 12, argparse hygiene: drop `--g_or_ln`; `-s` reads only the
      selected files (MED-8); `parser.error`, not `assert`.
-   - The rest of PR 9: filter junctions before the canonical lookup.
-     Minor now.
    - PR 10 (packaging, Python ≥ 3.10) and PR 11 (CI).
-6. **PR 13, GUI:**
-   - Expose `--uniprot`.
+4. **PR 13, GUI:**
+   - Expose `--uniprot`, `--overwrite` and `--cache_dir`.
    - `-p` must not fork from the GUI's Qt thread (REVIEW.md §10). Run a
      subprocess or use another start method.
-7. **Planned follow-ups** (CHANGELOG "Planned"):
+5. **Planned follow-ups** (CHANGELOG "Planned"):
    - an option to add T2/T4 to `jcast_uniprot_merged.fasta`;
    - a UniProt download helper that names the file by its release
      (`X-UniProt-Release` header);
    - removing `--mask` in the next release;
    - joining by genomic coordinates was evaluated and deferred
      ([UniProt evaluation §4](reports/2026-11-11-uniprot-fasta-evaluation.md#4-joining-by-coordinates-question-1)).
+   - Possibly: prefer the gene with an HGNC id when a gene name is shared
+     ([mapping audit §8](reports/2026-11-12-uniprot-mapping-audit.md#8-addendum-the-unique-name-rule-on-the-whole-genome-pr-8)).
+     Not decided.
 
 ## Useful facts
 
-- `run_jcast` does not create the output directory. Tests and scripts
-  create it first.
-- In tests, `tests/conftest.py` moves the working directory to a temp
-  dir, because of the UniProt cache. A run of `run_jcast` in-process should
-  clear `logging.getLogger('jcast').handlers` before and after.
-- The GENCODE v50 `.cached` GTF on the user's volume takes about 55 s to
-  read, and the genome about 35 s. Verification scripts take input paths
-  as arguments and write only to the scratch directory.
+- `run_jcast` creates the output directory and refuses one holding JCAST
+  output unless `args.overwrite`. It closes its log handlers when it ends.
+- **Tests:**
+  - `tests/conftest.py` points the caches at a session temp directory (the
+    `cache_dir` fixture).
+  - Tests that call `run_jcast` must pass `cache_dir=str(cache_dir)` in
+    `args`, or they write to the user's cache.
+- **Verification scripts:**
+  - They take input paths as arguments and write only to the scratch
+    directory.
+  - `reports/runs_audit/verify_6.py --pair 'label|repo|args|repo|args'`
+    compares two CLI runs in any two checkouts.
+  - For whole-genome runs, pass `--cache_dir`, or set `HOME`, to keep the
+    rebuilt GTF cache out of the user's cache.
+- **Timings:** reading the GENCODE v50 GTF cache takes about 8 s, the
+  genome about 35 s. In a whole-genome `-m -c --uniprot -p 16` run, the
+  junction loop takes 4–5 min.

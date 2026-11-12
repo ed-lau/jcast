@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-12 |
-| **Status** | Proposals in §2.4, §3.6 and §4.4; decisions requested in §6 and taken 2026-11-12 (§7). **PR 7 implemented in `460005d` (§8); PR 6 implemented in `05a6931` (§9); PR 8 implemented and verified (§10).** The audit was measured at `8b845aa`. |
+| **Status** | Proposals in §2.4, §3.6 and §4.4; decisions requested in §6 and taken 2026-11-12 (§7). **PR 7 implemented in `460005d` (§8); PR 6 implemented in `05a6931` (§9); PR 8 implemented in `890d631` (§10).** The audit was measured at `8b845aa`. |
 | **Question** | Do the read-count cutoffs apply what they say (PR 6)? What goes wrong in real runs: output directory, reruns, one failing junction, the logger, the caches (PR 7)? Does `-c` write every gene's canonical, and what does a UniProt API failure do to a run (PR 8)? |
 | **Reproduce** | `python reports/runs_audit/audit_runs.py [--rmats <dir> --jcast_out <dir> --uniprot <fasta>]` (≈ 10 min on chr15; the whole-genome arguments add read counts and `-c` coverage from an existing run) · `python reports/runs_audit/bench_gtf_cache.py --cached <gtf>.cached --scratch <dir>` |
 | **Inputs** | The chr15 test set (1,105 junctions); the 12 rMATS sets in `tests/data/model/`; the user's whole-genome run of 2026-11-12 (NMDI RNA-seq, 599,644 junctions; GENCODE v50; Swiss-Prot 2026_04; `-m -c --uniprot -p 8`), not bundled. |
@@ -702,7 +702,7 @@ the user's full run of 599,644 junctions, with `-m -p 16` (after) against
 - The canonical records lost are the MED-14 effect predicted in §2.2. PR 8
   writes the canonical on every path.
 
-## 10. Implementation and verification: PR 8
+## 10. Implementation and verification: PR 8 (`890d631`)
 
 **What changed:**
 
