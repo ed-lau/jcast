@@ -1,0 +1,113 @@
+before: f40573d; after: f40573d + working tree
+
+files (chr15, CLI, -c --uniprot):
+  -r 1:
+    other output files: 12; differing: none
+    psq_canonical.fasta: 272 -> 276 records; every record before is still there: True; added 4; removed 0
+    -c coverage: 276 genes with a canonical, 0 without a record []
+    before: -c coverage: 276 genes with a canonical, 4 without a record ['TSPAN3', 'CELF6', 'DIS3L', 'FBXL22']
+  -r 2:
+    other output files: 11; differing: none
+    psq_canonical.fasta: 275 -> 276 records; every record before is still there: True; added 1; removed 0
+    -c coverage: 276 genes with a canonical, 0 without a record []
+    before: -c coverage: 276 genes with a canonical, 1 without a record ['TSPAN3']
+  -r 1 -p 3:
+    other output files: 12; differing: none
+    psq_canonical.fasta: 272 -> 276 records; every record before is still there: True; added 4; removed 0
+    -c coverage: 276 genes with a canonical, 0 without a record []
+    before: -c coverage: 276 genes with a canonical, 4 without a record ['TSPAN3', 'CELF6', 'DIS3L', 'FBXL22']
+
+api (chr15, -c, the UniProt API path with a stub serving the local API cache):
+  answering:
+    before: fates {'PARTIAL TIER 4': 403, 'SKIPPED': 119, 'SUCCESS TIER 2': 49, 'SUCCESS TIER 1': 298, 'FAILURE': 207, 'SUCCESS TIER 1 ALT TERMINUS': 29}; requests by caller {'get_canonical_aa': 764, 'write_canonical': 244}; records {'psq_T1.fasta': 195, 'psq_T1_alt_cterm.fasta': 7, 'psq_T1_alt_cterm_orphan.fasta': 26, 'psq_T1_alt_nterm.fasta': 4, 'psq_T1_alt_nterm_orphan.fasta': 1, 'psq_T1_orphan.fasta': 144, 'psq_T2.fasta': 40, 'psq_T2_orphan.fasta': 17, 'psq_T4.fasta': 257, 'psq_T4_orphan.fasta': 252, 'psq_canonical.fasta': 181}
+    after: fates {'PARTIAL TIER 4': 403, 'SKIPPED': 119, 'SUCCESS TIER 2': 49, 'SUCCESS TIER 1': 298, 'FAILURE': 207, 'SUCCESS TIER 1 ALT TERMINUS': 29}; requests by caller {'get_canonical_aa': 764}; records {'psq_T1.fasta': 195, 'psq_T1_alt_cterm.fasta': 7, 'psq_T1_alt_cterm_orphan.fasta': 26, 'psq_T1_alt_nterm.fasta': 4, 'psq_T1_alt_nterm_orphan.fasta': 1, 'psq_T1_orphan.fasta': 144, 'psq_T2.fasta': 40, 'psq_T2_orphan.fasta': 17, 'psq_T4.fasta': 257, 'psq_T4_orphan.fasta': 252, 'psq_canonical.fasta': 184}
+  refusing every request (HTTP 429):
+    before: fates {'PARTIAL TIER 4': 403, 'SKIPPED': 119, 'SUCCESS TIER 2': 49, 'SUCCESS TIER 1': 286, 'FAILURE': 207, 'SUCCESS TIER 1 ALT TERMINUS': 41}; requests by caller {'get_canonical_aa': 2210, 'write_canonical': 734}; records {'psq_T1_alt_cterm_orphan.fasta': 62, 'psq_T1_alt_nterm_orphan.fasta': 5, 'psq_T1_orphan.fasta': 540, 'psq_T2_orphan.fasta': 92, 'psq_T4_orphan.fasta': 724}
+    after: fates {'FAILURE (exception)': 1105}; requests by caller {'get_canonical_aa': 1105}; records {}
+  network down:
+    before: fates {'FAILURE (exception)': 1105}; requests by caller {'get_canonical_aa': 1105}; records {}
+    after: fates {'FAILURE (exception)': 1105}; requests by caller {'get_canonical_aa': 1105}; records {}
+
+genome (-m -c --uniprot -p 16; <scratch>/w8/verify_6_3ltzeq6u/m_p16_before -> <scratch>/w8/verify_6_3ltzeq6u/m_p16_after):
+    other output files: 14; differing: ['psq_T4.fasta', 'psq_T4_orphan.fasta', 'uniprot_canonicals.tsv']
+    psq_canonical.fasta: 13518 -> 13474 records; every record before is still there: False; added 5; removed 49
+    -c coverage: 13546 genes with a canonical, 1 without a record ['GPR89A']
+    before: -c coverage: 13622 genes with a canonical, 5 without a record ['PDK4', 'GPC4', 'HMOX1', 'GPR89A', 'MORN2']
+    canonical source changed for 77 genes:
+      CROCCP3 ENSG00000080947.16: sp by gene name Q8IVE0 -> none 
+      NSUN5P2 ENSG00000106133.19: sp by gene name Q63ZY6 -> none 
+      TRIM16L ENSG00000108448.24: sp by gene name Q309B1 -> none 
+      PMS2P3 ENSG00000127957.21: sp by gene name Q13401 -> none 
+      TXLNGY ENSG00000131002.15: sp by gene name Q9BZA5 -> none 
+      CAST ENSG00000153113.25: sp by gene name P20810 -> none 
+      CEP170P1 ENSG00000154608.14: sp by gene name Q96L14 -> none 
+      PRORSD1P ENSG00000162997.16: sp by gene name A6NEY8 -> none 
+      CMAHP ENSG00000168405.19: sp by gene name Q9Y471 -> none 
+      FAM86JP ENSG00000171084.18: sp by gene name Q05BU3 -> none 
+      SERHL ENSG00000172250.19: sp by gene name Q9NQF3 -> none 
+      AHSA2P ENSG00000173209.24: sp by gene name Q719I0 -> none 
+      PRSS42P ENSG00000178055.14: sp by gene name Q7Z5A4 -> none 
+      HERC2P3 ENSG00000180229.13: sp by gene name Q9BVR0 -> none 
+      RRP7BP ENSG00000182841.15: sp by gene name Q9NSQ0 -> none 
+      GUSBP1 ENSG00000183666.20: sp by gene name Q15486 -> none 
+      CA5BP1 ENSG00000186312.11: sp by gene name Q8WTZ4 -> none 
+      ZNF833P ENSG00000197332.10: sp by gene name Q6ZTB9 -> none 
+      CDIPTOSP ENSG00000214725.11: sp by gene name P0DO92 -> none 
+      NSUN5P1 ENSG00000223705.12: sp by gene name Q3KNT7 -> none 
+      DHRS4L1 ENSG00000225766.13: sp by gene name P0CG22 -> none 
+      TMEM191A ENSG00000226287.10: sp by gene name Q9H0A3 -> none 
+      GUSBP11 ENSG00000228315.13: sp by gene name Q6P575 -> none 
+      CASTOR3P ENSG00000239521.12: sp by gene name Q8NAP1 -> none 
+      ZNF542P ENSG00000240225.11: sp by gene name Q5EBM4 -> none 
+      PINX1 ENSG00000258724.1: sp by gene name Q96BK5 -> gtf 
+      PRSS46P ENSG00000261603.4: sp by gene name E5RG02 -> none 
+      PI4KAP1 ENSG00000274602.6: sp by gene name Q8N8J0 -> none 
+      PDE8B ENSG00000284762.1: sp by gene name O95263 -> none 
+      KYAT1 ENSG00000286112.1: sp by gene name Q16773 -> none 
+      HERC3 ENSG00000287542.1: sp by gene name Q15034 -> none 
+      HERC2P3 ENSG00000290376.2: sp by gene name Q9BVR0 -> none 
+      ZNF876P ENSG00000290382.2: sp by gene name Q49A33 -> none 
+      PI4KAP1 ENSG00000290425.2: sp by gene name Q8N8J0 -> none 
+      FOLH1B ENSG00000290503.2: sp by gene name Q9HBA9 -> none 
+      CYP2G1P ENSG00000290611.1: sp by gene name Q6ZSU1 -> none 
+      LPAL2 ENSG00000290613.2: sp by gene name Q16609 -> none 
+      ZNF286B ENSG00000290687.1: sp by gene name P0CG31 -> none 
+      ZNF658B ENSG00000290717.2: sp by gene name Q4V348 -> none 
+      ZNF542P ENSG00000290720.1: sp by gene name Q5EBM4 -> none 
+      CA5BP1 ENSG00000290746.2: sp by gene name Q8WTZ4 -> none 
+      SLC71A3P ENSG00000290770.2: sp by gene name Q5VZR4 -> none 
+      NSUN5P2 ENSG00000290831.2: sp by gene name Q63ZY6 -> none 
+      LRRC37A5P ENSG00000290837.2: sp by gene name Q49AS3 -> none 
+      CROCCP3 ENSG00000290842.2: sp by gene name Q8IVE0 -> none 
+      ZNF781 ENSG00000290988.1: sp by gene name Q8N8C0 -> none 
+      BCORP1 ENSG00000291031.2: sp by gene name Q8N888 -> none 
+      TXLNGY ENSG00000291033.2: sp by gene name Q9BZA5 -> none 
+      RRP7BP ENSG00000291035.2: sp by gene name Q9NSQ0 -> none 
+      DHRS4L1 ENSG00000291039.3: sp by gene name P0CG22 -> none 
+      FAM86JP ENSG00000291071.2: sp by gene name Q05BU3 -> none 
+      CCDC144NL ENSG00000291074.2: sp by gene name Q6NUI1 -> none 
+      TMEM191A ENSG00000291085.2: sp by gene name Q9H0A3 -> none 
+      PMS2P3 ENSG00000291092.2: sp by gene name Q13401 -> none 
+      GUSBP1 ENSG00000291102.2: sp by gene name Q15486 -> none 
+      BTN2A3P ENSG00000291104.2: sp by gene name Q96KV6 -> none 
+      TRIM16L ENSG00000291110.2: sp by gene name Q309B1 -> none 
+      ZNF767P ENSG00000291118.2: sp by gene name Q75MW2 -> none 
+      CASTOR3P ENSG00000291122.2: sp by gene name Q8NAP1 -> none 
+      DPY19L2P2 ENSG00000291139.2: sp by gene name Q6ZN68 -> none 
+      NSUN5P1 ENSG00000291151.2: sp by gene name Q3KNT7 -> none 
+      STAG3L4 ENSG00000291153.2: sp by gene name Q8TBR4 -> none 
+      LINC00869 ENSG00000291158.2: sp by gene name P0C866 -> none 
+      ZNF321P ENSG00000293246.2: sp by gene name Q8N8H1 -> none 
+      ZNF702P ENSG00000293317.2: sp by gene name Q9H963 -> none 
+      NKAPP1 ENSG00000293328.2: sp by gene name Q8N9T2 -> none 
+      PRSS42P ENSG00000293419.2: sp by gene name Q7Z5A4 -> none 
+      PRORSD1P ENSG00000293422.2: sp by gene name A6NEY8 -> none 
+      AHSA2P ENSG00000293434.2: sp by gene name Q719I0 -> none 
+      TDH ENSG00000293451.1: sp by gene name Q8IZJ6 -> none 
+      SERHL ENSG00000293485.2: sp by gene name Q9NQF3 -> none 
+      CDIPTOSP ENSG00000293487.2: sp by gene name P0DO92 -> none 
+      CMAHP ENSG00000293489.2: sp by gene name Q9Y471 -> none 
+      GNRHR2 ENSG00000293505.1: sp by gene name Q96P88 -> none 
+      FRMPD2B ENSG00000293529.2: sp by gene name Q6IN97 -> none 
+      DUSP13B ENSG00000293542.1: sp by gene name Q9UII6 -> none 
+      HLA-H ENSG00000310469.1: sp by gene name P01893 -> none 

@@ -1,0 +1,40 @@
+junctions: 1105
+
+[current] fates: {'FAILURE': 360, 'PARTIAL TIER 4': 236, 'SKIPPED': 297, 'SUCCESS TIER 1': 185, 'SUCCESS TIER 2': 25, 'SUCCESS TIER 3': 2}
+[current] per type [n, lower-bound trims, upper-bound trims]: {'MXE': [90, 28, 10], 'SE': [720, 133, 109], 'RI': [88, 2, 2], 'A5SS': [71, 9, 4], 'A3SS': [136, 13, 2]}
+
+[corrected] fates: {'FAILURE': 330, 'PARTIAL TIER 4': 261, 'SKIPPED': 297, 'SUCCESS TIER 1': 189, 'SUCCESS TIER 2': 26, 'SUCCESS TIER 3': 2}
+[corrected] per type [n, lower-bound trims, upper-bound trims]: {'MXE': [90, 25, 12], 'SE': [720, 106, 84], 'RI': [88, 6, 4], 'A5SS': [71, 5, 1], 'A3SS': [136, 8, 2]}
+
+coordinates differ after trimming: 188
+fate changed: 48
+   26  FAILURE -> PARTIAL TIER 4
+    8  FAILURE -> SUCCESS TIER 1
+    3  FAILURE -> SUCCESS TIER 2
+    3  PARTIAL TIER 4 -> FAILURE
+    2  SUCCESS TIER 2 -> FAILURE
+    2  SUCCESS TIER 1 -> FAILURE
+    2  SUCCESS TIER 1 -> PARTIAL TIER 4
+    1  PARTIAL TIER 4 -> SUCCESS TIER 2
+    1  SUCCESS TIER 2 -> PARTIAL TIER 4
+[current] T1-T3 successes whose trimming removed a whole exon (artefact or legitimate UTR removal): 8 / 212
+[corrected] T1-T3 successes whose trimming removed a whole exon (artefact or legitimate UTR removal): 2 / 217
+[corrected] junctions retaining a pure-UTR exon outside [tx0, tx1]: 172  (not meaningful for current: its bounds are degenerate)
+
+annotated proteins in GTF (truth set): 2979
+records exactly matching an annotated protein [current, corrected]:
+  psq_T1.fasta                58/152    66/164
+  psq_T2.fasta                  3/20      3/23
+  psq_T4.fasta                59/193    70/216
+  psq_canonical.fasta        268/268   268/268
+  T1 sequences gained by the correction that match an annotated protein: 8/12
+
+FASTA files [current records, corrected records, current-only seqs, corrected-only seqs]:
+  psq_T1.fasta              152  164    0   12
+  psq_T1_orphan.fasta        48   46    3    1
+  psq_T2.fasta               20   23    2    5
+  psq_T2_orphan.fasta        13   11    6    4
+  psq_T3_orphan.fasta         4    4    0    0
+  psq_T4.fasta              193  216    2   25
+  psq_T4_orphan.fasta        72   81    7   16
+  psq_canonical.fasta       268  268    0    0

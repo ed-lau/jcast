@@ -1,0 +1,25 @@
+rMATS subset: 20000 junctions (seed 4) of /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats
+gtf /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/gencode.v50.primary_assembly.annotation.gtf
+genome /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/GRCh38.primary_assembly.genome.fa
+uniprot /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/20261111_human_uniprot_swissprot_isoform.fasta
+machine: 24 CPUs; load average at start 2.6
+
+run	commit	processes	wall_s	junction_loop_s	junctions_per_s	files_identical	messages_identical_from_first_junction
+p1	5a6d695 + working tree	1	406	307	65.2	True	True
+p4	5a6d695 + working tree	4	188	96	208.6	True	True
+p8	5a6d695 + working tree	8	140	51	393.2	True	True
+p16	5a6d695 + working tree	16	119	27	736.4	True	True
+
+p4: start-up messages (before the first junction) differ:
+  - INFO~Namespace(rmats_folder='/private/tmp/claude-501/-Users-edwardlau-projects-jcast/fa32f03b-a7c7-415c-a05e-91dd5a015849/scratchpad/pa/verify_runs_jt
+  + INFO~Namespace(rmats_folder='/private/tmp/claude-501/-Users-edwardlau-projects-jcast/fa32f03b-a7c7-415c-a05e-91dd5a015849/scratchpad/pa/verify_runs_jt
+  + INFO~Translating junctions in 4 worker processes.
+p8: start-up messages (before the first junction) differ:
+  - INFO~Namespace(rmats_folder='/private/tmp/claude-501/-Users-edwardlau-projects-jcast/fa32f03b-a7c7-415c-a05e-91dd5a015849/scratchpad/pa/verify_runs_jt
+  + INFO~Namespace(rmats_folder='/private/tmp/claude-501/-Users-edwardlau-projects-jcast/fa32f03b-a7c7-415c-a05e-91dd5a015849/scratchpad/pa/verify_runs_jt
+  + INFO~Translating junctions in 8 worker processes.
+p16: start-up messages (before the first junction) differ:
+  - INFO~Namespace(rmats_folder='/private/tmp/claude-501/-Users-edwardlau-projects-jcast/fa32f03b-a7c7-415c-a05e-91dd5a015849/scratchpad/pa/verify_runs_jt
+  + INFO~Namespace(rmats_folder='/private/tmp/claude-501/-Users-edwardlau-projects-jcast/fa32f03b-a7c7-415c-a05e-91dd5a015849/scratchpad/pa/verify_runs_jt
+  + INFO~Translating junctions in 16 worker processes.
+output files: jcast_uniprot_merged.fasta 2bd2459fcdcebc80, psq_T1.fasta 0db4eb8717699129, psq_T1_alt_both.fasta f9078f62f6feb8d9, psq_T1_alt_cterm.fasta 4bca3144420f8ccd, psq_T1_alt_cterm_orphan.fasta 557d6671a1053dcf, psq_T1_alt_nterm.fasta a7846f10f4972fab, psq_T1_alt_nterm_orphan.fasta 796eb1bad712c715, psq_T1_orphan.fasta 6be110b30a77eacb, psq_T2.fasta 3195eb3cf8a4c6e2, psq_T2_orphan.fasta 74397eeb2641a771, psq_T4.fasta ad6f52e560f29970, psq_T4_orphan.fasta e315910e93ffee7e, psq_canonical.fasta d75a878581904090, psq_isoforms.tsv 11a8d527c5c20eb7, uniprot_canonicals.tsv 6d7fda369b2f886e

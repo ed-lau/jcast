@@ -1,0 +1,9 @@
+genome: GRCh38.primary_assembly.genome.fa; annotation: gencode.v50.primary_assembly.annotation.gtf
+sequences: 194; total 3,099,750,718 nt
+uppercase ACGT 2,948,627,755; N 151,122,963 (4.88%); non-N IUPAC 0; lowercase 0; other 0
+non-N IUPAC by base: {}
+non-N IUPAC sites inside any CDS: 0
+all CDS transcripts: 370,915 transcripts (20,516 genes); CDS with any non-ACGT base: 0 (0 genes), of which with a non-N IUPAC base: 0 (0 genes); CDS with any lowercase base: 0 (0 genes)
+protein_coding transcripts: 278,484 transcripts (19,747 genes); CDS with any non-ACGT base: 0 (0 genes), of which with a non-N IUPAC base: 0 (0 genes); CDS with any lowercase base: 0 (0 genes)
+MANE Select: 19,229 transcripts (19,229 genes); CDS with any non-ACGT base: 0 (0 genes), of which with a non-N IUPAC base: 0 (0 genes); CDS with any lowercase base: 0 (0 genes)
+protein_coding, TSL 1-2: 43,386 transcripts (17,304 genes); CDS with any non-ACGT base: 0 (0 genes), of which with a non-N IUPAC base: 0 (0 genes); CDS with any lowercase base: 0 (0 genes)

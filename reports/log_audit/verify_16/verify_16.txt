@@ -1,0 +1,46 @@
+before: f181966; after: f181966 + working tree
+
+chr15 -r 1:
+  output files: 13; identical before, after and after --verbose: yes
+  junctions.tsv identical with and without --verbose: yes
+  junctions: 1,105 rows; the log before names 1,105; same junctions, order and fates: yes
+  fates: T1 301, T1_alt_terminus 26, T2 49, T4 403, fail 207, skipped_outside_cds 119
+  new_records add up to the records in psq_*.fasta: 1,064 vs 1,064 (yes); canonical sources as in uniprot_canonicals.tsv: yes
+  --verbose log: the messages of the log before, from the first junction to the last: yes; and 1,105 "Chosen coding region is …" messages
+  log after, records by level: {'INFO': 17}
+  sizes: log before 1,992,279 bytes (1,803 per junction); log after 4,459 bytes (4 per junction); log after --verbose 1,802,700 bytes (1,631 per junction); junctions.tsv 132,784 bytes (120 per junction)
+  junction loop: before 13 s (time stamps); after: Time: 14 s in all, of which 13 s translating junctions.
+
+chr15 -m:
+  output files: 10; identical before, after and after --verbose: yes
+  junctions.tsv identical with and without --verbose: yes
+  junctions: 1,105 rows; the log before names 1,105; same junctions, order and fates: yes
+  fates: T1 50, T1_alt_terminus 3, T2 5, T4 33, fail 22, skipped_low_count 983, skipped_outside_cds 9
+  new_records add up to the records in psq_*.fasta: 386 vs 386 (yes); canonical sources as in uniprot_canonicals.tsv: yes
+  --verbose log: the messages of the log before, from the first junction to the last: yes; and 122 "Chosen coding region is …" messages
+  log after, records by level: {'INFO': 19}
+  sizes: log before 478,030 bytes (433 per junction); log after 4,658 bytes (4 per junction); log after --verbose 398,237 bytes (360 per junction); junctions.tsv 123,250 bytes (112 per junction)
+  junction loop: before 2 s (time stamps); after: Time: 4 s in all, of which 2 s translating junctions.
+
+chr15 -r 1 -p 3:
+  output files: 13; identical before, after and after --verbose: yes
+  junctions.tsv identical with and without --verbose: yes
+  junctions: 1,105 rows; the log before names 1,105; same junctions, order and fates: yes
+  fates: T1 301, T1_alt_terminus 26, T2 49, T4 403, fail 207, skipped_outside_cds 119
+  new_records add up to the records in psq_*.fasta: 1,064 vs 1,064 (yes); canonical sources as in uniprot_canonicals.tsv: yes
+  --verbose log: the messages of the log before, from the first junction to the last: yes; and 1,105 "Chosen coding region is …" messages
+  log after, records by level: {'INFO': 18}
+  sizes: log before 1,992,392 bytes (1,803 per junction); log after 4,536 bytes (4 per junction); log after --verbose 1,802,777 bytes (1,631 per junction); junctions.tsv 132,784 bytes (120 per junction)
+  junction loop: before 5 s (time stamps); after: Time: 6 s in all, of which 5 s translating junctions.
+
+genome -m -p 16:
+  output files: 15; identical before, after and after --verbose: yes
+  junctions.tsv identical with and without --verbose: yes
+  junctions: 599,644 rows; the log before names 599,644; same junctions, order and fates: yes
+  fates: T1 24,965, T1_alt_terminus 3,555, T2 5,835, T4 48,272, fail 33,609, skipped_low_count 468,411, skipped_outside_cds 14,997
+  new_records add up to the records in psq_*.fasta: 101,720 vs 101,720 (yes); canonical sources as in uniprot_canonicals.tsv: yes
+  --verbose log: the messages of the log before, from the first junction to the last: yes; and 131,233 "Chosen coding region is …" messages
+  log after, records by level: {'INFO': 20}
+  sizes: log before 346,167,012 bytes (577 per junction); log after 5,119 bytes (0 per junction); log after --verbose 299,702,685 bytes (500 per junction); junctions.tsv 65,715,132 bytes (110 per junction)
+  junction loop: before 181 s (time stamps); after: Time: 4 min 05 s in all, of which 3 min 02 s translating junctions.
+

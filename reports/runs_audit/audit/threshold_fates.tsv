@@ -1,0 +1,18 @@
+fate or file	now: -r 1 (count > 1)	-r 1 as documented (count >= 1)	-r 1 on summed SJC (before 2022-05)	now: -m (count > 27)	-m at the boundary (count >= 26)
+FAILURE	153	207	161	21	22
+PARTIAL TIER 4	289	403	335	29	33
+SKIPPED: Sequence discarded due to low coverage	297	0	222	991	983
+SKIPPED: Splice event lies outside the annotated coding region	92	119	102	9	9
+SUCCESS TIER 1	220	301	231	47	50
+SUCCESS TIER 1 ALT TERMINUS	24	26	24	3	3
+SUCCESS TIER 2	30	49	30	5	5
+psq_T1.fasta	179	244	190	42	45
+psq_T1_alt_cterm.fasta	18	18	18	4	4
+psq_T1_alt_cterm_orphan.fasta	0	2	0	0	0
+psq_T1_alt_nterm.fasta	5	6	5	0	0
+psq_T1_orphan.fasta	28	38	30	7	9
+psq_T2.fasta	32	49	32	5	5
+psq_T2_orphan.fasta	4	6	4	0	0
+psq_T4.fasta	251	350	297	28	31
+psq_T4_orphan.fasta	61	82	64	11	12
+psq_canonical.fasta	268	266	267	268	268

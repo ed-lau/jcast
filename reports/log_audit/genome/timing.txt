@@ -1,0 +1,4 @@
+chr15, GTF canonicals, timed on pass 2 of 2 (earlier passes warm the per-gene caches)
+junctions skipped for low coverage: 297, mean 40.4 ms
+other junctions: 808, mean 41.9 ms
+share of the junction loop spent on low-coverage skips: 26% here; 78% at a 78.7% share of such junctions (the whole-genome run)

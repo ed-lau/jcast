@@ -2,64 +2,62 @@
 
 """ Tests for read count model related functionalities """
 
-import unittest
-import os
+import pytest
 
 from jcast import model
 from jcast.junctions import RmatsResults
 
+from tests.conftest import DATA
 
-class  ModelTest(unittest.TestCase):
+
+def _junction_counts(logger, dataset):
+    rmats_results = RmatsResults(logger=logger, rmats_dir=DATA / 'model' / dataset)
+    rmats_results.get_junction_count_array()
+    return rmats_results.min_jc_array
+
+
+@pytest.mark.parametrize('dataset, expected_min_count', [
+    ('encode_human_heart', 14),
+    ('encode_mouse_heart', 6),
+    ('ipsc_human_d14', 15),
+])
+def test_general_mixture_model(logger, tmp_path, dataset, expected_min_count):
     """
-    Test cases involving reading genome sequence and references
+    test the Gamma + Normal read count cutoff against values recorded when replacing pomegranate. 2026-11-12 the
+    cutoff is in reads; it was on the count + 1 scale, one more (15, 7, 16); see
+    reports/2026-11-12-thresholds-runs-canonical-audit.md §2.3
     """
 
-    def setUp(self):
-        # Create out folder if not exists
-        if not os.path.exists('tests/out'):
-            os.makedirs('tests/out')
+    ln_sjc, params, min_count = model.general_mixture_model(min_jc_array=_junction_counts(logger, dataset))
 
-        self.write_dir = 'tests/out'
-        pass
+    assert min_count == expected_min_count
+    shape, rate, mu, sd, w0, w1 = params
+    assert mu > (shape - 1) / rate     # normal (expressed) component sits above the gamma (trace) mode
+    assert w0 + w1 == pytest.approx(1)
 
-    def tearDown(self):
-        pass
+    model.plot_general_mixture_model(ln_sjc, params, min_count, write_dir=str(tmp_path), filename=dataset)
+    assert (tmp_path / f'{dataset}.pdf').exists()
 
-    def test_gaussian_encode_human_heart(self):
-        """ test for selecting read count cutoff in ENCODE human heart data """
 
-        rmats_results = RmatsResults(rmats_dir='tests/data/model/encode_human_heart')
-        rmats_results.get_junction_count_array()
+def test_general_mixture_model_degenerate(logger):
+    """ stomach has no stable two-component fit; the model should report that rather than crash """
 
-        pt, gmm, min_count = model.gaussian_mixture(sum_sjc_array=rmats_results.sum_sjc_array)
-        model.plot_model(sum_sjc_array=rmats_results.sum_sjc_array,
-                         pt=pt, gmm=gmm, min_count=min_count,
-                         write_dir=self.write_dir, filename='encode_human_heart')
+    _, params, min_count = model.general_mixture_model(min_jc_array=_junction_counts(logger, 'encode_human_stomach'))
 
-        self.assertGreater(gmm.means_[1], gmm.means_[0])
+    assert params is None
+    assert min_count is None
 
-    def test_gaussian_encode_mouse_heart(self):
-        """ test for selecting read count cutoff in ENCODE mouse heart data """
 
-        rmats_results = RmatsResults(rmats_dir='tests/data/model/encode_mouse_heart')
-        rmats_results.get_junction_count_array()
+def test_cutoff_is_the_models_boundary_in_reads(logger):
+    """ the cutoff c is the smallest read count whose ln(count + 1) lies at or above the components' crossing """
+    import math
+    import numpy as np
+    from scipy import stats
 
-        pt, gmm, min_count = model.gaussian_mixture(sum_sjc_array=rmats_results.sum_sjc_array)
-        model.plot_model(sum_sjc_array=rmats_results.sum_sjc_array,
-                         pt=pt, gmm=gmm, min_count=min_count,
-                         write_dir=self.write_dir, filename='encode_mouse_heart')
+    counts = _junction_counts(logger, 'encode_human_heart')
+    _, (shape, rate, mu, sd, w0, w1), cutoff = model.general_mixture_model(min_jc_array=counts)
 
-        self.assertGreater(gmm.means_[1], gmm.means_[0])
-
-    def test_gaussian_ipsc_human_d14(self):
-        """ test for selecting read count cutoff in in house human iPSC cardiomyocyte data """
-
-        rmats_results = RmatsResults(rmats_dir='tests/data/model/ipsc_human_d14')
-        rmats_results.get_junction_count_array()
-
-        pt, gmm, min_count = model.gaussian_mixture(sum_sjc_array=rmats_results.sum_sjc_array)
-        model.plot_model(sum_sjc_array=rmats_results.sum_sjc_array,
-                         pt=pt, gmm=gmm, min_count=min_count,
-                         write_dir=self.write_dir, filename='ipsc_human_d14')
-
-        self.assertGreater(gmm.means_[1], gmm.means_[0])
+    def expressed(reads):
+        x = math.log(reads + 1)
+        return w1 * stats.norm.pdf(x, mu, sd) >= w0 * stats.gamma.pdf(x, shape, scale=1 / rate)
+    assert expressed(cutoff) and not expressed(cutoff - 1)

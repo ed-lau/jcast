@@ -1,0 +1,59 @@
+code: 8b845aa; python 3.11.13
+
+  encode_mouse_fetalheart: header only, skipped
+thresholds.tsv (counts are min(summed IJC, summed SJC) unless named sjc):
+  chr15 (tests/data/rmats): 1105 junctions; count 0: 0, count 1: 297; -r 1 keeps 808 now, 1105 as documented; SJC alone keeps 883 (75 with SJC >= 2 but min < 2); model min_count 27; -m keeps 114 now (count >= 28), 122 at the model's boundary (count >= 26); 8 lost to the offset
+  encode_human_adrenalgland: 32821 junctions; count 0: 0, count 1: 6165; -r 1 keeps 26656 now, 32821 as documented; SJC alone keeps 28044 (1388 with SJC >= 2 but min < 2); model min_count 13; -m keeps 10174 now (count >= 14), 11167 at the model's boundary (count >= 12); 993 lost to the offset
+  encode_human_heart: 31776 junctions; count 0: 0, count 1: 7886; -r 1 keeps 23890 now, 31776 as documented; SJC alone keeps 25798 (1908 with SJC >= 2 but min < 2); model min_count 15; -m keeps 6312 now (count >= 16), 7002 at the model's boundary (count >= 14); 690 lost to the offset
+  encode_human_lung: 28404 junctions; count 0: 0, count 1: 4843; -r 1 keeps 23561 now, 28404 as documented; SJC alone keeps 24610 (1049 with SJC >= 2 but min < 2); model min_count 8; -m keeps 11808 now (count >= 9), 13781 at the model's boundary (count >= 7); 1973 lost to the offset
+  encode_human_spleen: 33828 junctions; count 0: 0, count 1: 8247; -r 1 keeps 25581 now, 33828 as documented; SJC alone keeps 27185 (1604 with SJC >= 2 but min < 2); model min_count 6; -m keeps 12369 now (count >= 7), 15480 at the model's boundary (count >= 5); 3111 lost to the offset
+  encode_human_stomach: 11152 junctions; count 0: 0, count 1: 1775; -r 1 keeps 9377 now, 11152 as documented; SJC alone keeps 10025 (648 with SJC >= 2 but min < 2); model min_count degenerate
+  encode_human_testis: 64997 junctions; count 0: 0, count 1: 12979; -r 1 keeps 52018 now, 64997 as documented; SJC alone keeps 53554 (1536 with SJC >= 2 but min < 2); model min_count 9; -m keeps 24226 now (count >= 10), 27463 at the model's boundary (count >= 8); 3237 lost to the offset
+  encode_human_uterus: 8553 junctions; count 0: 0, count 1: 1419; -r 1 keeps 7134 now, 8553 as documented; SJC alone keeps 7679 (545 with SJC >= 2 but min < 2); model min_count 6; -m keeps 4827 now (count >= 7), 5423 at the model's boundary (count >= 5); 596 lost to the offset
+  encode_mouse_heart: 20291 junctions; count 0: 0, count 1: 4804; -r 1 keeps 15487 now, 20291 as documented; SJC alone keeps 16153 (666 with SJC >= 2 but min < 2); model min_count 7; -m keeps 7588 now (count >= 8), 8830 at the model's boundary (count >= 6); 1242 lost to the offset
+  heart_mouse_old: 88879 junctions; count 0: 0, count 1: 12453; -r 1 keeps 76426 now, 88879 as documented; SJC alone keeps 76921 (495 with SJC >= 2 but min < 2); model min_count 30; -m keeps 31457 now (count >= 31), 32108 at the model's boundary (count >= 29); 651 lost to the offset
+  ipsc_human_d0: 99220 junctions; count 0: 0, count 1: 18316; -r 1 keeps 80904 now, 99220 as documented; SJC alone keeps 82469 (1565 with SJC >= 2 but min < 2); model min_count 15; -m keeps 35167 now (count >= 16), 37280 at the model's boundary (count >= 14); 2113 lost to the offset
+  ipsc_human_d14: 116887 junctions; count 0: 0, count 1: 21880; -r 1 keeps 95007 now, 116887 as documented; SJC alone keeps 96513 (1506 with SJC >= 2 but min < 2); model min_count 16; -m keeps 38862 now (count >= 17), 41119 at the model's boundary (count >= 15); 2257 lost to the offset
+  kidney_old_totalRNA_gencodeM26: 35854 junctions; count 0: 0, count 1: 9994; -r 1 keeps 25860 now, 35854 as documented; SJC alone keeps 26671 (811 with SJC >= 2 but min < 2); model min_count 5; -m keeps 15533 now (count >= 6), 18616 at the model's boundary (count >= 4); 3083 lost to the offset
+  whole genome (/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats): 599644 junctions; count 0: 0, count 1: 83534; -r 1 keeps 516110 now, 599644 as documented; SJC alone keeps 534969 (18859 with SJC >= 2 but min < 2); model min_count 41; -m keeps 127823 now (count >= 42), 131233 at the model's boundary (count >= 40); 3410 lost to the offset
+threshold_fates.tsv (chr15, GTF canonicals; changed fates against the first rule of each pair):
+  -r 1 as documented (count >= 1): 297 junctions change: SKIPPED: Sequence discarded due to low coverage -> PARTIAL TIER 4: 114; SKIPPED: Sequence discarded due to low coverage -> SUCCESS TIER 1: 81; SKIPPED: Sequence discarded due to low coverage -> FAILURE: 54; SKIPPED: Sequence discarded due to low coverage -> SKIPPED: Splice event lies outside the annotated coding region: 27; SKIPPED: Sequence discarded due to low coverage -> SUCCESS TIER 2: 19; SKIPPED: Sequence discarded due to low coverage -> SUCCESS TIER 1 ALT TERMINUS: 2
+    records: psq_T1.fasta 179 -> 244, psq_T1_alt_cterm_orphan.fasta 0 -> 2, psq_T1_alt_nterm.fasta 5 -> 6, psq_T1_orphan.fasta 28 -> 38, psq_T2.fasta 32 -> 49, psq_T2_orphan.fasta 4 -> 6, psq_T4.fasta 251 -> 350, psq_T4_orphan.fasta 61 -> 82, psq_canonical.fasta 268 -> 266
+  -r 1 on summed SJC (before 2022-05): 75 junctions change: SKIPPED: Sequence discarded due to low coverage -> PARTIAL TIER 4: 46; SKIPPED: Sequence discarded due to low coverage -> SUCCESS TIER 1: 11; SKIPPED: Sequence discarded due to low coverage -> SKIPPED: Splice event lies outside the annotated coding region: 10; SKIPPED: Sequence discarded due to low coverage -> FAILURE: 8
+    records: psq_T1.fasta 179 -> 190, psq_T1_orphan.fasta 28 -> 30, psq_T4.fasta 251 -> 297, psq_T4_orphan.fasta 61 -> 64, psq_canonical.fasta 268 -> 267
+  -m at the boundary (count >= 26): 8 junctions change: SKIPPED: Sequence discarded due to low coverage -> PARTIAL TIER 4: 4; SKIPPED: Sequence discarded due to low coverage -> SUCCESS TIER 1: 3; SKIPPED: Sequence discarded due to low coverage -> FAILURE: 1
+    records: psq_T1.fasta 42 -> 45, psq_T1_orphan.fasta 7 -> 9, psq_T4.fasta 28 -> 31, psq_T4_orphan.fasta 11 -> 12
+
+runs.txt:
+  1. missing -o directory: FileNotFoundError: [Errno 2] No such file or directory: '<work>/no/such/dir/logfile.log'
+  2. -r 1 into a directory, then -r 30 into the same directory:
+     records after -r 1:            {'psq_T1.fasta': 186, 'psq_T1_alt_cterm.fasta': 18, 'psq_T1_alt_nterm.fasta': 5, 'psq_T1_orphan.fasta': 20, 'psq_T2.fasta': 30, 'psq_T2_orphan.fasta': 4, 'psq_T4.fasta': 253, 'psq_T4_orphan.fasta': 56, 'psq_canonical.fasta': 275}
+     records of -r 30 on its own:   {'psq_T1.fasta': 40, 'psq_T1_alt_cterm.fasta': 4, 'psq_T1_orphan.fasta': 5, 'psq_T2.fasta': 6, 'psq_T4.fasta': 18, 'psq_T4_orphan.fasta': 12, 'psq_canonical.fasta': 275}
+     records after both:            {'psq_T1.fasta': 186, 'psq_T1_alt_cterm.fasta': 18, 'psq_T1_alt_nterm.fasta': 5, 'psq_T1_orphan.fasta': 20, 'psq_T2.fasta': 30, 'psq_T2_orphan.fasta': 4, 'psq_T4.fasta': 253, 'psq_T4_orphan.fasta': 56, 'psq_canonical.fasta': 275}
+     output files after both identical to the -r 1 run alone: True; to -r 30 alone: False
+     log: (runs, junctions started) (2, 2210)
+  3. an exception in junction SE 11950 (number 500 of 1105 in run order):
+     -p 1: run aborted: RuntimeError: injected fault; junctions logged 500; records written 410 of 847; UniProt outputs written: False
+     -p 3: run aborted: RuntimeError: injected fault; junctions logged 490; records written 405 of 847; UniProt outputs written: False
+  4. two runs in one process (as the GUI or a notebook would):
+     handlers after run 1: ['FileHandler', 'StreamHandler']; after run 2: ['FileHandler', 'StreamHandler', 'FileHandler', 'StreamHandler']
+     run 1 log lines after run 1: 10813; after run 2: 21626 (run 2 also writes into run 1's log)
+     run 2 log lines: 10813
+  5. caches:
+     UniProt API cache written to the working directory: True
+     API path from a read-only working directory: PermissionError: [Errno 13] Permission denied: 'cache'
+     GTF cache written next to the GTF: True; extra index column: ['Unnamed: 0']
+     GTF replaced by its first half under the same name: genes read 2155 (the replacement has 1152, the old file 2155): the stale cache is used
+     cache half written (as a second run sees while the first writes it): read without error, 48431 of 97275 rows, 1139 of 2155 genes
+     GTF in a read-only directory, no cache yet: PermissionError: [Errno 13] Permission denied: '<work>/gtf_readonly/annotation.gtf.cached'
+
+canonical.tsv: chr15 -c GTF only: 294 genes with junctions, 269 with a canonical, 268 canonical records, 1 genes with a canonical but no record: ENSG00000140391 ({'SUCCESS TIER 1': 1})
+canonical.tsv: chr15 -c --uniprot: 294 genes with junctions, 276 with a canonical, 275 canonical records, 1 genes with a canonical but no record: ENSG00000140391 ({'SUCCESS TIER 1': 1})
+canonical.tsv: whole genome (/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/jcast): 13622 genes with a canonical, 5 without a record: {'sp by sequence': 4, 'gtf': 1}
+canonical.txt:
+  masked path, GTF only: PIAS1 SE 6076 (its gene's only junction) with N in the skipped exon: SKIPPED: Sequence discarded due to masked or ambiguous bases; canonical records written: 0; UniProt API lookups by caller: {'write_canonical': 2}
+  masked path, --uniprot: PIAS1 SE 6076 (its gene's only junction) with N in the skipped exon: SKIPPED: Sequence discarded due to masked or ambiguous bases; canonical records written: 0; UniProt API lookups by caller: {}
+  API path, -c, API answers (cache, else empty): junctions done 1105 of 1105; requests by caller {'get_canonical_aa': 764, 'write_canonical': 346}; records {'psq_T1.fasta': 149, 'psq_T1_alt_cterm.fasta': 7, 'psq_T1_alt_cterm_orphan.fasta': 19, 'psq_T1_alt_nterm.fasta': 3, 'psq_T1_alt_nterm_orphan.fasta': 1, 'psq_T1_orphan.fasta': 101, 'psq_T2.fasta': 24, 'psq_T2_orphan.fasta': 13, 'psq_T4.fasta': 186, 'psq_T4_orphan.fasta': 180, 'psq_canonical.fasta': 183}
+  API path, -c, API refuses every request (HTTP 429): junctions done 1105 of 1105; requests by caller {'get_canonical_aa': 2210, 'write_canonical': 1156}; records {'psq_T1_alt_cterm_orphan.fasta': 55, 'psq_T1_alt_nterm_orphan.fasta': 4, 'psq_T1_orphan.fasta': 397, 'psq_T2_orphan.fasta': 58, 'psq_T4_orphan.fasta': 520}
+     HTTP 429 against a working API: 12 fates change; records psq_T1.fasta 149 -> 0, psq_T1_alt_cterm.fasta 7 -> 0, psq_T1_alt_cterm_orphan.fasta 19 -> 55, psq_T1_alt_nterm.fasta 3 -> 0, psq_T1_alt_nterm_orphan.fasta 1 -> 4, psq_T1_orphan.fasta 101 -> 397, psq_T2.fasta 24 -> 0, psq_T2_orphan.fasta 13 -> 58, psq_T4.fasta 186 -> 0, psq_T4_orphan.fasta 180 -> 520, psq_canonical.fasta 183 -> 0
+  API path, -c, network down: junctions done 0 of 1105, then the run aborts: ConnectionError: stub: connection refused; requests by caller {'get_canonical_aa': 1}; records {}

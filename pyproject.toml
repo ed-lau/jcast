@@ -1,7 +1,67 @@
 [build-system]
-
-# These are the assumed default build requirements from pip:
-# https://pip.pypa.io/en/stable/reference/pip/#pep-517-and-518-support
-
-requires = ["setuptools>=40.8.0", "wheel"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "jcast"
+dynamic = ["version"]
+description = "JCAST uses splice junction information from RNA-seq data to create custom protein databases"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE.md"]
+authors = [
+    {name = "Edward Lau", email = "edward.lau@cuanschutz.edu"},
+    {name = "Maggie Lam"},
+]
+keywords = ["scientific", "multi-omics", "isoform", "mass-spectrometry"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+]
+# The lower bounds are tested: reports/2026-11-13-packaging-check.md
+dependencies = [
+    "biopython>=1.78,<2",
+    "gtfparse>=1.3,<2",
+    "pandas>=1.5,<4",
+    "numpy>=1.23.2,<3",
+    "scipy>=1.9.2,<2",
+    "requests>=2.20,<3",
+    "platformdirs>=2.5,<5",
+    "tqdm>=4,<5",
+    "matplotlib>=3.6,<4",
+]
+
+[project.optional-dependencies]
+gui = ["PySide6>=6.6"]
+test = ["pytest>=8"]
+
+[project.scripts]
+jcast = "jcast.main:main"
+jcast-gui = "jcast.gui:launch_gui"
+
+[project.urls]
+Source = "https://github.com/ed-lau/jcast"
+Changelog = "https://github.com/ed-lau/jcast/blob/main/CHANGELOG.md"
+"Lau Lab Colorado" = "https://www.laulab.net"
+
+[tool.setuptools.dynamic]
+version = {attr = "jcast.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["jcast", "jcast.*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "network: needs network access to the EBI Proteins API (deselect with -m 'not network')",
+    "slow: end-to-end runs over the bundled test data (deselect with -m 'not slow')",
+]

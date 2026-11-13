@@ -1,13 +1,20 @@
 # -*- coding: utf-8 -*-
 
 """ Methods that concern splice junctions - getting their coordinates, transcription starts/ends, phases. """
+import collections
 import logging
 import os.path
 import pandas as pd
 import numpy as np
-import pandas.core.computation.ops
 
 from jcast import params
+from jcast.annots import gene_rows
+from jcast.outcomes import SPLICE_TYPES
+
+
+def rmats_path(rmats_dir, splice_type: str) -> str:
+    """ The rMATS file of a splice type: <rmats_dir>/<splice type>.MATS.JC.txt """
+    return os.path.join(rmats_dir, f'{splice_type}.MATS.JC.txt')
 
 
 class RmatsResults(object):
@@ -23,24 +30,33 @@ class RmatsResults(object):
     def __init__(self,
                  logger,
                  rmats_dir,
-
+                 splice_types=SPLICE_TYPES,
+                 others_if_present: bool = False,
                  ):
         """
+        2026-11-13 the five files were always read, so a folder without one of them failed even if -s did not select
+        it (REVIEW.md MED-8). The read count model (-m) fits on every file read, so main reads the others too with -m.
+
         :param rmats_dir: directory containing the rMATS output files
         :param logger: logger object
+        :param splice_types: the splice types whose files are read; each must exist
+        :param others_if_present: also read the other splice types' files that exist
         """
 
         self.logger = logger
 
         self.dir = rmats_dir
-        self.rmats_mxe = self._read_rmats_mxe()
-        self.rmats_se = self._read_rmats_se()
-        self.rmats_ri = self._read_rmats_ri()
-        self.rmats_a5ss = self._read_rmats_a5ss()
-        self.rmats_a3ss = self._read_rmats_a3ss()
+        readers = {'MXE': self._read_rmats_mxe, 'SE': self._read_rmats_se, 'RI': self._read_rmats_ri,
+                   'A5SS': self._read_rmats_a5ss, 'A3SS': self._read_rmats_a3ss}
 
-        self.rmats_list = [self.rmats_mxe, self.rmats_se, self.rmats_ri, self.rmats_a5ss, self.rmats_a3ss]
-        self.sum_sjc_array = None
+        # splice type -> its table, for the files read, in the order of SPLICE_TYPES
+        self.tables = {t: readers[t]() for t in SPLICE_TYPES
+                       if t in splice_types or (others_if_present and os.path.isfile(rmats_path(rmats_dir, t)))}
+        self.rmats_mxe, self.rmats_se, self.rmats_ri, self.rmats_a5ss, self.rmats_a3ss = (
+            self.tables.get(t) for t in SPLICE_TYPES)
+
+        self.rmats_list = list(self.tables.values())
+        self.min_jc_array = None
 
 
 
@@ -52,7 +68,7 @@ class RmatsResults(object):
         :return:
         """
 
-        df = pd.read_table(os.path.join(self.dir, 'MXE.MATS.JC.txt'), sep='\t', low_memory=False)
+        df = pd.read_table(rmats_path(self.dir, 'MXE'), sep='\t', low_memory=False)
         df.columns = ['id', 'gene_id', 'gene_symbol', 'chr', 'strand',
                       'alt1_es', 'alt1_ee', 'alt2_es', 'alt2_ee', 'anc_es',
                       'anc_ee', 'down_es', 'down_ee', 'id0', 'ijc_s1', 'sjc_s1',
@@ -70,7 +86,7 @@ class RmatsResults(object):
         :return:
         """
 
-        df = pd.read_table(os.path.join(self.dir, 'SE.MATS.JC.txt'), sep='\t', low_memory=False)
+        df = pd.read_table(rmats_path(self.dir, 'SE'), sep='\t', low_memory=False)
         df.columns = ['id', 'gene_id', 'gene_symbol', 'chr', 'strand',
                                  'alt1_es', 'alt1_ee', 'anc_es',
                                  'anc_ee', 'down_es', 'down_ee', 'id0', 'ijc_s1', 'sjc_s1',
@@ -89,7 +105,7 @@ class RmatsResults(object):
 
         :return:
         """
-        df = pd.read_table(os.path.join(self.dir, 'RI.MATS.JC.txt'), sep='\t', low_memory=False)
+        df = pd.read_table(rmats_path(self.dir, 'RI'), sep='\t', low_memory=False)
         df.columns = ['id', 'gene_id', 'gene_symbol', 'chr', 'strand',
                                  'alt1_es', 'alt1_ee', 'anc_es',
                                  'anc_ee', 'down_es', 'down_ee', 'id0', 'ijc_s1', 'sjc_s1',
@@ -113,7 +129,7 @@ class RmatsResults(object):
         :return:
         """
 
-        df = pd.read_table(os.path.join(self.dir, 'A5SS.MATS.JC.txt'), sep='\t', low_memory=False)
+        df = pd.read_table(rmats_path(self.dir, 'A5SS'), sep='\t', low_memory=False)
         df.columns = ['id', 'gene_id', 'gene_symbol', 'chr', 'strand',
                                    'alt1_es', 'alt1_ee', 'alt2_es',
                                    'alt2_ee', 'anc_es', 'anc_ee', 'id0', 'ijc_s1', 'sjc_s1',
@@ -137,7 +153,7 @@ class RmatsResults(object):
         :return:
         """
 
-        df = pd.read_table(os.path.join(self.dir, 'A3SS.MATS.JC.txt'), sep='\t', low_memory=False)
+        df = pd.read_table(rmats_path(self.dir, 'A3SS'), sep='\t', low_memory=False)
         df.columns = ['id', 'gene_id', 'gene_symbol', 'chr', 'strand',
                                    'alt1_es', 'alt1_ee', 'alt2_es',
                                    'alt2_ee', 'anc_es', 'anc_ee', 'id0', 'ijc_s1', 'sjc_s1',
@@ -151,16 +167,15 @@ class RmatsResults(object):
 
     def get_junction_count_array(self):
         """
-        Output an array of all the junction SJC sum counts for this set of rMATS results
+        Output an array of every junction's read count (Junction.min_jc) plus 1, for the read count model
         :return: True
         """
 
-        tot = self.rmats_mxe.append(self.rmats_se).append(self.rmats_ri).append(
-            self.rmats_a5ss).append(self.rmats_a3ss).copy()
+        tot = pd.concat(self.rmats_list, ignore_index=True)
 
         junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
 
-        self.sum_sjc_array = np.array([[j.sum_sjc + 1] for j in junctions])
+        self.min_jc_array = np.array([[j.min_jc + 1] for j in junctions])
 
         return True
 
@@ -214,8 +229,8 @@ class Junction(object):
         self.junction_type = kwargs['jxn_type']
         self.gene_symbol = kwargs['gene_symbol']
 
-        # 2022-05-21 If no symbol
-        if self.gene_symbol is None:
+        # rMATS writes NA for genes without a symbol, which pandas reads as NaN
+        if pd.isna(self.gene_symbol) or not str(self.gene_symbol).strip():
             self.gene_symbol = f'NoGeneName_{self.gene_id}'
 
         self.fdr = kwargs['fdr']
@@ -227,7 +242,12 @@ class Junction(object):
         self.tx1 = None
         self.tx0 = None
         self.phase = None
+        self.slice_phases = (None, None)
+        self.phase_ambiguous = False
+        self.start_sites = set()
+        self.stop_sites = set()
         self.num_start_codons = 0
+        self.canonical = None       # (source, accession) of the gene's canonical, once looked up
 
         self.logger = logging.getLogger('jcast')
 
@@ -243,15 +263,15 @@ class Junction(object):
                + self.junction_type + ' ' + self.gene_symbol + ' ' + self.name
 
     @property
-    def sum_sjc(self):
+    def min_jc(self):
         """
-        Returns the sum of all SJCs in the junction. if rMATS was run with one technical replicate,
-        the count field is an int, otherwise it is a list. Currently this takes the skipped junction count (SJC)
-        as filtering criterion because the majority of translatable events are probably SE (skipped exon).
-        Essentially this filters out alternative junctions that are very rarely skipped (high inclusion
-        level of the exons) that are not likely to be translatable.
+        The junction's read count: the smaller of its inclusion junction counts (IJC) and its skipping junction counts
+        (SJC), each summed over both samples and their replicates. If rMATS was run with one replicate, a count field is
+        an int, otherwise a comma-separated list. Both isoforms are translated, so both need read support; this is
+        what -r and -m filter on, and the r<count> field of FASTA headers.
 
-        2022-05-21: This now returns the min of SJC and IJC sums
+        2022-05-21: This now returns the min of SJC and IJC sums (it was the sum of SJC). 2026-11-12 renamed from
+        sum_sjc, which described the old count; see reports/2026-11-12-thresholds-runs-canonical-audit.md §2.1
 
         :return:
         """
@@ -288,143 +308,132 @@ class Junction(object):
         :return: True
         """
         # Subset the gtf file
-        gtf0 = gtf.annot.query('gene_id == @self.gene_id')
+        gtf0 = gene_rows(gtf, self.gene_id)
 
         #
         # 	Get the translation start and end positions
         #
         tsl = params.tsl_threshold
 
-        # 2020-07-25 now getting the start codons of all protein coding transcripts at TSL threshold
+        # 2020-07-25 now getting the start and stop codons of all protein coding transcripts at TSL threshold
         # 2022-05-21 if there is no TSL, do not look up TSL
-        try:
-            gtf0_start = gtf0.query('feature == "start_codon" & '
-                                    'transcript_biotype == "protein_coding" & '
-                                            'transcript_support_level <= @tsl').loc[:, 'start'].drop_duplicates()
-        except pd.core.computation.ops.UndefinedVariableError:
-            gtf0_start = gtf0.query('feature == "start_codon" & '
-                                    'transcript_biotype == "protein_coding"').loc[:, 'start'].drop_duplicates()
+        # 2026-11-10 the end of translation now comes from stop codons (it was taken from start codons);
+        #            see reports/2026-11-03-tx1-translation-bounds-audit.md
+        coding = gtf0.query('transcript_biotype == "protein_coding"')
+        if 'transcript_support_level' in coding.columns:
+            coding = coding.query('transcript_support_level <= @tsl')
 
-        except KeyError:
-            gtf0_start = None
+        starts = coding.query('feature == "start_codon"')
+        stops = coding.query('feature == "stop_codon"')
+
+        # 2026-11-10 annotated start and stop codons (5' base in transcript orientation), used to recognise
+        # alternative N- and C-termini; see reports/2026-11-10-alt-termini-audit.md
+        five_prime = 'start' if self.strand == '+' else 'end'
+        self.start_sites = set(int(x) for x in starts[five_prime])
+        self.stop_sites = set(int(x) for x in stops[five_prime])
 
         # Number of start sites:
-        self.num_start_codons = len(gtf0_start)
+        self.num_start_codons = len(starts['start'].drop_duplicates())
 
-        # If there are retrievable start site:
-        if self.num_start_codons > 0:
+        #
+        # tx0 and tx1 are the lower and upper genomic bounds of the coding region, as _trim expects.
+        # The start site is chosen by startsite_index from the most upstream (longest transcript);
+        # the end is the most downstream stop codon. GTF codon coordinates are inclusive, so no offset is needed.
+        # Each bound stays None (no trimming on that side) if it cannot be determined.
+        #
+        if self.strand == '+':
+            five_prime = sorted(starts['start'].drop_duplicates())
+            self.tx0 = five_prime[startsite_index] if len(five_prime) > startsite_index else None
+            self.tx1 = int(stops['end'].max()) if len(stops) > 0 else None
 
-            # Get the start site for the longest transcript (lowest coordinates if strand is +)
-            gtf0_start = sorted(gtf0_start, reverse=self.strand == '-')
-
-            self.tx0 = gtf0_start[startsite_index]
-
-        # 2020-07-25 now getting end codons of all protein coding transcripts at TSL threshold
-        try:
-            gtf0_end = gtf0.query('feature == "start_codon" & '
-                                  'transcript_biotype == "protein_coding" & '
-                                  'transcript_support_level <= @tsl').loc[:, 'end'].drop_duplicates()
-        except pd.core.computation.ops.UndefinedVariableError:
-            gtf0_end = gtf0.query('feature == "start_codon" & '
-                                  'transcript_biotype == "protein_coding"').loc[:, 'end'].drop_duplicates()
-
-        except KeyError:
-            gtf0_end = None
-
-        # Get the longest transcripts (highest coordinates if strand is +)
-        if len(gtf0_end) > 0:
-            self.tx1 = sorted(gtf0_end, reverse=self.strand == '+')[0]
         else:
-            self.tx1 = -1
+            five_prime = sorted(starts['end'].drop_duplicates(), reverse=True)
+            self.tx1 = five_prime[startsite_index] if len(five_prime) > startsite_index else None
+            self.tx0 = int(stops['start'].min()) if len(stops) > 0 else None
 
-        #
-        # by rMATS convention, if strand is -ve
-        # then the upstream is near the end of tx
-        # shift by 2 to get to the end of the end codon.
-        #
-        if self.strand == '-' and self.tx1 > 0 and self.tx0 > 0:
-            self.tx0, self.tx1 = self.tx1, self.tx0
-            self.tx1 += 2
-
-        elif self.strand == '+':
-            self.tx1 += 2
-
-        self.logger.debug('Chosen start codon is {0}; end codon is {1}; tsl is {2}.'.format(self.tx0,
-                                                                                            self.tx1,
-                                                                                            tsl,
-                                                                                            )
+        self.logger.debug('Chosen coding region is {0} to {1}; tsl is {2}.'.format(self.tx0,
+                                                                                     self.tx1,
+                                                                                     tsl,
+                                                                                     )
                           )
         return True
 
     def get_translated_phase(self, gtf):
         """
-        Get the annotated translation phase from the GTF file
-        :param gtf:  genome annotation
-        :return:
-        """
+        Get the annotated translation phase of each slice from the GTF file. Call after trim_cds.
 
-        """
-        Get translation phase from GTF file.
-        If there is no phase found in the GTF, use phase -1 for now.
-        # TODO: look more closely into GTF file, or try translating from all frames
+        The phase is read at the 5' end of each slice (lowest coordinate on +, highest on -), i.e. at the start
+        of its first retained exon, from the protein-coding CDS rows covering that position: first those at
+        the TSL threshold used for the coding bounds, then any TSL. Where transcripts disagree on the frame,
+        the most frequent is used and phase_ambiguous is set. A slice whose 5' end no CDS covers gets None.
+
+        2026-11-10 replaces a lookup that required one fixed exon (e.g. the anchor) to match a CDS row exactly
+        at both ends, which failed whenever that exon had been trimmed or removed, and which assumed both slices
+        start in the same exon. See reports/2026-11-10-phase-audit.md
+
+        :param gtf:  genome annotation
+        :return: None
         """
 
         # Subset the gtf file
-        gtf0 = gtf.annot.query('gene_id == @self.gene_id')
+        gtf0 = gene_rows(gtf, self.gene_id)
+        coding = gtf0.query('feature == "CDS" & transcript_biotype == "protein_coding"')
 
-        # Select the anchor exon from CDS and get the frame
-        # Note 2018-03-24 this is probably not quite right. I think you should find out whether the anchor
-        # is really the one that determines the phase here.
+        tsl = params.tsl_threshold
+        supported = coding
+        if 'transcript_support_level' in coding.columns:
+            supported = coding.query('transcript_support_level <= @tsl')
 
-        ph0, ph1 = None, None
+        phases, self.phase_ambiguous = [], False
+        for exons in self.slice_exons():
+            if not exons:
+                phases.append(None)
+                continue
 
-        # 2018-03-24: First define the exon we are looking for.
-        if self.junction_type in ['MXE', 'SE', 'RI']:
-            if self.strand == '+':
-                ph0, ph1 = self.anc_es, self.anc_ee
-            elif self.strand == '-':
-                ph0, ph1 = self.down_es, self.down_ee
+            five_prime = min(es for es, ee in exons) if self.strand == '+' else max(ee for es, ee in exons)
+            frames = self._frames_at(supported, five_prime) or self._frames_at(coding, five_prime)
+            if not frames:
+                phases.append(None)
+                continue
 
-        elif self.junction_type == 'A5SS':
-            if self.strand == '+':
-                ph0, ph1 = self.alt1_es, self.alt1_ee  # Might have to search also for alt2
-            elif self.strand == '-':
-                #
-                # 2020-07-25 changed to using the alt1 to retrieve phase because it is also upstream
-                # ph0, ph1 = self.anc_es, self.anc_ee #
-                ph0, ph1 = self.alt1_es, self.alt1_ee
+            counts = collections.Counter(frames)
+            self.phase_ambiguous = self.phase_ambiguous or len(counts) > 1
+            phases.append(sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))[0][0])
 
-        elif self.junction_type == 'A3SS':
-            if self.strand == '+':
-                ph0, ph1 = self.anc_es, self.anc_ee
-            elif self.strand == '-':
-                #
-                # 2020-07-25 changed to using the anc to retrieve phase because it is also upstream
-                # ph0, ph1 = self.alt1_es, self.alt1_ee
-                ph0, ph1 = self.anc_es, self.anc_ee
+        self.slice_phases = tuple(phases)
 
-        self.logger.info('Anchor exon start {0} Anchor exon end {1}'.format(ph0,
-                                                                            ph1))
+        # a single phase only when both slices share it
+        self.phase = phases[0] if phases[0] == phases[1] else None
 
-        # Get the frame of that coding exon from GTF.
-        coding_exon = gtf0.query('start == @ph0').\
-            query('end == @ph1').query('feature == "CDS" & transcript_biotype == "protein_coding"')
-            # 2020-07-25 added protein coding filter in case a nonsense-mediated decay CDS comes first
+        self.logger.debug('Transcription start: {0} Transcript end: {1}'.format(self.tx0,
+                                                                                self.tx1))
+        self.logger.debug('Retrieved phases: {0}'.format(self.slice_phases))
 
+    def _frames_at(self, cds, position: int) -> list:
+        """
+        The reading frame at a genomic position, from every CDS row covering it
 
-        # If phases retrieved, get the first value
-        if len(coding_exon) > 0:
-            self.phase = int([x for x in coding_exon.loc[:, 'frame'].iloc if x != '.'][0])
-            # TODO: find the canonical transcript
+        GTF frame is the number of bases to skip from the 5' end of the CDS row to the first complete codon,
+        so the frame at a position inside the row is offset by its distance from that end.
 
-        else:
-            self.phase = None     # dummy value to trigger trying different phases for longest translation
-            # TODO: handle phase retrieval failure in a tidier manner
+        :param cds: CDS rows of the gene
+        :param position: genomic position, the 5' end of a slice
+        :return: list of frames (0, 1 or 2), one per covering CDS row
+        """
 
+        rows = cds[(cds['start'] <= position) & (cds['end'] >= position)]
+        frames = rows['frame'].astype(int)
 
-        self.logger.info('Transcription start: {0} Transcript end: {1}'.format(self.tx0,
-                                                                               self.tx1))
-        self.logger.info('Retrieved phase: {0}'.format(self.phase))
+        if self.strand == '+':
+            return [int(x) for x in (rows['start'] + frames - position) % 3]
+        return [int(x) for x in (frames - (rows['end'] - position)) % 3]
+
+    @property
+    def phase_label(self) -> str:
+        """ the retrieved phase for logging: one value, or slice1/slice2 when the slices differ """
+        if self.slice_phases[0] == self.slice_phases[1]:
+            return str(self.slice_phases[0])
+        return '{0}/{1}'.format(*self.slice_phases)
 
     def trim_cds(self, gtf):
         """
@@ -438,19 +447,9 @@ class Junction(object):
 
         self._trim()
 
-        # 2020-07-25 Check if the newly trimmed exon is actually part of a cds
-        # TODO: only doing that for MXE and SE for now and only getting second start site for now
-        cds = gtf.annot.query('gene_id == @self.gene_id & '
-                              'feature == "CDS" & '
-                              'transcript_biotype == "protein_coding" &'
-                              'start == @self.anc_es & '
-                              'end == @self.anc_ee')
-
-        # 2020-07-25 If the newly trimmed anchor is not part of a CDS exon, this may suggest there is a second start site
-        if len(cds) == 0 and self.num_start_codons > 1:
-            self._get_translated_region(gtf=gtf,
-                                        startsite_index=1)
-            self._trim()
+        # 2026-11-10 removed the retry with the second start site when the trimmed anchor was not a CDS exon.
+        # It re-trimmed to a narrower, gene-wide bound, and once exons outside the bounds are removed this
+        # deleted coding exons of the longest isoform; see reports/2026-11-10-utr-exon-trimming-audit.md
 
 
     def _trim(self):
@@ -458,123 +457,80 @@ class Junction(object):
         Core trim function that shaves off the UTRs
         :return: True
 
-        Trims the junction based on transcription start and end:
+        Trims every exon of the junction to the coding region [tx0, tx1]: an exon containing a bound is cut at
+        that bound, and an exon lying entirely outside the coding region is removed (coordinates set to -1).
+        The bounds are genomic, so the same rule applies to every junction type on either strand.
+        A bound of None means it could not be determined, and that side is not trimmed.
 
+        2026-11-10 replaces the per-type rules, which never removed whole UTR exons and on the - strand trimmed
+        A5SS/A3SS exons at the wrong bound; see reports/2026-11-10-utr-exon-trimming-audit.md
         """
 
-        #
-        # Subset the gtf file by the current gene_id
-        #
+        for exon in ['anc', 'alt1', 'alt2', 'down']:
+            es, ee = getattr(self, exon + '_es'), getattr(self, exon + '_ee')
 
-        if self.junction_type == 'MXE':
-            try:
-                if self.anc_ee > self.tx0 > self.anc_es:
-                    self.anc_es = self.tx0
+            # skip exons that are absent for this junction type or already removed
+            if es <= 0 or ee <= 0:
+                continue
 
-                if self.alt1_ee > self.tx0 > self.alt1_es:
-                    self.anc_es = -1
-                    self.anc_ee = -1
-                    self.alt1_es = self.tx0
+            if (self.tx0 is not None and ee < self.tx0) or (self.tx1 is not None and es > self.tx1):
+                es, ee = -1, -1
 
-                if self.alt2_ee > self.tx0 > self.alt2_es:
-                    self.anc_es = -1
-                    self.anc_ee = -1
-                    self.alt2_es = self.tx0
+            else:
+                if self.tx0 is not None and es < self.tx0 <= ee:
+                    es = self.tx0
+                if self.tx1 is not None and es <= self.tx1 < ee:
+                    ee = self.tx1
 
-            except TypeError or ValueError:
-                self.logger.info('Trimming start not performed.')
-
-            try:
-                if self.down_ee > self.tx1 > self.down_es:
-                    self.down_ee = self.tx1
-
-                if self.alt1_ee > self.tx1 > self.alt1_es:
-                    self.down_es = -1
-                    self.down_ee = -1
-                    self.alt1_ee = self.tx1
-
-                if self.alt2_ee > self.tx1 > self.alt2_es:
-                    self.down_es = -1
-                    self.down_ee = -1
-                    self.alt2_ee = self.tx1
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming end not performed.')
-
-        elif self.junction_type == 'SE':
-            try:
-                if self.anc_ee > self.tx0 > self.anc_es:
-                    self.anc_es = self.tx0
-
-                if self.alt1_ee > self.tx0 > self.alt1_es:
-                    self.anc_es = -1
-                    self.anc_ee = -1
-                    self.alt1_es = self.tx0
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming start not performed.')
-
-            try:
-                if self.down_ee > self.tx1 > self.down_es:
-                    self.down_ee = self.tx1
-
-                if self.alt1_ee > self.tx1 > self.alt1_es:
-                    self.down_es = -1
-                    self.down_ee = -1
-                    self.alt1_ee = self.tx1
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming end not performed.')
-
-        elif self.junction_type == 'RI':
-            try:
-                if self.anc_ee > self.tx0 > self.anc_es:
-                    self.anc_es = self.tx0
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming start not performed.')
-
-            try:
-                if self.down_ee > self.tx1 > self.down_es:
-                    self.down_ee = self.tx1
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming end not performed.')
-
-        elif self.junction_type == 'A5SS':
-            try:
-                if self.alt2_ee > self.tx0 > self.alt2_es:
-                    self.alt2_es = self.tx0
-
-                if self.alt1_ee > self.tx0 > self.alt1_es:
-                    self.alt1_es = self.tx0
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming start not performed.')
-
-            try:
-                if self.anc_ee > self.tx1 > self.anc_es:
-                    self.anc_ee = self.tx1
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming end not performed.')
-
-        elif self.junction_type == 'A3SS':
-            try:
-                if self.anc_ee > self.tx0 > self.anc_es:
-                    self.anc_es = self.tx0
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming start not performed.')
-
-            try:
-                if self.alt1_ee > self.tx1 > self.alt1_es:
-                    self.alt1_ee = self.tx1
-
-                if self.alt2_ee > self.tx1 > self.alt2_es:
-                    self.alt2_ee = self.tx1
-
-            except TypeError or ValueError:
-                self.logger.info('Trimming end not performed.')
+            setattr(self, exon + '_es', es)
+            setattr(self, exon + '_ee', ee)
 
         return True
+
+    @property
+    def event_outside_cds(self) -> bool:
+        """
+        Whether trimming has left both slices with the same exons, i.e. the splice event lies entirely
+        outside the coding region and does not change the protein. Only meaningful after trim_cds.
+        The slices are composed as in Sequence.make_slice_localgenome.
+
+        :return: True if the two slices are identical
+        """
+
+        slice1, slice2 = self.slice_exons()
+        return slice1 == slice2
+
+    def slice_exons(self):
+        """
+        The retained exons of each slice as sorted (start, end) tuples, composed as in
+        Sequence.make_slice_localgenome.
+
+        :return: (slice 1 exons, slice 2 exons)
+        """
+
+        if self.junction_type in ['MXE', 'SE']:
+            slice1, slice2 = ['anc', 'alt1', 'down'], ['anc', 'alt2', 'down']
+        elif self.junction_type == 'RI':
+            slice1, slice2 = ['alt1'], ['anc', 'down']
+        else:
+            slice1, slice2 = ['anc', 'alt1'], ['anc', 'alt2']
+
+        def exons(names):
+            return sorted((getattr(self, n + '_es'), getattr(self, n + '_ee')) for n in names
+                          if getattr(self, n + '_es') > 0 and getattr(self, n + '_ee') > 0)
+
+        return exons(slice1), exons(slice2)
+
+    def slice_positions(self):
+        """
+        The genomic position of every nucleotide of each slice, in transcript orientation (5' to 3'), matching the
+        nucleotides of Sequence.make_slice_localgenome after reverse complementing on the - strand.
+
+        :return: (slice 1 positions, slice 2 positions)
+        """
+
+        out = []
+        for exons in self.slice_exons():
+            positions = [p for es, ee in exons for p in range(es, ee + 1)]
+            out.append(positions if self.strand == '+' else positions[::-1])
+        return tuple(out)

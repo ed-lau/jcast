@@ -1,0 +1,1106 @@
+junction_type	junction_id	gene_id	gene_symbol	chr	strand	min_jc	fdr	fate	fate_detail	slice1_phase	slice2_phase	cds_start	cds_end	canonical_source	canonical_accession	files	new_records
+MXE	428	ENSG00000140577	CRTC3	chr15	+	27	0.433548111073	T4	slice 2	1	1	90530072	90642140	sp by sequence	Q6UUV7	T4;T4_orphan;canonical	3
+MXE	429	ENSG00000140577	CRTC3	chr15	+	20	0.549123240563	skipped_low_count						sp by sequence	Q6UUV7	canonical	0
+MXE	430	ENSG00000157823	AP3S2	chr15	-	8	0.266715787667	skipped_low_count						sp by sequence	P59780	canonical	1
+MXE	431	ENSG00000140543	DET1	chr15	-	1	0.615153109936	skipped_low_count						sp by sequence	Q7L5Y6	canonical	1
+MXE	432	ENSG00000073417	PDE8A	chr15	+	16	0.302194662513	skipped_low_count						sp by sequence	O60658	canonical	1
+MXE	433	ENSG00000166716	ZNF592	chr15	+	86	1.0	skipped_outside_cds		0	0	84782676	84802393	sp by sequence	Q92610	canonical	1
+MXE	434	ENSG00000140612	SEC11A	chr15	-	93	0.500745774708	T2		1	1	84670019	84716075	sp by sequence	P67812	T2;canonical	3
+MXE	436	ENSG00000140612	SEC11A	chr15	-	76	0.00442987879491	T1		0	0	84670019	84716075	sp by sequence	P67812	T1;canonical	2
+MXE	437	ENSG00000255769	GOLGA2P10	chr15	-	5	0.895120602736	skipped_low_count						none			0
+MXE	441	ENSG00000140391	TSPAN3	chr15	-	254	0.748249358215	T1		0	0	77046835	77070954	sp by sequence	O60637	T1;canonical	3
+MXE	442	ENSG00000140374	ETFA	chr15	-	834	0.59737356026	fail		2	2	76216559	76311388	sp by sequence	P13804	canonical	1
+MXE	444	ENSG00000140365	COMMD4	chr15	+	20	0.78899422693	skipped_low_count						sp by sequence	Q9H0A8	canonical	1
+MXE	447	ENSG00000138629	UBL7	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q96S82	canonical	1
+MXE	449	ENSG00000140471	LINS1	chr15	-	6	0.404176669397	skipped_low_count						sp by sequence	Q8NG48	canonical	1
+MXE	456	ENSG00000128973	CLN6	chr15	-	27	0.994533101689	T1		1	1	68208140	68256868	sp by sequence	Q9NWW5	T1;canonical	3
+MXE	459	ENSG00000074603	DPP8	chr15	-	62	0.200124595432	T1		2	2	65446884	65515692	sp by sequence	Q6V1X1	T1;canonical	3
+MXE	460	ENSG00000180357	ZNF609	chr15	+	66	0.759271738112	skipped_outside_cds				64499420	64500415	sp by sequence	O15014	canonical	1
+MXE	464	ENSG00000140416	TPM1	chr15	+	3947	0.511373883004	T1		0	0	63042830	63071172	sp by sequence	P09493	T1;canonical	2
+MXE	465	ENSG00000140416	TPM1	chr15	+	168	1.0	T1		0	0	63042830	63071172	sp by sequence	P09493	T1;canonical	1
+MXE	466	ENSG00000128923	MINDY2	chr15	+	66	0.871957973072	fail		0	0	58771396	58854610	sp by sequence	Q8NBR6	canonical	1
+MXE	467	ENSG00000137878	GCOM1	chr15	+	1085	0.919119281147	T1		0	0	57592035	57714679	sp by sequence	P0CAP1	T1;canonical	3
+MXE	468	ENSG00000137878	GCOM1	chr15	+	1483	1.0	T1		0	0	57592035	57714679	sp by sequence	P0CAP1	T1;canonical	1
+MXE	469	ENSG00000137878	GCOM1	chr15	+	1965	0.973512709992	T1		0	0	57592035	57714679	sp by sequence	P0CAP1	T1;canonical	1
+MXE	470	ENSG00000137878	GCOM1	chr15	+	134	0.746909861921	fail		1	1	57592035	57714679	sp by sequence	P0CAP1	canonical	0
+MXE	471	ENSG00000137878	GCOM1	chr15	+	3720	0.799413328924	fail		1	1	57592035	57714679	sp by sequence	P0CAP1	canonical	0
+MXE	472	ENSG00000137878	GCOM1	chr15	+	5	1.0	skipped_low_count						sp by sequence	P0CAP1	canonical	0
+MXE	473	ENSG00000137878	GCOM1	chr15	+	4	0.633772023089	skipped_low_count						sp by sequence	P0CAP1	canonical	0
+MXE	474	ENSG00000137878	GCOM1	chr15	+	2	0.536541131664	skipped_low_count						sp by sequence	P0CAP1	canonical	0
+MXE	475	ENSG00000137878	GCOM1	chr15	+	49	0.111653355239	fail		1	1	57592035	57714679	sp by sequence	P0CAP1	canonical	0
+MXE	477	ENSG00000137878	GCOM1	chr15	+	79	0.00139965343673	fail		0	0	57592035	57714679	sp by sequence	P0CAP1	canonical	0
+MXE	479	ENSG00000140262	TCF12	chr15	+	10	0.050745910517	skipped_low_count						sp by sequence	Q99081	canonical	1
+MXE	482	ENSG00000166734	CASC4	chr15	+	77	0.538610785072	fail		0	0	44289030	44413406	sp by sequence	Q6P4E1	canonical	1
+MXE	483	ENSG00000159459	UBR1	chr15	-	24	0.720567803771	skipped_low_count						sp by sequence	Q8IWV7	canonical	1
+MXE	484	ENSG00000137802	MAPKBP1	chr15	+	18	0.96078423222	skipped_low_count						sp by sequence	O60336	canonical	1
+MXE	485	ENSG00000187446	CHP1	chr15	+	320	0.727222145921	fail		1	1	41231383	41279389	sp by sequence	Q99653	canonical	1
+MXE	491	ENSG00000188549	C15orf52	chr15	-	37	0.746410928242	fail		2	2	40335158	40339991	sp by sequence	Q6ZUT6	canonical	1
+MXE	493	ENSG00000206149	HERC2P9	chr15	+	11	0.433454985038	skipped_low_count						none			0
+MXE	495	ENSG00000114062	UBE3A	chr15	-	95	0.439349092532	T4	slice 2	1	1	25339137	25409107	sp by sequence	Q05086	canonical;T4_orphan	2
+MXE	496	ENSG00000114062	UBE3A	chr15	-	20	0.475971837263	skipped_low_count						sp by sequence	Q05086	canonical	0
+MXE	497	ENSG00000114062	UBE3A	chr15	-	20	0.769077378512	skipped_low_count						sp by sequence	Q05086	canonical	0
+MXE	499	ENSG00000273173	SNURF	chr15	+	708	0.65908308511	T2		1	1	24955049	24968037	sp by sequence	Q9Y675	canonical	1
+MXE	501	ENSG00000170113	NIPA1	chr15	+	3	0.00240606378109	skipped_low_count						sp by sequence	Q7RTP0	canonical	1
+MXE	579	ENSG00000128989	ARPP19	chr15	-	5	0.892515951439	skipped_low_count						sp by sequence	P56211	canonical	1
+MXE	910	ENSG00000136383	ALPK3	chr15	+	112	0.499463154472	T4	slice 2	2	2	84816847	84868456	sp by gene name	Q96L96	T4;T4_orphan;canonical	3
+MXE	929	ENSG00000182718	ANXA2	chr15	-	11	0.789740447407	skipped_low_count						sp by sequence	P07355	canonical	1
+MXE	932	ENSG00000182718	ANXA2	chr15	-	3	0.0497552292619	skipped_low_count						sp by sequence	P07355	canonical	0
+MXE	934	ENSG00000182718	ANXA2	chr15	-	3	0.285501655954	skipped_low_count						sp by sequence	P07355	canonical	0
+MXE	935	ENSG00000182718	ANXA2	chr15	-	9	0.769740272438	skipped_low_count						sp by sequence	P07355	canonical	0
+MXE	936	ENSG00000182718	ANXA2	chr15	-	5	0.947629141056	skipped_low_count						sp by sequence	P07355	canonical	0
+MXE	962	ENSG00000064726	BTBD1	chr15	-	336	0.138567327693	T4	slice 1	2	2	83018067	83067151	sp by sequence	Q9H0C5	T4;canonical	3
+MXE	1015	ENSG00000166411	IDH3A	chr15	+	322	0.838869580561	T1		0	0	78149404	78169005	sp by sequence	P50213	T1;canonical	3
+MXE	1016	ENSG00000166411	IDH3A	chr15	+	261	0.717550560818	T4	slice 2	0	0	78149404	78169005	sp by sequence	P50213	T4;T4_orphan;canonical	2
+MXE	1017	ENSG00000166411	IDH3A	chr15	+	531	0.915180796549	T4	slice 1	0	0	78149404	78169005	sp by sequence	P50213	T4;canonical	1
+MXE	1371	ENSG00000128881	TTBK2	chr15	-	1	0.548966360515	skipped_low_count						sp by sequence	Q6IQ55	canonical	1
+MXE	1404	ENSG00000224078	SNHG14	chr15	+	34	0.991524245731	fail						none			0
+MXE	1405	ENSG00000224078	SNHG14	chr15	+	5	0.464050910273	skipped_low_count						none			0
+MXE	1406	ENSG00000224078	SNHG14	chr15	+	3	0.401463789518	skipped_low_count						none			0
+MXE	1677	ENSG00000138592	USP8	chr15	+	1	0.556800932014	skipped_low_count						sp by sequence	P40818	canonical	1
+MXE	1700	ENSG00000068305	MEF2A	chr15	+	102	0.861800799991	T1		0	0	99633120	99712771	sp by gene name	Q02078	T1_orphan;canonical	3
+MXE	1701	ENSG00000068305	MEF2A	chr15	+	267	0.703291496343	T1		0	0	99633120	99712771	sp by gene name	Q02078	T1;canonical	1
+MXE	2114	ENSG00000168803	ADAL	chr15	+	43	0.86251725647	T1		0	0	43335108	43351945	sp by sequence	Q6DHV7	canonical	1
+MXE	2115	ENSG00000168803	ADAL	chr15	+	43	0.323759716558	T1		1	0	43335108	43351945	sp by sequence	Q6DHV7	canonical	0
+MXE	2116	ENSG00000168803	ADAL	chr15	+	1	0.656346560911	skipped_low_count						sp by sequence	Q6DHV7	canonical	0
+MXE	2280	ENSG00000166233	ARIH1	chr15	+	81	1.0	fail		0	0	72474640	72583292	sp by sequence	Q9Y4X5	canonical	1
+MXE	2294	ENSG00000186628	FSD2	chr15	-	93	0.966166790028	T1		1	1	82759348	82787390	sp by sequence	A1L4K1	T1;canonical	3
+MXE	2295	ENSG00000186628	FSD2	chr15	-	62	0.683792050144	T1		0	0	82759348	82787390	sp by sequence	A1L4K1	canonical;T1	1
+MXE	2331	ENSG00000103852	TTC23	chr15	-	2	0.171137776493	skipped_low_count						sp by sequence	Q5W5X9	canonical	1
+MXE	2429	ENSG00000170776	AKAP13	chr15	+	269	0.816681010105	T1		0	0	85485721	85744677	sp by sequence	Q12802	canonical;T1	2
+MXE	2582	ENSG00000213614	HEXA	chr15	-	89	0.974348459883	fail		1	1	72344077	72375972	sp by sequence	P06865	canonical	1
+MXE	2641	ENSG00000092529	CAPN3	chr15	+	2	0.0511723646706	skipped_low_count						sp by sequence	P20807	canonical	1
+MXE	3054	ENSG00000103978	TMEM87A	chr15	-	7	0.539256742328	skipped_low_count						sp by sequence	Q8NBN3	canonical	1
+MXE	3209	ENSG00000067225	PKM	chr15	-	1828	1.0	T1		0	0	72199650	72221201	sp by sequence	P14618	canonical;T1	2
+MXE	3258	ENSG00000041357	PSMA4	chr15	+	103	0.671780234428	fail		0	0	78541928	78548944	sp by sequence	P25789	canonical	1
+MXE	3259	ENSG00000041357	PSMA4	chr15	+	84	0.970442532383	T4	slice 2	0	0	78541928	78548944	sp by sequence	P25789	T4;T4_orphan;canonical	2
+MXE	3368	ENSG00000138613	APH1B	chr15	+	21	0.0608129248709	skipped_low_count						sp by sequence	Q8WW43	canonical	1
+MXE	3611	ENSG00000137814	HAUS2	chr15	+	30	0.203479623335	T4	slice 1	0	0	42548873	42566816	sp by sequence	Q9NVX0	T4;canonical	3
+MXE	3612	ENSG00000137814	HAUS2	chr15	+	30	0.766591217063	T4	slice 1	0	0	42548873	42566816	sp by sequence	Q9NVX0	T4;T4_orphan;canonical	2
+MXE	3613	ENSG00000137814	HAUS2	chr15	+	3	0.114230946544	skipped_low_count						sp by sequence	Q9NVX0	canonical	0
+MXE	3614	ENSG00000137814	HAUS2	chr15	+	15	1.0	skipped_low_count						sp by sequence	Q9NVX0	canonical	0
+MXE	3730	ENSG00000128739	SNRPN	chr15	+	6	0.984766694495	skipped_low_count						sp by sequence	P63162	canonical	1
+MXE	3731	ENSG00000128739	SNRPN	chr15	+	711	1.0	T1		0	0	24974454	24978444	sp by sequence	P63162	canonical	0
+MXE	3732	ENSG00000128739	SNRPN	chr15	+	18	0.346575224466	skipped_low_count						sp by sequence	P63162	canonical	0
+MXE	3733	ENSG00000128739	SNRPN	chr15	+	19	0.808096813714	skipped_low_count						sp by sequence	P63162	canonical	0
+MXE	3734	ENSG00000128739	SNRPN	chr15	+	18	1.0	skipped_low_count						sp by sequence	P63162	canonical	0
+MXE	3735	ENSG00000128739	SNRPN	chr15	+	1886	1.0	T2		0	0	24974454	24978444	sp by sequence	P63162	T2;canonical	1
+MXE	3736	ENSG00000128739	SNRPN	chr15	+	18	0.282461431964	skipped_low_count						sp by sequence	P63162	canonical	0
+MXE	3737	ENSG00000128739	SNRPN	chr15	+	17	0.391618799861	skipped_low_count						sp by sequence	P63162	canonical	0
+MXE	3738	ENSG00000128739	SNRPN	chr15	+	18	0.174569430241	skipped_low_count						sp by sequence	P63162	canonical	0
+MXE	3739	ENSG00000128739	SNRPN	chr15	+	8	0.933121046416	skipped_low_count						sp by sequence	P63162	canonical	0
+MXE	4040	ENSG00000090487	SPG21	chr15	-	65	0.892515951439	T4	slice 2	0	0	64963620	64983569	sp by sequence	Q9NZD8	T4;canonical	3
+SE	5590	ENSG00000185418	TARSL2	chr15	-	2	0.798089047157	skipped_low_count						sp by sequence	A2RTX5	canonical	1
+SE	5592	ENSG00000185418	TARSL2	chr15	-	4	0.587473787587	skipped_low_count						sp by sequence	A2RTX5	canonical	0
+SE	5594	ENSG00000184277	TM2D3	chr15	-	22	0.576235574259	skipped_low_count						sp by sequence	Q9BRN9	canonical	1
+SE	5600	ENSG00000140479	PCSK6	chr15	-	45	0.415383116239	T1		2	2	101300778	101489670	sp by sequence	P29122	canonical;T1	2
+SE	5603	ENSG00000140479	PCSK6	chr15	-	1	0.629623213588	skipped_low_count						sp by sequence	P29122	canonical	0
+SE	5604	ENSG00000140479	PCSK6	chr15	-	9	0.184604297186	skipped_low_count						sp by sequence	P29122	canonical	0
+SE	5606	ENSG00000131873	CHSY1	chr15	-	2	0.292990121207	skipped_low_count						sp by sequence	Q86X52	canonical	1
+SE	5614	ENSG00000168904	LRRC28	chr15	+	14	0.520397348497	skipped_low_count						sp by sequence	Q86X40	canonical	1
+SE	5617	ENSG00000168904	LRRC28	chr15	+	9	0.804548564733	skipped_low_count						sp by sequence	Q86X40	canonical	0
+SE	5618	ENSG00000168904	LRRC28	chr15	+	6	1.0	skipped_low_count						sp by sequence	Q86X40	canonical	0
+SE	5619	ENSG00000168904	LRRC28	chr15	+	6	0.645682413319	skipped_low_count						sp by sequence	Q86X40	canonical	0
+SE	5620	ENSG00000168904	LRRC28	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q86X40	canonical	0
+SE	5649	ENSG00000248441	LINC01197	chr15	-	3	0.646900902249	skipped_low_count						none			0
+SE	5653	ENSG00000140563	MCTP2	chr15	+	2	0.315996600301	skipped_low_count						sp by sequence	Q6DN12	canonical	1
+SE	5656	ENSG00000182175	RGMA	chr15	-	1	0.606703229039	skipped_low_count						sp by sequence	Q96B86	canonical	1
+SE	5659	ENSG00000182175	RGMA	chr15	-	2	0.419600595362	skipped_low_count						sp by sequence	Q96B86	canonical	0
+SE	5662	ENSG00000173575	CHD2	chr15	+	3	0.201894085119	skipped_low_count						sp by sequence	O14647	canonical	1
+SE	5666	ENSG00000173575	CHD2	chr15	+	1	0.578546829972	skipped_low_count						sp by sequence	O14647	canonical	0
+SE	5667	ENSG00000173575	CHD2	chr15	+	9	0.151256913607	skipped_low_count						sp by sequence	O14647	canonical	0
+SE	5668	ENSG00000140557	ST8SIA2	chr15	+	1	0.649266620938	skipped_low_count						sp by sequence	Q92186	canonical	1
+SE	5675	ENSG00000140553	UNC45A	chr15	+	1	0.577871523455	skipped_low_count						sp by sequence	Q9H3U1	canonical	1
+SE	5685	ENSG00000196547	MAN2A2	chr15	+	1	0.633822626429	skipped_low_count						sp by sequence	P49641	canonical	1
+SE	5686	ENSG00000196547	MAN2A2	chr15	+	1	0.789775616157	skipped_low_count						sp by sequence	P49641	canonical	0
+SE	5689	ENSG00000196547	MAN2A2	chr15	+	58	0.309340449593	T1		2	2	90904208	90919787	sp by sequence	P49641	T1;canonical	1
+SE	5690	ENSG00000182511	FES	chr15	+	8	0.588474577791	skipped_low_count						sp by sequence	P07332	canonical	1
+SE	5691	ENSG00000182511	FES	chr15	+	1	0.585182291116	skipped_low_count						sp by sequence	P07332	canonical	0
+SE	5692	ENSG00000182511	FES	chr15	+	16	0.00325360152261	skipped_low_count						sp by sequence	P07332	canonical	0
+SE	5694	ENSG00000140564	FURIN	chr15	+	1	1.0	skipped_low_count						sp by sequence	P09958	canonical	1
+SE	5695	ENSG00000140577	CRTC3	chr15	+	7	0.594026280436	skipped_low_count						sp by sequence	Q6UUV7	canonical	0
+SE	5696	ENSG00000140577	CRTC3	chr15	+	2	0.947791977677	skipped_low_count						sp by sequence	Q6UUV7	canonical	0
+SE	5697	ENSG00000140577	CRTC3	chr15	+	1	0.62092199966	skipped_low_count						sp by sequence	Q6UUV7	canonical	0
+SE	5701	ENSG00000183208	GDPGP1	chr15	+	3	0.138583563463	skipped_low_count						sp by sequence	Q6ZNW5	canonical	1
+SE	5703	ENSG00000185033	SEMA4B	chr15	+	4	1.0	skipped_low_count						sp by sequence	Q9NPR2	canonical	1
+SE	5706	ENSG00000182054	IDH2	chr15	-	1	1.0	skipped_low_count						sp by sequence	P48735	canonical	1
+SE	5707	ENSG00000182054	IDH2	chr15	-	1	1.0	skipped_low_count						sp by sequence	P48735	canonical	0
+SE	5708	ENSG00000182054	IDH2	chr15	-	1	1.0	skipped_low_count						sp by sequence	P48735	canonical	0
+SE	5709	ENSG00000157823	AP3S2	chr15	-	2	1.0	skipped_low_count						sp by sequence	P59780	canonical	0
+SE	5710	ENSG00000157823	AP3S2	chr15	-	8	0.145634896957	skipped_low_count						sp by sequence	P59780	canonical	0
+SE	5711	ENSG00000157823	AP3S2	chr15	-	27	0.877940993215	T1		1	1	89835515	89893949	sp by sequence	P59780	T1;canonical	1
+SE	5712	ENSG00000157823	AP3S2	chr15	-	7	0.351126887273	skipped_low_count						sp by sequence	P59780	canonical	0
+SE	5716	ENSG00000166821	PEX11A	chr15	-	19	0.213653329789	skipped_low_count						sp by sequence	O75192	canonical	1
+SE	5728	ENSG00000140521	POLG	chr15	-	1	1.0	skipped_low_count						sp by sequence	P54098	canonical	1
+SE	5729	ENSG00000140521	POLG	chr15	-	1	0.63067850979	skipped_low_count						sp by sequence	P54098	canonical	0
+SE	5730	ENSG00000140521	POLG	chr15	-	1	0.714226652629	skipped_low_count						sp by sequence	P54098	canonical	0
+SE	5731	ENSG00000140521	POLG	chr15	-	8	0.488809594505	skipped_low_count						sp by sequence	P54098	canonical	0
+SE	5732	ENSG00000140521	POLG	chr15	-	1	1.0	skipped_low_count						sp by sequence	P54098	canonical	0
+SE	5733	ENSG00000140521	POLG	chr15	-	1	0.608005473399	skipped_low_count						sp by sequence	P54098	canonical	0
+SE	5734	ENSG00000140521	POLG	chr15	-	3	0.92217039921	skipped_low_count						sp by sequence	P54098	canonical	0
+SE	5736	ENSG00000140526	ABHD2	chr15	+	3	1.0	skipped_low_count						sp by sequence	P08910	canonical	1
+SE	5738	ENSG00000140526	ABHD2	chr15	+	1	1.0	skipped_low_count						sp by sequence	P08910	canonical	0
+SE	5739	ENSG00000140545	MFGE8	chr15	-	68	1.0	T1		2	2	88899395	88913319	sp by sequence	Q08431	canonical;T1	2
+SE	5740	ENSG00000140545	MFGE8	chr15	-	7	1.0	skipped_low_count						sp by sequence	Q08431	canonical	0
+SE	5741	ENSG00000140545	MFGE8	chr15	-	6	1.0	skipped_low_count						sp by sequence	Q08431	canonical	0
+SE	5743	ENSG00000140543	DET1	chr15	-	2	0.220231026833	skipped_low_count						sp by sequence	Q7L5Y6	canonical	0
+SE	5744	ENSG00000140543	DET1	chr15	-	7	0.0241940552836	skipped_low_count						sp by sequence	Q7L5Y6	canonical	0
+SE	5750	ENSG00000140538	NTRK3	chr15	-	1	0.644838218237	skipped_low_count						sp by sequence	Q16288	canonical	1
+SE	5752	ENSG00000140538	NTRK3	chr15	-	1	0.00144222629965	skipped_low_count						sp by sequence	Q16288	canonical	0
+SE	5764	ENSG00000073417	PDE8A	chr15	+	1	0.595237969686	skipped_low_count						sp by sequence	O60658	canonical	0
+SE	5765	ENSG00000073417	PDE8A	chr15	+	1	0.577871523455	skipped_low_count						sp by sequence	O60658	canonical	0
+SE	5767	ENSG00000166716	ZNF592	chr15	+	3	0.278945905988	skipped_low_count						sp by sequence	Q92610	canonical	0
+SE	5768	ENSG00000166716	ZNF592	chr15	+	6	0.104125608154	skipped_low_count						sp by sequence	Q92610	canonical	0
+SE	5769	ENSG00000166716	ZNF592	chr15	+	6	0.105762144605	skipped_low_count						sp by sequence	Q92610	canonical	0
+SE	5770	ENSG00000166716	ZNF592	chr15	+	4	0.587473787587	skipped_low_count						sp by sequence	Q92610	canonical	0
+SE	5771	ENSG00000140612	SEC11A	chr15	-	1	0.653100497754	skipped_low_count						sp by sequence	P67812	canonical	0
+SE	5773	ENSG00000140612	SEC11A	chr15	-	29	0.0431192749245	T4	slice 1	1	1	84670019	84716075	sp by sequence	P67812	T4;canonical	1
+SE	5774	ENSG00000140612	SEC11A	chr15	-	1	0.903129801004	skipped_low_count						sp by sequence	P67812	canonical	0
+SE	5775	ENSG00000140612	SEC11A	chr15	-	1	1.0	skipped_low_count						sp by sequence	P67812	canonical	0
+SE	5777	ENSG00000140612	SEC11A	chr15	-	15	0.00306212409254	skipped_low_count						sp by sequence	P67812	canonical	0
+SE	5780	ENSG00000189136	UBE2Q2P1	chr15	-	4	0.0533361459052	skipped_low_count						none			0
+SE	5784	ENSG00000166503	AC024270.1	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q9Y3E1	canonical	1
+SE	5786	ENSG00000136404	TM6SF1	chr15	+	4	0.0171655103964	skipped_low_count						sp by sequence	Q9BZW5	canonical	1
+SE	5795	ENSG00000255769	GOLGA2P10	chr15	-	2	0.0136682640204	skipped_low_count						none			0
+SE	5796	ENSG00000255769	GOLGA2P10	chr15	-	2	0.0459002379694	skipped_low_count						none			0
+SE	5797	ENSG00000255769	GOLGA2P10	chr15	-	2	0.0187170501911	skipped_low_count						none			0
+SE	5798	ENSG00000255769	GOLGA2P10	chr15	-	4	0.936841169829	skipped_low_count						none			0
+SE	5810	ENSG00000117899	MESDC2	chr15	-	4	0.26630096281	skipped_low_count						sp by sequence	Q14696	canonical	1
+SE	5826	ENSG00000103876	FAH	chr15	+	1	0.695136604088	skipped_low_count						sp by sequence	P16930	canonical	1
+SE	5827	ENSG00000086666	ZFAND6	chr15	+	7	0.075226507872	skipped_low_count						sp by sequence	Q6FIF0	canonical	1
+SE	5828	ENSG00000086666	ZFAND6	chr15	+	5	0.124025598773	skipped_low_count						sp by sequence	Q6FIF0	canonical	0
+SE	5831	ENSG00000086666	ZFAND6	chr15	+	148	0.229939321218	skipped_outside_cds		0	0	80120345	80137628	sp by sequence	Q6FIF0	canonical	0
+SE	5832	ENSG00000086666	ZFAND6	chr15	+	1	0.632055561936	skipped_low_count						sp by sequence	Q6FIF0	canonical	0
+SE	5833	ENSG00000086666	ZFAND6	chr15	+	30	0.00396678197613	skipped_outside_cds		0	0	80120345	80137628	sp by sequence	Q6FIF0	canonical	0
+SE	5845	ENSG00000166557	TMED3	chr15	+	2	0.861849185577	skipped_low_count						sp by sequence	Q9Y3Q3	canonical	1
+SE	5862	ENSG00000136381	IREB2	chr15	+	2	0.554777895845	skipped_low_count						sp by sequence	P48200	canonical	1
+SE	5866	ENSG00000167202	TBC1D2B	chr15	-	1	0.778781481612	skipped_low_count						sp by sequence	Q9UPU7	canonical	1
+SE	5867	ENSG00000167202	TBC1D2B	chr15	-	2	0.41209066821	skipped_low_count						sp by sequence	Q9UPU7	canonical	0
+SE	5882	ENSG00000140374	ETFA	chr15	-	9	0.581820514365	skipped_low_count						sp by sequence	P13804	canonical	0
+SE	5883	ENSG00000140374	ETFA	chr15	-	14	0.0515479147693	skipped_low_count						sp by sequence	P13804	canonical	0
+SE	5884	ENSG00000140374	ETFA	chr15	-	1	1.0	skipped_low_count						sp by sequence	P13804	canonical	0
+SE	5885	ENSG00000140374	ETFA	chr15	-	5	1.0	skipped_low_count						sp by sequence	P13804	canonical	0
+SE	5887	ENSG00000140374	ETFA	chr15	-	2	1.0	skipped_low_count						sp by sequence	P13804	canonical	0
+SE	5889	ENSG00000140374	ETFA	chr15	-	3	1.0	skipped_low_count						sp by sequence	P13804	canonical	0
+SE	5892	ENSG00000140374	ETFA	chr15	-	100	0.955589562529	T1		0	0	76216559	76311388	sp by sequence	P13804	canonical;T1	1
+SE	5893	ENSG00000140374	ETFA	chr15	-	7	1.0	skipped_low_count						sp by sequence	P13804	canonical	0
+SE	5895	ENSG00000169375	SIN3A	chr15	-	3	0.896838147554	skipped_low_count						sp by sequence	Q96ST3	canonical	1
+SE	5896	ENSG00000169375	SIN3A	chr15	-	2	0.0303357352864	skipped_low_count						sp by sequence	Q96ST3	canonical	0
+SE	5899	ENSG00000140400	MAN2C1	chr15	-	1	0.659744388813	skipped_low_count						sp by sequence	Q9NTJ4	canonical	1
+SE	5900	ENSG00000140400	MAN2C1	chr15	-	11	0.577871523455	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+SE	5901	ENSG00000140400	MAN2C1	chr15	-	1	0.791429612267	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+SE	5902	ENSG00000140400	MAN2C1	chr15	-	6	0.282820536139	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+SE	5903	ENSG00000140400	MAN2C1	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+SE	5908	ENSG00000140398	NEIL1	chr15	+	4	0.00357351584093	skipped_low_count						sp by sequence	Q96FI4	canonical	1
+SE	5909	ENSG00000140398	NEIL1	chr15	+	6	0.000656254106271	skipped_low_count						sp by sequence	Q96FI4	canonical	0
+SE	5916	ENSG00000140365	COMMD4	chr15	+	3	0.158434712634	skipped_low_count						sp by sequence	Q9H0A8	canonical	0
+SE	5917	ENSG00000140365	COMMD4	chr15	+	3	0.0329123628956	skipped_low_count						sp by sequence	Q9H0A8	canonical	0
+SE	5919	ENSG00000140365	COMMD4	chr15	+	8	0.894153515942	skipped_low_count						sp by sequence	Q9H0A8	canonical	0
+SE	5921	ENSG00000140365	COMMD4	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q9H0A8	canonical	0
+SE	5929	ENSG00000138621	PPCDC	chr15	+	8	0.919435328837	skipped_low_count						sp by sequence	Q96CD2	canonical	1
+SE	5936	ENSG00000198794	SCAMP5	chr15	+	4	0.3649950092	skipped_low_count						sp by sequence	Q8TAC9	canonical	1
+SE	5937	ENSG00000198794	SCAMP5	chr15	+	4	0.36347652385	skipped_low_count						sp by sequence	Q8TAC9	canonical	0
+SE	5940	ENSG00000198794	SCAMP5	chr15	+	2	0.158548307056	skipped_low_count						sp by sequence	Q8TAC9	canonical	0
+SE	5944	ENSG00000178761	FAM219B	chr15	-	15	0.92966826808	skipped_low_count						sp by sequence	Q5XKK7	canonical	1
+SE	5945	ENSG00000178761	FAM219B	chr15	-	26	0.95814713859	T4	slice 1	1	1	74902619	74906800	sp by sequence	Q5XKK7	T4;canonical	1
+SE	5946	ENSG00000178761	FAM219B	chr15	-	32	0.423335507744	fail		2	2	74902619	74906800	sp by sequence	Q5XKK7	canonical	0
+SE	5947	ENSG00000178761	FAM219B	chr15	-	17	1.0	skipped_low_count						sp by sequence	Q5XKK7	canonical	0
+SE	5948	ENSG00000140497	SCAMP2	chr15	-	5	0.848196066426	skipped_low_count						sp by sequence	O15127	canonical	1
+SE	5958	ENSG00000179151	EDC3	chr15	-	4	0.0456127909314	skipped_low_count						sp by sequence	Q96F86	canonical	1
+SE	5959	ENSG00000179151	EDC3	chr15	-	4	0.01780866092	skipped_low_count						sp by sequence	Q96F86	canonical	0
+SE	5961	ENSG00000179151	EDC3	chr15	-	4	0.672111361668	skipped_low_count						sp by sequence	Q96F86	canonical	0
+SE	5964	ENSG00000179335	CLK3	chr15	+	1	0.298224013672	skipped_low_count						sp by sequence	P49761	canonical	1
+SE	5966	ENSG00000179335	CLK3	chr15	+	7	0.0271408919874	skipped_low_count						sp by sequence	P49761	canonical	0
+SE	5971	ENSG00000179335	CLK3	chr15	+	3	0.129102473702	skipped_low_count						sp by sequence	P49761	canonical	0
+SE	5973	ENSG00000138629	UBL7	chr15	-	2	0.810948337624	skipped_low_count						sp by sequence	Q96S82	canonical	0
+SE	5974	ENSG00000138629	UBL7	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q96S82	canonical	0
+SE	5976	ENSG00000138629	UBL7	chr15	-	12	0.859763998651	skipped_low_count						sp by sequence	Q96S82	canonical	0
+SE	5986	ENSG00000140464	PML	chr15	+	39	0.981179034725	T1		2	2	73994813	74045008	sp by sequence	P29590	canonical;T1	2
+SE	5987	ENSG00000140464	PML	chr15	+	2	0.404941043809	skipped_low_count						sp by sequence	P29590	canonical	0
+SE	5988	ENSG00000140464	PML	chr15	+	2	0.271668144059	skipped_low_count						sp by sequence	P29590	canonical	0
+SE	5991	ENSG00000103855	CD276	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q5ZPR3	canonical	1
+SE	5993	ENSG00000103855	CD276	chr15	+	4	0.566253248114	skipped_low_count						sp by sequence	Q5ZPR3	canonical	0
+SE	5994	ENSG00000103855	CD276	chr15	+	1	0.622524496948	skipped_low_count						sp by sequence	Q5ZPR3	canonical	0
+SE	5996	ENSG00000156642	NPTN	chr15	-	24	0.952624776748	skipped_low_count						sp by sequence	Q9Y639	canonical	1
+SE	5998	ENSG00000140463	BBS4	chr15	+	1	0.587473787587	skipped_low_count						sp by sequence	Q96RK4	canonical	1
+SE	6000	ENSG00000140463	BBS4	chr15	+	1	0.585182291116	skipped_low_count						sp by sequence	Q96RK4	canonical	0
+SE	6003	ENSG00000140463	BBS4	chr15	+	4	0.816913511985	skipped_low_count						sp by sequence	Q96RK4	canonical	0
+SE	6011	ENSG00000140488	CELF6	chr15	-	1	0.00179492109696	skipped_low_count						sp by sequence	Q96J87	canonical	1
+SE	6014	ENSG00000187720	THSD4	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q6ZMP0	canonical	1
+SE	6015	ENSG00000187720	THSD4	chr15	+	3	0.873800070342	skipped_low_count						sp by sequence	Q6ZMP0	canonical	0
+SE	6040	ENSG00000137831	UACA	chr15	-	9	0.242510207579	skipped_low_count						sp by sequence	Q9BZF9	canonical	1
+SE	6041	ENSG00000137831	UACA	chr15	-	1	0.805270741303	skipped_low_count						sp by sequence	Q9BZF9	canonical	0
+SE	6042	ENSG00000137831	UACA	chr15	-	1	0.733177664136	skipped_low_count						sp by sequence	Q9BZF9	canonical	0
+SE	6052	ENSG00000137819	PAQR5	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q9NXK6	canonical	1
+SE	6064	ENSG00000128973	CLN6	chr15	-	1	0.655290337309	skipped_low_count						sp by sequence	Q9NWW5	canonical	0
+SE	6066	ENSG00000128973	CLN6	chr15	-	1	0.592892919399	skipped_low_count						sp by sequence	Q9NWW5	canonical	0
+SE	6076	ENSG00000033800	PIAS1	chr15	+	1	1.0	skipped_low_count						sp by sequence	O75925	canonical	1
+SE	6079	ENSG00000137764	MAP2K5	chr15	+	3	0.850799830562	skipped_low_count						sp by sequence	Q13163	canonical	1
+SE	6080	ENSG00000137764	MAP2K5	chr15	+	3	0.128141419495	skipped_low_count						sp by sequence	Q13163	canonical	0
+SE	6081	ENSG00000137764	MAP2K5	chr15	+	1	0.253136016947	skipped_low_count						sp by sequence	Q13163	canonical	0
+SE	6084	ENSG00000137834	SMAD6	chr15	+	4	0.903742542288	skipped_low_count						sp by sequence	O43541	canonical	1
+SE	6085	ENSG00000137834	SMAD6	chr15	+	5	0.587962354646	skipped_low_count						sp by sequence	O43541	canonical	0
+SE	6096	ENSG00000138614	INTS14	chr15	-	4	0.680558255399	skipped_low_count						sp by sequence	Q96SY0	canonical	1
+SE	6100	ENSG00000138614	INTS14	chr15	-	1	0.577871523455	skipped_low_count						sp by sequence	Q96SY0	canonical	0
+SE	6103	ENSG00000138614	INTS14	chr15	-	1	0.57865679908	skipped_low_count						sp by sequence	Q96SY0	canonical	0
+SE	6105	ENSG00000138614	INTS14	chr15	-	1	0.904546813861	skipped_low_count						sp by sequence	Q96SY0	canonical	0
+SE	6113	ENSG00000074603	DPP8	chr15	-	1	0.649266620938	skipped_low_count						sp by sequence	Q6V1X1	canonical	0
+SE	6114	ENSG00000074603	DPP8	chr15	-	9	0.758359479534	skipped_low_count						sp by sequence	Q6V1X1	canonical	0
+SE	6115	ENSG00000074603	DPP8	chr15	-	6	0.0396708383482	skipped_low_count						sp by sequence	Q6V1X1	canonical	0
+SE	6116	ENSG00000074603	DPP8	chr15	-	2	0.876246241362	skipped_low_count						sp by sequence	Q6V1X1	canonical	0
+SE	6117	ENSG00000074603	DPP8	chr15	-	6	0.0219154425442	skipped_low_count						sp by sequence	Q6V1X1	canonical	0
+SE	6118	ENSG00000074603	DPP8	chr15	-	5	0.0822369318741	skipped_low_count						sp by sequence	Q6V1X1	canonical	0
+SE	6120	ENSG00000074603	DPP8	chr15	-	2	0.796254570471	skipped_low_count						sp by sequence	Q6V1X1	canonical	0
+SE	6121	ENSG00000074603	DPP8	chr15	-	2	0.940015002323	skipped_low_count						sp by sequence	Q6V1X1	canonical	0
+SE	6122	ENSG00000074603	DPP8	chr15	-	8	0.676621669303	skipped_low_count						sp by sequence	Q6V1X1	canonical	0
+SE	6123	ENSG00000074603	DPP8	chr15	-	12	0.954700890388	skipped_low_count						sp by sequence	Q6V1X1	canonical	0
+SE	6124	ENSG00000074603	DPP8	chr15	-	2	0.605697053879	skipped_low_count						sp by sequence	Q6V1X1	canonical	0
+SE	6125	ENSG00000138617	PARP16	chr15	-	2	0.226369116627	skipped_low_count						sp by gene name	Q8N5Y8	canonical	1
+SE	6128	ENSG00000138617	PARP16	chr15	-	1	0.577871523455	skipped_low_count						sp by gene name	Q8N5Y8	canonical	0
+SE	6129	ENSG00000090470	PDCD7	chr15	-	2	0.197656741488	skipped_low_count						sp by sequence	Q8N8D1	canonical	1
+SE	6144	ENSG00000166831	RBPMS2	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q6ZRY4	canonical	1
+SE	6145	ENSG00000166831	RBPMS2	chr15	-	8	0.0287174213764	skipped_low_count						sp by sequence	Q6ZRY4	canonical	0
+SE	6146	ENSG00000180357	ZNF609	chr15	+	3	0.27817717723	skipped_low_count						sp by sequence	O15014	canonical	0
+SE	6147	ENSG00000180357	ZNF609	chr15	+	1	0.656785808407	skipped_low_count						sp by sequence	O15014	canonical	0
+SE	6149	ENSG00000103671	TRIP4	chr15	+	1	0.584735097987	skipped_low_count						sp by sequence	Q15650	canonical	1
+SE	6150	ENSG00000103671	TRIP4	chr15	+	2	0.44043244883	skipped_low_count						sp by sequence	Q15650	canonical	0
+SE	6168	ENSG00000035664	DAPK2	chr15	-	8	0.00591118962807	skipped_low_count						sp by sequence	Q9UIK4	canonical	1
+SE	6170	ENSG00000035664	DAPK2	chr15	-	3	0.702732366458	skipped_low_count						sp by sequence	Q9UIK4	canonical	0
+SE	6171	ENSG00000035664	DAPK2	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q9UIK4	canonical	0
+SE	6173	ENSG00000103657	HERC1	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q15751	canonical	1
+SE	6175	ENSG00000103657	HERC1	chr15	-	1	0.819251154206	skipped_low_count						sp by sequence	Q15751	canonical	0
+SE	6176	ENSG00000103657	HERC1	chr15	-	2	0.812594987141	skipped_low_count						sp by sequence	Q15751	canonical	0
+SE	6177	ENSG00000103657	HERC1	chr15	-	1	0.941031536991	skipped_low_count						sp by sequence	Q15751	canonical	0
+SE	6178	ENSG00000103657	HERC1	chr15	-	1	0.651564869207	skipped_low_count						sp by sequence	Q15751	canonical	0
+SE	6179	ENSG00000103657	HERC1	chr15	-	2	0.90035943861	skipped_low_count						sp by sequence	Q15751	canonical	0
+SE	6180	ENSG00000103657	HERC1	chr15	-	3	0.126488408573	skipped_low_count						sp by sequence	Q15751	canonical	0
+SE	6181	ENSG00000140455	USP3	chr15	+	9	0.0720888238173	skipped_low_count						sp by sequence	Q9Y6I4	canonical	1
+SE	6183	ENSG00000140455	USP3	chr15	+	6	0.133156728823	skipped_low_count						sp by sequence	Q9Y6I4	canonical	0
+SE	6189	ENSG00000140416	TPM1	chr15	+	505	0.716201476274	T1		0	0	63042830	63071172	sp by sequence	P09493	T1;canonical	1
+SE	6190	ENSG00000140416	TPM1	chr15	+	3468	0.558075990971	T1		0	0	63042830	63071172	sp by sequence	P09493	T1_orphan;canonical	2
+SE	6193	ENSG00000140416	TPM1	chr15	+	73	1.0	T4	slice 1	0	0	63042830	63071172	sp by sequence	P09493	T4;canonical	1
+SE	6194	ENSG00000140416	TPM1	chr15	+	1	0.676603137135	skipped_low_count						sp by sequence	P09493	canonical	0
+SE	6195	ENSG00000140416	TPM1	chr15	+	1	1.0	skipped_low_count						sp by sequence	P09493	canonical	0
+SE	6196	ENSG00000140416	TPM1	chr15	+	99	1.0	T4	slice 1	1	1	63042830	63071172	sp by sequence	P09493	T4_orphan;canonical	2
+SE	6197	ENSG00000140416	TPM1	chr15	+	1	0.581820514365	skipped_low_count						sp by sequence	P09493	canonical	0
+SE	6198	ENSG00000140416	TPM1	chr15	+	1	1.0	skipped_low_count						sp by sequence	P09493	canonical	0
+SE	6199	ENSG00000140416	TPM1	chr15	+	2	1.0	skipped_low_count						sp by sequence	P09493	canonical	0
+SE	6200	ENSG00000140416	TPM1	chr15	+	2	1.0	skipped_low_count						sp by sequence	P09493	canonical	0
+SE	6201	ENSG00000140416	TPM1	chr15	+	136	0.573120476479	fail		0	0	63042830	63071172	sp by sequence	P09493	canonical	0
+SE	6202	ENSG00000140416	TPM1	chr15	+	2	1.0	skipped_low_count						sp by sequence	P09493	canonical	0
+SE	6203	ENSG00000140416	TPM1	chr15	+	136	0.000248064108193	fail		0	0	63042830	63071172	sp by sequence	P09493	canonical	0
+SE	6208	ENSG00000140299	BNIP2	chr15	-	8	0.0959794282842	skipped_low_count						sp by sequence	Q12982	canonical	1
+SE	6209	ENSG00000140299	BNIP2	chr15	-	1	0.584735097987	skipped_low_count						sp by sequence	Q12982	canonical	0
+SE	6210	ENSG00000140299	BNIP2	chr15	-	15	0.64941435355	skipped_low_count						sp by sequence	Q12982	canonical	0
+SE	6211	ENSG00000140299	BNIP2	chr15	-	1	0.600336550031	skipped_low_count						sp by sequence	Q12982	canonical	0
+SE	6217	ENSG00000137776	SLTM	chr15	-	5	0.137925760704	skipped_low_count						sp by sequence	Q9NWH9	canonical	1
+SE	6218	ENSG00000137776	SLTM	chr15	-	1	0.601714418352	skipped_low_count						sp by sequence	Q9NWH9	canonical	0
+SE	6219	ENSG00000137776	SLTM	chr15	-	1	0.63067850979	skipped_low_count						sp by sequence	Q9NWH9	canonical	0
+SE	6220	ENSG00000137776	SLTM	chr15	-	7	0.797900779679	skipped_low_count						sp by sequence	Q9NWH9	canonical	0
+SE	6223	ENSG00000137776	SLTM	chr15	-	9	0.965673711615	skipped_low_count						sp by sequence	Q9NWH9	canonical	0
+SE	6228	ENSG00000128923	MINDY2	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q8NBR6	canonical	0
+SE	6230	ENSG00000137845	ADAM10	chr15	-	1	1.0	skipped_low_count						sp by sequence	O14672	canonical	1
+SE	6231	ENSG00000137845	ADAM10	chr15	-	3	0.587473787587	skipped_low_count						sp by sequence	O14672	canonical	0
+SE	6232	ENSG00000137845	ADAM10	chr15	-	1	1.0	skipped_low_count						sp by sequence	O14672	canonical	0
+SE	6233	ENSG00000137845	ADAM10	chr15	-	1	0.620019800955	skipped_low_count						sp by sequence	O14672	canonical	0
+SE	6243	ENSG00000137878	GCOM1	chr15	+	6	1.0	skipped_low_count						sp by sequence	P0CAP1	canonical	0
+SE	6244	ENSG00000137878	GCOM1	chr15	+	3	1.0	skipped_low_count						sp by sequence	P0CAP1	canonical	0
+SE	6248	ENSG00000137878	GCOM1	chr15	+	7	1.0	skipped_low_count						sp by sequence	P0CAP1	canonical	0
+SE	6249	ENSG00000137878	GCOM1	chr15	+	159	0.325438148769	T4	slice 1	1	1	57592035	57714679	sp by sequence	P0CAP1	T4;canonical	1
+SE	6250	ENSG00000137878	GCOM1	chr15	+	2	0.638164134745	skipped_low_count						sp by sequence	P0CAP1	canonical	0
+SE	6251	ENSG00000137878	GCOM1	chr15	+	49	0.693687973381	T1		1	1	57592035	57714679	sp by sequence	P0CAP1	canonical;T1	1
+SE	6252	ENSG00000137878	GCOM1	chr15	+	2	1.0	skipped_low_count						sp by sequence	P0CAP1	canonical	0
+SE	6254	ENSG00000137878	GCOM1	chr15	+	1	0.587473787587	skipped_low_count						sp by sequence	P0CAP1	canonical	0
+SE	6255	ENSG00000137878	GCOM1	chr15	+	2	1.0	skipped_low_count						sp by sequence	P0CAP1	canonical	0
+SE	6257	ENSG00000137878	GCOM1	chr15	+	44	0.387089816624	fail		0	0	57592035	57714679	sp by sequence	P0CAP1	canonical	0
+SE	6266	ENSG00000128849	CGNL1	chr15	+	1	0.587473787587	skipped_low_count						sp by sequence	Q0VF96	canonical	1
+SE	6267	ENSG00000140262	TCF12	chr15	+	1	0.671101161778	skipped_low_count						sp by sequence	Q99081	canonical	0
+SE	6270	ENSG00000140262	TCF12	chr15	+	1	0.639962535083	skipped_low_count						sp by sequence	Q99081	canonical	0
+SE	6271	ENSG00000140262	TCF12	chr15	+	7	0.584271052912	skipped_low_count						sp by sequence	Q99081	canonical	0
+SE	6273	ENSG00000137871	ZNF280D	chr15	-	1	0.577871523455	skipped_low_count						sp by sequence	Q6N043	canonical	1
+SE	6274	ENSG00000137871	ZNF280D	chr15	-	20	0.0517646035007	skipped_low_count						sp by sequence	Q6N043	canonical	0
+SE	6275	ENSG00000137871	ZNF280D	chr15	-	5	0.0319363361025	skipped_low_count						sp by sequence	Q6N043	canonical	0
+SE	6276	ENSG00000137871	ZNF280D	chr15	-	5	0.0200774179562	skipped_low_count						sp by sequence	Q6N043	canonical	0
+SE	6287	ENSG00000260916	CCPG1	chr15	-	19	0.0755258992229	skipped_low_count						sp by sequence	Q9ULG6	canonical	1
+SE	6295	ENSG00000138594	TMOD3	chr15	+	1	0.633822626429	skipped_low_count						sp by sequence	Q9NYL9	canonical	1
+SE	6302	ENSG00000104093	DMXL2	chr15	-	2	0.0776670627297	skipped_low_count						sp by sequence	Q8TDJ6	canonical	1
+SE	6303	ENSG00000104093	DMXL2	chr15	-	1	0.639940556838	skipped_low_count						sp by sequence	Q8TDJ6	canonical	0
+SE	6313	ENSG00000092439	TRPM7	chr15	-	3	0.3321061545	skipped_low_count						sp by sequence	Q96QT4	canonical	1
+SE	6314	ENSG00000092439	TRPM7	chr15	-	3	0.804548564733	skipped_low_count						sp by sequence	Q96QT4	canonical	0
+SE	6315	ENSG00000092439	TRPM7	chr15	-	1	0.735660744731	skipped_low_count						sp by sequence	Q96QT4	canonical	0
+SE	6316	ENSG00000092439	TRPM7	chr15	-	3	0.648544275781	skipped_low_count						sp by sequence	Q96QT4	canonical	0
+SE	6317	ENSG00000092439	TRPM7	chr15	-	2	0.812594987141	skipped_low_count						sp by sequence	Q96QT4	canonical	0
+SE	6318	ENSG00000092439	TRPM7	chr15	-	2	0.8351995498	skipped_low_count						sp by sequence	Q96QT4	canonical	0
+SE	6319	ENSG00000104064	GABPB1	chr15	-	1	0.56569515235	skipped_low_count						sp by sequence	Q06547	canonical	1
+SE	6329	ENSG00000104047	DTWD1	chr15	+	4	0.811962736085	skipped_low_count						sp by sequence	Q8N5C7	canonical	1
+SE	6330	ENSG00000104047	DTWD1	chr15	+	9	1.0	skipped_low_count						sp by sequence	Q8N5C7	canonical	0
+SE	6331	ENSG00000104047	DTWD1	chr15	+	1	0.593706084289	skipped_low_count						sp by sequence	Q8N5C7	canonical	0
+SE	6332	ENSG00000166262	FAM227B	chr15	-	3	0.00264686807148	skipped_low_count						sp by sequence	Q96M60	canonical	1
+SE	6333	ENSG00000166262	FAM227B	chr15	-	12	0.262893206949	skipped_low_count						sp by sequence	Q96M60	canonical	0
+SE	6334	ENSG00000166262	FAM227B	chr15	-	2	0.182004721023	skipped_low_count						sp by sequence	Q96M60	canonical	0
+SE	6335	ENSG00000166262	FAM227B	chr15	-	1	0.228468505829	skipped_low_count						sp by sequence	Q96M60	canonical	0
+SE	6337	ENSG00000166262	FAM227B	chr15	-	1	0.379870358937	skipped_low_count						sp by sequence	Q96M60	canonical	0
+SE	6338	ENSG00000166262	FAM227B	chr15	-	3	0.0895017930824	skipped_low_count						sp by sequence	Q96M60	canonical	0
+SE	6339	ENSG00000166262	FAM227B	chr15	-	3	0.599722069694	skipped_low_count						sp by sequence	Q96M60	canonical	0
+SE	6340	ENSG00000166262	FAM227B	chr15	-	2	0.158492512146	skipped_low_count						sp by sequence	Q96M60	canonical	0
+SE	6341	ENSG00000166262	FAM227B	chr15	-	2	0.16377480237	skipped_low_count						sp by sequence	Q96M60	canonical	0
+SE	6342	ENSG00000156958	GALK2	chr15	+	3	1.0	skipped_low_count						sp by sequence	Q01415	canonical	1
+SE	6343	ENSG00000156958	GALK2	chr15	+	28	0.400162185829	T4	slice 1	0	0	49155997	49328159	sp by sequence	Q01415	T4;canonical	2
+SE	6344	ENSG00000156958	GALK2	chr15	+	27	0.776461854792	T4	slice 1	0	0	49155997	49328159	sp by sequence	Q01415	T4;canonical	1
+SE	6348	ENSG00000156958	GALK2	chr15	+	1	0.647191641944	skipped_low_count						sp by sequence	Q01415	canonical	0
+SE	6350	ENSG00000156958	GALK2	chr15	+	9	0.184555854925	skipped_low_count						sp by sequence	Q01415	canonical	0
+SE	6351	ENSG00000156958	GALK2	chr15	+	5	0.255054335568	skipped_low_count						sp by sequence	Q01415	canonical	0
+SE	6352	ENSG00000156958	GALK2	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q01415	canonical	0
+SE	6353	ENSG00000156958	GALK2	chr15	+	2	0.83093010667	skipped_low_count						sp by sequence	Q01415	canonical	0
+SE	6355	ENSG00000138593	SECISBP2L	chr15	-	10	0.409981924392	skipped_low_count						sp by sequence	Q93073	canonical	1
+SE	6360	ENSG00000166147	FBN1	chr15	-	3	0.576235574259	skipped_low_count						sp by sequence	P35555	canonical	1
+SE	6374	ENSG00000178802	MPI	chr15	+	1	0.676603137135	skipped_low_count						sp by sequence	P34949	canonical	1
+SE	6375	ENSG00000178802	MPI	chr15	+	4	0.967178499819	skipped_low_count						sp by sequence	P34949	canonical	0
+SE	6379	ENSG00000137872	SEMA6D	chr15	+	1	0.577871523455	skipped_low_count						sp by sequence	Q8NFY4	canonical	1
+SE	6380	ENSG00000137872	SEMA6D	chr15	+	8	0.0407938562945	skipped_low_count						sp by sequence	Q8NFY4	canonical	0
+SE	6383	ENSG00000137872	SEMA6D	chr15	+	9	0.0459002379694	skipped_low_count						sp by sequence	Q8NFY4	canonical	0
+SE	6386	ENSG00000137767	SQOR	chr15	+	1	0.595724501659	skipped_low_count						sp by sequence	Q9Y6N5	canonical	1
+SE	6388	ENSG00000104164	BLOC1S6	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q9UL45	canonical	1
+SE	6390	ENSG00000104164	BLOC1S6	chr15	+	8	0.747595284831	skipped_low_count						sp by sequence	Q9UL45	canonical	0
+SE	6392	ENSG00000104164	BLOC1S6	chr15	+	3	0.739642188888	skipped_low_count						sp by sequence	Q9UL45	canonical	0
+SE	6398	ENSG00000104164	BLOC1S6	chr15	+	8	0.277066944567	skipped_low_count						sp by sequence	Q9UL45	canonical	0
+SE	6399	ENSG00000104164	BLOC1S6	chr15	+	3	1.0	skipped_low_count						sp by sequence	Q9UL45	canonical	0
+SE	6400	ENSG00000104164	BLOC1S6	chr15	+	8	0.655089474056	skipped_low_count						sp by sequence	Q9UL45	canonical	0
+SE	6401	ENSG00000104164	BLOC1S6	chr15	+	8	0.531279272163	skipped_low_count						sp by sequence	Q9UL45	canonical	0
+SE	6402	ENSG00000104164	BLOC1S6	chr15	+	8	1.0	skipped_low_count						sp by sequence	Q9UL45	canonical	0
+SE	6403	ENSG00000104164	BLOC1S6	chr15	+	2	0.417894640918	skipped_low_count						sp by sequence	Q9UL45	canonical	0
+SE	6406	ENSG00000104154	SLC30A4	chr15	-	1	0.650848940792	skipped_low_count						sp by sequence	O14863	canonical	1
+SE	6411	ENSG00000138606	SHF	chr15	-	10	0.555868870522	skipped_low_count						sp by sequence	Q7M4L6	canonical	1
+SE	6423	ENSG00000166734	CASC4	chr15	+	5	0.590987566903	skipped_low_count						sp by sequence	Q6P4E1	canonical	0
+SE	6425	ENSG00000166734	CASC4	chr15	+	1	0.661359359805	skipped_low_count						sp by sequence	Q6P4E1	canonical	0
+SE	6426	ENSG00000166734	CASC4	chr15	+	5	0.910353228138	skipped_low_count						sp by sequence	Q6P4E1	canonical	0
+SE	6431	ENSG00000168781	PPIP5K1	chr15	-	2	1.0	skipped_low_count						sp by sequence	Q6PFW1	canonical	1
+SE	6432	ENSG00000168781	PPIP5K1	chr15	-	2	0.0707358442301	skipped_low_count						sp by sequence	Q6PFW1	canonical	0
+SE	6433	ENSG00000168781	PPIP5K1	chr15	-	2	1.0	skipped_low_count						sp by sequence	Q6PFW1	canonical	0
+SE	6440	ENSG00000067369	TP53BP1	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q12888	canonical	1
+SE	6441	ENSG00000067369	TP53BP1	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q12888	canonical	0
+SE	6443	ENSG00000137842	TMEM62	chr15	+	2	0.241813321154	skipped_low_count						sp by sequence	Q0P6H9	canonical	1
+SE	6444	ENSG00000137842	TMEM62	chr15	+	6	0.955197416418	skipped_low_count						sp by sequence	Q0P6H9	canonical	0
+SE	6445	ENSG00000137842	TMEM62	chr15	+	2	0.049159268493	skipped_low_count						sp by sequence	Q0P6H9	canonical	0
+SE	6446	ENSG00000137842	TMEM62	chr15	+	4	0.57865679908	skipped_low_count						sp by sequence	Q0P6H9	canonical	0
+SE	6447	ENSG00000137842	TMEM62	chr15	+	1	0.633822626429	skipped_low_count						sp by sequence	Q0P6H9	canonical	0
+SE	6451	ENSG00000159459	UBR1	chr15	-	1	0.655967489641	skipped_low_count						sp by sequence	Q8IWV7	canonical	0
+SE	6452	ENSG00000159459	UBR1	chr15	-	2	0.255054335568	skipped_low_count						sp by sequence	Q8IWV7	canonical	0
+SE	6454	ENSG00000159459	UBR1	chr15	-	1	0.876361320933	skipped_low_count						sp by sequence	Q8IWV7	canonical	0
+SE	6457	ENSG00000159459	UBR1	chr15	-	1	0.578546829972	skipped_low_count						sp by sequence	Q8IWV7	canonical	0
+SE	6463	ENSG00000140326	CDAN1	chr15	-	1	0.712706130431	skipped_low_count						sp by sequence	Q8IWY9	canonical	1
+SE	6464	ENSG00000092531	SNAP23	chr15	+	1	0.627518049578	skipped_low_count						sp by sequence	O00161	canonical	1
+SE	6466	ENSG00000092531	SNAP23	chr15	+	3	0.207934085183	skipped_low_count						sp by sequence	O00161	canonical	0
+SE	6468	ENSG00000092531	SNAP23	chr15	+	1	0.00144222629965	skipped_low_count						sp by sequence	O00161	canonical	0
+SE	6469	ENSG00000166887	VPS39	chr15	-	1	0.829591015247	skipped_low_count						sp by sequence	Q96JC1	canonical	1
+SE	6471	ENSG00000166887	VPS39	chr15	-	1	0.755772798163	skipped_low_count						sp by sequence	Q96JC1	canonical	0
+SE	6472	ENSG00000166887	VPS39	chr15	-	3	1.0	skipped_low_count						sp by sequence	Q96JC1	canonical	0
+SE	6474	ENSG00000168907	PLA2G4F	chr15	-	1	0.748823860376	skipped_low_count						sp by sequence	Q68DD2	canonical	1
+SE	6477	ENSG00000137802	MAPKBP1	chr15	+	2	0.227527476403	skipped_low_count						sp by sequence	O60336	canonical	0
+SE	6479	ENSG00000137802	MAPKBP1	chr15	+	2	0.181606675882	skipped_low_count						sp by sequence	O60336	canonical	0
+SE	6481	ENSG00000103932	RPAP1	chr15	-	4	0.395701799419	skipped_low_count						sp by sequence	Q9BWH6	canonical	1
+SE	6482	ENSG00000137806	NDUFAF1	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q9Y375	canonical	1
+SE	6483	ENSG00000137806	NDUFAF1	chr15	-	3	0.814955054132	skipped_low_count						sp by sequence	Q9Y375	canonical	0
+SE	6484	ENSG00000187446	CHP1	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q99653	canonical	0
+SE	6485	ENSG00000187446	CHP1	chr15	+	4	0.577871523455	skipped_low_count						sp by sequence	Q99653	canonical	0
+SE	6486	ENSG00000187446	CHP1	chr15	+	5	0.922733212562	skipped_low_count						sp by sequence	Q99653	canonical	0
+SE	6487	ENSG00000187446	CHP1	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q99653	canonical	0
+SE	6489	ENSG00000187446	CHP1	chr15	+	2	0.791852087076	skipped_low_count						sp by sequence	Q99653	canonical	0
+SE	6502	ENSG00000166140	ZFYVE19	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q96K21	canonical	1
+SE	6503	ENSG00000166140	ZFYVE19	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q96K21	canonical	0
+SE	6505	ENSG00000166140	ZFYVE19	chr15	+	13	0.628666671156	skipped_low_count						sp by sequence	Q96K21	canonical	0
+SE	6540	ENSG00000188549	C15orf52	chr15	-	2	0.863127843317	skipped_low_count						sp by sequence	Q6ZUT6	canonical	0
+SE	6542	ENSG00000188549	C15orf52	chr15	-	1	0.73086253226	skipped_low_count						sp by sequence	Q6ZUT6	canonical	0
+SE	6543	ENSG00000188549	C15orf52	chr15	-	5	1.0	skipped_low_count						sp by sequence	Q6ZUT6	canonical	0
+SE	6550	ENSG00000128829	EIF2AK4	chr15	+	2	0.477051395736	skipped_low_count						sp by sequence	Q9P2K8	canonical	1
+SE	6551	ENSG00000128829	EIF2AK4	chr15	+	4	0.0484857751556	skipped_low_count						sp by sequence	Q9P2K8	canonical	0
+SE	6552	ENSG00000128829	EIF2AK4	chr15	+	3	0.138583563463	skipped_low_count						sp by sequence	Q9P2K8	canonical	0
+SE	6553	ENSG00000137801	THBS1	chr15	+	1	1.0	skipped_low_count						sp by sequence	P07996	canonical	1
+SE	6562	ENSG00000186073	C15orf41	chr15	+	81	0.230743451018	fail				36579861	36808453	sp by sequence	Q9Y2V0	canonical	1
+SE	6563	ENSG00000186073	C15orf41	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q9Y2V0	canonical	0
+SE	6564	ENSG00000186073	C15orf41	chr15	+	14	0.645949442445	skipped_low_count						sp by sequence	Q9Y2V0	canonical	0
+SE	6566	ENSG00000186073	C15orf41	chr15	+	2	0.000864125889497	skipped_low_count						sp by sequence	Q9Y2V0	canonical	0
+SE	6567	ENSG00000186073	C15orf41	chr15	+	3	0.996944302791	skipped_low_count						sp by sequence	Q9Y2V0	canonical	0
+SE	6568	ENSG00000186073	C15orf41	chr15	+	3	0.0171266667481	skipped_low_count						sp by sequence	Q9Y2V0	canonical	0
+SE	6569	ENSG00000186073	C15orf41	chr15	+	2	0.673807361839	skipped_low_count						sp by sequence	Q9Y2V0	canonical	0
+SE	6570	ENSG00000186073	C15orf41	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q9Y2V0	canonical	0
+SE	6571	ENSG00000186073	C15orf41	chr15	+	18	0.00639729893415	skipped_low_count						sp by sequence	Q9Y2V0	canonical	0
+SE	6581	ENSG00000021776	AQR	chr15	-	1	0.585182291116	skipped_low_count						sp by sequence	O60306	canonical	1
+SE	6582	ENSG00000159251	ACTC1	chr15	-	4	1.0	skipped_low_count						sp by sequence	P68032	canonical	1
+SE	6591	ENSG00000128463	EMC4	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q5J8M3	canonical	1
+SE	6592	ENSG00000128463	EMC4	chr15	+	17	0.728863974948	skipped_low_count						sp by sequence	Q5J8M3	canonical	0
+SE	6593	ENSG00000128463	EMC4	chr15	+	17	0.716352368077	skipped_low_count						sp by sequence	Q5J8M3	canonical	0
+SE	6597	ENSG00000223509	AC135983.2	chr15	-	7	0.140207305847	skipped_low_count						none			0
+SE	6599	ENSG00000166912	MTMR10	chr15	-	1	0.730053703744	skipped_low_count						sp by sequence	Q9NXD2	canonical	1
+SE	6600	ENSG00000166912	MTMR10	chr15	-	14	1.0	skipped_low_count						sp by sequence	Q9NXD2	canonical	0
+SE	6601	ENSG00000166912	MTMR10	chr15	-	1	0.633105862216	skipped_low_count						sp by sequence	Q9NXD2	canonical	0
+SE	6602	ENSG00000166912	MTMR10	chr15	-	9	0.0663770387985	skipped_low_count						sp by sequence	Q9NXD2	canonical	0
+SE	6604	ENSG00000198690	FAN1	chr15	+	1	0.578546829972	skipped_low_count						sp by sequence	Q9Y2M0	canonical	1
+SE	6605	ENSG00000198690	FAN1	chr15	+	1	0.587473787587	skipped_low_count						sp by sequence	Q9Y2M0	canonical	0
+SE	6622	ENSG00000261377	PDCD6IPP2	chr15	+	6	0.3649950092	skipped_low_count						none			0
+SE	6623	ENSG00000206149	HERC2P9	chr15	+	2	0.00289634568002	skipped_low_count						none			0
+SE	6625	ENSG00000206149	HERC2P9	chr15	+	8	0.770558713915	skipped_low_count						none			0
+SE	6626	ENSG00000206149	HERC2P9	chr15	+	7	1.0	skipped_low_count						none			0
+SE	6649	ENSG00000114062	UBE3A	chr15	-	3	0.437282055595	skipped_low_count						sp by sequence	Q05086	canonical	0
+SE	6651	ENSG00000114062	UBE3A	chr15	-	1	0.638274611312	skipped_low_count						sp by sequence	Q05086	canonical	0
+SE	6652	ENSG00000114062	UBE3A	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q05086	canonical	0
+SE	6653	ENSG00000114062	UBE3A	chr15	-	8	0.451108986875	skipped_low_count						sp by sequence	Q05086	canonical	0
+SE	6654	ENSG00000114062	UBE3A	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q05086	canonical	0
+SE	6656	ENSG00000114062	UBE3A	chr15	-	37	0.574172104677	T2		0	0	25339137	25409107	sp by sequence	Q05086	T2;canonical	2
+SE	6660	ENSG00000114062	UBE3A	chr15	-	72	0.996567020146	T4	slice 1	0	0	25339137	25409107	sp by sequence	Q05086	T4;canonical	2
+SE	6661	ENSG00000114062	UBE3A	chr15	-	21	0.587473787587	skipped_low_count						sp by sequence	Q05086	canonical	0
+SE	6662	ENSG00000114062	UBE3A	chr15	-	20	0.880644041217	skipped_low_count						sp by sequence	Q05086	canonical	0
+SE	6663	ENSG00000114062	UBE3A	chr15	-	1	0.582739837717	skipped_low_count						sp by sequence	Q05086	canonical	0
+SE	6664	ENSG00000114062	UBE3A	chr15	-	21	0.150973145047	skipped_low_count						sp by sequence	Q05086	canonical	0
+SE	6665	ENSG00000114062	UBE3A	chr15	-	4	0.758408420642	skipped_low_count						sp by sequence	Q05086	canonical	0
+SE	6666	ENSG00000114062	UBE3A	chr15	-	119	0.139949710815	T1		0	1	25339137	25409107	sp by sequence	Q05086	T1;canonical	1
+SE	6667	ENSG00000114062	UBE3A	chr15	-	80	0.0653729237516	skipped_outside_cds		1	1	25339137	25409107	sp by sequence	Q05086	canonical	0
+SE	6689	ENSG00000273173	SNURF	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q9Y675	canonical	0
+SE	6690	ENSG00000273173	SNURF	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q9Y675	canonical	0
+SE	6703	ENSG00000140157	NIPA2	chr15	+	3	0.946433409103	skipped_low_count						sp by sequence	Q8N8Q9	canonical	1
+SE	6704	ENSG00000140157	NIPA2	chr15	+	5	0.00586487206819	skipped_low_count						sp by sequence	Q8N8Q9	canonical	0
+SE	6705	ENSG00000140157	NIPA2	chr15	+	4	0.134366557521	skipped_low_count						sp by sequence	Q8N8Q9	canonical	0
+SE	6707	ENSG00000140157	NIPA2	chr15	+	2	0.0139727871681	skipped_low_count						sp by sequence	Q8N8Q9	canonical	0
+SE	6708	ENSG00000140157	NIPA2	chr15	+	12	0.0796423114188	skipped_low_count						sp by sequence	Q8N8Q9	canonical	0
+SE	6709	ENSG00000140157	NIPA2	chr15	+	2	0.0308561524741	skipped_low_count						sp by sequence	Q8N8Q9	canonical	0
+SE	6710	ENSG00000140157	NIPA2	chr15	+	6	1.0	skipped_low_count						sp by sequence	Q8N8Q9	canonical	0
+SE	6711	ENSG00000140157	NIPA2	chr15	+	1	0.982504534573	skipped_low_count						sp by sequence	Q8N8Q9	canonical	0
+SE	6713	ENSG00000170113	NIPA1	chr15	+	10	0.00203701358599	skipped_low_count						sp by sequence	Q7RTP0	canonical	0
+SE	6714	ENSG00000170113	NIPA1	chr15	+	3	0.796077670301	skipped_low_count						sp by sequence	Q7RTP0	canonical	0
+SE	6718	ENSG00000276141	WHAMMP3	chr15	+	3	0.000362606884992	skipped_low_count						sp by gene name	Q1A5X7	canonical	1
+SE	6750	ENSG00000166192	SENP8	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q96LD8	canonical	1
+SE	7241	ENSG00000074621	SLC24A1	chr15	+	2	0.682749854751	skipped_low_count						sp by sequence	O60721	canonical	1
+SE	7328	ENSG00000169118	CSNK1G1	chr15	-	3	0.171699669917	skipped_low_count						sp by sequence	Q9HCP0	canonical	1
+SE	7425	ENSG00000159322	ADPGK	chr15	-	1	0.215245612948	skipped_low_count						sp by gene name	Q9BRR6	canonical	1
+SE	7426	ENSG00000159322	ADPGK	chr15	-	1	0.763440876353	skipped_low_count						sp by gene name	Q9BRR6	canonical	0
+SE	7433	ENSG00000159322	ADPGK	chr15	-	1	0.577871523455	skipped_low_count						sp by gene name	Q9BRR6	canonical	0
+SE	7658	ENSG00000138623	SEMA7A	chr15	-	1	0.903562378723	skipped_low_count						sp by sequence	O75326	canonical	1
+SE	7768	ENSG00000128989	ARPP19	chr15	-	24	1.0	skipped_low_count						sp by sequence	P56211	canonical	0
+SE	7769	ENSG00000128989	ARPP19	chr15	-	5	0.592142668449	skipped_low_count						sp by sequence	P56211	canonical	0
+SE	7770	ENSG00000128989	ARPP19	chr15	-	18	0.350252425235	skipped_low_count						sp by sequence	P56211	canonical	0
+SE	7772	ENSG00000128989	ARPP19	chr15	-	18	0.213515745359	skipped_low_count						sp by sequence	P56211	canonical	0
+SE	7863	ENSG00000259295	CSPG4P12	chr15	+	1	0.00144222629965	skipped_low_count						none			0
+SE	7992	ENSG00000178741	COX5A	chr15	-	17	1.0	skipped_low_count						sp by sequence	P20674	canonical	1
+SE	7993	ENSG00000178741	COX5A	chr15	-	5	1.0	skipped_low_count						sp by sequence	P20674	canonical	0
+SE	8018	ENSG00000166949	SMAD3	chr15	+	5	0.0795312665389	skipped_low_count						sp by sequence	P84022	canonical	1
+SE	8019	ENSG00000166949	SMAD3	chr15	+	1	0.733865098978	skipped_low_count						sp by sequence	P84022	canonical	0
+SE	8573	ENSG00000140474	ULK3	chr15	-	3	0.222787620291	skipped_low_count						sp by sequence	Q6PHR2	canonical	1
+SE	9461	ENSG00000157483	MYO1E	chr15	-	1	0.582739837717	skipped_low_count						sp by sequence	Q12965	canonical	1
+SE	9667	ENSG00000185088	RPS27L	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q71UM5	canonical	1
+SE	9668	ENSG00000185088	RPS27L	chr15	-	2	1.0	skipped_low_count						sp by sequence	Q71UM5	canonical	0
+SE	10278	ENSG00000229212	AC044860.1	chr15	-	4	0.00321494391277	skipped_low_count						none			0
+SE	10577	ENSG00000169371	SNUPN	chr15	-	4	0.668526997208	skipped_low_count						sp by sequence	O95149	canonical	1
+SE	10578	ENSG00000169371	SNUPN	chr15	-	1	0.587473787587	skipped_low_count						sp by sequence	O95149	canonical	0
+SE	10701	ENSG00000140525	FANCI	chr15	+	1	0.259735157786	skipped_low_count						sp by sequence	Q9NVI1	canonical	1
+SE	11515	ENSG00000137843	PAK6	chr15	+	2	0.263565509955	skipped_low_count						sp by sequence	Q9NQU5	canonical	1
+SE	11516	ENSG00000137843	PAK6	chr15	+	2	0.263565509955	skipped_low_count						sp by sequence	Q9NQU5	canonical	0
+SE	11905	ENSG00000169032	MAP2K1	chr15	+	11	0.587473787587	skipped_low_count						sp by sequence	Q02750	canonical	1
+SE	11944	ENSG00000140307	GTF2A2	chr15	-	1	0.587473787587	skipped_low_count						sp by sequence	P52657	canonical	1
+SE	11945	ENSG00000140307	GTF2A2	chr15	-	2	0.82513932943	skipped_low_count						sp by sequence	P52657	canonical	0
+SE	11947	ENSG00000140307	GTF2A2	chr15	-	18	0.314041070804	skipped_low_count						sp by sequence	P52657	canonical	0
+SE	11948	ENSG00000140307	GTF2A2	chr15	-	1	0.592150163547	skipped_low_count						sp by sequence	P52657	canonical	0
+SE	11950	ENSG00000140307	GTF2A2	chr15	-	2	0.856324254244	skipped_low_count						sp by sequence	P52657	canonical	0
+SE	11951	ENSG00000140307	GTF2A2	chr15	-	18	0.0581992451826	skipped_low_count						sp by sequence	P52657	canonical	0
+SE	11953	ENSG00000140307	GTF2A2	chr15	-	1	1.0	skipped_low_count						sp by sequence	P52657	canonical	0
+SE	11954	ENSG00000140307	GTF2A2	chr15	-	6	0.172641208626	skipped_low_count						sp by sequence	P52657	canonical	0
+SE	12039	ENSG00000136383	ALPK3	chr15	+	9	0.578546829972	skipped_low_count						sp by gene name	Q96L96	canonical	0
+SE	12040	ENSG00000136383	ALPK3	chr15	+	10	0.182593031722	skipped_low_count						sp by gene name	Q96L96	canonical	0
+SE	12041	ENSG00000136383	ALPK3	chr15	+	1	1.0	skipped_low_count						sp by gene name	Q96L96	canonical	0
+SE	12042	ENSG00000136383	ALPK3	chr15	+	1	1.0	skipped_low_count						sp by gene name	Q96L96	canonical	0
+SE	12429	ENSG00000182718	ANXA2	chr15	-	1	1.0	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12431	ENSG00000182718	ANXA2	chr15	-	21	0.778032724205	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12433	ENSG00000182718	ANXA2	chr15	-	2	0.204104556756	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12435	ENSG00000182718	ANXA2	chr15	-	3	1.0	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12438	ENSG00000182718	ANXA2	chr15	-	7	0.660596166198	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12439	ENSG00000182718	ANXA2	chr15	-	9	1.0	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12441	ENSG00000182718	ANXA2	chr15	-	3	0.399274825691	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12442	ENSG00000182718	ANXA2	chr15	-	5	1.0	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12444	ENSG00000182718	ANXA2	chr15	-	2	0.318454831239	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12445	ENSG00000182718	ANXA2	chr15	-	5	0.220221813146	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12446	ENSG00000182718	ANXA2	chr15	-	89	1.0	T4	slice 1		2	60347630	60397913	sp by sequence	P07355	T4_orphan;canonical	1
+SE	12447	ENSG00000182718	ANXA2	chr15	-	3	0.136066372675	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12448	ENSG00000182718	ANXA2	chr15	-	4	1.0	skipped_low_count						sp by sequence	P07355	canonical	0
+SE	12713	ENSG00000140511	HAPLN3	chr15	-	2	0.154774021489	skipped_low_count						sp by sequence	Q96S86	canonical	1
+SE	12765	ENSG00000064726	BTBD1	chr15	-	4	1.0	skipped_low_count						sp by sequence	Q9H0C5	canonical	0
+SE	12767	ENSG00000064726	BTBD1	chr15	-	20	0.882166577863	skipped_low_count						sp by sequence	Q9H0C5	canonical	0
+SE	12768	ENSG00000064726	BTBD1	chr15	-	12	0.730053703744	skipped_low_count						sp by sequence	Q9H0C5	canonical	0
+SE	13420	ENSG00000166411	IDH3A	chr15	+	1	0.215630526642	skipped_low_count						sp by sequence	P50213	canonical	0
+SE	13421	ENSG00000166411	IDH3A	chr15	+	1	1.0	skipped_low_count						sp by sequence	P50213	canonical	0
+SE	13422	ENSG00000166411	IDH3A	chr15	+	2	0.84013758149	skipped_low_count						sp by sequence	P50213	canonical	0
+SE	13423	ENSG00000166411	IDH3A	chr15	+	4	1.0	skipped_low_count						sp by sequence	P50213	canonical	0
+SE	13424	ENSG00000166411	IDH3A	chr15	+	29	0.446592620127	T4	slice 1	0	0	78149404	78169005	sp by sequence	P50213	T4;canonical	1
+SE	13425	ENSG00000166411	IDH3A	chr15	+	1	0.578546829972	skipped_low_count						sp by sequence	P50213	canonical	0
+SE	13429	ENSG00000166411	IDH3A	chr15	+	4	1.0	skipped_low_count						sp by sequence	P50213	canonical	0
+SE	13583	ENSG00000137817	PARP6	chr15	-	11	0.697941008701	skipped_low_count						sp by sequence	Q2NL67	canonical	1
+SE	13584	ENSG00000137817	PARP6	chr15	-	6	0.587473787587	skipped_low_count						sp by sequence	Q2NL67	canonical	0
+SE	13585	ENSG00000137817	PARP6	chr15	-	6	0.420724034146	skipped_low_count						sp by sequence	Q2NL67	canonical	0
+SE	13587	ENSG00000137817	PARP6	chr15	-	5	0.666207788204	skipped_low_count						sp by sequence	Q2NL67	canonical	0
+SE	13955	ENSG00000138604	GLCE	chr15	+	1	0.00144222629965	skipped_low_count						sp by sequence	O94923	canonical	1
+SE	14701	ENSG00000243708	PLA2G4B	chr15	+	2	0.043011300429	skipped_low_count						sp by sequence	P0C869	canonical	1
+SE	14831	ENSG00000173517	PEAK1	chr15	-	2	0.930742634352	skipped_low_count						sp by sequence	Q9H792	canonical	1
+SE	14833	ENSG00000173517	PEAK1	chr15	-	18	0.768445946203	skipped_low_count						sp by sequence	Q9H792	canonical	0
+SE	14834	ENSG00000173517	PEAK1	chr15	-	31	0.571397900058	fail						sp by sequence	Q9H792	canonical	0
+SE	14836	ENSG00000173517	PEAK1	chr15	-	7	1.0	skipped_low_count						sp by sequence	Q9H792	canonical	0
+SE	15341	ENSG00000138600	SPPL2A	chr15	-	2	0.818424957104	skipped_low_count						sp by sequence	Q8TCT8	canonical	1
+SE	15342	ENSG00000138600	SPPL2A	chr15	-	10	0.161012252149	skipped_low_count						sp by sequence	Q8TCT8	canonical	0
+SE	15343	ENSG00000138600	SPPL2A	chr15	-	1	0.669062427416	skipped_low_count						sp by sequence	Q8TCT8	canonical	0
+SE	15345	ENSG00000138600	SPPL2A	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q8TCT8	canonical	0
+SE	15364	ENSG00000128881	TTBK2	chr15	-	4	0.239196254824	skipped_low_count						sp by sequence	Q6IQ55	canonical	0
+SE	15923	ENSG00000224078	SNHG14	chr15	+	2	1.0	skipped_low_count						none			0
+SE	15924	ENSG00000224078	SNHG14	chr15	+	2	0.637404785464	skipped_low_count						none			0
+SE	15925	ENSG00000224078	SNHG14	chr15	+	1	0.581820514365	skipped_low_count						none			0
+SE	15926	ENSG00000224078	SNHG14	chr15	+	14	0.577871523455	skipped_low_count						none			0
+SE	15927	ENSG00000224078	SNHG14	chr15	+	1	0.618108444643	skipped_low_count						none			0
+SE	15928	ENSG00000224078	SNHG14	chr15	+	1	0.642850999793	skipped_low_count						none			0
+SE	15929	ENSG00000224078	SNHG14	chr15	+	18	0.691373570692	skipped_low_count						none			0
+SE	15930	ENSG00000224078	SNHG14	chr15	+	3	0.747615417572	skipped_low_count						none			0
+SE	15931	ENSG00000224078	SNHG14	chr15	+	1	0.585182291116	skipped_low_count						none			0
+SE	15932	ENSG00000224078	SNHG14	chr15	+	2	0.863127843317	skipped_low_count						none			0
+SE	15935	ENSG00000224078	SNHG14	chr15	+	1	0.700037736243	skipped_low_count						none			0
+SE	16580	ENSG00000169410	PTPN9	chr15	-	1	0.578546829972	skipped_low_count						sp by sequence	P43378	canonical	1
+SE	17536	ENSG00000188266	HYKK	chr15	+	3	0.0453407484995	skipped_low_count						sp by sequence	A2RU49	canonical	1
+SE	17537	ENSG00000188266	HYKK	chr15	+	2	0.431576213824	skipped_low_count						sp by sequence	A2RU49	canonical	0
+SE	17577	ENSG00000167004	PDIA3	chr15	+	1	1.0	skipped_low_count						sp by sequence	P30101	canonical	1
+SE	17892	ENSG00000272888	LINC01578	chr15	+	9	0.287317550431	skipped_low_count						none			0
+SE	18301	ENSG00000067221	STOML1	chr15	-	1	0.668526997208	skipped_low_count						sp by sequence	Q9UBI4	canonical	1
+SE	18302	ENSG00000067221	STOML1	chr15	-	1	0.740979482024	skipped_low_count						sp by sequence	Q9UBI4	canonical	0
+SE	18303	ENSG00000067221	STOML1	chr15	-	28	0.00399081536585	T1		2	2	73983937	73992223	sp by sequence	Q9UBI4	T1;canonical	2
+SE	18304	ENSG00000067221	STOML1	chr15	-	28	0.00180575611678	T1		2	2	73983937	73992223	sp by sequence	Q9UBI4	canonical;T1	0
+SE	18305	ENSG00000067221	STOML1	chr15	-	1	0.587473787587	skipped_low_count						sp by sequence	Q9UBI4	canonical	0
+SE	18418	ENSG00000259248	USP3-AS1	chr15	-	1	0.225117906956	skipped_low_count						none			0
+SE	18709	ENSG00000134138	MEIS2	chr15	-	32	0.216182534256	T1_alt_terminus		2	2	36892173	37099466	sp by sequence	O14770	T1_alt_cterm;canonical	2
+SE	18710	ENSG00000134138	MEIS2	chr15	-	1	0.649266620938	skipped_low_count						sp by sequence	O14770	canonical	0
+SE	18711	ENSG00000134138	MEIS2	chr15	-	3	0.805270741303	skipped_low_count						sp by sequence	O14770	canonical	0
+SE	18712	ENSG00000134138	MEIS2	chr15	-	3	0.808997930685	skipped_low_count						sp by sequence	O14770	canonical	0
+SE	18713	ENSG00000134138	MEIS2	chr15	-	1	0.581820514365	skipped_low_count						sp by sequence	O14770	canonical	0
+SE	18858	ENSG00000171766	GATM	chr15	-	1	0.635987034295	skipped_low_count						sp by sequence	P50440	canonical	1
+SE	19274	ENSG00000154237	LRRK1	chr15	+	1	0.00225089174471	skipped_low_count						sp by sequence	Q38SD2	canonical	1
+SE	19275	ENSG00000154237	LRRK1	chr15	+	4	0.0168830333174	skipped_low_count						sp by sequence	Q38SD2	canonical	0
+SE	19370	ENSG00000261801	LOXL1-AS1	chr15	-	1	0.00144222629965	skipped_low_count						none			0
+SE	19409	ENSG00000138592	USP8	chr15	+	14	0.0846166334009	skipped_low_count						sp by sequence	P40818	canonical	0
+SE	19410	ENSG00000138592	USP8	chr15	+	23	0.0173936022626	skipped_low_count						sp by sequence	P40818	canonical	0
+SE	19411	ENSG00000138592	USP8	chr15	+	19	0.050467615403	skipped_low_count						sp by sequence	P40818	canonical	0
+SE	19413	ENSG00000138592	USP8	chr15	+	1	0.587473787587	skipped_low_count						sp by sequence	P40818	canonical	0
+SE	19418	ENSG00000138592	USP8	chr15	+	13	1.0	skipped_low_count						sp by sequence	P40818	canonical	0
+SE	19419	ENSG00000138592	USP8	chr15	+	3	0.275568693461	skipped_low_count						sp by sequence	P40818	canonical	0
+SE	19528	ENSG00000273749	CYFIP1	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q7L576	canonical	1
+SE	19849	ENSG00000068305	MEF2A	chr15	+	5	0.548232740926	skipped_low_count						sp by gene name	Q02078	canonical	0
+SE	19850	ENSG00000068305	MEF2A	chr15	+	99	1.0	skipped_outside_cds		0	0	99633120	99712771	sp by gene name	Q02078	canonical	0
+SE	19851	ENSG00000068305	MEF2A	chr15	+	12	0.364278968368	skipped_low_count						sp by gene name	Q02078	canonical	0
+SE	19852	ENSG00000068305	MEF2A	chr15	+	2	0.811962736085	skipped_low_count						sp by gene name	Q02078	canonical	0
+SE	19853	ENSG00000068305	MEF2A	chr15	+	3	0.87219906694	skipped_low_count						sp by gene name	Q02078	canonical	0
+SE	19854	ENSG00000068305	MEF2A	chr15	+	119	0.34052998825	T1		2	2	99633120	99712771	sp by gene name	Q02078	canonical;T1	1
+SE	19967	ENSG00000140367	UBE2Q2	chr15	+	42	0.577841336684	T1		0	0	75843667	75899487	sp by sequence	Q8WVN8	canonical;T1	2
+SE	19969	ENSG00000140367	UBE2Q2	chr15	+	1	0.686725791826	skipped_low_count						sp by sequence	Q8WVN8	canonical	0
+SE	19970	ENSG00000140367	UBE2Q2	chr15	+	1	0.577871523455	skipped_low_count						sp by sequence	Q8WVN8	canonical	0
+SE	19971	ENSG00000140367	UBE2Q2	chr15	+	1	0.617445095788	skipped_low_count						sp by sequence	Q8WVN8	canonical	0
+SE	19972	ENSG00000140367	UBE2Q2	chr15	+	4	0.753727792471	skipped_low_count						sp by sequence	Q8WVN8	canonical	0
+SE	20176	ENSG00000166938	DIS3L	chr15	+	1	0.620019800955	skipped_low_count						sp by sequence	Q8TF46	canonical	1
+SE	20177	ENSG00000166938	DIS3L	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q8TF46	canonical	0
+SE	20178	ENSG00000166938	DIS3L	chr15	+	1	0.605376493855	skipped_low_count						sp by sequence	Q8TF46	canonical	0
+SE	20454	ENSG00000129003	VPS13C	chr15	-	2	0.526343145923	skipped_low_count						sp by sequence	Q709C8	canonical	1
+SE	20455	ENSG00000129003	VPS13C	chr15	-	1	0.585182291116	skipped_low_count						sp by sequence	Q709C8	canonical	0
+SE	20456	ENSG00000129003	VPS13C	chr15	-	1	0.74462953245	skipped_low_count						sp by sequence	Q709C8	canonical	0
+SE	20458	ENSG00000129003	VPS13C	chr15	-	1	0.970613855787	skipped_low_count						sp by sequence	Q709C8	canonical	0
+SE	21636	ENSG00000066933	MYO9A	chr15	-	1	0.626195456467	skipped_low_count						sp by sequence	B2RTY4	canonical	1
+SE	21638	ENSG00000066933	MYO9A	chr15	-	1	0.61193038597	skipped_low_count						sp by sequence	B2RTY4	canonical	0
+SE	21639	ENSG00000066933	MYO9A	chr15	-	2	1.0	skipped_low_count						sp by sequence	B2RTY4	canonical	0
+SE	21641	ENSG00000066933	MYO9A	chr15	-	5	0.298587454022	skipped_low_count						sp by sequence	B2RTY4	canonical	0
+SE	21642	ENSG00000066933	MYO9A	chr15	-	5	0.362979655576	skipped_low_count						sp by sequence	B2RTY4	canonical	0
+SE	21643	ENSG00000066933	MYO9A	chr15	-	13	0.950086167456	skipped_low_count						sp by sequence	B2RTY4	canonical	0
+SE	22146	ENSG00000197535	MYO5A	chr15	-	16	0.723120588792	skipped_low_count						sp by sequence	Q9Y4I1	canonical	1
+SE	22147	ENSG00000197535	MYO5A	chr15	-	11	0.592171399424	skipped_low_count						sp by sequence	Q9Y4I1	canonical	0
+SE	22148	ENSG00000197535	MYO5A	chr15	-	2	0.144611417827	skipped_low_count						sp by sequence	Q9Y4I1	canonical	0
+SE	22149	ENSG00000197535	MYO5A	chr15	-	3	0.0962497215391	skipped_low_count						sp by sequence	Q9Y4I1	canonical	0
+SE	22246	ENSG00000173546	CSPG4	chr15	-	4	0.353490369072	skipped_low_count						sp by sequence	Q6UVK1	canonical	1
+SE	22467	ENSG00000104067	TJP1	chr15	-	67	0.0337210056817	T1		0	0	29701595	29822028	sp by sequence	Q07157	canonical;T1	2
+SE	22468	ENSG00000104067	TJP1	chr15	-	2	0.832164390097	skipped_low_count						sp by sequence	Q07157	canonical	0
+SE	22469	ENSG00000104067	TJP1	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q07157	canonical	0
+SE	22470	ENSG00000104067	TJP1	chr15	-	2	0.818744222064	skipped_low_count						sp by sequence	Q07157	canonical	0
+SE	22472	ENSG00000104067	TJP1	chr15	-	6	0.292628323372	skipped_low_count						sp by sequence	Q07157	canonical	0
+SE	22473	ENSG00000104067	TJP1	chr15	-	2	0.793103188547	skipped_low_count						sp by sequence	Q07157	canonical	0
+SE	22528	ENSG00000140395	WDR61	chr15	-	3	0.202169697793	skipped_low_count						sp by sequence	Q9GZS3	canonical	1
+SE	22605	ENSG00000140386	SCAPER	chr15	-	7	0.100427919825	skipped_low_count						sp by sequence	Q9BY12	canonical	1
+SE	22606	ENSG00000140386	SCAPER	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q9BY12	canonical	0
+SE	22609	ENSG00000140386	SCAPER	chr15	-	1	0.577871523455	skipped_low_count						sp by sequence	Q9BY12	canonical	0
+SE	22610	ENSG00000140386	SCAPER	chr15	-	1	0.584735097987	skipped_low_count						sp by sequence	Q9BY12	canonical	0
+SE	22611	ENSG00000140386	SCAPER	chr15	-	1	0.679639364506	skipped_low_count						sp by sequence	Q9BY12	canonical	0
+SE	22613	ENSG00000140386	SCAPER	chr15	-	4	0.954469702343	skipped_low_count						sp by sequence	Q9BY12	canonical	0
+SE	22614	ENSG00000140386	SCAPER	chr15	-	13	0.00883315361077	skipped_low_count						sp by sequence	Q9BY12	canonical	0
+SE	23352	ENSG00000140382	HMG20A	chr15	+	2	0.791852087076	skipped_low_count						sp by sequence	Q9NP66	canonical	1
+SE	23353	ENSG00000140382	HMG20A	chr15	+	3	0.33376196331	skipped_low_count						sp by sequence	Q9NP66	canonical	0
+SE	23548	ENSG00000168803	ADAL	chr15	+	2	0.448914172832	skipped_low_count						sp by sequence	Q6DHV7	canonical	0
+SE	23549	ENSG00000168803	ADAL	chr15	+	1	0.582739837717	skipped_low_count						sp by sequence	Q6DHV7	canonical	0
+SE	23550	ENSG00000168803	ADAL	chr15	+	2	0.0957483455677	skipped_low_count						sp by sequence	Q6DHV7	canonical	0
+SE	23551	ENSG00000168803	ADAL	chr15	+	2	0.125414590972	skipped_low_count						sp by sequence	Q6DHV7	canonical	0
+SE	23552	ENSG00000168803	ADAL	chr15	+	1	0.582739837717	skipped_low_count						sp by sequence	Q6DHV7	canonical	0
+SE	23553	ENSG00000168803	ADAL	chr15	+	1	0.582739837717	skipped_low_count						sp by sequence	Q6DHV7	canonical	0
+SE	23555	ENSG00000168803	ADAL	chr15	+	9	1.0	skipped_low_count						sp by sequence	Q6DHV7	canonical	0
+SE	23556	ENSG00000168803	ADAL	chr15	+	8	0.029989734355	skipped_low_count						sp by sequence	Q6DHV7	canonical	0
+SE	23736	ENSG00000134152	KATNBL1	chr15	-	23	1.0	skipped_low_count						sp by sequence	Q9H079	canonical	1
+SE	23737	ENSG00000134152	KATNBL1	chr15	-	3	0.17916828872	skipped_low_count						sp by sequence	Q9H079	canonical	0
+SE	23984	ENSG00000140319	SRP14	chr15	-	4	1.0	skipped_low_count						sp by sequence	P37108	canonical	1
+SE	23985	ENSG00000140319	SRP14	chr15	-	24	1.0	skipped_low_count						sp by sequence	P37108	canonical	0
+SE	24560	ENSG00000176454	LPCAT4	chr15	-	1	0.812594987141	skipped_low_count						sp by sequence	Q643R3	canonical	1
+SE	24775	ENSG00000180304	OAZ2	chr15	-	2	0.981213419011	skipped_low_count						sp by sequence	O95190	canonical	1
+SE	24776	ENSG00000180304	OAZ2	chr15	-	1	1.0	skipped_low_count						sp by sequence	O95190	canonical	0
+SE	24778	ENSG00000180304	OAZ2	chr15	-	6	0.0501934777031	skipped_low_count						sp by sequence	O95190	canonical	0
+SE	24779	ENSG00000180304	OAZ2	chr15	-	3	0.685507694057	skipped_low_count						sp by sequence	O95190	canonical	0
+SE	25334	ENSG00000180229	HERC2P3	chr15	-	3	0.000486324283222	skipped_low_count						sp by gene name	Q9BVR0	canonical	1
+SE	25335	ENSG00000180229	HERC2P3	chr15	-	2	0.00289634568002	skipped_low_count						sp by gene name	Q9BVR0	canonical	0
+SE	25338	ENSG00000180229	HERC2P3	chr15	-	3	0.596700215493	skipped_low_count						sp by gene name	Q9BVR0	canonical	0
+SE	25384	ENSG00000248334	WHAMMP2	chr15	+	1	0.00144222629965	skipped_low_count						none			0
+SE	25410	ENSG00000166233	ARIH1	chr15	+	3	0.696248400555	skipped_low_count						sp by sequence	Q9Y4X5	canonical	0
+SE	25411	ENSG00000166233	ARIH1	chr15	+	5	0.105407145896	skipped_low_count						sp by sequence	Q9Y4X5	canonical	0
+SE	25663	ENSG00000186628	FSD2	chr15	-	47	0.645375376553	T1		2	2	82759348	82787390	sp by sequence	A1L4K1	canonical;T1	0
+SE	25664	ENSG00000186628	FSD2	chr15	-	3	0.024141652006	skipped_low_count						sp by sequence	A1L4K1	canonical	0
+SE	25665	ENSG00000186628	FSD2	chr15	-	3	0.718344316453	skipped_low_count						sp by sequence	A1L4K1	canonical	0
+SE	25666	ENSG00000186628	FSD2	chr15	-	1	0.824478989563	skipped_low_count						sp by sequence	A1L4K1	canonical	0
+SE	25667	ENSG00000186628	FSD2	chr15	-	6	0.14475721771	skipped_low_count						sp by sequence	A1L4K1	canonical	0
+SE	25668	ENSG00000186628	FSD2	chr15	-	1	0.608005473399	skipped_low_count						sp by sequence	A1L4K1	canonical	0
+SE	25669	ENSG00000186628	FSD2	chr15	-	56	0.728174132942	skipped_outside_cds		0	0	82759348	82787390	sp by sequence	A1L4K1	canonical	0
+SE	25947	ENSG00000103852	TTC23	chr15	-	1	0.873002027598	skipped_low_count						sp by sequence	Q5W5X9	canonical	0
+SE	25948	ENSG00000103852	TTC23	chr15	-	2	0.147218496779	skipped_low_count						sp by sequence	Q5W5X9	canonical	0
+SE	25949	ENSG00000103852	TTC23	chr15	-	3	0.0186849298917	skipped_low_count						sp by sequence	Q5W5X9	canonical	0
+SE	25950	ENSG00000103852	TTC23	chr15	-	2	0.0615823856659	skipped_low_count						sp by sequence	Q5W5X9	canonical	0
+SE	25951	ENSG00000103852	TTC23	chr15	-	2	0.046362124792	skipped_low_count						sp by sequence	Q5W5X9	canonical	0
+SE	25953	ENSG00000103852	TTC23	chr15	-	2	0.0282616568446	skipped_low_count						sp by sequence	Q5W5X9	canonical	0
+SE	25957	ENSG00000103852	TTC23	chr15	-	1	0.820306336419	skipped_low_count						sp by sequence	Q5W5X9	canonical	0
+SE	25959	ENSG00000103852	TTC23	chr15	-	2	0.000725208242492	skipped_low_count						sp by sequence	Q5W5X9	canonical	0
+SE	26541	ENSG00000137822	TUBGCP4	chr15	+	4	0.56061367857	skipped_low_count						sp by sequence	Q9UGJ1	canonical	1
+SE	26542	ENSG00000137822	TUBGCP4	chr15	+	1	0.701830494082	skipped_low_count						sp by sequence	Q9UGJ1	canonical	0
+SE	26543	ENSG00000137822	TUBGCP4	chr15	+	1	0.311909714272	skipped_low_count						sp by sequence	Q9UGJ1	canonical	0
+SE	26771	ENSG00000140264	SERF2	chr15	+	2	0.0131139671591	skipped_low_count						sp by sequence	P84101	canonical	1
+SE	26939	ENSG00000069956	MAPK6	chr15	+	9	0.0135753574809	skipped_low_count						sp by sequence	Q16659	canonical	1
+SE	27088	ENSG00000128833	MYO5C	chr15	-	2	0.0752043417745	skipped_low_count						sp by sequence	Q9NQX4	canonical	1
+SE	27151	ENSG00000170776	AKAP13	chr15	+	4	0.938176983065	skipped_low_count						sp by sequence	Q12802	canonical	0
+SE	27152	ENSG00000170776	AKAP13	chr15	+	3	0.989106527516	skipped_low_count						sp by sequence	Q12802	canonical	0
+SE	27153	ENSG00000170776	AKAP13	chr15	+	56	0.132633904064	T1		0	0	85485721	85744677	sp by sequence	Q12802	canonical;T1	1
+SE	27154	ENSG00000170776	AKAP13	chr15	+	56	0.0805403256601	T1		0	0	85485721	85744677	sp by sequence	Q12802	T1;canonical	0
+SE	27155	ENSG00000170776	AKAP13	chr15	+	301	0.737213854513	T1		1	1	85485721	85744677	sp by sequence	Q12802	T1;canonical	1
+SE	27156	ENSG00000170776	AKAP13	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q12802	canonical	0
+SE	27157	ENSG00000170776	AKAP13	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q12802	canonical	0
+SE	27338	ENSG00000140598	EFL1	chr15	-	1	0.601038435834	skipped_low_count						sp by sequence	Q7Z2Z2	canonical	1
+SE	28030	ENSG00000166797	FAM96A	chr15	-	45	0.781373759124	T1_alt_terminus		2	2	64072931	64093768	sp by sequence	Q9H5X1	T1_alt_cterm;canonical	3
+SE	28169	ENSG00000140199	SLC12A6	chr15	-	2	0.605125807449	skipped_low_count						sp by sequence	Q9UHW9	canonical	1
+SE	28171	ENSG00000140199	SLC12A6	chr15	-	19	0.00283727471241	skipped_low_count						sp by sequence	Q9UHW9	canonical	0
+SE	29423	ENSG00000213614	HEXA	chr15	-	5	0.0867646975484	skipped_low_count						sp by sequence	P06865	canonical	0
+SE	29424	ENSG00000213614	HEXA	chr15	-	5	0.0627619580127	skipped_low_count						sp by sequence	P06865	canonical	0
+SE	29427	ENSG00000213614	HEXA	chr15	-	1	0.702659292949	skipped_low_count						sp by sequence	P06865	canonical	0
+SE	29430	ENSG00000213614	HEXA	chr15	-	1	1.0	skipped_low_count						sp by sequence	P06865	canonical	0
+SE	29526	ENSG00000103599	IQCH	chr15	+	1	0.160396900264	skipped_low_count						sp by sequence	Q86VS3	canonical	1
+SE	29746	ENSG00000174446	SNAPC5	chr15	-	3	0.110964136776	skipped_low_count						sp by sequence	O75971	canonical	1
+SE	29747	ENSG00000174446	SNAPC5	chr15	-	2	0.404220175736	skipped_low_count						sp by sequence	O75971	canonical	0
+SE	29748	ENSG00000174446	SNAPC5	chr15	-	3	0.271363076085	skipped_low_count						sp by sequence	O75971	canonical	0
+SE	29826	ENSG00000243789	JMJD7	chr15	+	1	0.632055561936	skipped_low_count						sp by sequence	P0C870	canonical	1
+SE	29955	ENSG00000174485	DENND4A	chr15	-	17	1.0	skipped_low_count						sp by sequence	Q7Z401	canonical	1
+SE	29956	ENSG00000174485	DENND4A	chr15	-	8	0.846426085532	skipped_low_count						sp by sequence	Q7Z401	canonical	0
+SE	29957	ENSG00000174485	DENND4A	chr15	-	1	0.577871523455	skipped_low_count						sp by sequence	Q7Z401	canonical	0
+SE	29958	ENSG00000174485	DENND4A	chr15	-	1	0.629623213588	skipped_low_count						sp by sequence	Q7Z401	canonical	0
+SE	29959	ENSG00000174485	DENND4A	chr15	-	1	0.639962535083	skipped_low_count						sp by sequence	Q7Z401	canonical	0
+SE	30121	ENSG00000166946	CCNDBP1	chr15	+	2	1.0	skipped_low_count						sp by sequence	O95273	canonical	1
+SE	30122	ENSG00000166946	CCNDBP1	chr15	+	2	0.829591015247	skipped_low_count						sp by sequence	O95273	canonical	0
+SE	30123	ENSG00000166946	CCNDBP1	chr15	+	1	1.0	skipped_low_count						sp by sequence	O95273	canonical	0
+SE	30124	ENSG00000166946	CCNDBP1	chr15	+	14	0.922321229312	skipped_low_count						sp by sequence	O95273	canonical	0
+SE	30247	ENSG00000092529	CAPN3	chr15	+	2	0.215364226772	skipped_low_count						sp by sequence	P20807	canonical	0
+SE	30800	ENSG00000067141	NEO1	chr15	+	3	0.81173628659	skipped_low_count						sp by sequence	Q92859	canonical	1
+SE	30801	ENSG00000067141	NEO1	chr15	+	22	0.944443633852	skipped_low_count						sp by sequence	Q92859	canonical	0
+SE	30802	ENSG00000067141	NEO1	chr15	+	5	0.325438148769	skipped_low_count						sp by sequence	Q92859	canonical	0
+SE	31206	ENSG00000174197	MGA	chr15	+	1	0.581820514365	skipped_low_count						sp by sequence	Q8IWI9	canonical	1
+SE	31207	ENSG00000174197	MGA	chr15	+	6	0.123617320862	skipped_low_count						sp by sequence	Q8IWI9	canonical	0
+SE	31208	ENSG00000174197	MGA	chr15	+	1	0.61193038597	skipped_low_count						sp by sequence	Q8IWI9	canonical	0
+SE	31209	ENSG00000174197	MGA	chr15	+	1	0.63067850979	skipped_low_count						sp by sequence	Q8IWI9	canonical	0
+SE	31795	ENSG00000104129	DNAJC17	chr15	-	2	0.871490956479	skipped_low_count						sp by sequence	Q9NVM6	canonical	1
+SE	33767	ENSG00000177082	WDR73	chr15	-	10	0.793780420838	skipped_low_count						sp by sequence	Q6P4I2	canonical	1
+SE	33768	ENSG00000177082	WDR73	chr15	-	4	0.151598550537	skipped_low_count						sp by sequence	Q6P4I2	canonical	0
+SE	34048	ENSG00000159433	STARD9	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q9P2P6	canonical	1
+SE	34049	ENSG00000159433	STARD9	chr15	+	8	1.0	skipped_low_count						sp by sequence	Q9P2P6	canonical	0
+SE	34050	ENSG00000159433	STARD9	chr15	+	2	0.239363273486	skipped_low_count						sp by sequence	Q9P2P6	canonical	0
+SE	34051	ENSG00000159433	STARD9	chr15	+	2	0.671480273278	skipped_low_count						sp by sequence	Q9P2P6	canonical	0
+SE	34052	ENSG00000159433	STARD9	chr15	+	2	0.130201547588	skipped_low_count						sp by sequence	Q9P2P6	canonical	0
+SE	34053	ENSG00000159433	STARD9	chr15	+	2	0.166621684772	skipped_low_count						sp by sequence	Q9P2P6	canonical	0
+SE	34055	ENSG00000159433	STARD9	chr15	+	1	0.79037272125	skipped_low_count						sp by sequence	Q9P2P6	canonical	0
+SE	34106	ENSG00000171914	TLN2	chr15	+	10	0.195133315731	skipped_low_count						sp by sequence	Q9Y4G6	canonical	1
+SE	34107	ENSG00000171914	TLN2	chr15	+	5	0.250553171343	skipped_low_count						sp by sequence	Q9Y4G6	canonical	0
+SE	34108	ENSG00000171914	TLN2	chr15	+	2	0.624529284631	skipped_low_count						sp by sequence	Q9Y4G6	canonical	0
+SE	34109	ENSG00000171914	TLN2	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q9Y4G6	canonical	0
+SE	34749	ENSG00000103978	TMEM87A	chr15	-	1	0.601450301977	skipped_low_count						sp by sequence	Q8NBN3	canonical	0
+SE	35389	ENSG00000185634	SHC4	chr15	-	2	0.000307156366622	skipped_low_count						sp by sequence	Q6S5L8	canonical	1
+SE	35646	ENSG00000166450	PRTG	chr15	-	9	1.0	skipped_low_count						sp by sequence	Q2VWP7	canonical	1
+SE	35694	ENSG00000169918	OTUD7A	chr15	-	1	0.591536812308	skipped_low_count						sp by sequence	Q8TE49	canonical	1
+SE	35695	ENSG00000169918	OTUD7A	chr15	-	1	0.664047849939	skipped_low_count						sp by sequence	Q8TE49	canonical	0
+SE	35857	ENSG00000129038	LOXL1	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q08397	canonical	1
+SE	35858	ENSG00000129038	LOXL1	chr15	+	5	0.179573473672	skipped_low_count						sp by sequence	Q08397	canonical	0
+SE	36439	ENSG00000276550	HERC2P2	chr15	+	1	0.592892919399	skipped_low_count						none			0
+SE	36440	ENSG00000276550	HERC2P2	chr15	+	5	0.776413832126	skipped_low_count						none			0
+SE	36967	ENSG00000067225	PKM	chr15	-	3	1.0	skipped_low_count						sp by sequence	P14618	canonical	0
+SE	37635	ENSG00000140575	IQGAP1	chr15	+	4	1.0	skipped_low_count						sp by sequence	P46940	canonical	1
+SE	37640	ENSG00000136425	CIB2	chr15	-	3	0.923970051233	skipped_low_count						sp by sequence	O75838	canonical	1
+SE	37642	ENSG00000136425	CIB2	chr15	-	7	0.0226099663376	skipped_low_count						sp by sequence	O75838	canonical	0
+SE	37649	ENSG00000041357	PSMA4	chr15	+	1	1.0	skipped_low_count						sp by sequence	P25789	canonical	0
+SE	37650	ENSG00000041357	PSMA4	chr15	+	1	0.666207788204	skipped_low_count						sp by sequence	P25789	canonical	0
+SE	37652	ENSG00000041357	PSMA4	chr15	+	8	0.272619460239	skipped_low_count						sp by sequence	P25789	canonical	0
+SE	37828	ENSG00000104081	BMF	chr15	-	8	3.16874760058e-05	skipped_low_count						sp by sequence	Q96LC9	canonical	1
+SE	37831	ENSG00000104081	BMF	chr15	-	1	0.733662501045	skipped_low_count						sp by sequence	Q96LC9	canonical	0
+SE	37832	ENSG00000104081	BMF	chr15	-	1	0.360839377047	skipped_low_count						sp by sequence	Q96LC9	canonical	0
+SE	38023	ENSG00000181991	MRPS11	chr15	+	2	0.803968658968	skipped_low_count						sp by sequence	P82912	canonical	1
+SE	38024	ENSG00000181991	MRPS11	chr15	+	3	0.866163495563	skipped_low_count						sp by sequence	P82912	canonical	0
+SE	38066	ENSG00000103811	CTSH	chr15	-	7	0.701830494082	skipped_low_count						sp by sequence	P09668	canonical	1
+SE	38126	ENSG00000171763	SPATA5L1	chr15	+	9	0.0342238425763	skipped_low_count						sp by sequence	Q9BVQ7	canonical	1
+SE	38153	ENSG00000137818	RPLP1	chr15	+	8	1.0	skipped_low_count						sp by sequence	P05386	canonical	1
+SE	38355	ENSG00000185787	MORF4L1	chr15	+	47	0.598239983327	T1		0	0	78840561	78897067	sp by sequence	Q9UBU8	canonical;T1	2
+SE	38356	ENSG00000185787	MORF4L1	chr15	+	34	1.0	T1		0	0	78840561	78897067	sp by sequence	Q9UBU8	T1;canonical	1
+SE	38357	ENSG00000185787	MORF4L1	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q9UBU8	canonical	0
+SE	38358	ENSG00000185787	MORF4L1	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q9UBU8	canonical	0
+SE	38793	ENSG00000225151	GOLGA2P7	chr15	-	16	0.842386455607	skipped_low_count						none			0
+SE	39001	ENSG00000131876	SNRPA1	chr15	-	9	0.583614072482	skipped_low_count						sp by sequence	P09661	canonical	1
+SE	39199	ENSG00000175265	GOLGA8A	chr15	-	1	0.164682715979	skipped_low_count						sp by sequence	A7E2F4	canonical	1
+SE	39250	ENSG00000138613	APH1B	chr15	+	1	0.00144222629965	skipped_low_count						sp by sequence	Q8WW43	canonical	0
+SE	39251	ENSG00000138613	APH1B	chr15	+	1	0.577871523455	skipped_low_count						sp by sequence	Q8WW43	canonical	0
+SE	41203	ENSG00000047346	FAM214A	chr15	-	2	0.296905042826	skipped_low_count						sp by sequence	Q32MH5	canonical	1
+SE	41204	ENSG00000047346	FAM214A	chr15	-	2	0.906169414785	skipped_low_count						sp by sequence	Q32MH5	canonical	0
+SE	41205	ENSG00000047346	FAM214A	chr15	-	2	0.594305119134	skipped_low_count						sp by sequence	Q32MH5	canonical	0
+SE	41528	ENSG00000197361	FBXL22	chr15	+	1	0.577871523455	skipped_low_count						sp by sequence	Q6P050	canonical	1
+SE	41950	ENSG00000103994	ZNF106	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q9H2Y7	canonical	1
+SE	41951	ENSG00000103994	ZNF106	chr15	-	2	1.0	skipped_low_count						sp by sequence	Q9H2Y7	canonical	0
+SE	41952	ENSG00000103994	ZNF106	chr15	-	3	1.0	skipped_low_count						sp by sequence	Q9H2Y7	canonical	0
+SE	41953	ENSG00000103994	ZNF106	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q9H2Y7	canonical	0
+SE	41954	ENSG00000103994	ZNF106	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q9H2Y7	canonical	0
+SE	41955	ENSG00000103994	ZNF106	chr15	-	76	0.159408638243	fail				42417304	42472289	sp by sequence	Q9H2Y7	canonical	0
+SE	41956	ENSG00000103994	ZNF106	chr15	-	6	1.0	skipped_low_count						sp by sequence	Q9H2Y7	canonical	0
+SE	42074	ENSG00000028528	SNX1	chr15	+	4	0.585182291116	skipped_low_count						sp by sequence	Q13596	canonical	1
+SE	42224	ENSG00000137814	HAUS2	chr15	+	1	0.582739837717	skipped_low_count						sp by sequence	Q9NVX0	canonical	0
+SE	42228	ENSG00000137814	HAUS2	chr15	+	37	0.556690351115	T2		0	0	42548873	42566816	sp by sequence	Q9NVX0	T2;canonical	1
+SE	42881	ENSG00000128872	TMOD2	chr15	+	1	0.822944702647	skipped_low_count						sp by sequence	Q9NZR1	canonical	1
+SE	43505	ENSG00000183060	LYSMD4	chr15	-	2	0.088776999208	skipped_low_count						sp by sequence	Q5XG99	canonical	1
+SE	43507	ENSG00000183060	LYSMD4	chr15	-	1	0.573239226767	skipped_low_count						sp by sequence	Q5XG99	canonical	0
+SE	43722	ENSG00000168970	JMJD7-PLA2G4B	chr15	+	2	0.0275489205685	skipped_low_count						gtf		canonical	1
+SE	43842	ENSG00000128739	SNRPN	chr15	+	1	0.627518049578	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43843	ENSG00000128739	SNRPN	chr15	+	19	0.847913404293	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43844	ENSG00000128739	SNRPN	chr15	+	7	0.650654707434	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43845	ENSG00000128739	SNRPN	chr15	+	16	0.133169148975	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43846	ENSG00000128739	SNRPN	chr15	+	6	1.0	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43847	ENSG00000128739	SNRPN	chr15	+	4	1.0	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43848	ENSG00000128739	SNRPN	chr15	+	4	1.0	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43849	ENSG00000128739	SNRPN	chr15	+	3	1.0	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43850	ENSG00000128739	SNRPN	chr15	+	4	1.0	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43851	ENSG00000128739	SNRPN	chr15	+	4	1.0	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43852	ENSG00000128739	SNRPN	chr15	+	4	1.0	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43853	ENSG00000128739	SNRPN	chr15	+	4	0.0062544798994	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43854	ENSG00000128739	SNRPN	chr15	+	17	1.0	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43855	ENSG00000128739	SNRPN	chr15	+	2	1.0	skipped_low_count						sp by sequence	P63162	canonical	0
+SE	43922	ENSG00000103710	RASL12	chr15	-	10	0.13081592472	skipped_low_count						sp by sequence	Q9NYN1	canonical	1
+SE	44049	ENSG00000104177	MYEF2	chr15	-	5	0.756228636016	skipped_low_count						sp by gene name	Q9P2K5	canonical	1
+SE	44050	ENSG00000104177	MYEF2	chr15	-	1	0.199570228081	skipped_low_count						sp by gene name	Q9P2K5	canonical	0
+SE	45366	ENSG00000104133	SPG11	chr15	-	5	1.0	skipped_low_count						sp by sequence	Q96JI7	canonical	1
+SE	45368	ENSG00000104133	SPG11	chr15	-	4	0.141405163504	skipped_low_count						sp by sequence	Q96JI7	canonical	0
+SE	45370	ENSG00000104133	SPG11	chr15	-	2	0.782024790392	skipped_low_count						sp by sequence	Q96JI7	canonical	0
+SE	45371	ENSG00000104133	SPG11	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q96JI7	canonical	0
+SE	45373	ENSG00000104133	SPG11	chr15	-	1	0.855421458519	skipped_low_count						sp by sequence	Q96JI7	canonical	0
+SE	45374	ENSG00000104133	SPG11	chr15	-	3	0.341549745919	skipped_low_count						sp by sequence	Q96JI7	canonical	0
+SE	45686	ENSG00000128915	ICE2	chr15	-	2	0.471696523596	skipped_low_count						sp by sequence	Q659A1	canonical	1
+SE	45693	ENSG00000128915	ICE2	chr15	-	1	0.68100928538	skipped_low_count						sp by sequence	Q659A1	canonical	0
+SE	46605	ENSG00000167196	FBXO22	chr15	+	2	0.265808668807	skipped_low_count						sp by sequence	Q8NEZ5	canonical	1
+SE	46735	ENSG00000166128	RAB8B	chr15	+	5	0.0642781690955	skipped_low_count						sp by sequence	Q92930	canonical	1
+SE	47613	ENSG00000247556	OIP5-AS1	chr15	+	5	0.413454041456	skipped_low_count						none			0
+SE	47953	ENSG00000090487	SPG21	chr15	-	1	0.747615417572	skipped_low_count						sp by sequence	Q9NZD8	canonical	0
+SE	47956	ENSG00000090487	SPG21	chr15	-	8	0.936672476011	skipped_low_count						sp by sequence	Q9NZD8	canonical	0
+SE	47959	ENSG00000090487	SPG21	chr15	-	2	0.691366832878	skipped_low_count						sp by sequence	Q9NZD8	canonical	0
+SE	48189	ENSG00000128891	C15orf57	chr15	-	2	0.282820536139	skipped_low_count						sp by sequence	Q9BV29	canonical	1
+SE	48314	ENSG00000128731	HERC2	chr15	-	1	0.74462953245	skipped_low_count						sp by sequence	O95714	canonical	1
+SE	48315	ENSG00000128731	HERC2	chr15	-	1	0.605125807449	skipped_low_count						sp by sequence	O95714	canonical	0
+SE	48316	ENSG00000128731	HERC2	chr15	-	1	1.0	skipped_low_count						sp by sequence	O95714	canonical	0
+RI	916	ENSG00000140553	UNC45A	chr15	+	3	0.00657653173197	skipped_low_count						sp by sequence	Q9H3U1	canonical	0
+RI	917	ENSG00000140553	UNC45A	chr15	+	10	0.439444722674	skipped_low_count						sp by sequence	Q9H3U1	canonical	0
+RI	918	ENSG00000140553	UNC45A	chr15	+	2	0.295324340447	skipped_low_count						sp by sequence	Q9H3U1	canonical	0
+RI	919	ENSG00000140553	UNC45A	chr15	+	1	0.610589968359	skipped_low_count						sp by sequence	Q9H3U1	canonical	0
+RI	920	ENSG00000196547	MAN2A2	chr15	+	12	0.167682798857	skipped_low_count						sp by sequence	P49641	canonical	0
+RI	921	ENSG00000196547	MAN2A2	chr15	+	18	0.00111833105984	skipped_low_count						sp by sequence	P49641	canonical	0
+RI	922	ENSG00000196547	MAN2A2	chr15	+	16	0.635981638411	skipped_low_count						sp by sequence	P49641	canonical	0
+RI	923	ENSG00000182511	FES	chr15	+	8	0.499387202478	skipped_low_count						sp by sequence	P07332	canonical	0
+RI	924	ENSG00000140564	FURIN	chr15	+	2	1.0	skipped_low_count						sp by sequence	P09958	canonical	0
+RI	926	ENSG00000185033	SEMA4B	chr15	+	12	0.424856317588	skipped_low_count						sp by sequence	Q9NPR2	canonical	0
+RI	928	ENSG00000140521	POLG	chr15	-	3	0.778100106394	skipped_low_count						sp by sequence	P54098	canonical	0
+RI	929	ENSG00000140543	DET1	chr15	-	1	0.530168504399	skipped_low_count						sp by sequence	Q7L5Y6	canonical	0
+RI	931	ENSG00000182774	RPS17	chr15	-	33	0.941768148883	T1_alt_terminus		0	0	82536801	82540428	sp by sequence	P08708	T1_alt_cterm;canonical	2
+RI	932	ENSG00000182774	RPS17	chr15	-	79	0.91344109629	T4	slice 1	1	1	82536801	82540428	sp by sequence	P08708	T4;canonical	1
+RI	943	ENSG00000103876	FAH	chr15	+	6	0.0173575889198	skipped_low_count						sp by sequence	P16930	canonical	0
+RI	952	ENSG00000140400	MAN2C1	chr15	-	16	0.522842366303	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+RI	953	ENSG00000140400	MAN2C1	chr15	-	21	3.67764448672e-06	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+RI	954	ENSG00000140400	MAN2C1	chr15	-	29	0.648084257433	T4	slice 1	2	2	75355906	75368583	sp by sequence	Q9NTJ4	T4;canonical	1
+RI	955	ENSG00000140400	MAN2C1	chr15	-	2	0.778100106394	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+RI	956	ENSG00000140398	NEIL1	chr15	+	6	0.562365562155	skipped_low_count						sp by sequence	Q96FI4	canonical	0
+RI	957	ENSG00000140365	COMMD4	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q9H0A8	canonical	0
+RI	962	ENSG00000178761	FAM219B	chr15	-	1	0.590543055479	skipped_low_count						sp by sequence	Q5XKK7	canonical	0
+RI	963	ENSG00000178761	FAM219B	chr15	-	8	0.0245997233685	skipped_low_count						sp by sequence	Q5XKK7	canonical	0
+RI	964	ENSG00000178761	FAM219B	chr15	-	3	0.635981638411	skipped_low_count						sp by sequence	Q5XKK7	canonical	0
+RI	965	ENSG00000178761	FAM219B	chr15	-	9	0.0766994071868	skipped_low_count						sp by sequence	Q5XKK7	canonical	0
+RI	966	ENSG00000140497	SCAMP2	chr15	-	13	1.0	skipped_low_count						sp by sequence	O15127	canonical	0
+RI	969	ENSG00000103653	CSK	chr15	+	4	0.199932629752	skipped_low_count						sp by sequence	P41240	canonical	1
+RI	972	ENSG00000179335	CLK3	chr15	+	8	0.0125875174348	skipped_low_count						sp by sequence	P49761	canonical	0
+RI	973	ENSG00000179335	CLK3	chr15	+	6	0.435755687198	skipped_low_count						sp by sequence	P49761	canonical	0
+RI	978	ENSG00000140464	PML	chr15	+	8	0.191459640858	skipped_low_count						sp by sequence	P29590	canonical	0
+RI	982	ENSG00000137821	LRRC49	chr15	+	2	0.990739630805	skipped_low_count						sp by sequence	Q8IUZ0	canonical	1
+RI	990	ENSG00000140416	TPM1	chr15	+	26	0.362471498809	T4	slice 1	0	0	63042830	63071172	sp by sequence	P09493	T4_orphan;canonical	2
+RI	991	ENSG00000140416	TPM1	chr15	+	99	0.123360330487	T4	slice 1	1	1	63042830	63071172	sp by sequence	P09493	T4_orphan;canonical	1
+RI	1004	ENSG00000092439	TRPM7	chr15	-	7	0.940332967808	skipped_low_count						sp by sequence	Q96QT4	canonical	0
+RI	1009	ENSG00000159459	UBR1	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q8IWV7	canonical	0
+RI	1012	ENSG00000092531	SNAP23	chr15	+	13	0.00246633856254	skipped_low_count						sp by sequence	O00161	canonical	0
+RI	1013	ENSG00000137802	MAPKBP1	chr15	+	18	0.0065672309455	skipped_low_count						sp by sequence	O60336	canonical	0
+RI	1014	ENSG00000137802	MAPKBP1	chr15	+	7	0.0586472848982	skipped_low_count						sp by sequence	O60336	canonical	0
+RI	1015	ENSG00000137802	MAPKBP1	chr15	+	6	0.0104037842201	skipped_low_count						sp by sequence	O60336	canonical	0
+RI	1016	ENSG00000137802	MAPKBP1	chr15	+	2	0.522846856761	skipped_low_count						sp by sequence	O60336	canonical	0
+RI	1017	ENSG00000103932	RPAP1	chr15	-	1	0.551668570264	skipped_low_count						sp by sequence	Q9BWH6	canonical	0
+RI	1018	ENSG00000166140	ZFYVE19	chr15	+	3	0.128792575476	skipped_low_count						sp by sequence	Q96K21	canonical	0
+RI	1019	ENSG00000166140	ZFYVE19	chr15	+	4	0.199920218619	skipped_low_count						sp by sequence	Q96K21	canonical	0
+RI	1020	ENSG00000166140	ZFYVE19	chr15	+	4	0.0979832132914	skipped_low_count						sp by sequence	Q96K21	canonical	0
+RI	1021	ENSG00000188549	C15orf52	chr15	-	16	0.00982627737891	skipped_low_count						sp by sequence	Q6ZUT6	canonical	0
+RI	1026	ENSG00000137801	THBS1	chr15	+	12	0.557391804593	skipped_low_count						sp by sequence	P07996	canonical	0
+RI	1030	ENSG00000021776	AQR	chr15	-	7	0.80087145054	skipped_low_count						sp by sequence	O60306	canonical	0
+RI	1032	ENSG00000206149	HERC2P9	chr15	+	1	0.800315933506	skipped_low_count						none			0
+RI	1033	ENSG00000206149	HERC2P9	chr15	+	1	0.00150699857192	skipped_low_count						none			0
+RI	1034	ENSG00000206149	HERC2P9	chr15	+	3	0.412650266821	skipped_low_count						none			0
+RI	1036	ENSG00000114062	UBE3A	chr15	-	14	0.368715102384	skipped_low_count						sp by sequence	Q05086	canonical	0
+RI	1265	ENSG00000140474	ULK3	chr15	-	30	0.87696000147	T4	slice 1	2	2	74837228	74843105	sp by sequence	Q6PHR2	T4;canonical	1
+RI	1266	ENSG00000140474	ULK3	chr15	-	9	0.863065094625	skipped_low_count						sp by sequence	Q6PHR2	canonical	0
+RI	1267	ENSG00000140474	ULK3	chr15	-	13	0.973792294731	skipped_low_count						sp by sequence	Q6PHR2	canonical	0
+RI	1269	ENSG00000140474	ULK3	chr15	-	3	0.00930883749244	skipped_low_count						sp by sequence	Q6PHR2	canonical	0
+RI	1270	ENSG00000140474	ULK3	chr15	-	5	0.766100945314	skipped_low_count						sp by sequence	Q6PHR2	canonical	0
+RI	1400	ENSG00000185088	RPS27L	chr15	-	13	0.564363176033	skipped_low_count						sp by sequence	Q71UM5	canonical	0
+RI	1542	ENSG00000140525	FANCI	chr15	+	3	0.0209792613471	skipped_low_count						sp by sequence	Q9NVI1	canonical	0
+RI	1669	ENSG00000198901	PRC1	chr15	-	3	0.0403622252704	skipped_low_count						sp by sequence	O43663	canonical	1
+RI	1800	ENSG00000258461	AC012651.1	chr15	+	9	0.0127811580027	skipped_low_count						none			0
+RI	1935	ENSG00000166411	IDH3A	chr15	+	5	0.27222207221	skipped_low_count						sp by sequence	P50213	canonical	0
+RI	2019	ENSG00000243708	PLA2G4B	chr15	+	2	0.0114332209521	skipped_low_count						sp by sequence	P0C869	canonical	0
+RI	2152	ENSG00000224078	SNHG14	chr15	+	26	0.83839138727	fail						none			0
+RI	2153	ENSG00000224078	SNHG14	chr15	+	4	0.604437787839	skipped_low_count						none			0
+RI	2309	ENSG00000180979	LRRC57	chr15	-	3	0.709898256978	skipped_low_count						sp by sequence	Q8N9N7	canonical	1
+RI	3080	ENSG00000176454	LPCAT4	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q643R3	canonical	0
+RI	3142	ENSG00000180229	HERC2P3	chr15	-	1	0.643712221831	skipped_low_count						sp by gene name	Q9BVR0	canonical	0
+RI	3193	ENSG00000103852	TTC23	chr15	-	2	0.405411219698	skipped_low_count						sp by sequence	Q5W5X9	canonical	0
+RI	3259	ENSG00000137822	TUBGCP4	chr15	+	8	0.585580208854	skipped_low_count						sp by sequence	Q9UGJ1	canonical	0
+RI	3355	ENSG00000166710	B2M	chr15	+	29	1.0	T4	slice 1	2	2	44711547	44716342	sp by sequence	P61769	T4;canonical	2
+RI	3417	ENSG00000166965	RCCD1	chr15	+	4	0.0729941251241	skipped_low_count						sp by sequence	A6NED2	canonical	1
+RI	3594	ENSG00000213614	HEXA	chr15	-	8	0.136908347701	skipped_low_count						sp by sequence	P06865	canonical	0
+RI	3682	ENSG00000166946	CCNDBP1	chr15	+	15	0.709898256978	skipped_low_count						sp by sequence	O95273	canonical	0
+RI	4063	ENSG00000177082	WDR73	chr15	-	10	0.636017741452	skipped_low_count						sp by sequence	Q6P4I2	canonical	0
+RI	4064	ENSG00000177082	WDR73	chr15	-	14	1.0	skipped_low_count						sp by sequence	Q6P4I2	canonical	0
+RI	4066	ENSG00000177082	WDR73	chr15	-	7	0.890945758723	skipped_low_count						sp by sequence	Q6P4I2	canonical	0
+RI	4105	ENSG00000159433	STARD9	chr15	+	3	0.570185768003	skipped_low_count						sp by sequence	Q9P2P6	canonical	0
+RI	4106	ENSG00000159433	STARD9	chr15	+	14	0.620302166949	skipped_low_count						sp by sequence	Q9P2P6	canonical	0
+RI	4110	ENSG00000171914	TLN2	chr15	+	3	0.85304737065	skipped_low_count						sp by sequence	Q9Y4G6	canonical	0
+RI	4475	ENSG00000171877	FRMD5	chr15	-	6	0.312024263016	skipped_low_count						sp by sequence	Q7Z6J6	canonical	1
+RI	4476	ENSG00000041357	PSMA4	chr15	+	13	1.0	skipped_low_count						sp by sequence	P25789	canonical	0
+RI	4541	ENSG00000137818	RPLP1	chr15	+	70	0.959043564968	T4	slice 1	0	0	69452949	69455507	sp by sequence	P05386	T4;canonical	1
+RI	4558	ENSG00000185787	MORF4L1	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q9UBU8	canonical	0
+RI	5206	ENSG00000168970	JMJD7-PLA2G4B	chr15	+	4	0.320317800427	skipped_low_count						gtf		canonical	0
+RI	5209	ENSG00000168970	JMJD7-PLA2G4B	chr15	+	4	0.0182817618119	skipped_low_count						gtf		canonical	0
+RI	5845	ENSG00000174444	RPL4	chr15	-	264	2.93709323529e-09	T4	slice 1	0	0	66499407	66504790	sp by sequence	P36578	T4;canonical	2
+RI	5846	ENSG00000174444	RPL4	chr15	-	9	1.0	skipped_low_count						sp by sequence	P36578	canonical	0
+RI	5847	ENSG00000174444	RPL4	chr15	-	89	0.437754214691	T4	slice 1	0	0	66499407	66504790	sp by sequence	P36578	T4;canonical	1
+A5SS	728	ENSG00000184277	TM2D3	chr15	-	14	0.90147175236	skipped_low_count						sp by sequence	Q9BRN9	canonical	0
+A5SS	733	ENSG00000173575	CHD2	chr15	+	4	0.677058673842	skipped_low_count						sp by sequence	O14647	canonical	0
+A5SS	735	ENSG00000140553	UNC45A	chr15	+	17	0.80245794156	skipped_low_count						sp by sequence	Q9H3U1	canonical	0
+A5SS	739	ENSG00000196547	MAN2A2	chr15	+	11	0.458960832294	skipped_low_count						sp by sequence	P49641	canonical	0
+A5SS	740	ENSG00000196547	MAN2A2	chr15	+	3	0.478960717849	skipped_low_count						sp by sequence	P49641	canonical	0
+A5SS	741	ENSG00000182511	FES	chr15	+	8	1.0	skipped_low_count						sp by sequence	P07332	canonical	0
+A5SS	742	ENSG00000185033	SEMA4B	chr15	+	1	0.636137761547	skipped_low_count						sp by sequence	Q9NPR2	canonical	0
+A5SS	748	ENSG00000140543	DET1	chr15	-	2	0.254761941089	skipped_low_count						sp by sequence	Q7L5Y6	canonical	0
+A5SS	751	ENSG00000136404	TM6SF1	chr15	+	2	0.36095792854	skipped_low_count						sp by sequence	Q9BZW5	canonical	0
+A5SS	759	ENSG00000136381	IREB2	chr15	+	1	0.523780339345	skipped_low_count						sp by sequence	P48200	canonical	0
+A5SS	765	ENSG00000140365	COMMD4	chr15	+	8	0.896439281765	skipped_low_count						sp by sequence	Q9H0A8	canonical	0
+A5SS	766	ENSG00000178761	FAM219B	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q5XKK7	canonical	0
+A5SS	767	ENSG00000179335	CLK3	chr15	+	7	0.0256880127816	skipped_low_count						sp by sequence	P49761	canonical	0
+A5SS	769	ENSG00000140464	PML	chr15	+	5	0.0372507984708	skipped_low_count						sp by sequence	P29590	canonical	0
+A5SS	775	ENSG00000140332	TLE3	chr15	-	9	0.24003217238	skipped_low_count						sp by sequence	Q04726	canonical	1
+A5SS	776	ENSG00000140332	TLE3	chr15	-	1	0.588292370835	skipped_low_count						sp by sequence	Q04726	canonical	0
+A5SS	779	ENSG00000140332	TLE3	chr15	-	1	0.553423886786	skipped_low_count						sp by sequence	Q04726	canonical	0
+A5SS	783	ENSG00000128973	CLN6	chr15	-	3	0.690068155119	skipped_low_count						sp by sequence	Q9NWW5	canonical	0
+A5SS	793	ENSG00000035664	DAPK2	chr15	-	4	0.172568831294	skipped_low_count						sp by sequence	Q9UIK4	canonical	0
+A5SS	795	ENSG00000140416	TPM1	chr15	+	3468	0.493463205665	T4	slice 1	0	0	63042830	63071172	sp by sequence	P09493	T4_orphan;canonical	1
+A5SS	800	ENSG00000137871	ZNF280D	chr15	-	4	0.602233621776	skipped_low_count						sp by sequence	Q6N043	canonical	0
+A5SS	801	ENSG00000137871	ZNF280D	chr15	-	3	0.0110015522439	skipped_low_count						sp by sequence	Q6N043	canonical	0
+A5SS	802	ENSG00000137876	RSL24D1	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q9UHA3	canonical	1
+A5SS	804	ENSG00000092439	TRPM7	chr15	-	3	0.55880461997	skipped_low_count						sp by sequence	Q96QT4	canonical	0
+A5SS	805	ENSG00000104064	GABPB1	chr15	-	12	0.339523420371	skipped_low_count						sp by sequence	Q06547	canonical	0
+A5SS	806	ENSG00000178802	MPI	chr15	+	20	0.112389794403	skipped_low_count						sp by sequence	P34949	canonical	0
+A5SS	810	ENSG00000138606	SHF	chr15	-	7	0.981472964926	skipped_low_count						sp by sequence	Q7M4L6	canonical	0
+A5SS	815	ENSG00000159459	UBR1	chr15	-	1	0.839948477717	skipped_low_count						sp by sequence	Q8IWV7	canonical	0
+A5SS	825	ENSG00000128928	IVD	chr15	+	11	0.642772027803	skipped_low_count						sp by sequence	P26440	canonical	1
+A5SS	828	ENSG00000021776	AQR	chr15	-	5	0.00472437826506	skipped_low_count						sp by sequence	O60306	canonical	0
+A5SS	829	ENSG00000128463	EMC4	chr15	+	5	0.962842331345	skipped_low_count						sp by sequence	Q5J8M3	canonical	0
+A5SS	832	ENSG00000206149	HERC2P9	chr15	+	7	0.00189072745487	skipped_low_count						none			0
+A5SS	833	ENSG00000206149	HERC2P9	chr15	+	7	0.876965447163	skipped_low_count						none			0
+A5SS	835	ENSG00000114062	UBE3A	chr15	-	3	0.144193769847	skipped_low_count						sp by sequence	Q05086	canonical	0
+A5SS	1084	ENSG00000140474	ULK3	chr15	-	3	0.0234030022362	skipped_low_count						sp by sequence	Q6PHR2	canonical	0
+A5SS	1491	ENSG00000182718	ANXA2	chr15	-	1	1.0	skipped_low_count						sp by sequence	P07355	canonical	0
+A5SS	1492	ENSG00000182718	ANXA2	chr15	-	1	0.735447758411	skipped_low_count						sp by sequence	P07355	canonical	0
+A5SS	1627	ENSG00000166411	IDH3A	chr15	+	4	1.0	skipped_low_count						sp by sequence	P50213	canonical	0
+A5SS	1643	ENSG00000137817	PARP6	chr15	-	29	0.34149297355	T1		1	1	72241455	72267477	sp by sequence	Q2NL67	canonical;T1	1
+A5SS	1805	ENSG00000224078	SNHG14	chr15	+	5	0.624524469832	skipped_low_count						none			0
+A5SS	1806	ENSG00000224078	SNHG14	chr15	+	1	0.84843976262	skipped_low_count						none			0
+A5SS	1807	ENSG00000224078	SNHG14	chr15	+	1	0.580907711347	skipped_low_count						none			0
+A5SS	2175	ENSG00000138592	USP8	chr15	+	23	1.0	skipped_low_count						sp by sequence	P40818	canonical	0
+A5SS	2530	ENSG00000140386	SCAPER	chr15	-	15	0.143203258191	skipped_low_count						sp by sequence	Q9BY12	canonical	0
+A5SS	2612	ENSG00000140382	HMG20A	chr15	+	2	0.798858717708	skipped_low_count						sp by sequence	Q9NP66	canonical	0
+A5SS	2782	ENSG00000166825	ANPEP	chr15	-	2	0.124750107769	skipped_low_count						sp by sequence	P15144	canonical	1
+A5SS	2783	ENSG00000166233	ARIH1	chr15	+	6	0.0161073540836	skipped_low_count						sp by sequence	Q9Y4X5	canonical	0
+A5SS	2834	ENSG00000247240	UBL7-AS1	chr15	+	1	0.00142332771615	skipped_low_count						none			0
+A5SS	2882	ENSG00000137822	TUBGCP4	chr15	+	1	0.844994242814	skipped_low_count						sp by sequence	Q9UGJ1	canonical	0
+A5SS	2883	ENSG00000137822	TUBGCP4	chr15	+	13	1.0	skipped_low_count						sp by sequence	Q9UGJ1	canonical	0
+A5SS	2901	ENSG00000140264	SERF2	chr15	+	11	0.00538854547798	skipped_low_count						sp by sequence	P84101	canonical	0
+A5SS	3271	ENSG00000166946	CCNDBP1	chr15	+	1	0.795929837651	skipped_low_count						sp by sequence	O95273	canonical	0
+A5SS	3442	ENSG00000104129	DNAJC17	chr15	-	1	0.710085925405	skipped_low_count						sp by sequence	Q9NVM6	canonical	0
+A5SS	3643	ENSG00000177082	WDR73	chr15	-	14	1.0	skipped_low_count						sp by sequence	Q6P4I2	canonical	0
+A5SS	3645	ENSG00000177082	WDR73	chr15	-	12	0.00607499017381	skipped_low_count						sp by sequence	Q6P4I2	canonical	0
+A5SS	3684	ENSG00000159433	STARD9	chr15	+	3	0.0573975254345	skipped_low_count						sp by sequence	Q9P2P6	canonical	0
+A5SS	3688	ENSG00000171914	TLN2	chr15	+	7	0.560153767829	skipped_low_count						sp by sequence	Q9Y4G6	canonical	0
+A5SS	3946	ENSG00000276550	HERC2P2	chr15	+	12	0.528171094307	skipped_low_count						none			0
+A5SS	3988	ENSG00000067225	PKM	chr15	-	54	0.915242578748	T4	slice 1	2	2	72199650	72221201	sp by sequence	P14618	T4;canonical	1
+A5SS	3989	ENSG00000067225	PKM	chr15	-	47	1.0	skipped_outside_cds		2	2	72199650	72221201	sp by sequence	P14618	canonical	0
+A5SS	4051	ENSG00000041357	PSMA4	chr15	+	2	0.795693847417	skipped_low_count						sp by sequence	P25789	canonical	0
+A5SS	4052	ENSG00000041357	PSMA4	chr15	+	1	0.788360985415	skipped_low_count						sp by sequence	P25789	canonical	0
+A5SS	4078	ENSG00000181991	MRPS11	chr15	+	4	1.0	skipped_low_count						sp by sequence	P82912	canonical	0
+A5SS	4089	ENSG00000171763	SPATA5L1	chr15	+	3	0.0921910622139	skipped_low_count						sp by sequence	Q9BVQ7	canonical	0
+A5SS	4170	ENSG00000166855	CLPX	chr15	-	3	0.993694588533	skipped_low_count						sp by sequence	O76031	canonical	1
+A5SS	4389	ENSG00000047346	FAM214A	chr15	-	31	0.913299189387	T4	slice 1	0	0	52582154	52678021	sp by sequence	Q32MH5	T4_orphan;canonical	1
+A5SS	4390	ENSG00000047346	FAM214A	chr15	-	1	0.932144610973	skipped_low_count						sp by sequence	Q32MH5	canonical	0
+A5SS	4659	ENSG00000168970	JMJD7-PLA2G4B	chr15	+	1	0.560153767829	skipped_low_count						gtf		canonical	0
+A5SS	4673	ENSG00000128739	SNRPN	chr15	+	11	0.0015663361575	skipped_low_count						sp by sequence	P63162	canonical	0
+A5SS	4932	ENSG00000140403	DNAJA4	chr15	+	8	0.902412691433	skipped_low_count						sp by sequence	Q8WW22	canonical	1
+A5SS	5065	ENSG00000247556	OIP5-AS1	chr15	+	5	0.408942412247	skipped_low_count						none			0
+A3SS	1226	ENSG00000168904	LRRC28	chr15	+	1	0.549409369071	skipped_low_count						sp by sequence	Q86X40	canonical	0
+A3SS	1227	ENSG00000168904	LRRC28	chr15	+	1	0.557826656906	skipped_low_count						sp by sequence	Q86X40	canonical	0
+A3SS	1233	ENSG00000173575	CHD2	chr15	+	4	0.828454781101	skipped_low_count						sp by sequence	O14647	canonical	0
+A3SS	1234	ENSG00000176463	SLCO3A1	chr15	+	1	0.864237761066	skipped_low_count						sp by sequence	Q9UIG8	canonical	1
+A3SS	1237	ENSG00000140553	UNC45A	chr15	+	13	0.0544961191401	skipped_low_count						sp by sequence	Q9H3U1	canonical	0
+A3SS	1238	ENSG00000184508	HDDC3	chr15	-	2	1.0	skipped_low_count						sp by sequence	Q8N4P3	canonical	1
+A3SS	1243	ENSG00000196547	MAN2A2	chr15	+	6	0.401679216309	skipped_low_count						sp by sequence	P49641	canonical	0
+A3SS	1244	ENSG00000196547	MAN2A2	chr15	+	6	0.486175248425	skipped_low_count						sp by sequence	P49641	canonical	0
+A3SS	1245	ENSG00000196547	MAN2A2	chr15	+	9	0.692534990726	skipped_low_count						sp by sequence	P49641	canonical	0
+A3SS	1246	ENSG00000196547	MAN2A2	chr15	+	9	0.968625199093	skipped_low_count						sp by sequence	P49641	canonical	0
+A3SS	1247	ENSG00000196547	MAN2A2	chr15	+	19	0.74365051889	skipped_low_count						sp by sequence	P49641	canonical	0
+A3SS	1249	ENSG00000182511	FES	chr15	+	9	0.638641620884	skipped_low_count						sp by sequence	P07332	canonical	0
+A3SS	1261	ENSG00000140521	POLG	chr15	-	2	0.839231264722	skipped_low_count						sp by sequence	P54098	canonical	0
+A3SS	1263	ENSG00000140521	POLG	chr15	-	4	0.395741717393	skipped_low_count						sp by sequence	P54098	canonical	0
+A3SS	1265	ENSG00000140521	POLG	chr15	-	11	0.925434129756	skipped_low_count						sp by sequence	P54098	canonical	0
+A3SS	1269	ENSG00000172183	ISG20	chr15	+	7	0.00100808553807	skipped_low_count						sp by sequence	Q96AZ6	canonical	1
+A3SS	1271	ENSG00000103942	HOMER2	chr15	-	3	0.837360507493	skipped_low_count						sp by sequence	Q9NSB8	canonical	1
+A3SS	1272	ENSG00000103942	HOMER2	chr15	-	1	0.713021378085	skipped_low_count						sp by sequence	Q9NSB8	canonical	0
+A3SS	1286	ENSG00000140368	PSTPIP1	chr15	+	2	0.00100808553807	skipped_low_count						sp by sequence	O43586	canonical	1
+A3SS	1287	ENSG00000140368	PSTPIP1	chr15	+	1	0.140393479107	skipped_low_count						sp by sequence	O43586	canonical	0
+A3SS	1291	ENSG00000140400	MAN2C1	chr15	-	21	1.0	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+A3SS	1292	ENSG00000140400	MAN2C1	chr15	-	2	0.885599836148	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+A3SS	1293	ENSG00000140400	MAN2C1	chr15	-	2	0.938485552287	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+A3SS	1295	ENSG00000140400	MAN2C1	chr15	-	1	1.0	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+A3SS	1297	ENSG00000140400	MAN2C1	chr15	-	1	0.533057752042	skipped_low_count						sp by sequence	Q9NTJ4	canonical	0
+A3SS	1300	ENSG00000140365	COMMD4	chr15	+	3	0.087875242132	skipped_low_count						sp by sequence	Q9H0A8	canonical	0
+A3SS	1301	ENSG00000140365	COMMD4	chr15	+	1	0.585793734812	skipped_low_count						sp by sequence	Q9H0A8	canonical	0
+A3SS	1304	ENSG00000178761	FAM219B	chr15	-	30	0.900839971944	T1		1	1	74902619	74906800	sp by sequence	Q5XKK7	canonical;T1	1
+A3SS	1305	ENSG00000178761	FAM219B	chr15	-	2	0.196632128437	skipped_low_count						sp by sequence	Q5XKK7	canonical	0
+A3SS	1306	ENSG00000140497	SCAMP2	chr15	-	4	0.0966529012701	skipped_low_count						sp by sequence	O15127	canonical	0
+A3SS	1308	ENSG00000179335	CLK3	chr15	+	4	0.538706267537	skipped_low_count						sp by sequence	P49761	canonical	0
+A3SS	1309	ENSG00000179335	CLK3	chr15	+	7	0.00581988082932	skipped_low_count						sp by sequence	P49761	canonical	0
+A3SS	1316	ENSG00000103855	CD276	chr15	+	4	0.0746918783795	skipped_low_count						sp by sequence	Q5ZPR3	canonical	0
+A3SS	1317	ENSG00000156642	NPTN	chr15	-	60	0.975535078354	T1		0	0	73561910	73633215	sp by sequence	Q9Y639	canonical;T1_orphan	1
+A3SS	1325	ENSG00000140332	TLE3	chr15	-	4	0.529704607373	skipped_low_count						sp by sequence	Q04726	canonical	0
+A3SS	1330	ENSG00000140350	ANP32A	chr15	-	2	1.0	skipped_low_count						sp by sequence	P39687	canonical	1
+A3SS	1331	ENSG00000176700	SCAND2P	chr15	+	3	0.272662057892	skipped_low_count						sp by gene name	Q9GZW5	canonical	1
+A3SS	1335	ENSG00000128973	CLN6	chr15	-	1	0.569649014612	skipped_low_count						sp by sequence	Q9NWW5	canonical	0
+A3SS	1336	ENSG00000137834	SMAD6	chr15	+	1	0.147404987086	skipped_low_count						sp by sequence	O43541	canonical	0
+A3SS	1338	ENSG00000138614	INTS14	chr15	-	1	0.569649014612	skipped_low_count						sp by sequence	Q96SY0	canonical	0
+A3SS	1344	ENSG00000140416	TPM1	chr15	+	62	0.0514308482096	T4	slice 1	0	0	63042830	63071172	sp by sequence	P09493	T4;T4_orphan;canonical	2
+A3SS	1345	ENSG00000140416	TPM1	chr15	+	1	1.0	skipped_low_count						sp by sequence	P09493	canonical	0
+A3SS	1348	ENSG00000137776	SLTM	chr15	-	17	0.807420365749	skipped_low_count						sp by sequence	Q9NWH9	canonical	0
+A3SS	1349	ENSG00000137776	SLTM	chr15	-	4	0.696655231079	skipped_low_count						sp by sequence	Q9NWH9	canonical	0
+A3SS	1350	ENSG00000157450	RNF111	chr15	+	7	0.565619599649	skipped_low_count						sp by sequence	Q6ZNA4	canonical	1
+A3SS	1351	ENSG00000157450	RNF111	chr15	+	34	0.69383822788	T1		0	0	59030823	59094900	sp by sequence	Q6ZNA4	canonical;T1	1
+A3SS	1354	ENSG00000140262	TCF12	chr15	+	19	0.00100808553807	skipped_low_count						sp by sequence	Q99081	canonical	0
+A3SS	1355	ENSG00000137871	ZNF280D	chr15	-	24	0.0282996388454	skipped_low_count						sp by sequence	Q6N043	canonical	0
+A3SS	1361	ENSG00000104093	DMXL2	chr15	-	6	0.0265947226842	skipped_low_count						sp by sequence	Q8TDJ6	canonical	0
+A3SS	1362	ENSG00000092439	TRPM7	chr15	-	29	0.174210792193	T1		0	0	50561678	50686533	sp by sequence	Q96QT4	canonical;T1	1
+A3SS	1365	ENSG00000104047	DTWD1	chr15	+	1	0.563446602289	skipped_low_count						sp by sequence	Q8N5C7	canonical	0
+A3SS	1366	ENSG00000156958	GALK2	chr15	+	3	0.522643871337	skipped_low_count						sp by sequence	Q01415	canonical	0
+A3SS	1367	ENSG00000166200	COPS2	chr15	-	56	0.312659405533	T1		0	0	49127950	49155578	sp by sequence	P61201	T1;canonical	2
+A3SS	1368	ENSG00000138593	SECISBP2L	chr15	-	3	0.815348225147	skipped_low_count						sp by sequence	Q93073	canonical	0
+A3SS	1369	ENSG00000178802	MPI	chr15	+	4	0.397948571243	skipped_low_count						sp by sequence	P34949	canonical	0
+A3SS	1373	ENSG00000137872	SEMA6D	chr15	+	7	0.0414960987663	skipped_low_count						sp by sequence	Q8NFY4	canonical	0
+A3SS	1374	ENSG00000104164	BLOC1S6	chr15	+	5	0.0334942704337	skipped_low_count						sp by sequence	Q9UL45	canonical	0
+A3SS	1392	ENSG00000092531	SNAP23	chr15	+	13	0.00220333690316	skipped_low_count						sp by sequence	O00161	canonical	0
+A3SS	1393	ENSG00000092531	SNAP23	chr15	+	13	0.00202131377635	skipped_low_count						sp by sequence	O00161	canonical	0
+A3SS	1394	ENSG00000168907	PLA2G4F	chr15	-	1	0.551614286895	skipped_low_count						sp by sequence	Q68DD2	canonical	0
+A3SS	1395	ENSG00000168907	PLA2G4F	chr15	-	2	0.132761484362	skipped_low_count						sp by sequence	Q68DD2	canonical	0
+A3SS	1396	ENSG00000137802	MAPKBP1	chr15	+	2	0.154487345278	skipped_low_count						sp by sequence	O60336	canonical	0
+A3SS	1402	ENSG00000140320	BAHD1	chr15	+	25	0.790244394281	skipped_low_count						sp by sequence	Q8TBE0	canonical	1
+A3SS	1403	ENSG00000140320	BAHD1	chr15	+	16	0.0781403473041	skipped_low_count						sp by sequence	Q8TBE0	canonical	0
+A3SS	1404	ENSG00000172575	RASGRP1	chr15	-	1	0.0020779589349	skipped_low_count						sp by sequence	O95267	canonical	1
+A3SS	1405	ENSG00000186073	C15orf41	chr15	+	5	0.896779016658	skipped_low_count						sp by sequence	Q9Y2V0	canonical	0
+A3SS	1419	ENSG00000114062	UBE3A	chr15	-	3	1.0	skipped_low_count						sp by sequence	Q05086	canonical	0
+A3SS	1420	ENSG00000114062	UBE3A	chr15	-	16	0.557826656906	skipped_low_count						sp by sequence	Q05086	canonical	0
+A3SS	1421	ENSG00000114062	UBE3A	chr15	-	16	0.365480354398	skipped_low_count						sp by sequence	Q05086	canonical	0
+A3SS	1422	ENSG00000114062	UBE3A	chr15	-	16	0.322356299081	skipped_low_count						sp by sequence	Q05086	canonical	0
+A3SS	1423	ENSG00000114062	UBE3A	chr15	-	1	0.529704607373	skipped_low_count						sp by sequence	Q05086	canonical	0
+A3SS	1424	ENSG00000114062	UBE3A	chr15	-	1	0.536495877691	skipped_low_count						sp by sequence	Q05086	canonical	0
+A3SS	1425	ENSG00000114062	UBE3A	chr15	-	13	0.686944287355	skipped_low_count						sp by sequence	Q05086	canonical	0
+A3SS	1426	ENSG00000114062	UBE3A	chr15	-	1	0.547782109328	skipped_low_count						sp by sequence	Q05086	canonical	0
+A3SS	1433	ENSG00000275835	TUBGCP5	chr15	-	1	0.588095150658	skipped_low_count						sp by sequence	Q96RT8	canonical	1
+A3SS	1436	ENSG00000275835	TUBGCP5	chr15	-	1	0.529704607373	skipped_low_count						sp by sequence	Q96RT8	canonical	0
+A3SS	1551	ENSG00000159322	ADPGK	chr15	-	6	0.398457150182	skipped_low_count						sp by gene name	Q9BRR6	canonical	0
+A3SS	1774	ENSG00000140474	ULK3	chr15	-	9	1.0	skipped_low_count						sp by sequence	Q6PHR2	canonical	0
+A3SS	1776	ENSG00000140474	ULK3	chr15	-	5	0.7445379944	skipped_low_count						sp by sequence	Q6PHR2	canonical	0
+A3SS	1878	ENSG00000156232	WHAMM	chr15	+	1	0.57783235115	skipped_low_count						sp by sequence	Q8TF30	canonical	1
+A3SS	2304	ENSG00000184056	VPS33B	chr15	-	10	0.000495866984006	skipped_low_count						sp by sequence	Q9H267	canonical	1
+A3SS	2352	ENSG00000140307	GTF2A2	chr15	-	58	0.618624411698	T1		0	0	59639132	59652277	sp by sequence	P52657	canonical;T1	1
+A3SS	2695	ENSG00000166411	IDH3A	chr15	+	10	1.0	skipped_low_count						sp by sequence	P50213	canonical	0
+A3SS	2696	ENSG00000166411	IDH3A	chr15	+	1	0.557826656906	skipped_low_count						sp by sequence	P50213	canonical	0
+A3SS	2697	ENSG00000166411	IDH3A	chr15	+	1	1.0	skipped_low_count						sp by sequence	P50213	canonical	0
+A3SS	2699	ENSG00000166411	IDH3A	chr15	+	2	1.0	skipped_low_count						sp by sequence	P50213	canonical	0
+A3SS	2701	ENSG00000166411	IDH3A	chr15	+	6	0.897629025198	skipped_low_count						sp by sequence	P50213	canonical	0
+A3SS	2739	ENSG00000137817	PARP6	chr15	-	26	0.536495877691	T1		1	1	72241455	72267477	sp by sequence	Q2NL67	T1;canonical	1
+A3SS	2859	ENSG00000173517	PEAK1	chr15	-	42	0.632388714636	fail						sp by sequence	Q9H792	canonical	0
+A3SS	2936	ENSG00000081014	AP4E1	chr15	+	3	0.127362171566	skipped_low_count						sp by sequence	Q9UPM8	canonical	1
+A3SS	2960	ENSG00000128881	TTBK2	chr15	-	2	0.305102315313	skipped_low_count						sp by sequence	Q6IQ55	canonical	0
+A3SS	3249	ENSG00000137804	NUSAP1	chr15	+	2	0.66966009705	skipped_low_count						sp by sequence	Q9BXS6	canonical	1
+A3SS	3373	ENSG00000067221	STOML1	chr15	-	23	1.0	skipped_low_count						sp by sequence	Q9UBI4	canonical	0
+A3SS	3448	ENSG00000134138	MEIS2	chr15	-	37	0.00414166932007	T1		1	1	36892173	37099466	sp by sequence	O14770	canonical;T1	1
+A3SS	3449	ENSG00000134138	MEIS2	chr15	-	2	0.538171837863	skipped_low_count						sp by sequence	O14770	canonical	0
+A3SS	3716	ENSG00000166938	DIS3L	chr15	+	7	0.0151185786694	skipped_low_count						sp by sequence	Q8TF46	canonical	0
+A3SS	3994	ENSG00000140443	IGF1R	chr15	+	9	0.0166952230133	skipped_low_count						sp by sequence	P08069	canonical	1
+A3SS	4037	ENSG00000140395	WDR61	chr15	-	4	0.763379950398	skipped_low_count						sp by sequence	Q9GZS3	canonical	0
+A3SS	4482	ENSG00000180229	HERC2P3	chr15	-	1	0.00126288924394	skipped_low_count						sp by gene name	Q9BVR0	canonical	0
+A3SS	4494	ENSG00000166233	ARIH1	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q9Y4X5	canonical	0
+A3SS	4584	ENSG00000103852	TTC23	chr15	-	15	0.0414960987663	skipped_low_count						sp by sequence	Q5W5X9	canonical	0
+A3SS	4684	ENSG00000137822	TUBGCP4	chr15	+	5	0.568391514932	skipped_low_count						sp by sequence	Q9UGJ1	canonical	0
+A3SS	4685	ENSG00000137822	TUBGCP4	chr15	+	8	0.480722538238	skipped_low_count						sp by sequence	Q9UGJ1	canonical	0
+A3SS	4710	ENSG00000140264	SERF2	chr15	+	22	0.00135145023759	skipped_low_count						sp by sequence	P84101	canonical	0
+A3SS	4759	ENSG00000170776	AKAP13	chr15	+	14	0.534511855612	skipped_low_count						sp by sequence	Q12802	canonical	0
+A3SS	4764	ENSG00000136378	ADAMTS7	chr15	-	14	0.000430121010954	skipped_low_count						sp by sequence	Q9UKP4	canonical	1
+A3SS	4821	ENSG00000128951	DUT	chr15	+	2	1.0	skipped_low_count						sp by sequence	P33316	canonical	1
+A3SS	4940	ENSG00000140199	SLC12A6	chr15	-	1	0.61245917539	skipped_low_count						sp by sequence	Q9UHW9	canonical	0
+A3SS	5130	ENSG00000213614	HEXA	chr15	-	4	0.814024263958	skipped_low_count						sp by sequence	P06865	canonical	0
+A3SS	5357	ENSG00000067141	NEO1	chr15	+	20	0.394166197511	skipped_low_count						sp by sequence	Q92859	canonical	0
+A3SS	5358	ENSG00000067141	NEO1	chr15	+	1	0.567438216168	skipped_low_count						sp by sequence	Q92859	canonical	0
+A3SS	5490	ENSG00000104129	DNAJC17	chr15	-	4	0.467907626957	skipped_low_count						sp by sequence	Q9NVM6	canonical	0
+A3SS	6113	ENSG00000197696	NMB	chr15	-	3	0.0803758732019	skipped_low_count						sp by sequence	P08949	canonical	1
+A3SS	6433	ENSG00000181991	MRPS11	chr15	+	1	0.00108991819184	skipped_low_count						sp by sequence	P82912	canonical	0
+A3SS	6446	ENSG00000103811	CTSH	chr15	-	7	0.288662455234	skipped_low_count						sp by sequence	P09668	canonical	0
+A3SS	6447	ENSG00000103811	CTSH	chr15	-	3	0.674084086101	skipped_low_count						sp by sequence	P09668	canonical	0
+A3SS	6498	ENSG00000185787	MORF4L1	chr15	+	2	0.128328741142	skipped_low_count						sp by sequence	Q9UBU8	canonical	0
+A3SS	6762	ENSG00000166813	KIF7	chr15	-	3	0.14693736225	skipped_low_count						sp by sequence	Q2M1P5	canonical	1
+A3SS	6993	ENSG00000179361	ARID3B	chr15	+	2	0.00100808553807	skipped_low_count						sp by sequence	Q8IVW6	canonical	1
+A3SS	7017	ENSG00000137824	RMDN3	chr15	-	4	0.904930755535	skipped_low_count						sp by sequence	Q96TC7	canonical	1
+A3SS	7104	ENSG00000103994	ZNF106	chr15	-	316	0.596061777366	T1		2	2	42417304	42472289	sp by sequence	Q9H2Y7	canonical;T1	1
+A3SS	7105	ENSG00000103994	ZNF106	chr15	-	3	0.988636848155	skipped_low_count						sp by sequence	Q9H2Y7	canonical	0
+A3SS	7118	ENSG00000028528	SNX1	chr15	+	4	0.0927927818183	skipped_low_count						sp by sequence	Q13596	canonical	0
+A3SS	7119	ENSG00000028528	SNX1	chr15	+	1	0.912912093501	skipped_low_count						sp by sequence	Q13596	canonical	0
+A3SS	7146	ENSG00000137814	HAUS2	chr15	+	2	0.000398821498953	skipped_low_count						sp by sequence	Q9NVX0	canonical	0
+A3SS	7227	ENSG00000172349	IL16	chr15	+	2	1.0	skipped_low_count						sp by sequence	Q14005	canonical	1
+A3SS	7228	ENSG00000172349	IL16	chr15	+	6	0.00218238099886	skipped_low_count						sp by sequence	Q14005	canonical	0
+A3SS	7415	ENSG00000168970	JMJD7-PLA2G4B	chr15	+	3	0.0885290906208	skipped_low_count						gtf		canonical	0
+A3SS	7434	ENSG00000128739	SNRPN	chr15	+	40	0.767293130005	skipped_outside_cds		0	0	24974454	24978444	sp by sequence	P63162	canonical	0
+A3SS	7435	ENSG00000128739	SNRPN	chr15	+	16	0.231986519061	skipped_low_count						sp by sequence	P63162	canonical	0
+A3SS	7436	ENSG00000128739	SNRPN	chr15	+	8	0.686944287355	skipped_low_count						sp by sequence	P63162	canonical	0
+A3SS	7437	ENSG00000128739	SNRPN	chr15	+	16	0.706648314336	skipped_low_count						sp by sequence	P63162	canonical	0
+A3SS	7438	ENSG00000128739	SNRPN	chr15	+	8	1.0	skipped_low_count						sp by sequence	P63162	canonical	0
+A3SS	7439	ENSG00000128739	SNRPN	chr15	+	8	0.945933169996	skipped_low_count						sp by sequence	P63162	canonical	0
+A3SS	7754	ENSG00000128915	ICE2	chr15	-	6	0.860278326822	skipped_low_count						sp by sequence	Q659A1	canonical	0
+A3SS	7847	ENSG00000140403	DNAJA4	chr15	+	1	1.0	skipped_low_count						sp by sequence	Q8WW22	canonical	0

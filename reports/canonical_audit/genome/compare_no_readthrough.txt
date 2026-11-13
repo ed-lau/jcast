@@ -1,0 +1,28 @@
+no_readthrough: <PR 16 run> -> <prototype no_readthrough>
+
+  junctions.tsv: 599,644 -> 599,644 rows
+  psq_T1.fasta: 22,521 -> 22,522 records
+  psq_T1_orphan.fasta: 3,675 -> 3,672 records
+  psq_T4.fasta: 42,929 -> 42,930 records
+  psq_T4_orphan.fasta: 9,627 -> 9,625 records
+  psq_canonical.fasta: 13,474 -> 13,491 records
+  uniprot_canonicals.tsv: 17,068 -> 17,068 rows
+  canonical sources changed: {('none', 'gtf'): 17}
+  their records: joined 0 -> 2; orphan 8 -> 3
+    ENSG00000221887.7 HMSD: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000226314.10 ZKSCAN8P1: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000269825.6 ENSG00000269825: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000282933.4 RHOXF1P3: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000282936.4 ENSG00000282936: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000283128.3 ENSG00000283128: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000284934.3 ENSG00000284934: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000286264.3 ENSG00000286264: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000287839.3 ENSG00000287839: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000288654.2 ENSG00000288654: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000288678.2 ENSG00000288678: none -> gtf; joined 0 -> 0, orphan 2 -> 2
+    ENSG00000288715.2 ENSG00000288715: none -> gtf; joined 0 -> 0, orphan 2 -> 1
+    ENSG00000288841.1 ENSG00000288841: none -> gtf; joined 0 -> 1, orphan 2 -> 0
+    ENSG00000289766.1 ENSG00000289766: none -> gtf; joined 0 -> 1, orphan 2 -> 0
+    ENSG00000291313.1 ENSG00000291313: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000293606.2 ENSG00000293606: none -> gtf; joined 0 -> 0, orphan 0 -> 0
+    ENSG00000293642.2 ENSG00000293642: none -> gtf; joined 0 -> 0, orphan 0 -> 0

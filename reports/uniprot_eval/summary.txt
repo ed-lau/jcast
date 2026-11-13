@@ -1,0 +1,50 @@
+UniProt FASTA: sp_human_isoforms.fasta.gz: 42545 entries, 20414 canonical; GTF: Ensembl 89 chr15
+
+chr15 rMATS genes: 294; with a protein-coding transcript in the GTF: 274; with a cached API answer: 184
+
+protein-coding genes: Swiss-Prot canonicals matching the gene name (GN=)
+     15  0
+    259  1
+
+protein-coding genes: Swiss-Prot canonicals equal to one of the gene's GTF proteins
+      7  0
+    267  1
+
+cached API answers: name mapping agrees | sequence mapping agrees
+      1  False | False
+      8  False | True
+      5  True | False
+    170  True | True
+
+cached API answers: the cached sequence equals the current release
+      1  
+    183  True
+
+cached API answers: the canonical equals a GTF-translated transcript (coordinates available)
+      5  False
+    179  True
+
+output records (API canonicals) identical to a Swiss-Prot entry: file | match
+     54  psq_T1.fasta | isoform
+     95  psq_T1.fasta | none
+      3  psq_T1_alt_cterm.fasta | isoform
+      4  psq_T1_alt_cterm.fasta | none
+      1  psq_T1_alt_cterm_orphan.fasta | canonical
+     18  psq_T1_alt_cterm_orphan.fasta | none
+      3  psq_T1_alt_nterm.fasta | isoform
+      1  psq_T1_alt_nterm_orphan.fasta | none
+    101  psq_T1_orphan.fasta | none
+      1  psq_T2.fasta | isoform
+     23  psq_T2.fasta | none
+     13  psq_T2_orphan.fasta | none
+     22  psq_T4.fasta | isoform
+    164  psq_T4.fasta | none
+      1  psq_T4_orphan.fasta | canonical
+    179  psq_T4_orphan.fasta | none
+    182  psq_canonical.fasta | canonical
+      1  psq_canonical.fasta | none
+
+output records: match
+    184  canonical
+     83  isoform
+    599  none

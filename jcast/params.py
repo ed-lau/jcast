@@ -34,7 +34,19 @@ calling to other resources like APPRIS (e.g. see DET1_HUMAN).
 Because of the prominence of Uniprot in proteomics work
 we have chosen to use Uniprot for now.
 
+2026-11-11: with --uniprot, canonicals come from a supplied UniProt FASTA instead of the API (by sequence, then gene
+name), and genes without an entry fall back to the GTF; use_gtf_only is then ignored. See
+reports/2026-11-11-uniprot-fasta-evaluation.md
+
 """
 use_gtf_only = False  # use GTF but not Uniprot to get canonical transcripts
 uniprot_max_retries = 10  # max number of retries if retrieving sequences from Uniprot
-aa_stitch_length = 10  # amino acid joint to stitch to canonical when using aa for joining
+uniprot_timeout = 30  # seconds to wait for each UniProt API request (connect, and between bytes read)
+aa_stitch_length = 7  # anchor length (residues) for joining a translated slice to the canonical
+aa_terminus_length = 10  # residues compared at each end to decide whether a product's terminus differs from the canonical
+
+"""
+2026-11-11 the anchor length was 10. Seven is the shortest length at which, across the MANE Select proteome, anchors
+repeated within their own protein and chance matches from other proteins level off; longer anchors only miss slices
+with short shared ends. See reports/2026-11-11-stitch-anchor-audit.md
+"""

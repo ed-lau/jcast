@@ -1,0 +1,48 @@
+         11372883 function calls (11011088 primitive calls) in 5.769 seconds
+
+   Ordered by: cumulative time
+   List reduced from 1062 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      100    0.005    0.000    5.752    0.058 /Users/edwardlau/projects/jcast/jcast/main.py:157(_translate_one)
+      888    0.015    0.000    4.892    0.006 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/frame.py:4685(query)
+      888    0.007    0.000    4.694    0.005 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/frame.py:4851(eval)
+      888    0.004    0.000    3.094    0.003 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/generic.py:644(_get_cleaned_column_resolvers)
+      888    0.090    0.000    3.087    0.003 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/generic.py:659(<dictcomp>)
+      100    0.003    0.000    2.580    0.026 /Users/edwardlau/projects/jcast/jcast/junctions.py:421(trim_cds)
+      100    0.002    0.000    2.577    0.026 /Users/edwardlau/projects/jcast/jcast/junctions.py:279(_get_translated_region)
+55229/54846    0.337    0.000    2.472    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/series.py:389(__init__)
+      100    0.003    0.000    1.832    0.018 /Users/edwardlau/projects/jcast/jcast/junctions.py:344(get_translated_phase)
+    23976    0.034    0.000    1.373    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/generic.py:6451(dtypes)
+      888    0.009    0.000    1.299    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/eval.py:173(eval)
+      100    0.000    0.000    1.188    0.012 /Users/edwardlau/projects/jcast/jcast/sequences.py:456(get_canonical_aa)
+      100    0.000    0.000    1.188    0.012 /Users/edwardlau/projects/jcast/jcast/uniprot.py:93(canonical)
+       74    0.000    0.000    1.187    0.016 /Users/edwardlau/projects/jcast/jcast/uniprot.py:111(_choose)
+       74    0.001    0.000    1.094    0.015 /Users/edwardlau/projects/jcast/jcast/sequences.py:471(<lambda>)
+       74    0.011    0.000    1.093    0.015 /Users/edwardlau/projects/jcast/jcast/uniprot.py:30(gene_proteins)
+      888    0.002    0.000    0.802    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:796(__init__)
+      888    0.001    0.000    0.799    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:824(parse)
+ 7721/888    0.012    0.000    0.797    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:401(visit)
+      888    0.001    0.000    0.692    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:415(visit_Module)
+      888    0.001    0.000    0.689    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:421(visit_Expr)
+     1074    0.003    0.000    0.674    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:711(visit_Compare)
+     1074    0.002    0.000    0.669    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:534(visit_BinOp)
+    55311    0.190    0.000    0.583    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/construction.py:517(sanitize_array)
+     1260    0.004    0.000    0.582    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:493(_maybe_evaluate_binop)
+      871    0.001    0.000    0.520    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:482(_maybe_eval)
+      871    0.003    0.000    0.519    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/ops.py:387(evaluate)
+      871    0.000    0.000    0.481    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/ops.py:262(_in)
+      871    0.003    0.000    0.481    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/series.py:5497(isin)
+    27528    0.025    0.000    0.444    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/parsing.py:99(clean_column_name)
+      888    0.003    0.000    0.439    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/engines.py:65(evaluate)
+    31743    0.007    0.000    0.437    0.000 {built-in method builtins.next}
+      871    0.409    0.000    0.435    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/algorithms.py:457(isin)
+    62028    0.065    0.000    0.413    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/parsing.py:170(tokenize_string)
+2324170/2319951    0.204    0.000    0.324    0.000 {built-in method builtins.isinstance}
+   118860    0.184    0.000    0.317    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/tokenize.py:433(_tokenize)
+    54846    0.080    0.000    0.306    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/internals/managers.py:1863(from_array)
+    81701    0.081    0.000    0.298    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/generic.py:6320(__setattr__)
+      888    0.003    0.000    0.293    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/generic.py:634(_get_index_resolvers)
+      183    0.000    0.000    0.280    0.002 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:737(visit_BoolOp)
+
+

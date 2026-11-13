@@ -1,0 +1,33 @@
+2026-11-12 14:24:52,105~INFO~JCAST 0.3.5a
+2026-11-12 14:24:52,105~INFO~Arguments: Namespace(rmats_folder='<repo>/tests/data/rmats', gtf_file='<repo>/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf', genome='<repo>/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz', out='<work>/chr15_-m_after', overwrite=False, cache_dir='<work>/cache', read=1, model=True, canonical=True, uniprot='<repo>/tests/data/uniprot/uniprot_sprot_human_isoforms_chr15_2026_04.fasta.gz', processes=1, verbose=False, mask=None, splice_type={'MXE', 'A3SS', 'A5SS', 'SE', 'RI'}, qvalue=[0, 1], g_or_ln=0, func=<function run_jcast at 0x1e985d800>)
+2026-11-12 14:24:52,105~INFO~rMATS MXE: <repo>/tests/data/rmats/MXE.MATS.JC.txt (16,223 bytes, sha256 ea3877af20b9620898a750b5aeb6037e4c96f52249c38528d77f5f674ce604e0)
+2026-11-12 14:24:52,106~INFO~rMATS SE: <repo>/tests/data/rmats/SE.MATS.JC.txt (111,985 bytes, sha256 5f5e826f717653f7fb7cc2f955333e3b5307fdbb0cfa440d3d479330783eae4a)
+2026-11-12 14:24:52,106~INFO~rMATS RI: <repo>/tests/data/rmats/RI.MATS.JC.txt (14,014 bytes, sha256 fc35b607c9389aee0a6314a014aedbfc92813abdc85ae2bed18232960ba5d1f7)
+2026-11-12 14:24:52,106~INFO~rMATS A5SS: <repo>/tests/data/rmats/A5SS.MATS.JC.txt (11,250 bytes, sha256 f6c1980e6ed62b2fb3a41c2ff74c9ed7723c70c43cb3d45036fdec9b3e12aff2)
+2026-11-12 14:24:52,106~INFO~rMATS A3SS: <repo>/tests/data/rmats/A3SS.MATS.JC.txt (21,549 bytes, sha256 28274cedf4939dd553e280b2c969492e3f218007495ec472924db9c67a8a6627)
+2026-11-12 14:24:52,106~INFO~GTF: <repo>/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf (41,452,402 bytes, modified 2026-05-22 12:40:55)
+2026-11-12 14:24:52,106~INFO~Genome: <repo>/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz (25,214,767 bytes, modified 2026-05-22 12:40:55)
+2026-11-12 14:24:52,114~INFO~Reading GTF file. This could take a minute.
+2026-11-12 14:24:52,151~INFO~Read the GTF from the cache <work>/cache/gtf/Homo_sapiens.GRCh38.89.chromosome.15.gtf.5c69b5cd13b0.dc0be6e3126f.pkl.
+2026-11-12 14:24:53,035~INFO~Read from zipped genome.
+2026-11-12 14:24:53,044~INFO~UniProt FASTA uniprot_sprot_human_isoforms_chr15_2026_04.fasta.gz (sha256 b87494234a55e813f5bf07fc5facce0b3a911becb16edcc3c93296c083950621): 711 entries, 275 canonical.
+2026-11-12 14:24:53,044~INFO~The -m flag is set. The modeled read count will override -r --read values.
+2026-11-12 14:24:53,138~INFO~Mixture model parameters (gamma shape, gamma rate, normal mean, normal sd, weights): [3.958, 2.697, 3.729, 1.571, 0.847, 0.153]; modeled read count cutoff 26.
+2026-11-12 14:24:53,571~INFO~Translating junctions with a read count of at least 26 (-m): the smaller of the summed inclusion and skipping junction counts. Others are skipped.
+2026-11-12 14:24:55,699~INFO~Canonicals by source: {'gtf': 1, 'none': 18, 'sp by gene name': 8, 'sp by sequence': 267}. JCAST records identical to a UniProt entry: 37 (see psq_isoforms.tsv). jcast_uniprot_merged.fasta: 711 UniProt entries and 26 JCAST records from T1, T1_alt_cterm, T1_alt_nterm, T1_alt_both.
+2026-11-12 14:24:55,702~INFO~Summary.
+Junctions by fate and splice type (each junction is a row of junctions.tsv):
+fate                 MXE   SE  RI  A5SS  A3SS  total
+T1                    19   21   0     1     9     50
+T1_alt_terminus        0    2   1     0     0      3
+T2                     3    2   0     0     0      5
+T4                    10   10   9     3     1     33
+fail                  13    7   1     0     1     22
+exception              0    0   0     0     0      0
+skipped_low_count     43  673  77    66   124    983
+skipped_fdr            0    0   0     0     0      0
+skipped_masked         0    0   0     0     0      0
+skipped_outside_cds    2    5   0     1     1      9
+total                 90  720  88    71   136  1,105
+Records per file: psq_T1.fasta 49, psq_T1_alt_cterm.fasta 4, psq_T1_orphan.fasta 5, psq_T2.fasta 6, psq_T4.fasta 31, psq_T4_orphan.fasta 15, psq_canonical.fasta 276
+2026-11-12 14:24:55,702~INFO~Time: 4 s in all, of which 2 s translating junctions.

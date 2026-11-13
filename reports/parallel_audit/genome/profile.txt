@@ -1,0 +1,48 @@
+         52503036 function calls (51275097 primitive calls) in 201.582 seconds
+
+   Ordered by: cumulative time
+   List reduced from 1077 to 40 due to restriction <40>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+      300    0.032    0.000  201.488    0.672 /Users/edwardlau/projects/jcast/jcast/main.py:157(_translate_one)
+     2761    0.089    0.000  191.500    0.069 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/frame.py:4685(query)
+     2761    0.040    0.000  189.343    0.069 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/frame.py:4851(eval)
+     2761    0.044    0.000  171.923    0.062 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/eval.py:173(eval)
+     2761    0.009    0.000  169.738    0.061 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:796(__init__)
+     2761    0.006    0.000  169.722    0.061 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:824(parse)
+24554/2761    0.051    0.000  169.716    0.061 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:401(visit)
+     2761    0.004    0.000  169.329    0.061 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:415(visit_Module)
+     2761    0.002    0.000  169.320    0.061 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:421(visit_Expr)
+     3418    0.012    0.000  169.253    0.050 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:711(visit_Compare)
+     3418    0.008    0.000  169.230    0.050 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:534(visit_BinOp)
+     4075    0.015    0.000  168.920    0.041 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:493(_maybe_evaluate_binop)
+     2790    0.002    0.000  168.686    0.060 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:482(_maybe_eval)
+     2790    0.015    0.000  168.684    0.060 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/ops.py:387(evaluate)
+     2790    0.003    0.000  168.524    0.060 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/ops.py:262(_in)
+     2790    0.026    0.000  168.521    0.060 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/series.py:5497(isin)
+     2790  168.151    0.060  168.262    0.060 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/algorithms.py:457(isin)
+      300    0.001    0.000  108.227    0.361 /Users/edwardlau/projects/jcast/jcast/sequences.py:456(get_canonical_aa)
+      300    0.002    0.000  108.225    0.361 /Users/edwardlau/projects/jcast/jcast/uniprot.py:93(canonical)
+      289    0.002    0.000  108.222    0.374 /Users/edwardlau/projects/jcast/jcast/uniprot.py:111(_choose)
+      289    0.009    0.000  104.335    0.361 /Users/edwardlau/projects/jcast/jcast/sequences.py:471(<lambda>)
+      289    0.182    0.001  104.326    0.361 /Users/edwardlau/projects/jcast/jcast/uniprot.py:30(gene_proteins)
+      629    0.001    0.000   91.997    0.146 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:737(visit_BoolOp)
+      629    0.001    0.000   91.997    0.146 {built-in method _functools.reduce}
+      657    0.002    0.000   91.996    0.140 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:738(visitor)
+     1314    0.002    0.000   91.943    0.070 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/computation/expr.py:732(_try_visit_binop)
+      300    0.022    0.000   47.669    0.159 /Users/edwardlau/projects/jcast/jcast/junctions.py:421(trim_cds)
+      300    0.010    0.000   47.643    0.159 /Users/edwardlau/projects/jcast/jcast/junctions.py:279(_get_translated_region)
+      300    0.011    0.000   44.842    0.149 /Users/edwardlau/projects/jcast/jcast/junctions.py:344(get_translated_phase)
+     2761    0.019    0.000   10.307    0.004 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/generic.py:644(_get_cleaned_column_resolvers)
+     2761    0.312    0.000   10.274    0.004 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/generic.py:659(<dictcomp>)
+177953/176724    1.177    0.000    8.427    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/series.py:389(__init__)
+     2761    0.016    0.000    7.072    0.003 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/generic.py:634(_get_index_resolvers)
+     5522    0.026    0.000    6.821    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/generic.py:603(_get_axis_resolvers)
+    11044    0.049    0.000    6.752    0.001 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/indexes/base.py:1550(to_series)
+    61440    5.986    0.000    5.986    0.000 {method 'copy' of 'numpy.ndarray' objects}
+    77308    0.115    0.000    4.606    0.000 /Users/edwardlau/projects/jcast/.conda/lib/python3.11/site-packages/pandas/core/generic.py:6451(dtypes)
+       28    0.000    0.000    3.879    0.139 /Users/edwardlau/projects/jcast/jcast/sequences.py:472(<lambda>)
+       28    0.001    0.000    3.879    0.139 /Users/edwardlau/projects/jcast/jcast/sequences.py:521(get_canonical_aa_gtf)
+       28    0.001    0.000    3.876    0.138 /Users/edwardlau/projects/jcast/jcast/sequences.py:379(get_annotated_transcripts_gtf)
+
+

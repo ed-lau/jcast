@@ -1,0 +1,224 @@
+junctions: 1105; analysed (not skipped): 716
+
+current output records by file and annotation (all junctions)
+     69  psq_T1 | annotated protein_coding
+    102  psq_T1 | new
+      1  psq_T1_orphan | annotated protein_coding
+     36  psq_T1_orphan | new
+      1  psq_T2 | annotated other
+      2  psq_T2 | annotated protein_coding
+     20  psq_T2 | new
+     14  psq_T2_orphan | new
+     52  psq_T4 | annotated other
+     30  psq_T4 | annotated protein_coding
+    153  psq_T4 | new
+      5  psq_T4_orphan | annotated other
+      1  psq_T4_orphan | annotated protein_coding
+     76  psq_T4_orphan | new
+
+=================== policy: tsl2 ===================
+
+slice: stop class (from its frame, or from the alternative start if N-anchored)
+     26  A
+     93  B
+    325  D
+    172  no frame
+    759  open
+     57  terminal
+
+slice: start codon | N-anchored
+    242  contains gene start | alt start in slice | False
+   1055  gene start upstream / absent | - | False
+     93  gene start upstream / absent | alt start in slice | False
+     34  start-less | - | False
+      8  start-less | alt start in slice | True
+
+anchored slices: join mode x product class
+      8  c | annotated protein_coding
+     65  n | annotated protein_coding
+     13  n | new
+      4  n | unjoined
+
+C-anchored internal stop (class A): product class
+     19  annotated protein_coding
+      7  new
+
+stop class x product of an N-only join (A routed; B = NMD-only stop, D = unannotated: never routed, controls)
+     19  A | annotated protein_coding
+      7  A | new
+     55  B | annotated other
+     11  B | annotated protein_coding
+     18  B | new
+      9  B | unjoined
+     32  D | annotated other
+     13  D | annotated protein_coding
+    228  D | new
+     52  D | unjoined
+
+annotated start codons inside slices that are not ATG in the genome: 27
+
+anchored junctions not routed because they are frameshifts (gene | type | id | fate)
+      1  APH1B | MXE | 3368 | SUCCESS TIER 2
+      1  GTF2A2 | SE | 11950 | SUCCESS TIER 2
+      1  PKM | SE | 36967 | SUCCESS TIER 1
+      1  SEC11A | MXE | 434 | SUCCESS TIER 2
+      1  SNURF | MXE | 499 | SUCCESS TIER 2
+
+junction fate: actual -> proposed
+    153  FAILURE | FAILURE
+      3  FAILURE | SUCCESS TIER 1 ALT TERMINUS
+      1  FAILURE | SUCCESS TIER 1
+    289  PARTIAL TIER 4 | PARTIAL TIER 4
+     13  PARTIAL TIER 4 | SUCCESS TIER 1 ALT TERMINUS
+      9  SUCCESS TIER 1 | SUCCESS TIER 1 ALT TERMINUS
+    218  SUCCESS TIER 1 | SUCCESS TIER 1
+     30  SUCCESS TIER 2 | SUCCESS TIER 2
+
+routed slices: proposed file x product class
+     10  psq_T1 | annotated protein_coding
+      5  psq_T1 | new
+     16  psq_T1_alt_cterm | annotated protein_coding
+      3  psq_T1_alt_cterm | new
+      7  psq_T1_alt_nterm | annotated protein_coding
+      2  psq_T1_alt_orphan | unjoined
+     29  psq_canonical | annotated protein_coding
+
+routed slices: current files -> proposed file (changed only)
+      3  (none) | psq_T1
+      6  (none) | psq_T1_alt_cterm
+      7  (none) | psq_T1_alt_nterm
+     29  (none) | psq_canonical
+      2  psq_T1_orphan | psq_T1_alt_orphan
+      2  psq_T4 | psq_T1
+      7  psq_T4 | psq_T1_alt_cterm
+      6  psq_T4_orphan | psq_T1_alt_cterm
+
+baseline: slices of junctions that are T1 today, product under today's rule
+    294  annotated protein_coding
+    119  new
+     41  unjoined
+
+routed slices: product today -> proposed (class)
+     59  annotated protein_coding | annotated protein_coding
+      8  new | new
+      3  unjoined | annotated protein_coding
+      2  unjoined | unjoined
+
+routed slices of junctions that are T1/T2 today: does the product change?
+      8  SUCCESS TIER 1 | annotated protein_coding | annotated protein_coding | psq_T1
+      7  SUCCESS TIER 1 | annotated protein_coding | annotated protein_coding | psq_T1_alt_nterm
+     17  SUCCESS TIER 1 | annotated protein_coding | annotated protein_coding | psq_canonical
+      4  SUCCESS TIER 1 | new | new | psq_T1
+      2  SUCCESS TIER 1 | unjoined | unjoined | psq_T1_alt_orphan
+
+=================== policy: any ===================
+
+slice: stop class (from its frame, or from the alternative start if N-anchored)
+     67  A
+    139  B
+    238  D
+    166  no frame
+    765  open
+     57  terminal
+
+slice: start codon | N-anchored
+    242  contains gene start | alt start in slice | False
+    981  gene start upstream / absent | - | False
+    167  gene start upstream / absent | alt start in slice | False
+     25  start-less | - | False
+     17  start-less | alt start in slice | True
+
+anchored slices: join mode x product class
+     12  c | annotated protein_coding
+      2  c | new
+      2  c | unjoined
+      3  n | annotated other
+     84  n | annotated protein_coding
+     24  n | new
+     12  n | unjoined
+      1  none | annotated protein_coding
+
+C-anchored internal stop (class A): product class
+      3  annotated other
+     38  annotated protein_coding
+     18  new
+      8  unjoined
+
+stop class x product of an N-only join (A routed; B = NMD-only stop, D = unannotated: never routed, controls)
+      3  A | annotated other
+     38  A | annotated protein_coding
+     18  A | new
+      8  A | unjoined
+     84  B | annotated other
+      5  B | annotated protein_coding
+     38  B | new
+     12  B | unjoined
+    197  D | new
+     41  D | unjoined
+
+annotated start codons inside slices that are not ATG in the genome: 31
+
+anchored junctions not routed because they are frameshifts (gene | type | id | fate)
+      1  APH1B | MXE | 3368 | SUCCESS TIER 2
+      1  GTF2A2 | SE | 11950 | SUCCESS TIER 2
+      1  HAUS2 | SE | 42228 | SUCCESS TIER 2
+      1  PKM | SE | 36967 | SUCCESS TIER 1
+      1  SEC11A | MXE | 434 | SUCCESS TIER 2
+      1  SNURF | MXE | 499 | SUCCESS TIER 2
+
+junction fate: actual -> proposed
+    145  FAILURE | FAILURE
+     11  FAILURE | SUCCESS TIER 1 ALT TERMINUS
+      1  FAILURE | SUCCESS TIER 1
+    261  PARTIAL TIER 4 | PARTIAL TIER 4
+     41  PARTIAL TIER 4 | SUCCESS TIER 1 ALT TERMINUS
+     11  SUCCESS TIER 1 | SUCCESS TIER 1 ALT TERMINUS
+    216  SUCCESS TIER 1 | SUCCESS TIER 1
+     30  SUCCESS TIER 2 | SUCCESS TIER 2
+
+routed slices: proposed file x product class
+     12  psq_T1 | annotated protein_coding
+      7  psq_T1 | new
+      2  psq_T1_alt_cterm | annotated other
+     35  psq_T1_alt_cterm | annotated protein_coding
+     15  psq_T1_alt_cterm | new
+     12  psq_T1_alt_nterm | annotated protein_coding
+      2  psq_T1_alt_nterm | new
+     10  psq_T1_alt_orphan | unjoined
+      4  psq_T1_orphan | unjoined
+     49  psq_canonical | annotated protein_coding
+
+routed slices: current files -> proposed file (changed only)
+      3  (none) | psq_T1
+     20  (none) | psq_T1_alt_cterm
+     14  (none) | psq_T1_alt_nterm
+      5  (none) | psq_T1_alt_orphan
+     49  (none) | psq_canonical
+      2  psq_T1_orphan | psq_T1_alt_orphan
+      5  psq_T4 | psq_T1
+     25  psq_T4 | psq_T1_alt_cterm
+      7  psq_T4_orphan | psq_T1_alt_cterm
+      3  psq_T4_orphan | psq_T1_alt_orphan
+      4  psq_T4_orphan | psq_T1_orphan
+
+baseline: slices of junctions that are T1 today, product under today's rule
+    294  annotated protein_coding
+    119  new
+     41  unjoined
+
+routed slices: product today -> proposed (class)
+      2  annotated other | annotated other
+    100  annotated protein_coding | annotated protein_coding
+      2  annotated protein_coding | new
+     22  new | new
+      4  no frame | annotated protein_coding
+      4  unjoined | annotated protein_coding
+     14  unjoined | unjoined
+
+routed slices of junctions that are T1/T2 today: does the product change?
+      9  SUCCESS TIER 1 | annotated protein_coding | annotated protein_coding | psq_T1
+      8  SUCCESS TIER 1 | annotated protein_coding | annotated protein_coding | psq_T1_alt_nterm
+     17  SUCCESS TIER 1 | annotated protein_coding | annotated protein_coding | psq_canonical
+      2  SUCCESS TIER 1 | annotated protein_coding | new | psq_T1_alt_nterm
+      4  SUCCESS TIER 1 | new | new | psq_T1
+      2  SUCCESS TIER 1 | unjoined | unjoined | psq_T1_alt_orphan

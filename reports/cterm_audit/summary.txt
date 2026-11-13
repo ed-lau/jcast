@@ -1,0 +1,88 @@
+junctions: 1105; analysed (passed filters, GTF phase available): 540
+
+actual fate of junctions not analysed
+    259  FAILURE
+    297  SKIPPED
+      7  SUCCESS TIER 1
+      2  SUCCESS TIER 2
+
+slice stop class (analysed junctions)
+     67  A: annotated protein_coding stop codon
+    126  B: stop codon annotated only on non-protein_coding transcripts
+    110  C: unannotated stop in the slice's 3'-most exon
+    102  D: unannotated stop upstream of a junction in the slice
+    634  no stop codon in slice
+     41  stop is the last codon of the slice
+
+stop class x product of an N-only stitch
+     97  C: unannotated stop in the slice's 3'-most exon | novel
+     13  C: unannotated stop in the slice's 3'-most exon | unstitchable
+      3  A: annotated protein_coding stop codon | annotated other biotype
+     37  A: annotated protein_coding stop codon | annotated protein_coding
+     22  A: annotated protein_coding stop codon | novel
+      5  A: annotated protein_coding stop codon | unstitchable
+     77  B: stop codon annotated only on non-protein_coding transcripts | annotated other biotype
+      5  B: stop codon annotated only on non-protein_coding transcripts | annotated protein_coding
+     34  B: stop codon annotated only on non-protein_coding transcripts | novel
+     10  B: stop codon annotated only on non-protein_coding transcripts | unstitchable
+     81  D: unannotated stop upstream of a junction in the slice | novel
+     21  D: unannotated stop upstream of a junction in the slice | unstitchable
+
+stop class x actual fate of the junction
+     41  C: unannotated stop in the slice's 3'-most exon | FAILURE
+     69  C: unannotated stop in the slice's 3'-most exon | PARTIAL TIER 4
+     35  A: annotated protein_coding stop codon | FAILURE
+     32  A: annotated protein_coding stop codon | PARTIAL TIER 4
+     43  B: stop codon annotated only on non-protein_coding transcripts | FAILURE
+     82  B: stop codon annotated only on non-protein_coding transcripts | PARTIAL TIER 4
+      1  B: stop codon annotated only on non-protein_coding transcripts | SUCCESS TIER 3
+     23  D: unannotated stop upstream of a junction in the slice | FAILURE
+     78  D: unannotated stop upstream of a junction in the slice | PARTIAL TIER 4
+      1  D: unannotated stop upstream of a junction in the slice | SUCCESS TIER 3
+
+junction fate transitions (actual -> proposed)
+     57  FAILURE | FAILURE
+     11  FAILURE | SUCCESS TIER 1 ALT CTERM
+      3  FAILURE | SUCCESS TIER 1
+    229  PARTIAL TIER 4 | PARTIAL TIER 4
+     32  PARTIAL TIER 4 | SUCCESS TIER 1 ALT CTERM
+    182  SUCCESS TIER 1 | SUCCESS TIER 1
+     24  SUCCESS TIER 2 | SUCCESS TIER 2
+      2  SUCCESS TIER 3 | SUCCESS TIER 3
+
+rescued junctions (not T1 today): slice proposed file x product validation
+     30  psq_T1 | annotated protein_coding
+      5  psq_T1 | novel
+      2  psq_T1_alt_cterm | annotated other biotype
+     32  psq_T1_alt_cterm | annotated protein_coding
+     15  psq_T1_alt_cterm | novel
+      4  psq_T1_alt_cterm_orphan | unstitchable
+      4  psq_T1_orphan | unstitchable
+
+T1 today: current file -> proposed file x product validation
+    215  psq_T1 | psq_T1 | annotated protein_coding
+    109  psq_T1 | psq_T1 | novel
+     40  psq_T1_orphan | psq_T1_orphan | unstitchable
+
+terminal-stop slices by stop biotype
+      8  nonsense_mediated_decay;protein_coding
+     33  protein_coding
+
+consistency: C-anchored terminal slices that stitch today: 35; N-only product identical: 35
+
+proposed output file, all eligible slices
+    359  psq_T1
+     49  psq_T1_alt_cterm
+      4  psq_T1_alt_cterm_orphan
+     44  psq_T1_orphan
+
+current output file, T1 slices today
+    324  psq_T1
+     40  psq_T1_orphan
+
+baseline: slices of junctions that are SUCCESS TIER 1 today, by product validation
+    215  annotated protein_coding
+    109  novel
+     40  unstitchable
+
+existing defect: PTC-free slice ending at a stop codon, stitched at both ends, with canonical residues appended after the stop

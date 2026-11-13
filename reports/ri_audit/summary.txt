@@ -1,0 +1,68 @@
+baseline commit: 89e1a82; RI junctions: 88; non-RI junctions whose fate, coordinates or phase changed: 0
+
+RI fate: baseline
+     19  FAILURE
+     57  PARTIAL TIER 4
+     10  SKIPPED: Sequence discarded due to low coverage
+      1  SKIPPED: Splice event lies outside the annotated coding region
+      1  SUCCESS TIER 1
+
+RI fate: candidate
+     17  FAILURE
+     56  PARTIAL TIER 4
+     10  SKIPPED: Sequence discarded due to low coverage
+      3  SKIPPED: Splice event lies outside the annotated coding region
+      1  SUCCESS TIER 2
+      1  SUCCESS TIER 3
+
+RI fate transitions (baseline | candidate)
+      1  FAILURE | PARTIAL TIER 4
+      1  FAILURE | SKIPPED: Splice event lies outside the annotated coding region
+      1  PARTIAL TIER 4 | SUCCESS TIER 2
+      1  PARTIAL TIER 4 | SUCCESS TIER 3
+      1  SUCCESS TIER 1 | SKIPPED: Splice event lies outside the annotated coding region
+
+RI junctions whose trimmed coordinates differ: 0
+
+retained exon == anc_es..down_ee before trimming: see reports/2026-11-10-ri-slice-audit.md §2
+
+slice 1 length, analysed RI junctions: baseline anc+retained+down vs candidate retained
+  81472  baseline total nt
+  59365  candidate total nt
+
+intron length mod 3 (frameshift test), analysed RI junctions
+     18  0
+     32  1
+     25  2
+
+FASTA records (file | baseline | candidate)
+      1  psq_T1.fasta | 169 | 169
+      1  psq_T1_orphan.fasta | 37 | 35
+      1  psq_T2.fasta | 22 | 22
+      1  psq_T2_orphan.fasta | 13 | 14
+      1  psq_T3_orphan.fasta | 4 | 6
+      1  psq_T4.fasta | 217 | 213
+      1  psq_T4_orphan.fasta | 75 | 74
+      1  psq_canonical.fasta | 268 | 268
+
+FASTA diff (file | change | slice | annotation)
+      2  psq_T1_orphan.fasta | lost | RI | no annotated match
+      1  psq_T2_orphan.fasta | gained | RI | no annotated match
+      2  psq_T3_orphan.fasta | gained | RI | no annotated match
+      1  psq_T4.fasta | gained | RI | annotated nonsense_mediated_decay
+     43  psq_T4.fasta | gained | RI | no annotated match
+     48  psq_T4.fasta | lost | RI | no annotated match
+      7  psq_T4_orphan.fasta | gained | RI | no annotated match
+      8  psq_T4_orphan.fasta | lost | RI | no annotated match
+
+RI records in every output file, by annotation: baseline
+      2  psq_T1_orphan.fasta | no annotated match
+     48  psq_T4.fasta | no annotated match
+     13  psq_T4_orphan.fasta | no annotated match
+
+RI records in every output file, by annotation: candidate
+      1  psq_T2_orphan.fasta | no annotated match
+      2  psq_T3_orphan.fasta | no annotated match
+      1  psq_T4.fasta | annotated nonsense_mediated_decay
+     45  psq_T4.fasta | no annotated match
+     12  psq_T4_orphan.fasta | no annotated match

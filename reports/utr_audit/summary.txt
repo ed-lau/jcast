@@ -1,0 +1,164 @@
+baseline commit: da72a0a; junctions: 1105; fate changed: 103
+
+fate counts: baseline
+    330  FAILURE
+    261  PARTIAL TIER 4
+    297  SKIPPED: Sequence discarded due to low coverage
+    189  SUCCESS TIER 1
+     26  SUCCESS TIER 2
+      2  SUCCESS TIER 3
+
+fate counts: candidate
+    240  FAILURE
+    259  PARTIAL TIER 4
+    297  SKIPPED: Sequence discarded due to low coverage
+     90  SKIPPED: Splice event lies outside the annotated coding region
+    190  SUCCESS TIER 1
+     27  SUCCESS TIER 2
+      2  SUCCESS TIER 3
+
+fate transitions (baseline | candidate)
+      2  FAILURE | PARTIAL TIER 4
+     83  FAILURE | SKIPPED: Splice event lies outside the annotated coding region
+      6  FAILURE | SUCCESS TIER 1
+      2  FAILURE | SUCCESS TIER 2
+      1  PARTIAL TIER 4 | FAILURE
+      3  PARTIAL TIER 4 | SKIPPED: Splice event lies outside the annotated coding region
+      1  SUCCESS TIER 1 | FAILURE
+      4  SUCCESS TIER 1 | SKIPPED: Splice event lies outside the annotated coding region
+      1  SUCCESS TIER 2 | FAILURE
+
+coordinate changes (type | strand | dropped | trimmed)
+      6  A3SS | + | anc | alt1+alt2
+      4  A3SS | - | - | alt1+alt2
+      5  A3SS | - | - | anc
+      1  A3SS | - | anc | -
+      3  A5SS | + | alt1+alt2 | anc
+      2  A5SS | + | anc+alt1+alt2 | -
+      2  A5SS | - | - | alt1+alt2
+      2  A5SS | - | alt1+alt2 | -
+      1  A5SS | - | anc+alt1+alt2 | -
+      4  MXE | + | alt1 | -
+      1  MXE | + | alt2 | -
+      1  MXE | + | anc | -
+      1  MXE | + | anc+alt1 | -
+      1  MXE | + | anc+alt1+alt2 | down
+      1  MXE | + | anc+alt1+alt2+down | -
+      1  MXE | - | alt1+alt2+down | anc
+      6  MXE | - | down | -
+      4  RI | + | - | alt1
+      1  RI | + | anc | alt1+down
+      1  RI | + | anc+alt1+down | -
+      4  RI | - | - | alt1
+      2  RI | - | - | down
+      1  RI | - | anc | alt1+down
+      1  RI | - | anc+alt1+down | -
+      4  SE | + | - | anc
+      2  SE | + | alt1+down | -
+      1  SE | + | alt1+down | anc
+      3  SE | + | anc | -
+      1  SE | + | anc+alt1 | -
+     27  SE | + | anc+alt1 | down
+     27  SE | + | anc+alt1+down | -
+      3  SE | + | down | -
+      1  SE | - | - | alt1
+      1  SE | - | - | alt1+down
+      2  SE | - | - | down
+      1  SE | - | alt1+down | -
+     30  SE | - | alt1+down | anc
+      8  SE | - | anc+alt1+down | -
+     14  SE | - | down | -
+
+junctions keeping an exon entirely outside [tx0, tx1] (baseline, candidate)
+    933  False | False
+    172  True | False
+
+junctions with a dropped exon overlapping any annotated CDS: 24
+
+  by overlapping transcript (name:biotype:TSL)
+      1  CD276-216:protein_coding:TSL5.0
+      1  CLK3-212:protein_coding:TSL3.0
+      1  ICE2-217:nonsense_mediated_decay:TSL4.0
+      1  LRRK1-201:protein_coding:TSL5.0
+      1  LYSMD4-210:protein_coding:TSL4.0
+      1  MESDC2-202:nonsense_mediated_decay:TSL2.0
+      3  OAZ2-201:protein_coding:TSL5.0
+      3  OAZ2-206:protein_coding:TSL5.0
+      3  OAZ2-207:protein_coding:TSL5.0
+      2  PAK6-208:protein_coding:TSL4.0
+      2  PAK6-209:protein_coding:TSL4.0
+      2  PAK6-215:protein_coding:TSL4.0
+      2  PAK6-216:protein_coding:TSL5.0
+      1  SERF2-206:protein_coding:TSL3.0
+      1  SERF2-209:protein_coding:TSL4.0
+      1  SERF2-211:protein_coding:TSL4.0
+      1  SERF2-213:nonsense_mediated_decay:TSL2.0
+      1  SERF2-217:protein_coding:TSL5.0
+      1  SNAP23-208:protein_coding:TSL5.0
+      1  SNAP23-209:protein_coding:TSL3.0
+      1  SNAP23-220:protein_coding:TSL3.0
+      4  TLN2-205:protein_coding:TSL5.0
+      6  TLN2-209:protein_coding:TSL5.0
+      6  TLN2-211:protein_coding:TSL5.0
+      2  ZFAND6-206:protein_coding:TSL4.0
+      2  ZFAND6-217:protein_coding:TSL4.0
+      3  ZNF609-201:protein_coding:TSL5.0
+
+fate transitions of junctions with a dropped exon overlapping a CDS
+      1  CD276 | SE | 5991 | SKIPPED: Sequence discarded due to low coverage | SKIPPED: Sequence discarded due to low coverage
+      1  CLK3 | SE | 5971 | FAILURE | SUCCESS TIER 2
+      1  ICE2 | SE | 45693 | SKIPPED: Sequence discarded due to low coverage | SKIPPED: Sequence discarded due to low coverage
+      1  LRRK1 | SE | 19275 | PARTIAL TIER 4 | SKIPPED: Splice event lies outside the annotated coding region
+      1  LYSMD4 | SE | 43507 | SKIPPED: Sequence discarded due to low coverage | SKIPPED: Sequence discarded due to low coverage
+      1  MESDC2 | SE | 5810 | FAILURE | SKIPPED: Splice event lies outside the annotated coding region
+      1  OAZ2 | SE | 24776 | SKIPPED: Sequence discarded due to low coverage | SKIPPED: Sequence discarded due to low coverage
+      1  OAZ2 | SE | 24778 | FAILURE | SKIPPED: Splice event lies outside the annotated coding region
+      1  OAZ2 | SE | 24779 | FAILURE | SKIPPED: Splice event lies outside the annotated coding region
+      1  PAK6 | SE | 11515 | FAILURE | SKIPPED: Splice event lies outside the annotated coding region
+      1  PAK6 | SE | 11516 | FAILURE | SKIPPED: Splice event lies outside the annotated coding region
+      1  SERF2 | SE | 26771 | FAILURE | SKIPPED: Splice event lies outside the annotated coding region
+      1  SNAP23 | SE | 6468 | SKIPPED: Sequence discarded due to low coverage | SKIPPED: Sequence discarded due to low coverage
+      1  TLN2 | A5SS | 3688 | SUCCESS TIER 1 | SKIPPED: Splice event lies outside the annotated coding region
+      1  TLN2 | RI | 4110 | PARTIAL TIER 4 | SKIPPED: Splice event lies outside the annotated coding region
+      1  TLN2 | SE | 34106 | SUCCESS TIER 1 | SKIPPED: Splice event lies outside the annotated coding region
+      1  TLN2 | SE | 34107 | SUCCESS TIER 1 | SKIPPED: Splice event lies outside the annotated coding region
+      1  TLN2 | SE | 34108 | SUCCESS TIER 1 | SUCCESS TIER 1
+      1  TLN2 | SE | 34109 | SKIPPED: Sequence discarded due to low coverage | SKIPPED: Sequence discarded due to low coverage
+      1  ZFAND6 | SE | 5827 | FAILURE | SKIPPED: Splice event lies outside the annotated coding region
+      1  ZFAND6 | SE | 5828 | FAILURE | SKIPPED: Splice event lies outside the annotated coding region
+      1  ZNF609 | MXE | 460 | FAILURE | SKIPPED: Splice event lies outside the annotated coding region
+      1  ZNF609 | SE | 6146 | PARTIAL TIER 4 | SKIPPED: Splice event lies outside the annotated coding region
+      1  ZNF609 | SE | 6147 | SKIPPED: Sequence discarded due to low coverage | SKIPPED: Sequence discarded due to low coverage
+
+second-start-site retry fired (baseline, candidate)
+   1016  False | False
+     89  True | False
+
+GTF phase available (baseline, candidate)
+    347  False | False
+      5  False | True
+     13  True | False
+    740  True | True
+
+FASTA records (file | baseline | candidate)
+      1  psq_T1.fasta | 164 | 169
+      1  psq_T1_orphan.fasta | 46 | 37
+      1  psq_T2.fasta | 23 | 22
+      1  psq_T2_orphan.fasta | 11 | 13
+      1  psq_T3_orphan.fasta | 4 | 4
+      1  psq_T4.fasta | 216 | 217
+      1  psq_T4_orphan.fasta | 81 | 75
+      1  psq_canonical.fasta | 268 | 268
+
+FASTA diff (file | change | matches annotated protein)
+      4  psq_T1.fasta | gained | False
+      1  psq_T1.fasta | gained | True
+      2  psq_T1_orphan.fasta | gained | False
+     11  psq_T1_orphan.fasta | lost | False
+      1  psq_T2.fasta | lost | False
+      4  psq_T2_orphan.fasta | gained | False
+      2  psq_T2_orphan.fasta | lost | False
+      2  psq_T4.fasta | gained | False
+      2  psq_T4.fasta | gained | True
+      3  psq_T4.fasta | lost | False
+      6  psq_T4_orphan.fasta | lost | False

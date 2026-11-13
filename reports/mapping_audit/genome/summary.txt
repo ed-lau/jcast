@@ -1,0 +1,24 @@
+protein-coding genes without a canonical in the run, with TrEMBL entries in the FASTA as well: none: 181 genes, none: 251 orphan records, tr by gene name: 4 genes, tr by gene name: 4 orphan records, tr by sequence: 199 genes, tr by sequence: 106 orphan records
+cross-references: /private/tmp/claude-501/-Users-edwardlau-projects-jcast/48d50eff-ba4d-4d7b-bc78-c71d2a4ace53/scratchpad/xrefs/human_ensembl_xrefs.tsv.gz (UniProt release 2026_04); 262883 human entries with an Ensembl gene, 23750 Ensembl genes
+genes in the run: 17068
+
+protein-coding genes (13823): the run's choice against UniProt's cross-references
+   13066  sp by sequence     same entry; records: 70827 joined, 12834 orphan
+     351  none               none; cross-references: TrEMBL only; records: 0 joined, 338 orphan
+     212  sp by gene name    same entry; records: 1469 joined, 357 orphan
+      53  gtf                gtf; cross-references: Swiss-Prot; records: 228 joined, 68 orphan
+      49  sp by gene name    Swiss-Prot entry; cross-references: TrEMBL only; records: 117 joined, 43 orphan
+      48  gtf                gtf; cross-references: TrEMBL only (same sequence); records: 116 joined, 20 orphan
+      33  none               none; cross-references: Swiss-Prot; records: 0 joined, 23 orphan
+       6  sp by sequence     Swiss-Prot entry; cross-references: TrEMBL only; records: 41 joined, 35 orphan
+       4  sp by gene name    Swiss-Prot entry; no cross-reference; records: 0 joined, 0 orphan
+       1  sp by gene name    other entry, other sequence; records: 0 joined, 0 orphan
+
+other genes (3245): the run's choice against UniProt's cross-references
+    3061  none               none; no cross-reference; records: 0 joined, 0 orphan
+     183  sp by gene name    Swiss-Prot entry; no cross-reference; records: 0 joined, 0 orphan
+       1  none               none; cross-references: TrEMBL only; records: 0 joined, 0 orphan
+
+genes cross-referenced to more than one Swiss-Prot entry: 48
+API answers in the local cache: 6519 genes; the run's choice: {'same entry': 6358, 'differs': 145, 'same sequence': 16}
+  differing, by the run's source and the API's database: {('gtf', 'sp'): 17, ('none', 'tr'): 96, ('sp by sequence', 'tr'): 2, ('sp by gene name', 'tr'): 15, ('none', 'sp'): 10, ('sp by gene name', 'sp'): 2, ('gtf', 'tr'): 2, ('sp by sequence', 'sp'): 1}

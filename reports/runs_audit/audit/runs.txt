@@ -1,0 +1,21 @@
+1. missing -o directory: FileNotFoundError: [Errno 2] No such file or directory: '<work>/no/such/dir/logfile.log'
+2. -r 1 into a directory, then -r 30 into the same directory:
+   records after -r 1:            {'psq_T1.fasta': 186, 'psq_T1_alt_cterm.fasta': 18, 'psq_T1_alt_nterm.fasta': 5, 'psq_T1_orphan.fasta': 20, 'psq_T2.fasta': 30, 'psq_T2_orphan.fasta': 4, 'psq_T4.fasta': 253, 'psq_T4_orphan.fasta': 56, 'psq_canonical.fasta': 275}
+   records of -r 30 on its own:   {'psq_T1.fasta': 40, 'psq_T1_alt_cterm.fasta': 4, 'psq_T1_orphan.fasta': 5, 'psq_T2.fasta': 6, 'psq_T4.fasta': 18, 'psq_T4_orphan.fasta': 12, 'psq_canonical.fasta': 275}
+   records after both:            {'psq_T1.fasta': 186, 'psq_T1_alt_cterm.fasta': 18, 'psq_T1_alt_nterm.fasta': 5, 'psq_T1_orphan.fasta': 20, 'psq_T2.fasta': 30, 'psq_T2_orphan.fasta': 4, 'psq_T4.fasta': 253, 'psq_T4_orphan.fasta': 56, 'psq_canonical.fasta': 275}
+   output files after both identical to the -r 1 run alone: True; to -r 30 alone: False
+   log: (runs, junctions started) (2, 2210)
+3. an exception in junction SE 11950 (number 500 of 1105 in run order):
+   -p 1: run aborted: RuntimeError: injected fault; junctions logged 500; records written 410 of 847; UniProt outputs written: False
+   -p 3: run aborted: RuntimeError: injected fault; junctions logged 490; records written 405 of 847; UniProt outputs written: False
+4. two runs in one process (as the GUI or a notebook would):
+   handlers after run 1: ['FileHandler', 'StreamHandler']; after run 2: ['FileHandler', 'StreamHandler', 'FileHandler', 'StreamHandler']
+   run 1 log lines after run 1: 10813; after run 2: 21626 (run 2 also writes into run 1's log)
+   run 2 log lines: 10813
+5. caches:
+   UniProt API cache written to the working directory: True
+   API path from a read-only working directory: PermissionError: [Errno 13] Permission denied: 'cache'
+   GTF cache written next to the GTF: True; extra index column: ['Unnamed: 0']
+   GTF replaced by its first half under the same name: genes read 2155 (the replacement has 1152, the old file 2155): the stale cache is used
+   cache half written (as a second run sees while the first writes it): read without error, 48431 of 97275 rows, 1139 of 2155 genes
+   GTF in a read-only directory, no cache yet: PermissionError: [Errno 13] Permission denied: '<work>/gtf_readonly/annotation.gtf.cached'

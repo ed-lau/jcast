@@ -1,0 +1,55 @@
+UniProt FASTA: sp_human_isoforms.fasta.gz; chr15 test set; API answers from the local cache
+
+1. genes: 294; canonical differing from the evaluation's sequence-then-name mapping: 0 []
+
+canonical source
+      1  gtf
+     18  none
+      8  sp by gene name
+    267  sp by sequence
+
+canonical source | gene has a cached API answer | same accession as the API
+      1  gtf | False | False
+     17  none | False | False
+      1  none | True | False
+      3  sp by gene name | False | False
+      5  sp by gene name | True | True
+     89  sp by sequence | False | False
+    178  sp by sequence | True | True
+
+2. UniProt API calls in the --uniprot run: 0 (patched to raise)
+
+junctions: 1105; fate changed: 0
+
+fate changes (canonical | API cache | --uniprot)
+
+FASTA records (file | API cache | --uniprot)
+      1  psq_T1.fasta | 149 | 186
+      1  psq_T1_alt_cterm.fasta | 7 | 18
+      1  psq_T1_alt_cterm_orphan.fasta | 19 | 0
+      1  psq_T1_alt_nterm.fasta | 3 | 5
+      1  psq_T1_alt_nterm_orphan.fasta | 1 | 0
+      1  psq_T1_orphan.fasta | 101 | 20
+      1  psq_T2.fasta | 24 | 30
+      1  psq_T2_orphan.fasta | 13 | 4
+      1  psq_T4.fasta | 186 | 253
+      1  psq_T4_orphan.fasta | 180 | 56
+      1  psq_canonical.fasta | 183 | 275
+
+records in one run only (file | change | canonical)
+     37  psq_T1.fasta | uniprot only | changed
+     11  psq_T1_alt_cterm.fasta | uniprot only | changed
+     19  psq_T1_alt_cterm_orphan.fasta | api only | changed
+      2  psq_T1_alt_nterm.fasta | uniprot only | changed
+      1  psq_T1_alt_nterm_orphan.fasta | api only | changed
+     81  psq_T1_orphan.fasta | api only | changed
+      6  psq_T2.fasta | uniprot only | changed
+      9  psq_T2_orphan.fasta | api only | changed
+     67  psq_T4.fasta | uniprot only | changed
+    124  psq_T4_orphan.fasta | api only | changed
+      1  psq_canonical.fasta | api only | changed
+     93  psq_canonical.fasta | uniprot only | changed
+
+3. merged database: 42671 records = 42545 UniProt entries + 126 JCAST records
+
+records from psq_T1: R merge 118, JCAST 118; identical sequences, accessions and entry names: True

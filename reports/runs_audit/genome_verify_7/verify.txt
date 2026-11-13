@@ -1,0 +1,21 @@
+rMATS subset: 20000 junctions (seed 5) of /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats
+gtf /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/gencode.v50.primary_assembly.annotation.gtf
+genome /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/GRCh38.primary_assembly.genome.fa
+uniprot /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/20261111_human_uniprot_swissprot_isoform.fasta
+machine: 24 CPUs; load average at start 16.8
+
+run	commit	processes	wall_s	junction_loop_s	junctions_per_s	files_identical	messages_identical_from_first_junction
+before	82a309b	-	425	341	58.7	True	True
+after	82a309b + working tree	-	654	308	64.9	True	True
+after_p16	82a309b + working tree	16	63	27	734.5	True	True
+
+after: start-up messages (before the first junction) differ:
+  - INFO~Namespace(rmats_folder='<scratch>/verify_work/verif
+  + INFO~Namespace(rmats_folder='<scratch>/verify_work/verif
+  + INFO~Wrote the GTF cache <scratch>/home/Library/Caches/j
+after_p16: start-up messages (before the first junction) differ:
+  - INFO~Namespace(rmats_folder='<scratch>/verify_work/verif
+  + INFO~Namespace(rmats_folder='<scratch>/verify_work/verif
+  + INFO~Read the GTF from the cache <scratch>/home/Library/
+  + INFO~Translating junctions in 16 worker processes.
+output files: jcast_uniprot_merged.fasta f036d614df3e3c56, psq_T1.fasta c58c7376db98cf05, psq_T1_alt_both.fasta 8e1b6deb4eaf7487, psq_T1_alt_cterm.fasta 2e4d44402f5f1718, psq_T1_alt_cterm_orphan.fasta 735398910ed2b795, psq_T1_alt_nterm.fasta 02b1c0fe8c226674, psq_T1_alt_nterm_orphan.fasta d3e8857e3d4067f3, psq_T1_orphan.fasta d90a76d666c557c4, psq_T2.fasta c4327fdaea5f6124, psq_T2_orphan.fasta 4408fbd0bd00869a, psq_T4.fasta 1b1aea5d3a6891ad, psq_T4_orphan.fasta 017c913ff74e328a, psq_canonical.fasta 1cd7beb512dedeea, psq_isoforms.tsv 0de9719bf039b47d, uniprot_canonicals.tsv 1f292534c79587cc

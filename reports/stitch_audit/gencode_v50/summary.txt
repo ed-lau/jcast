@@ -1,0 +1,12 @@
+annotation: gencode.v50.annotation.gtf; transcripts: gencode.v50.transcripts.fa.gz
+MANE Select proteins: 19168 (median length 431 aa); internal exon boundaries: 172210; skipped: {'does not translate cleanly (non-ATG start, internal stop or selenoprotein)': 61}
+k=4: anchors 343351, repeated within the protein 13528 (3.94%); chance match of a foreign k-mer 2689/343351 (0.7832%)
+k=5: anchors 343056, repeated within the protein 4657 (1.358%); chance match of a foreign k-mer 190/343056 (0.0554%)
+k=6: anchors 342704, repeated within the protein 3027 (0.883%); chance match of a foreign k-mer 36/342704 (0.0105%)
+k=7: anchors 342402, repeated within the protein 2441 (0.713%); chance match of a foreign k-mer 24/342402 (0.007%)
+k=8: anchors 342102, repeated within the protein 2054 (0.6%); chance match of a foreign k-mer 23/342102 (0.0067%)
+k=9: anchors 341751, repeated within the protein 1857 (0.543%); chance match of a foreign k-mer 19/341751 (0.0056%)
+k=10: anchors 341426, repeated within the protein 1738 (0.509%); chance match of a foreign k-mer 18/341426 (0.0053%)
+k=12: anchors 340719, repeated within the protein 1605 (0.471%); chance match of a foreign k-mer 15/340719 (0.0044%)
+k=15: anchors 339638, repeated within the protein 1474 (0.434%); chance match of a foreign k-mer 13/339638 (0.0038%)
+k=20: anchors 337433, repeated within the protein 1363 (0.404%); chance match of a foreign k-mer 11/337433 (0.0033%)

@@ -3,10 +3,9 @@
 """ Helper functions that translate nucleotides to amino acids, etc. """
 
 import os.path
-import sqlite3 as sq
-import requests as rq
 
 from Bio import SeqIO
+from Bio.Seq import reverse_complement
 
 from jcast import constants
 
@@ -37,88 +36,8 @@ def get_local_nuc(genome_index,
     if es <= 0 or ee <= 0:
         return genome_index[chromosome][0:0]  # 2020-07-21 return SeqRecord rather than Seq
 
-    return genome_index[chromosome][es-1:ee]
-
-
-def get_rest_nuc(species,
-                 chrom,
-                 es,
-                 ee,
-                 ):
-    """
-    :param species: Species, e.g., 'mouse
-    :param chrom: Chromosome, e.g., 1
-    :param es: Exon start, e.g., 10000000
-    :param ee: Exon end, e.g., 10000100
-    :return:
-
-    Function to get nucleotide sequences by REST API
-    (anchor, alternative-1, alternative-2, downstream)
-
-    If the coordinates are minus 1 such as in the case when a certain segment is not present in a particular splice
-    type, this should return an empty string
-
-    To reduce loading time, it will try to cache the sequence coordinates in a local SQLite DB.
-
-    To-do: note that if the network retrieval is affected by some redirecting so we are retrieving a HTML 200 result
-    that does not contain sequence, this could corrupt the database and require manual removal of the cached sequence.
-
-    >>> get_nuc('mouse', 1, 10000000, 10000050)
-    'GTTTTCAATGCAGGAAATGCAATTGTTCTGTAGGTACAAGTGGGTCAGATT'
-
-    >>> get_nuc('mouse', 1, -1, -1)
-    ''
-
-    """
-
-    if es <= 0 or ee <= 0:
-        return ''
-
-    cache = species + '-' + str(chrom) + '-' + str(es) + '-' + str(ee)
-
-    con = sq.connect('seq-cache.db')
-    cur = con.cursor()
-    cur.execute('''CREATE TABLE IF NOT EXISTS sequences(pk INTEGER PRIMARY KEY, id TEXT, seq TEXT)''')
-
-    try:
-        cur.execute('''SELECT id, seq FROM sequences WHERE id=:cache''',
-                    {'cache': cache})
-        sequence = cur.fetchone()
-
-        if len(sequence) > 0:
-            nuc = sequence[1]
-            print('Locally cached sequence retrieved')
-            con.close()
-            return nuc
-
-        else:
-            print("Sequence not yet cached locally. 0")
-
-    except:
-        print("Sequence not yet cached locally. 1")
-
-    server = "http://rest.ensembl.org"
-    ext = "/sequence/region/" + species + "/" + str(chrom) + ":" + str(es) + ".." + str(ee) + ":1?"
-
-    print(server+ext)
-
-    try:
-        ret = rq.get(server + ext, headers={"Content-Type": "text/plain"})
-
-        if ret.status_code == 200:
-            nuc = ret.text
-            cur.execute('''INSERT INTO sequences(id, seq) VALUES(:id, :seq)''', {'id': cache, 'seq': nuc})
-            print("Sequence retrieved from Uniprot and written into local cache.")
-            con.commit()
-            con.close()
-
-        else:
-            nuc = ''
-
-    except:
-        nuc = ''
-
-    return nuc
+    # soft-masked (lowercase) bases are ordinary sequence (reports/2026-11-11-masked-bases-audit.md)
+    return genome_index[chromosome][es-1:ee].upper()
 
 
 def get_complementary(nt: str,
@@ -128,30 +47,18 @@ def get_complementary(nt: str,
     :return: Complementary sequence
 
     Function to get the complementary coding sequence on the reverse (-) DNA
-    strand of the coordinates being give. First reverses the input nucleotide
-    sequence, then get base-pairing nucleotide
+    strand of the coordinates being give. Ambiguous (IUPAC) bases are complemented
+    and case is kept.
 
     >>> get_complementary('ATGCAA')
     'TTGCAT'
 
+    >>> get_complementary('acgR')
+    'Ycgt'
+
     """
 
-    nt = nt[::-1]
-    comp = ''
-
-    bp = {'A': 'T',
-          'T': 'A',
-          'G': 'C',
-          'C': 'G'}
-
-    for n in nt:
-        try:
-            comp += bp[n]
-        except KeyError:
-            raise KeyError('Invalid nucleotide: ' + n)
-            comp += 'X'
-
-    return comp
+    return reverse_complement(str(nt))
 
 
 def make_pep(nt: str,
@@ -195,6 +102,15 @@ def make_pep(nt: str,
         >>> make_pep(rna_sequence, '-', 1, False)
         'IIF'
 
+    Lowercase (soft-masked) bases are translated as uppercase. A codon with any other base (N or another
+    IUPAC code) cannot be translated, so the whole sequence is untranslatable
+
+        >>> make_pep('atgaaatag', '+', 0)
+        'MK'
+
+        >>> make_pep('ATGRAATAG', '+', 0, False)
+        ''
+
     """
 
     #
@@ -206,6 +122,7 @@ def make_pep(nt: str,
     # if rMATS says the strand is negative, get the complementary sequence, which is the Watson-Crick pairing of the
     # original sequence in anti-parallel direction (5'-to-3' becomes 3'-to-5')
     #
+    nt = str(nt).upper()
     if strand == '-':
         nt = get_complementary(nt)
 
@@ -221,9 +138,11 @@ def make_pep(nt: str,
     #
     for i in range(pos0, len(nt) - 2, 3):
 
-        # TODO: Catch KeyErrors in codon table lookup
-        # TODO: Accommodate soft masking by converting nt to upper
-        aa = code[nt[i:i + 3]]
+        aa = code.get(nt[i:i + 3])
+
+        # a codon with an ambiguous base: untranslatable
+        if aa is None:
+            return ''
 
         if aa == 'X':
 
@@ -243,33 +162,53 @@ def make_pep(nt: str,
     return pep
 
 
+# output file -> (its size after our last write, the sequences in it), so a write need not re-read the file
+_written = {}
+
+# In a worker process (-p > 1), records are collected here instead of written; the main process writes them in
+# junction order (main._translate_in_worker)
+_collected = None
+
+
 def write_seqrecord_to_fasta(seqrecord,
                              output,
                              suffix,
                              ):
     """
-    Write Biopython SeqRecord to the fasta file after checking whether the SeqRecord is already inside the file.
+    Write Biopython SeqRecord to the fasta file unless a record with the same sequence is already in it.
+
+    The sequences in each file are kept in memory. The file is read again only if its size differs from that after
+    our last write (first use, a file from an earlier run, or one changed by something else). 2026-11-12: it used to
+    be re-read before every write; see reports/2026-11-12-parallel-audit.md
 
     :param seqrecord:   Biopython SeqRecord object
     :param output:
     :param suffix:
-    :return:
+    :return: True if the record was written (or collected, see _collected), False if its sequence was already in the
+        file
     """
+
+    if _collected is not None:
+        _collected.append((output, suffix, seqrecord))
+        return True
 
     outfile = os.path.join(output, 'psq_' + suffix + '.fasta')
 
-    # if the file already exists, open it and amend that record.
-    existing_records = []
-    if os.path.exists(outfile):
-        for existing_record in SeqIO.parse(outfile, 'fasta'):
-            existing_records.append(existing_record)
+    size = os.path.getsize(outfile) if os.path.exists(outfile) else None
+    cached = _written.get(outfile)
+    if cached is not None and cached[0] == size:
+        sequences = cached[1]
+    else:
+        sequences = {str(r.seq) for r in SeqIO.parse(outfile, 'fasta')} if size is not None else set()
+        _written[outfile] = (size, sequences)
 
     # Test if the slice is already in the fasta, then do not write the new sequence into the fasta file.
-    for read_record in existing_records:
-        if read_record.seq == seqrecord.seq:
-            return True
+    if str(seqrecord.seq) in sequences:
+        return False
 
     with open(outfile, 'a') as output_handle:
         SeqIO.write(seqrecord, output_handle, 'fasta')
+    sequences.add(str(seqrecord.seq))
+    _written[outfile] = (os.path.getsize(outfile), sequences)
 
     return True

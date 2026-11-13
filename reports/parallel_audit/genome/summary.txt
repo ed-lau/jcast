@@ -1,0 +1,34 @@
+inputs: rmats /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats; gtf /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/gencode.v50.primary_assembly.annotation.gtf; genome /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/GRCh38.primary_assembly.genome.fa; uniprot /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/20261111_human_uniprot_swissprot_isoform.fasta
+machine: 24 CPUs, 69 GB; load average at start 3.1
+
+1. load (s)
+  GTF (from .cached)                  54.9
+  genome                              35.5
+  rMATS                                2.5
+  UniProt FASTA                        0.8
+  per-gene GTF index (variant)         4.6
+  GTF rows 11,254,876; genes 78,941; junctions 599,644; memory after load 9.9 GB
+
+2. current code, 300 sampled junctions (seed 1): 201.6 s, 1.49 junctions/s (unprofiled rate below)
+  under the profiler: total 201.6 s; DataFrame.query 191.5 s (95%); write_seqrecord_to_fasta 0.5 s (0%); of which gene_proteins (--uniprot mapping) 104.3 s
+
+3. variants, same sample
+  variant	seconds	junctions_per_s	speedup	identical_output	identical_fates
+  current	187.2	1.60	1.0	True	True
+  gene_index	9.7	31.06	19.4	True	True
+  memory_dedup	186.9	1.61	1.0	True	True
+  gene_index+memory_dedup	9.0	33.20	20.7	True	True
+
+4. one write_seqrecord_to_fasta call (current code) against a file of
+    1,000 records (  0.8 MB):       5 ms per write
+   10,000 records ( 12.2 MB):      61 ms per write
+   12,215 records ( 15.8 MB):     154 ms per write
+
+5. parallel (gene_index + memory_dedup; fork; chunks of 20), 3000 sampled junctions (seed 2); serial with the same variants: 78.3 s (38.3/s)
+  workers	seconds	junctions_per_s	speedup_vs_1	identical_to_serial	peak_memory_gb
+  1	78.0	38.5	1.0	True	8.6
+  4	21.4	140.1	3.6	True	9.0
+  8	11.6	257.9	6.7	True	9.4
+  16	6.6	453.6	11.8	True	10.1
+
+fates in the parallel sample: {'PARTIAL TIER 4': 823, 'SKIPPED': 737, 'FAILURE': 874, 'SUCCESS TIER 1 ALT TERMINUS': 30, 'SUCCESS TIER 1': 419, 'SUCCESS TIER 2': 117}
