@@ -7,11 +7,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Maggie Lam, PhD; Edward Lau, PhD">
-<meta name="dcterms.date" content="2026-03-01">
+<meta name="dcterms.date" content="2026-11-13">
 <meta name="keywords" content="Alternative splicing, proteomics, mass spectrometry, RNA sequencing, protein isoforms, proteoforms">
 <meta name="description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 
-<title>Documentation – JCAST v0.3.5</title>
+<title>Documentation – JCAST v0.4.0</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -113,12 +113,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <link rel="stylesheet" href="styles.css">
-<meta property="og:title" content="Documentation – JCAST v0.3.5">
+<meta property="og:title" content="Documentation – JCAST v0.4.0">
 <meta property="og:description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 <meta property="og:image" content="https://ed-lau.github.io/jcast/images/logo2.png">
-<meta property="og:site_name" content="JCAST v0.3.5">
+<meta property="og:site_name" content="JCAST v0.4.0">
 <meta property="og:image:alt" content="JCAST - Junction Centric Alternative Splicing Translator">
-<meta name="twitter:title" content="Documentation – JCAST v0.3.5">
+<meta name="twitter:title" content="Documentation – JCAST v0.4.0">
 <meta name="twitter:description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 <meta name="twitter:image" content="https://ed-lau.github.io/jcast/images/logo2.png">
 <meta name="twitter:creator" content="@LauLabColorado">
@@ -206,8 +206,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a></li>
-  <li><a href="#output" id="toc-output" class="nav-link" data-scroll-target="#output">Output</a></li>
-  <li><a href="#options" id="toc-options" class="nav-link" data-scroll-target="#options">Options</a></li>
+  <li><a href="#output" id="toc-output" class="nav-link" data-scroll-target="#output">Output</a>
+  <ul class="collapse">
+  <li><a href="#junctions.tsv" id="toc-junctions.tsv" class="nav-link" data-scroll-target="#junctions.tsv"><code>junctions.tsv</code></a></li>
+  <li><a href="#header-format" id="toc-header-format" class="nav-link" data-scroll-target="#header-format">Header format</a></li>
+  </ul></li>
+  <li><a href="#options" id="toc-options" class="nav-link" data-scroll-target="#options">Options</a>
+  <ul class="collapse">
+  <li><a href="#canonicals-from-a-uniprot-fasta---uniprot-recommended" id="toc-canonicals-from-a-uniprot-fasta---uniprot-recommended" class="nav-link" data-scroll-target="#canonicals-from-a-uniprot-fasta---uniprot-recommended">Canonicals from a UniProt FASTA (<code>--uniprot</code>, recommended)</a></li>
+  <li><a href="#several-processes--p" id="toc-several-processes--p" class="nav-link" data-scroll-target="#several-processes--p">Several processes (<code>-p</code>)</a></li>
+  </ul></li>
+  <li><a href="#known-issues" id="toc-known-issues" class="nav-link" data-scroll-target="#known-issues">Known issues</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/ed-lau/jcast/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
     </div>
@@ -238,7 +247,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 1, 2026</p>
+      <p class="date">November 13, 2026</p>
     </div>
   </div>
   
@@ -265,24 +274,79 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="overview" class="level2">
 <h2 class="anchored" data-anchor-id="overview">Overview</h2>
 <p>The use of custom RNA-seq derived protein sequences has been shown to be a viable strategy for identifying non-canonical gene products not documented in common protein sequence databases. However, the inclusion of too many sequences can lead to false positive identifications. JCAST combines splice junction modeling and one-frame translation to create small custom protein sequence databases.</p>
-<p>JCAST is a command line tool that takes an annotation GTF file, rMATS results, and a genome FASTA file to create custom protein FASTA files for downstream analysis. To prioritize likely detectable splice junctions, JCAST models the minimal splice junction read count in RNA-seq for all canonical-alternative splice junction pairs. JCAST then uses this model to calculate the minimal read count cutoff for in silico translation. An example of the read count mixture model is shown below.</p>
+<p>JCAST is a command line tool that takes an annotation GTF file, rMATS results, and a genome FASTA file to create custom protein FASTA files for downstream analysis. To prioritize likely detectable splice junctions, JCAST can model the splice junction read counts in RNA-seq (<code>-m</code>) and use this model to calculate the minimal read count cutoff for in silico translation. Without <code>-m</code>, the cutoff is set with <code>-r</code> (by default 1, which keeps every junction). An example of the read count mixture model is shown below.</p>
 <p><img src="images/model.png" class="img-fluid"></p>
 </section>
 <section id="output" class="level2">
 <h2 class="anchored" data-anchor-id="output">Output</h2>
-<section id="fasta-output" class="level4">
-<h4 class="anchored" data-anchor-id="fasta-output">FASTA output</h4>
-<p>JCAST outputs FASTA databases which can be further filtered and combined using any scripting languages, or can be used directly for database search in virtually any shotgun proteomics database search engines (e.g., SEQUEST, Crux/Tide, Maxquant, MS-GF+). For most usages, we recommend appending the T1.fasta file to the JCAST output canonica.fasta file or the canonical SwissProt database.</p>
-<p>JCAST may output the following FASTA files (note depending on the used settings and input files, not all FASTA files may be present):</p>
-<ul>
-<li><strong>xxx_canonical.fasta</strong> – This file contains protein sequences from splice junctions that are identical to SwissProt canonical sequences. The FASTA entries are named according to UniProt convention.<br>
-</li>
-<li><strong>xxx_T1.fasta</strong> – This file contains noncanonical sequences translated from splice junctions. Tier 1 junctions are translated in frame according to annotated GTF frames, did not encounter frameshift or premature stop codon, and are successfully joined back to full-length SwissProt sequences.</li>
-<li><strong>xxx_T2.fasta</strong> – Tier 2 junctions are translated in frame according to annotated GTF frames, did not encounter premature stop codon, and are successfully joined back to full-length SwissProt sequences, but have encountered a possible frameshift (length differences in exons not multiples of 3).</li>
-<li><strong>xxx_T3.fasta</strong> – Tier 3 junctions did not encounter premature stop codon, and are successfully joined back to full-length SwissProt sequences, but using a translation frame different from that annotated in the supplied GTF (they should be rare).</li>
-<li><strong>xxx_T4.fasta</strong> – Tier 4 junctions were forced-translated when one of the two alternative junction slices encountered a premature stop codon but could be translated using one of three frames into a peptide fragment at least a certain proportion in length as the successfully translated slice (see <em>params.py</em>). These sequences should be either excluded from database search or interpreted with a great amount of caution.</li>
-<li>**xxx_T#_orphan.fasta** – These fragments were translated according to their tiers but could not be joined back to the canonical SwissProt sequence through the stitch length (see <em>params.py</em> for defaults).</li>
-</ul>
+<p>JCAST outputs FASTA databases which can be further filtered and combined using any scripting language, or used directly in virtually any shotgun proteomics database search engine (e.g., SEQUEST, Crux/Tide, MaxQuant, MS-GF+). Depending on the settings and input files, not every file below is written.</p>
+<p>JCAST writes a small number of FASTA files into the output directory. Each entry’s header encodes the source rMATS row, slice number, junction coordinates, translation strand, frame, and tier (see below).</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>psq_canonical.fasta</code></td>
+<td>Sequences identical to the canonical SwissProt/GTF protein for the gene. Headers follow UniProt convention.</td>
+</tr>
+<tr class="even">
+<td><code>psq_T1.fasta</code></td>
+<td><strong>Tier 1.</strong> Both slices translate in their annotated reading frames with no premature stop codon (PTC), and the event does not shift the reading frame: the slices’ coding lengths, measured from each slice’s frame, differ by a multiple of 3. Both slices are stitched into the canonical full-length protein.</td>
+</tr>
+<tr class="odd">
+<td><code>psq_T1_alt_cterm.fasta</code></td>
+<td><strong>Tier 1, alternative C-terminus.</strong> One slice ends at an annotated protein-coding stop codon that is not the canonical protein’s. It is a complete C-terminus, not a premature stop, and is joined to the canonical at its N-terminus only.</td>
+</tr>
+<tr class="even">
+<td><code>psq_T1_alt_nterm.fasta</code></td>
+<td><strong>Tier 1, alternative N-terminus.</strong> The gene’s start codon lies in an alternative exon that this slice lacks. The slice is translated from another annotated start codon it contains, and joined to the canonical at its C-terminus only.</td>
+</tr>
+<tr class="odd">
+<td><code>psq_T1_alt_both.fasta</code></td>
+<td><strong>Tier 1, both termini alternative.</strong> The slice starts at an alternative annotated start codon and ends at an alternative annotated stop codon (created only when needed).</td>
+</tr>
+<tr class="even">
+<td><code>psq_T2.fasta</code></td>
+<td><strong>Tier 2.</strong> As T1, but the coding lengths differ by a non-multiple of 3 (frameshift). A slice that cannot be stitched at both ends may be joined at its N-terminus only.</td>
+</tr>
+<tr class="odd">
+<td><code>psq_T4.fasta</code></td>
+<td><strong>Tier 4.</strong> Only one slice translates; the other hits a PTC. The PTC slice is translated <em>up to</em> its stop codon, giving a truncated product, which is joined to the canonical at its N-terminus. If it is shorter than <code>params.ptc_threshold</code> × the other slice, or cannot be joined, it goes to <code>psq_T4_orphan.fasta</code>. <strong>Treat T4 with caution — exclude from MS searches unless you have a specific reason to include it.</strong></td>
+</tr>
+<tr class="even">
+<td><code>psq_T#_orphan.fasta</code></td>
+<td>Slices of that tier that translated but could not be stitched back to the canonical sequence: no unique 7-residue anchor at an end that needs joining. <strong>Treat orphans with caution.</strong></td>
+</tr>
+<tr class="odd">
+<td><code>uniprot_canonicals.tsv</code></td>
+<td>With <code>--uniprot</code>: the canonical chosen for each gene, and how (by sequence, by gene name, from the GTF, or none).</td>
+</tr>
+<tr class="even">
+<td><code>psq_isoforms.tsv</code></td>
+<td>With <code>--uniprot</code>: every JCAST record identical to a UniProt canonical or isoform, with its accession.</td>
+</tr>
+<tr class="odd">
+<td><code>jcast_uniprot_merged.fasta</code></td>
+<td>With <code>--uniprot</code>: a search database, made of the supplied UniProt FASTA plus the new <code>psq_T1</code> and <code>psq_T1_alt_*</code> records, renamed <code>sp|&lt;accession&gt;-J&lt;n&gt;|&lt;entry name&gt;</code>.</td>
+</tr>
+<tr class="even">
+<td><code>junctions.tsv</code></td>
+<td>One row per junction, in rMATS file order: its read count, FDR, fate, frames, coding region, canonical, and the files its records went to. See below.</td>
+</tr>
+<tr class="odd">
+<td><code>logfile.log</code></td>
+<td>The run’s settings and inputs, warnings and errors, and a summary: junctions by fate and splice type, records per file, and the time taken. With <code>-v</code>, also each junction’s steps and sequences.</td>
+</tr>
+</tbody>
+</table>
 <div class="callout callout-style-default callout-warning callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -293,39 +357,195 @@ Warning
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Note:</strong> Orphan sequences are non-full-length fragments and should be either excluded from database search or interpreted with a great amount of caution.</p>
+<p><strong>Note:</strong> Tier 4 and orphan sequences are truncated or not full-length. Exclude them from database searches, or interpret them with a great amount of caution.</p>
 </div>
 </div>
-<p>Noncanonical FASTA entries have the following naming convention:</p>
-<pre><code>&gt;sp|Q91VW5|GOGA4_MOUSE|ENSMUSG00000038708|MXE1|0|chr9|118560742:118560872|118565557:118565667|+2|r521|T1 sp|Q91VW5|GOGA4_MOUSE Golgin subfamily A member 4 OS=Mus musculus OX=10090 GN=Golga4 PE=1 SV=2</code></pre>
-<p>The vbar(<code>|</code>)-delimited parts denote the following: 1. Knowledgebase name, from canonical SwissProt protein entry (sp) 2. UniProt accession, from canonical SwissProt protein entry (Q91VW5) 3. UniProt name, from canonical SwissProt protein entry (GOGA4_MOUSE) 4. Annotated gene name (ENSMUSG00000038708) 5. rMATS junction type and order (MXE1) 6. Input file row name (0) 7. Chromosome (chr9) 8. Anchor exon start and end (118560742:118560872) 9. Alternative exon start and end (118565557:118565667) 10. Translated strand and phase (+2) 11. Minimal skipped junction count (sjc) in rMATS preceded by r (r521) 12. Tier (T1)</p>
+<p>There is no Tier 3 from v0.4.0. It re-translated in a guessed frame when the annotated frame failed, and was removed together with the three-frame fallback (see <a href="https://github.com/ed-lau/jcast/blob/main/CHANGELOG.md">CHANGELOG.md</a>).</p>
+<p>Annotated start and stop codons are taken from protein-coding transcripts with transcript support level ≤ <code>params.tsl_threshold</code>. A stop codon annotated only on nonsense-mediated-decay transcripts, or not annotated at all, is still a premature stop (T4).</p>
+<p>How a junction is processed (v0.4.0):</p>
+<ol start="0" type="1">
+<li><strong>Filters.</strong> A junction whose read count (header field 11) is below the cutoff, or whose rMATS FDR is outside <code>-q</code>, is skipped before anything else. The cutoff is <code>-r</code>, or the <code>-m</code> model’s boundary in reads; a junction with exactly that many reads is kept. With <code>-c</code>, a skipped junction’s gene still gets its canonical written.</li>
+<li><strong>Trimming.</strong> Every exon is trimmed to the gene’s annotated coding region. This runs from the most upstream start codon to the most distal stop codon of protein-coding transcripts with transcript support level ≤ <code>params.tsl_threshold</code>. Exons entirely in the UTR are removed.</li>
+<li><strong>Skip if outside the coding region.</strong> If the splice event lies entirely outside the coding region, both slices are identical after trimming. The junction is skipped (<code>SKIPPED. Splice event lies outside the annotated coding region.</code>), and the canonical is still written with <code>-c</code>.</li>
+<li><strong>Reading frame.</strong> Each slice is read in its own frame, taken from the annotated coding sequence at the slice’s 5′ end. A slice with no annotated frame is not translated, for example in a lncRNA or a pseudogene. Frames are never guessed.</li>
+</ol>
+<p>Skipped and failed junctions write no isoform sequences. Each junction’s outcome (fate) is a row of <code>junctions.tsv</code>.</p>
+<p>For a typical proteomics workflow, append <code>psq_T1.fasta</code> and <code>psq_canonical.fasta</code> to a base SwissProt database and search as usual. Including T2, T4 and orphans is possible but increases false-discovery risk.</p>
+<section id="junctions.tsv" class="level3">
+<h3 class="anchored" data-anchor-id="junctions.tsv"><code>junctions.tsv</code></h3>
+<p>One row per junction of the selected splice types, in rMATS file order, tab-separated. It reads directly into R (<code>read.delim</code>) or pandas (<code>pd.read_table</code>).</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Column</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>junction_type</code>, <code>junction_id</code></td>
+<td>The rMATS splice type and row id.</td>
+</tr>
+<tr class="even">
+<td><code>gene_id</code>, <code>gene_symbol</code>, <code>chr</code>, <code>strand</code></td>
+<td>As in the rMATS row.</td>
+</tr>
+<tr class="odd">
+<td><code>min_jc</code></td>
+<td>The read count that <code>-r</code> and <code>-m</code> filter on (header field 11).</td>
+</tr>
+<tr class="even">
+<td><code>fdr</code></td>
+<td>The rMATS FDR, which <code>-q</code> filters on.</td>
+</tr>
+<tr class="odd">
+<td><code>fate</code></td>
+<td><code>T1</code>, <code>T1_alt_terminus</code>, <code>T2</code>, <code>T4</code>, <code>fail</code> (no slice translates), <code>exception</code> (the junction raised an error; see the log), <code>skipped_low_count</code>, <code>skipped_fdr</code>, <code>skipped_masked</code> or <code>skipped_outside_cds</code>.</td>
+</tr>
+<tr class="even">
+<td><code>fate_detail</code></td>
+<td>For <code>T4</code>, the slice that hit the premature stop; for <code>exception</code>, the error.</td>
+</tr>
+<tr class="odd">
+<td><code>slice1_phase</code>, <code>slice2_phase</code></td>
+<td>Each slice’s annotated frame (0, 1 or 2). Empty if it has none, or if the junction was skipped before it was looked up.</td>
+</tr>
+<tr class="even">
+<td><code>cds_start</code>, <code>cds_end</code></td>
+<td>The coding region the slices were trimmed to. Empty if unknown on that side, or not looked up.</td>
+</tr>
+<tr class="odd">
+<td><code>canonical_source</code>, <code>canonical_accession</code></td>
+<td>Where the gene’s canonical came from: as in <code>uniprot_canonicals.tsv</code> with <code>--uniprot</code> (e.g.&nbsp;<code>sp by sequence</code>), <code>sp by API</code> or <code>tr by API</code> without it, <code>gtf</code>, or <code>none</code>. Empty if it was not looked up (a skipped junction without <code>-c</code>).</td>
+</tr>
+<tr class="even">
+<td><code>files</code></td>
+<td>The <code>psq_&lt;name&gt;.fasta</code> files of the junction’s records, as <code>&lt;name&gt;</code>, <code>;</code>-separated.</td>
+</tr>
+<tr class="odd">
+<td><code>new_records</code></td>
+<td>How many of its records were written. A record whose sequence is already in its file, from an earlier junction, is not written again.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="header-format" class="level3">
+<h3 class="anchored" data-anchor-id="header-format">Header format</h3>
+<p>Non-canonical FASTA entries are named as follows:</p>
+<pre><code>&gt;sp|Q91VW5|GOGA4_MOUSE|ENSMUSG00000038708|MXE1|0|chr9|118560742:118560872|118565557:118565667|+2|r521|T1 sp|Q91VW5|...</code></pre>
+<p>The <code>|</code>-separated fields are:</p>
+<ol type="1">
+<li>Knowledgebase code (<code>sp</code> for SwissProt).</li>
+<li>UniProt accession of the canonical entry.</li>
+<li>UniProt entry name.</li>
+<li>Ensembl gene id.</li>
+<li>rMATS splice type and slice number (e.g.&nbsp;<code>MXE1</code>, <code>MXE2</code>).</li>
+<li>rMATS row id.</li>
+<li>Chromosome.</li>
+<li>Anchor exon <code>start:end</code>.</li>
+<li>Alternative exon <code>start:end</code>.</li>
+<li>Translated strand and that slice’s phase (e.g.&nbsp;<code>+2</code>).</li>
+<li>Read count, prefixed with <code>r</code>: the smaller of the junction’s inclusion and skipping junction counts, each summed over samples and replicates. This is the count <code>-r</code> and <code>-m</code> filter on.</li>
+<li>Tier (<code>T1</code>, <code>T1_alt_cterm</code>, <code>T1_alt_nterm</code>, <code>T1_alt_both</code>, <code>T2</code>, <code>T4</code>).</li>
+</ol>
+<p>When the canonical comes from the GTF rather than UniProt (<code>use_gtf_only</code> in <code>jcast/params.py</code>, or a gene without a UniProt entry with <code>--uniprot</code>), fields 1–3 are the Ensembl gene id, the gene symbol, and the gene id again. A gene that rMATS reports without a symbol (<code>NA</code>) is named <code>NoGeneName_&lt;gene id&gt;</code>.</p>
 </section>
 </section>
 <section id="options" class="level2">
 <h2 class="anchored" data-anchor-id="options">Options</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">python</span> <span class="at">-m</span> jcast <span class="at">-h</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">usage:</span> __main__.py <span class="pp">[-</span><span class="ss">h</span><span class="pp">]</span> [-o OUT] [-r READ] <span class="pp">[-</span><span class="ss">m</span><span class="pp">]</span> <span class="pp">[-</span><span class="ss">c</span><span class="pp">]</span> [--mask MASK] [-s <span class="dt">{MXE</span><span class="op">,</span><span class="dt">SE</span><span class="op">,</span><span class="dt">RI</span><span class="op">,</span><span class="dt">A5SS</span><span class="op">,</span><span class="dt">A3SS}</span> [<span class="dt">{MXE</span><span class="op">,</span><span class="dt">SE</span><span class="op">,</span><span class="dt">RI</span><span class="op">,</span><span class="dt">A5SS</span><span class="op">,</span><span class="dt">A3SS}</span> ...]] [-q q_lo q_hi] [--g_or_ln G_OR_LN] rmats_folder gtf_file genome</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">jcast</span> retrieves transcript splice junctionsand translates them into amino acid sequences</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="ex">positional</span> arguments:</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="ex">rmats_folder</span>          path to folder storing rMATS output</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="ex">gtf_file</span>              path to Ensembl gtf file</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="ex">genome</span>                path to genome file</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="ex">optional</span> arguments:</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-h,</span> <span class="at">--help</span>            show this help message and exit</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-o</span> OUT, <span class="at">--out</span> OUT     name of the output files [default: psq_out]</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-r</span> READ, <span class="at">--read</span> READ  the lowest skipped junction read count for a junction to be translated [default: 1]</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-m,</span> <span class="at">--model</span>           models junction read count cutoff using a Gaussian mixture model [default: False]</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-c,</span> <span class="at">--canonical</span>       write out canonical protein sequence even if transcriptslices are untranslatable [default: False]</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="ex">--mask</span> MASK           masked nucleotides<span class="kw">;</span> <span class="ex">slices</span> will not be translated if containing one of these letters [default: NnXx]</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-s</span> <span class="dt">{MXE</span><span class="op">,</span><span class="dt">SE</span><span class="op">,</span><span class="dt">RI</span><span class="op">,</span><span class="dt">A5SS</span><span class="op">,</span><span class="dt">A3SS}</span> [<span class="dt">{MXE</span><span class="op">,</span><span class="dt">SE</span><span class="op">,</span><span class="dt">RI</span><span class="op">,</span><span class="dt">A5SS</span><span class="op">,</span><span class="dt">A3SS}</span> ...], <span class="at">--splice_type</span> <span class="dt">{MXE</span><span class="op">,</span><span class="dt">SE</span><span class="op">,</span><span class="dt">RI</span><span class="op">,</span><span class="dt">A5SS</span><span class="op">,</span><span class="dt">A3SS}</span> [<span class="dt">{MXE</span><span class="op">,</span><span class="dt">SE</span><span class="op">,</span><span class="dt">RI</span><span class="op">,</span><span class="dt">A5SS</span><span class="op">,</span><span class="dt">A3SS}</span> ...]</span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>                        <span class="ex">splice</span> type to be translated [default: MXE SE RI A5SS A3SS]</span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>  <span class="ex">-q</span> q_lo q_hi, <span class="at">--qvalue</span> q_lo q_hi</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>                        <span class="ex">take</span> junctions with rMATS fdr within this threshold [default: 0 1]</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>  <span class="ex">--g_or_ln</span> G_OR_LN     Switch on distribution to use for low end of histogram, 0 for Gamma, anything else for LogNorm</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<pre class="text"><code>$ jcast --help
+usage: jcast [-h] [-o OUT] [--overwrite] [--cache_dir CACHE_DIR] [-r READ] [-m] [-c]
+             [--uniprot UNIPROT] [-p PROCESSES] [-v] [--mask MASK]
+             [-s {MXE,SE,RI,A5SS,A3SS} [{MXE,SE,RI,A5SS,A3SS} ...]] [-q q_lo q_hi]
+             rmats_folder gtf_file genome
+
+jcast retrieves transcript splice junctionsand translates them into amino acid sequences
+
+positional arguments:
+  rmats_folder          path to folder storing rMATS output
+  gtf_file              path to Ensembl gtf file
+  genome                path to genome file (optionally .gz)
+
+options:
+  -h, --help            show this help message and exit
+  -o OUT, --out OUT     output directory, created if needed [default: out]
+  --overwrite           replace the output of an earlier run in the output directory; without it,
+                        a directory holding JCAST output is refused [default: False]
+  --cache_dir CACHE_DIR
+                        directory for the GTF cache and the UniProt API cache [default: the user
+                        cache directory, e.g. ~/Library/Caches/jcast or ~/.cache/jcast]
+  -r READ, --read READ  the lowest read count for a junction to be translated: the smaller of its
+                        inclusion and skipping junction counts, each summed over samples and
+                        replicates [default: 1, which keeps every junction]
+  -m, --model           take the read count cutoff from a Gamma + Normal mixture model of the read
+                        counts of every rMATS file in the folder (also those -s leaves out),
+                        instead of -r (used only if the fit fails) [default: False]
+  -c, --canonical       write out canonical protein sequence even if transcriptslices are
+                        untranslatable [default: False]
+  --uniprot UNIPROT     UniProt FASTA (e.g. Swiss-Prot with isoforms for the species, optionally
+                        .gz) to take canonical proteins from instead of the UniProt API; genes
+                        without an entry use the GTF. Also writes jcast_uniprot_merged.fasta,
+                        psq_isoforms.tsv and uniprot_canonicals.tsv [default: none, use the API]
+  -p PROCESSES, --processes PROCESSES
+                        number of processes to translate junctions in; the output is the same for
+                        any number. More than 1 needs --uniprot (canonicals from the UniProt API
+                        are fetched and cached by one process only), and macOS or Linux [default:
+                        1]
+  -v, --verbose         also log each junction's steps and its sequences, at DEBUG level (large:
+                        300 MB for a whole-genome -m run); without it, the log has the run's
+                        settings, warnings, errors and a summary, and each junction's outcome is
+                        in junctions.tsv [default: False]
+  --mask MASK           deprecated and ignored: slices containing any base other than A, C, G or T
+                        (case-insensitive) are always skipped. Will be removed in the next
+                        release.
+  -s {MXE,SE,RI,A5SS,A3SS} [{MXE,SE,RI,A5SS,A3SS} ...], --splice_type {MXE,SE,RI,A5SS,A3SS} [{MXE,SE,RI,A5SS,A3SS} ...]
+                        splice types to translate; only their rMATS files need to be in the folder
+                        [default: MXE SE RI A5SS A3SS]
+  -q q_lo q_hi, --qvalue q_lo q_hi
+                        take junctions with rMATS fdr within this threshold [default: 0 1]</code></pre>
+<section id="canonicals-from-a-uniprot-fasta---uniprot-recommended" class="level3">
+<h3 class="anchored" data-anchor-id="canonicals-from-a-uniprot-fasta---uniprot-recommended">Canonicals from a UniProt FASTA (<code>--uniprot</code>, recommended)</h3>
+<p>By default JCAST asks the UniProt API for each gene’s canonical protein. If a request fails after its retries, or is refused, that junction fails (<code>FAILURE (exception)</code>, see below) rather than going on without a canonical, and the run continues. With <code>--uniprot</code>, JCAST reads a UniProt FASTA you supply instead. This needs no network access, and the file records which UniProt release was used. Download Swiss-Prot with isoforms for your species, for human:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-o</span> uniprot_sprot_human_isoforms_2026_04.fasta.gz <span class="dt">\</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">'https://rest.uniprot.org/uniprotkb/stream?compressed=true&amp;format=fasta&amp;includeIsoform=true&amp;query=(proteome:UP000005640)+AND+(reviewed:true)'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Put the release in the file name, as above. The FASTA itself does not record it; the download’s <code>X-UniProt-Release</code> response header does.</p>
+<p>Each gene’s canonical is chosen as follows: 1. the UniProt canonical whose sequence equals a protein translated from one of the gene’s GTF transcripts; 2. else the one whose gene name (<code>GN=</code>) is the gene symbol, if no other gene in the GTF has that symbol; 3. else the GTF canonical.</p>
+<p>A match is used only if it is unique. No identifiers are mapped: GTFs carry no UniProt accessions. On a whole human genome this agrees with UniProt’s own Ensembl cross-references for 99.35% of protein-coding genes that have a Swiss-Prot entry (<a href="https://github.com/ed-lau/jcast/blob/main/reports/2026-11-12-uniprot-mapping-audit.md">reports/2026-11-12-uniprot-mapping-audit.md</a>).</p>
+<p><strong>The GTF canonical</strong> is the longest coding sequence among the gene’s protein-coding transcripts that have transcript support level ≤ <code>params.tsl_threshold</code> (2) and annotated start and stop codons. If none qualifies, it is the transcript the GTF tags <code>Ensembl_canonical</code>, as GENCODE GTFs do, at any support level, if: - it is protein-coding; - it has annotated start and stop codons; - it is not tagged <code>readthrough_transcript</code>.</p>
+<p><strong>Readthrough genes get no GTF canonical</strong> unless one of their transcripts passes the first rule. - A readthrough transcript spans two neighbouring genes. - rMATS reports each event under one gene only. In a whole-genome human run, 45% of the readthrough genes’ skipped-exon events skip an exon of another protein-coding gene. - Joined to a readthrough canonical, their slices would read as fusion proteins, so they are written as orphans (<code>_orphan</code> files). - In that run (GENCODE v50, Swiss-Prot), 370 of the 371 protein-coding genes left without a canonical are readthrough genes (<a href="https://github.com/ed-lau/jcast/blob/main/reports/2026-11-12-ensembl-canonical-audit.md">reports/2026-11-12-ensembl-canonical-audit.md</a>).</p>
+<p><strong>Swiss-Prot or Swiss-Prot + TrEMBL.</strong> - For human, Swiss-Prot is recommended. - A FASTA that also holds TrEMBL entries (<code>reviewed:false</code>) is accepted. TrEMBL entries are used only after Swiss-Prot, by the same rules. - Adding TrEMBL gives a canonical to some genes that have neither a Swiss-Prot entry nor a GTF canonical. In a whole human genome that is 203 genes. Their records can then be joined instead of written as orphans. - For species with little Swiss-Prot coverage, include TrEMBL. - Records joined to a TrEMBL canonical are named <code>tr|…</code>. They are left out of <code>jcast_uniprot_merged.fasta</code>, which merges Swiss-Prot only.</p>
+<p>The run also writes: - <code>uniprot_canonicals.tsv</code>: the canonical chosen per gene, and how. - <code>psq_isoforms.tsv</code>: every JCAST record identical to a UniProt canonical or isoform. - <code>jcast_uniprot_merged.fasta</code>: a search database. It holds every entry of the supplied FASTA, then each <code>psq_T1</code> and <code>psq_T1_alt_*</code> record that was joined to a Swiss-Prot canonical and is not identical to a UniProt entry. Each is renamed <code>sp|&lt;accession&gt;-J&lt;n&gt;|&lt;entry name&gt;</code>, followed by its JCAST header.</p>
+</section>
+<section id="several-processes--p" class="level3">
+<h3 class="anchored" data-anchor-id="several-processes--p">Several processes (<code>-p</code>)</h3>
+<p><code>-p N</code> translates junctions in N processes. The output files and the log are the same as with one process (except for the run time): - the worker processes only translate; - the main process writes every record, row of <code>junctions.tsv</code> and log line in rMATS file order.</p>
+<p>On a whole-genome run, 16 processes are about 11× faster than one. Memory barely grows, because the workers share the genome and GTF already loaded rather than copying them.</p>
+<p><code>-p</code> above 1 has two requirements: - <strong><code>--uniprot</code>.</strong> Without it, canonicals come from the UniProt API, one request per gene. The answers are cached in a local database that several processes cannot safely share, and concurrent requests would load the EBI servers. The command line rejects <code>-p 2</code> without <code>--uniprot</code>. - <strong>macOS or Linux.</strong> On Windows, JCAST warns and uses one process.</p>
+<p>Leave a core or two for the system: <code>-p</code> set to the number of cores minus 2 is a reasonable maximum.</p>
+</section>
+</section>
+<section id="known-issues" class="level2">
+<h2 class="anchored" data-anchor-id="known-issues">Known issues</h2>
+<ul>
+<li><strong>Use an unmasked or soft-masked genome, not a hard-masked one.</strong>
+<ul>
+<li>Soft-masked (lowercase) bases are read as ordinary sequence, so Ensembl <code>dna_sm</code> or UCSC <code>hg38.fa</code> give exactly the same output as an unmasked genome.</li>
+<li>Any slice containing N or another ambiguous base is skipped (fate <code>SKIPPED ... masked or ambiguous bases</code>).</li>
+<li>A hard-masked genome (Ensembl <code>dna_rm</code>) replaces repeats with N, so every junction touching a repeat is skipped: 19% of the chr15 test junctions. See <a href="https://github.com/ed-lau/jcast/blob/main/reports/2026-11-11-masked-bases-audit.md">reports/2026-11-11-masked-bases-audit.md</a>.</li>
+</ul></li>
+<li><strong>Caches.</strong> JCAST keeps two caches in the user cache directory, or in <code>--cache_dir</code>:
+<ul>
+<li><strong>the GTF</strong>, read into a table: about 2 GB for GENCODE. The first run on a GTF builds it, about 5 minutes for GENCODE; later runs read it in seconds. A changed GTF gets a new cache.</li>
+<li><strong>the UniProt API’s answers</strong>, used without <code>--uniprot</code>.</li>
+</ul>
+<code>&lt;gtf&gt;.cached</code> files written by earlier versions next to the GTF are no longer used and can be deleted.</li>
+<li><strong>A junction that raises an error</strong> gets the fate <code>exception</code> in <code>junctions.tsv</code>, with the error in <code>fate_detail</code>, and the run continues. Its traceback is in <code>logfile.log</code>, and the console reports how many junctions failed.</li>
+<li><strong>Tier 4 contains products truncated at a stop codon.</strong> Alternative C-termini at an annotated stop codon go to <code>psq_T1_alt_cterm.fasta</code> instead. A stop codon that the annotation does not support stays in T4, and some of these may still be genuine. Treat T4 outputs as candidates for follow-up validation, not as confirmed identifications.</li>
+</ul>
 
 
 </section>

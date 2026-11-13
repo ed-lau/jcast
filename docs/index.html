@@ -7,11 +7,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Edward Lau, Maggie Lam">
-<meta name="dcterms.date" content="2026-03-01">
+<meta name="dcterms.date" content="2026-11-13">
 <meta name="keywords" content="Alternative splicing, proteomics, mass spectrometry, RNA sequencing, protein isoforms, proteoforms">
 <meta name="description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments.">
 
-<title>JCAST - Junction Centric Alternative Splicing Translator – JCAST v0.3.5</title>
+<title>JCAST - Junction Centric Alternative Splicing Translator – JCAST v0.4.0</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -26,6 +26,41 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -77,12 +112,12 @@ ul.task-list li input[type="checkbox"] {
 
 
 <link rel="stylesheet" href="styles.css">
-<meta property="og:title" content="JCAST - Junction Centric Alternative Splicing Translator – JCAST v0.3.5">
+<meta property="og:title" content="JCAST - Junction Centric Alternative Splicing Translator – JCAST v0.4.0">
 <meta property="og:description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments.">
 <meta property="og:image" content="https://ed-lau.github.io/jcast/images/logo2.png">
-<meta property="og:site_name" content="JCAST v0.3.5">
+<meta property="og:site_name" content="JCAST v0.4.0">
 <meta property="og:image:alt" content="JCAST - Junction Centric Alternative Splicing Translator">
-<meta name="twitter:title" content="JCAST - Junction Centric Alternative Splicing Translator – JCAST v0.3.5">
+<meta name="twitter:title" content="JCAST - Junction Centric Alternative Splicing Translator – JCAST v0.4.0">
 <meta name="twitter:description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments.">
 <meta name="twitter:image" content="https://ed-lau.github.io/jcast/images/logo2.png">
 <meta name="twitter:creator" content="@LauLabColorado">
@@ -203,7 +238,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 1, 2026</p>
+      <p class="date">November 13, 2026</p>
     </div>
   </div>
   
@@ -236,7 +271,7 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="about-jcast">About JCAST</h2>
 <p>JCAST (<strong>J</strong>unction <strong>C</strong>entric <strong>A</strong>lternative <strong>S</strong>plicing <strong>T</strong>ranslator) is a Python software that takes in splicing events from RNA sequencing data to create custom protein sequence databases for protein isoform analysis.</p>
 <p>JCAST attempts to create small protein sequence databases that contain only likely sequences in mass spectrometry experiment samples to avoid runaway database size inflation.</p>
-<p>To do so, JCAST likely translatable alternative splice junctions and performs one-frame in silico analysis, then joins the translated variant sequences with full-length canonical sequences.</p>
+<p>To do so, JCAST selects likely translatable alternative splice junctions, translates each in its annotated reading frame, then joins the translated variant sequences to full-length canonical sequences.</p>
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
 <p><img src="images/workflow.png" class="img-fluid figure-img"></p>
@@ -249,25 +284,22 @@ ul.task-list li input[type="checkbox"] {
 
 <div class="no-row-height column-margin column-container"><div class="">
 <p><strong>Latest Updates</strong></p>
-<section id="v0.3.5a" class="level2">
-<h2 class="anchored" data-anchor-id="v0.3.5a">v0.3.5a</h2>
+<section id="v0.4.0-november-13-2026" class="level2">
+<h2 class="anchored" data-anchor-id="v0.4.0-november-13-2026">v0.4.0 (November 13, 2026)</h2>
 <ul>
-<li>JCAST will now skip a junction if the nucleotide sequence contains masked bases</li>
-<li>Added the –mask argument to determine masked nucleotide letters (default: NnXx)</li>
-<li>Added an option to translate only a subset of splice types (MXE, RI, SE, A3SS, A5SS) with the -s argument</li>
-</ul>
-</section>
-<section id="v0.3.5" class="level2">
-<h2 class="anchored" data-anchor-id="v0.3.5">v0.3.5</h2>
-<ul>
-<li>Fixed an issue where a small number of slices were not translated.</li>
-<li>Fixed an issue where JCAST quits if the model flag is not set.</li>
+<li>Corrected translation and tiering. Re-run analyses made with v0.3.5a.</li>
+<li><code>--uniprot</code>: canonical proteins from a downloaded UniProt FASTA</li>
+<li>About 25× faster on a whole genome; <code>-p</code> for several processes</li>
+<li><code>junctions.tsv</code>: every junction’s outcome</li>
+<li>Requires Python 3.11 or later</li>
 </ul>
 <blockquote class="blockquote">
 <p>See <a href="./change.html">Change Log</a> for details.</p>
 </blockquote>
 </section>
-</div></div><p>The latest version and source code of JCAST can be found on github: <a href="https://github.com/ed-lau/jcast" class="uri">https://github.com/ed-lau/jcast</a>.</p>
+</div></div><p>JCAST is on PyPI and requires Python 3.11 or later:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> pip install jcast</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The source code is on GitHub: <a href="https://github.com/ed-lau/jcast" class="uri">https://github.com/ed-lau/jcast</a>.</p>
 <p>See the <a href="./install.html">Quick Start</a> and <a href="./about.html">Documentation</a> for instructions.</p>
 </section>
 <section id="contributors" class="level2">

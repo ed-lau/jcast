@@ -8,8 +8,7 @@ the splice isoforms that are likely present in a specific RNA-seq sample,
 JCAST avoids the database-size inflation and false-positive identification
 issues that occur when searching against a full transcriptome translation.
 
-- Documentation: <https://ed-lau.github.io/jcast/> (still describes v0.3.5;
-  this README is current)
+- Documentation: <https://ed-lau.github.io/jcast/>
 - Source: <https://github.com/ed-lau/jcast>
 - Changelog: [CHANGELOG.md](https://github.com/ed-lau/jcast/blob/main/CHANGELOG.md)
 - Developer review & v0.4.0 roadmap: [REVIEW.md](https://github.com/ed-lau/jcast/blob/main/REVIEW.md)
@@ -443,18 +442,20 @@ outputs contain frameshifted or truncated sequences and should be
 interpreted with caution.
 
 **What files are required in the rMATS directory input?**
-JCAST expects an unaltered rMATS output folder with the five per-splice-type
-files named exactly `MXE.MATS.JC.txt`, `SE.MATS.JC.txt`, `RI.MATS.JC.txt`,
-`A3SS.MATS.JC.txt`, `A5SS.MATS.JC.txt`.
+JCAST reads an unaltered rMATS output folder: one file per splice type,
+named exactly `MXE.MATS.JC.txt`, `SE.MATS.JC.txt`, `RI.MATS.JC.txt`,
+`A3SS.MATS.JC.txt` and `A5SS.MATS.JC.txt`. Only the files of the splice
+types selected with `-s` must be there. With `-m`, the cutoff is fitted on
+every one of these files that is present.
 
 **Can I use a Gencode GTF?**
 Yes. JCAST silently aliases `transcript_type` to `transcript_biotype` when
 reading a Gencode-style GTF.
 
-**Why does my first run write a `.cached` file next to my GTF?**
-JCAST caches the parsed GTF as a TSV to speed re-runs. The cache lives next
-to the input file. If your reference directory is read-only, work around by
-copying the GTF to a writable location. (Targeted fix in v0.4.0.)
+**Does JCAST write anything next to my GTF?**
+No. From v0.4.0, the parsed GTF is cached in the user cache directory, or
+in `--cache_dir` (see [Known issues](#known-issues)). `<gtf>.cached` files
+written by earlier versions are no longer used and can be deleted.
 
 **How can I contribute?**
 Open an issue or a pull request on

@@ -14,8 +14,9 @@ has been run, and what to do next.
     uploaded three minutes before the merge, with no effect on the
     contents.
 - **Branch:** `docs-after-0.4.0`, from `main`, with the documentation
-  changes made after the release (below). Not pushed. Push only when the
-  maintainer asks.
+  changes made after the release (below). Pushed, with a PR into `main`
+  (`gh pr list`). The website updates when it is merged. Start v0.5.0 work
+  on a new branch from `main` after that merge.
 - **Tests:** all 153 pass in about 2.5 minutes (`python -m pytest -q`; run
   only the fast ones with `-m 'not slow'`, offline with `-m 'not network'`).
 - **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml) runs on
@@ -55,9 +56,14 @@ has been run, and what to do next.
     links absolute, since the README is also the PyPI page.
   - PR #29, then the tag, the GitHub release and the PyPI upload, which
     the maintainer did.
-- **After the release** (branch `docs-after-0.4.0`):
-  - The README says the GUI is a preview that cannot run JCAST, and that
-    the website still describes v0.3.5.
+- **After the release** (branch `docs-after-0.4.0`, PR into `main`):
+  - The README says the GUI is a preview that cannot run JCAST. Two FAQ
+    answers were out of date: the rMATS files needed (PR 12) and the GTF
+    cache next to the GTF (PR 7).
+  - **The website** was updated for v0.4.0. Its pages had described v0.3.5
+    (Python 3.7+, `tox`, `--g_or_ln`, Tier 3). Its Quarto source,
+    `jcast_website/`, is now tracked (maintainer's decision). The
+    Documentation and FAQ pages take their sections from the README.
   - REVIEW.md's status records the release.
 - **The maintainer's environment:** `.conda` was rebuilt as native arm64
   (Python 3.11.18, numpy 2.4, pandas 3.1, `jcast` installed editable,
@@ -100,25 +106,7 @@ has been run, and what to do next.
 
 ## Next priorities
 
-1. **The website, before the GUI** (recommended 2026-11-13; the
-   maintainer named the GUI as next, so confirm the order first). It is
-   small, and it is what users of 0.4.0 read now:
-   - [ed-lau.github.io/jcast](https://ed-lau.github.io/jcast/) is linked
-     from the README, so also from PyPI. GitHub Pages serves it from
-     `main:/docs`.
-   - It still describes v0.3.5:
-     - Python 3.7+ and `tox` on the install page;
-     - `--g_or_ln` and `xxx_T3.fasta` on the documentation page, which
-       lacks `--uniprot`, `-p`, `--overwrite`, `--cache_dir`, `-v` and
-       `junctions.tsv`;
-     - a change log that ends at 0.3.5a.
-   - It is built with Quarto (`/usr/local/bin/quarto`) from
-     `jcast_website/` (`_quarto.yml` and five `.qmd` pages). That folder
-     is git-ignored, so the source is not in the repository. Ask whether
-     to track it.
-   - Update it from the README and CHANGELOG, then render to `docs/`.
-     Then remove the README's "(still describes v0.3.5…)" note.
-2. **PR 13, GUI** ([REVIEW.md §10](REVIEW.md#10-gui-plan--notes)):
+1. **PR 13, GUI (v0.5.0)** ([REVIEW.md §10](REVIEW.md#10-gui-plan--notes)):
    - The GUI released in 0.4.0 is a skeleton: three placeholder pages,
      157 lines in `jcast/gui/`. It cannot run JCAST.
    - Planned: a wizard (inputs, filters), the model preview, and a run
@@ -129,22 +117,21 @@ has been run, and what to do next.
      forking a multi-threaded process warns ([packaging check §4.2](reports/2026-11-13-packaging-check.md#42-notes)).
    - Also needed: a cancellation hook in `run_jcast`, and the model plot
      drawn on a caller-supplied `Axes`.
-   - A new feature, so probably 0.5.0. The version is the maintainer's
-     choice.
-3. **Release housekeeping**, all optional:
-   - The GitHub release has no files attached. Its title reads
-     "v.0.4.0".
-   - Its notes are the PR description, whose three links point to the
-     `v0.4.0-hardening` branch. Repoint them to the tag before deleting
-     the branch. Deleting it is otherwise safe: the commits cited in
-     `reports/` are in `main`'s history through the merge commit.
-   - For the next release: PyPI's trusted publishing. A workflow that
-     uploads when a GitHub release is published would fix the order and
-     need no token.
-4. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
+   - The next release is v0.5.0 (the maintainer, 2026-11-13).
+2. **Before or with v0.5.0**, all small:
+   - PyPI's trusted publishing: a workflow that uploads when a GitHub
+     release is published, so the upload follows the tag and needs no
+     token.
+   - The `-h` text has two typos from before v0.4.0: "junctionsand" and
+     "transcriptslices". The website shows the `-h` text verbatim, so
+     render the site again after fixing them.
+   - The merged `v0.4.0-hardening` branch can be deleted: the commits
+     cited in `reports/` are in `main`'s history. The 0.4.0 GitHub release
+     (fixed by the maintainer) links to the tag, not the branch.
+3. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
    `make_pep`, `chr` never added to chromosome names, the header-only
    fetal-heart test data, the date-stamped comments.
-5. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
+4. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
    - an option to add T2/T4 to `jcast_uniprot_merged.fasta`;
    - a UniProt download helper that names the file by its release
      (`X-UniProt-Release` header);
@@ -185,6 +172,17 @@ has been run, and what to do next.
     including those made by VS Code's "Create Environment", are x86_64
     unless built with `CONDA_SUBDIR=osx-arm64` and pinned with
     `conda config --env --set subdir osx-arm64`.
+- **The website:**
+  - `cd jcast_website && quarto render` writes the site into `docs/`.
+    GitHub Pages serves `main:/docs` at https://ed-lau.github.io/jcast/.
+  - Quarto warns that `docs/` is outside the project and that it won't
+    clean `docs/site_libs`; harmless.
+  - `about.qmd` and `faqs.qmd` repeat the README's sections (output files,
+    `junctions.tsv`, header format, `--uniprot`, `-p`, known issues, FAQ),
+    and `about.qmd` shows `jcast --help` verbatim. Update them with the
+    README.
+  - Pandoc prints `\|` inside code in a table literally. Write such a cell
+    as `<code>…&#124;…</code>`.
 - **Building release files:**
   - Build from the commit, not the working tree: `git archive <commit>`,
     then `uv build`.

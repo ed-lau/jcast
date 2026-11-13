@@ -1,0 +1,44 @@
+---
+title: "Frequently Asked Questions"
+format: html
+keywords: Alternative splicing, proteomics, mass spectrometry, RNA sequencing, protein isoforms, proteoforms
+abstract: This page provides the documentation for the JCAST package, which is a tool for create a database of protein isoforms from RNA-seq data.
+description: JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments
+author: "Edward Lau, Maggie Lam"
+date: 11/13/2026
+date-format: long
+image-caption: "JCAST logo"
+image: "images/logo2.png"
+image-alt: "JCAST - Junction Centric Alternative Splicing Translator"
+---
+
+## FAQs
+
+#### Q: What do I do with the output files?
+
+A: With `--uniprot`, search `jcast_uniprot_merged.fasta`: Swiss-Prot plus the new T1 and T1 alternative-terminus
+isoforms. Otherwise, append `psq_T1.fasta` (and, if you want annotated alternative termini, `psq_T1_alt_cterm.fasta` /
+`psq_T1_alt_nterm.fasta`) to either `psq_canonical.fasta` (if you used `-c`) or your existing Swiss-Prot canonical
+database, and search that combined file in your MS pipeline. Lower-tier (T2/T4) and orphan outputs contain
+frameshifted or truncated sequences and should be interpreted with caution.
+
+#### Q: What files are required in the rMATS directory input?
+
+A: JCAST reads an unaltered rMATS output folder: one file per splice type, named exactly `MXE.MATS.JC.txt`,
+`SE.MATS.JC.txt`, `RI.MATS.JC.txt`, `A3SS.MATS.JC.txt` and `A5SS.MATS.JC.txt`. Only the files of the splice types
+selected with `-s` must be there. With `-m`, the cutoff is fitted on every one of these files that is present.
+
+#### Q: Can I use a GENCODE GTF?
+
+A: Yes. JCAST reads GENCODE's `transcript_type` as `transcript_biotype`. When no transcript of a gene passes the
+canonical filter, it uses the transcript GENCODE tags `Ensembl_canonical` (see the [Documentation](about.qmd)).
+
+#### Q: Does JCAST write anything next to my GTF?
+
+A: No. From v0.4.0, the parsed GTF is cached in the user cache directory, or in `--cache_dir`. `<gtf>.cached` files
+written by earlier versions are no longer used and can be deleted.
+
+#### Q: How can I contribute to JCAST?
+
+A: Open an issue or a pull request on <https://github.com/ed-lau/jcast>, or contact us at
+[edward.lau@cuanschutz.edu](mailto:edward.lau@cuanschutz.edu).

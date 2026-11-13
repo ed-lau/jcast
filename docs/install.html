@@ -7,11 +7,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Edward Lau, Maggie Lam">
-<meta name="dcterms.date" content="2026-03-01">
+<meta name="dcterms.date" content="2026-11-13">
 <meta name="keywords" content="Alternative splicing, proteomics, mass spectrometry, RNA sequencing, protein isoforms, proteoforms">
 <meta name="description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 
-<title>Quick Start – JCAST v0.3.5</title>
+<title>Quick Start – JCAST v0.4.0</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -113,12 +113,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <link rel="stylesheet" href="styles.css">
-<meta property="og:title" content="Quick Start – JCAST v0.3.5">
+<meta property="og:title" content="Quick Start – JCAST v0.4.0">
 <meta property="og:description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 <meta property="og:image" content="https://ed-lau.github.io/jcast/images/logo2.png">
-<meta property="og:site_name" content="JCAST v0.3.5">
+<meta property="og:site_name" content="JCAST v0.4.0">
 <meta property="og:image:alt" content="JCAST - Junction Centric Alternative Splicing Translator">
-<meta name="twitter:title" content="Quick Start – JCAST v0.3.5">
+<meta name="twitter:title" content="Quick Start – JCAST v0.4.0">
 <meta name="twitter:description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 <meta name="twitter:image" content="https://ed-lau.github.io/jcast/images/logo2.png">
 <meta name="twitter:creator" content="@LauLabColorado">
@@ -209,7 +209,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#requirements" id="toc-requirements" class="nav-link" data-scroll-target="#requirements">Requirements</a></li>
   </ul></li>
-  <li><a href="#running-jcast" id="toc-running-jcast" class="nav-link" data-scroll-target="#running-jcast">Running JCAST</a></li>
+  <li><a href="#running-jcast" id="toc-running-jcast" class="nav-link" data-scroll-target="#running-jcast">Running JCAST</a>
+  <ul class="collapse">
+  <li><a href="#test-data" id="toc-test-data" class="nav-link" data-scroll-target="#test-data">Test data</a></li>
+  </ul></li>
   <li><a href="#example-usage" id="toc-example-usage" class="nav-link" data-scroll-target="#example-usage">Example Usage</a></li>
   </ul>
 <div class="toc-actions"><ul><li><a href="https://github.com/ed-lau/jcast/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></nav>
@@ -241,7 +244,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 1, 2026</p>
+      <p class="date">November 13, 2026</p>
     </div>
   </div>
   
@@ -269,9 +272,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="installing-jcast">Installing JCAST</h2>
 <section id="requirements" class="level3">
 <h3 class="anchored" data-anchor-id="requirements">Requirements</h3>
-<p>Install Python 3.7+ and pip. See instructions on Python website for specific instructions for your operating system.</p>
+<p>JCAST requires Python 3.11 or later. It is tested on Python 3.11 to 3.15, on macOS and Linux.</p>
 <p>JCAST can be installed from PyPI via pip. We recommend using a virtual environment.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> pip install jcast</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>The optional graphical interface (<code>pip install 'jcast[gui]'</code>) is an early preview: it opens a window with placeholder pages and cannot run JCAST yet. Use the command line.</p>
+</div>
+</div>
 </section>
 </section>
 <section id="running-jcast" class="level2">
@@ -281,13 +297,30 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Alternatively:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> jcast</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Example command:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python <span class="at">-m</span> jcast  data/encode_human_pancreas/ data/gtf/Homo_sapiens.GRCh38.89.gtf data/gtf/Homo_sapiens.GRCh38.89.gtf data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa <span class="at">-o</span> encode_human_pancreas <span class="at">-q</span> 0 1 <span class="at">-r</span> 1 <span class="at">-m</span> <span class="at">-c</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>To test that the installation can load test data files in tests/data (sample rMATS file and human chr 15 genome files)</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> pip install tox </span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> tox</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>To run JCAST using the test files and print the results to Desktop</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python <span class="at">-m</span> jcast {j}/tests/data/rmats {j}/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf  {j}/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz <span class="at">-o</span> ~/Desktop</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>where {j} is replaced by the path to JCAST.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python <span class="at">-m</span> jcast <span class="dt">\</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    /data/encode_human_pancreas/rmats <span class="dt">\</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    /data/gtf/Homo_sapiens.GRCh38.89.gtf <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    /data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa <span class="dt">\</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">-o</span> encode_human_pancreas <span class="dt">\</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">-q</span> 0 1 <span class="dt">\</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">-r</span> 1 <span class="at">-m</span> <span class="at">-c</span> <span class="dt">\</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">--uniprot</span> /data/uniprot/uniprot_sprot_human_isoforms_2026_04.fasta.gz <span class="dt">\</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">-p</span> 8</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The output directory is created if needed. A directory that already holds JCAST output is refused, so two runs never mix; pass <code>--overwrite</code> to replace that output. See the <a href="./about.html">Documentation</a> for the options, how to download the UniProt FASTA for <code>--uniprot</code>, and the output files.</p>
+<section id="test-data" class="level3">
+<h3 class="anchored" data-anchor-id="test-data">Test data</h3>
+<p>The source repository holds a small test set: an rMATS sample and the human chromosome 15 genome and GTF. To run JCAST on it and write the results to the Desktop:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> git clone https://github.com/ed-lau/jcast</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> cd jcast</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python <span class="at">-m</span> jcast <span class="dt">\</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    tests/data/rmats <span class="dt">\</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf <span class="dt">\</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz <span class="dt">\</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">-o</span> ~/Desktop/jcast_smoke</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>To run the tests from the same checkout (about 3 minutes):</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> pip install <span class="at">-e</span> <span class="st">'.[test]'</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> pytest <span class="at">-m</span> <span class="st">'not network'</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
 </section>
 <section id="example-usage" class="level2">
 <h2 class="anchored" data-anchor-id="example-usage">Example Usage</h2>
@@ -337,7 +370,7 @@ Note
 </div>
 </div>
 <p>Run the JCAST Python program specifying the path to the rMATS output directory, the genome sequence, as well as the GTF annotation file:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python <span class="at">-m</span> jcast path/to/rMATS/output/encode_human_heart/ path/to/gtf/Homo_sapiens.GRCh38.89.gtf path/to/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa <span class="at">-o</span> encode_human_heart</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">$</span> python <span class="at">-m</span> jcast path/to/rMATS/output/encode_human_heart/ path/to/gtf/Homo_sapiens.GRCh38.89.gtf path/to/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa <span class="at">-o</span> encode_human_heart <span class="at">-m</span> <span class="at">-c</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

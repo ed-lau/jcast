@@ -19,8 +19,8 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 >   log holds the run's settings and a summary.
 >
 > Open: PR 13 (GUI, [§10](#10-gui-plan--notes)); the GUI released in
-> v0.4.0 is a placeholder that cannot run JCAST. The website (`docs/`)
-> still describes v0.3.5.
+> v0.4.0 is a placeholder that cannot run JCAST. The website (`docs/`,
+> built from `jcast_website/`) was updated for v0.4.0 on 2026-11-13.
 
 This document is the developer-facing companion to [README.md](README.md) and
 [CHANGELOG.md](CHANGELOG.md). It catalogs the current state of the codebase,
@@ -98,7 +98,7 @@ fate of 48 of 1,105 junctions and recovers 12 additional T1 sequences
 | §2 rMATS reader | "explicit column lists … not positional assumptions" | **Wrong.** `df.columns = [...]` renames *by position* and ignores the rMATS header. It works for current rMATS-turbo output, but a format change would silently mislabel columns. |
 | §5 pomegranate options | Recommended scikit-learn `GaussianMixture` | Revised after measurement. A dependency-free scipy EM reproduces the Gamma+Normal model; the sklearn model produces systematically different cutoffs. See §2. |
 | §5 gtfparse | "2.x exists, migration separate" | gtfparse is now at **3.0.5**. `requirements.txt` (`>=1.2.1`) resolves it today, and `read_gtf` returns a polars frame, so `.to_csv` fails. Needs an immediate `<2` bound. |
-| §1 Quarto site | "The Quarto site under `jcast_website/`" | `jcast_website/` is in `.gitignore`. The docs *source* is not version-controlled, only the rendered `docs/`. |
+| §1 Quarto site | "The Quarto site under `jcast_website/`" | `jcast_website/` is in `.gitignore`. The docs *source* is not version-controlled, only the rendered `docs/`. ✅ Tracked since 2026-11-13. |
 
 Everything else in the first review was confirmed, and is carried forward below
 with its original ID so existing references (README → HIGH-2/HIGH-3) still

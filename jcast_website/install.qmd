@@ -1,0 +1,138 @@
+---
+title: "Quick Start"
+format: html
+keywords: Alternative splicing, proteomics, mass spectrometry, RNA sequencing, protein isoforms, proteoforms
+abstract: This page provides the documentation for the JCAST package, which is a tool for create a database of protein isoforms from RNA-seq data.
+description: JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments
+author: "Edward Lau, Maggie Lam"
+date: 11/13/2026
+date-format: long
+image-caption: "JCAST logo"
+image: "images/logo2.png"
+image-alt: "JCAST - Junction Centric Alternative Splicing Translator"
+---
+
+## Installing JCAST
+
+### Requirements
+
+JCAST requires Python 3.11 or later. It is tested on Python 3.11 to 3.15, on macOS and Linux.
+
+JCAST can be installed from PyPI via pip. We recommend using a virtual environment.
+
+```bash
+$ pip install jcast
+```
+
+:::{.callout-note}
+The optional graphical interface (`pip install 'jcast[gui]'`) is an early preview: it opens a window with
+placeholder pages and cannot run JCAST yet. Use the command line.
+:::
+
+## Running JCAST
+
+Launch JCAST as a module (Usage/Help):
+
+```bash
+$ python -m jcast
+```
+
+Alternatively:
+
+```bash
+$ jcast
+```
+
+Example command:
+
+```bash
+$ python -m jcast \
+    /data/encode_human_pancreas/rmats \
+    /data/gtf/Homo_sapiens.GRCh38.89.gtf \
+    /data/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa \
+    -o encode_human_pancreas \
+    -q 0 1 \
+    -r 1 -m -c \
+    --uniprot /data/uniprot/uniprot_sprot_human_isoforms_2026_04.fasta.gz \
+    -p 8
+```
+
+The output directory is created if needed. A directory that already holds JCAST output is refused, so two runs
+never mix; pass `--overwrite` to replace that output. See the [Documentation](about.qmd) for the options, how to
+download the UniProt FASTA for `--uniprot`, and the output files.
+
+### Test data
+
+The source repository holds a small test set: an rMATS sample and the human chromosome 15 genome and GTF. To run
+JCAST on it and write the results to the Desktop:
+
+```bash
+$ git clone https://github.com/ed-lau/jcast
+$ cd jcast
+$ python -m jcast \
+    tests/data/rmats \
+    tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf \
+    tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz \
+    -o ~/Desktop/jcast_smoke
+```
+
+To run the tests from the same checkout (about 3 minutes):
+
+```bash
+$ pip install -e '.[test]'
+$ pytest -m 'not network'
+```
+
+## Example Usage
+
+The following is an example using JCAST to generate custom databases from ENCODE public RNA-seq dataset to generate a cardiac-specific database with JCAST.
+
+#### Download RNA-Seq from ENCODE: 
+As an example, we will download the .fastq files from ENCODE adult human heart [dataset 1](https://www.encodeproject.org/experiments/ENCSR436QDU/) and [dataset 2](https://www.encodeproject.org/experiments/ENCSR391VGU/).
+     
+#### Align the FASTQ files to a reference genome 
+Read alignment can be performed using STAR >= v.2.5.0, e.g.,:
+
+```bash
+$ STAR --runThreadN 10 --genomeDir path/to/GRCh38/STARindex --sjdbGTFfile path/to/Homo_sapiens.gtf --sjdbOverhang 100 --readFilesIn ./ENCFF781VGS.fastq.gz ./ENCFF466ZAS.fastq.gz --readFilesCommand zcat --outSAMtype BAM SortedByCoordinate --outFileNamePrefix ./STAR_aligned/b1t1/
+$ STAR --runThreadN 10 --genomeDir path/to/GRCh38/STARindex --sjdbGTFfile path/to/Homo_sapiens.gtf --sjdbOverhang 100 --readFilesIn ./ENCFF731CDK.fastq.gz ./ENCFF429YOS.fastq.gz --readFilesCommand zcat --outSAMtype BAM SortedByCoordinate --outFileNamePrefix ./STAR_aligned/b2t1/
+```
+
+Note: Arguments including runThreadN and sjdbOverhang should be customized to suit your system and data files. Please refer to the STAR documentations for details.
+
+#### Identify transcript splice junctions 
+Splice junctions can be found using [rMATS](http://rnaseq-mats.sourceforge.net) with the .bam files following STAR. Please refer to the rMATS instructions for latest commands. The following
+example was tested using rmats-turbo-0.1 running in Docker and using rMATS v.4.1.0/Python 3.7. Support for [stringtie](https://ccb.jhu.edu/software/stringtie/) assembled transcripts will be implemented in a future version.
+
+#### Set up a Virtual Environment for rMATS turbo 0.1 in Python 2.7 (only if needed)
+
+#### Install the rMATS image
+Follow instructions from rMATS and docker specific to your OS. E.g.:
+
+```bash
+$ sudo docker load -i rmats-turbo-0.1.tar
+```
+#### Prepare the /rMATS subdirectory 
+Copy the individual .bam files from STAR into the rMATS subdirectory and rename them b1t1.bam, b1t2.bam, b2t1.bam, b2t2.bam, etc. Copy the GTF file from the Genomes folder as GRCm38.gtf. Write a b1.txt file with a text editor containing the following docker virtual directories:
+
+    /data/b1t1.bam,/data/b1t2.bam
+ 
+Write a b2.txt file
+
+    /data/b2t1.bam,/data/b2t2.bam
+ 
+Go back to the data directory and run the rMATS image. The -v flag mounts the host directory into the docker container at /data, which corresponds to the visual directories in the b1.txt and b2.txt files.
+
+    $ sudo docker run -v path/to/data/directory:/data rmats:turbo01 --b1 /data/b1.txt --b2 /data/b2.txt --gtf /data/GRCh38.gtf --od /data/output -t paired  --nthread 4 --readLength 101 --anchorLength 1
+
+:::{.callout-note}
+Note: Arguments including `nThread`, `readLength`, and `anchorLength` should be customized to suit your system and data files. Please refer to the [rMATS](https://github.com/Xinglab/rmats-turbo) documentations for details.
+:::
+
+
+Run the JCAST Python program specifying the path to the rMATS output directory, the genome sequence, as well as the GTF annotation file:
+
+```bash
+$ python -m jcast path/to/rMATS/output/encode_human_heart/ path/to/gtf/Homo_sapiens.GRCh38.89.gtf path/to/genome/Homo_sapiens.GRCh38.dna.primary_assembly.fa -o encode_human_heart -m -c
+```
+

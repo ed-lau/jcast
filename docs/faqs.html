@@ -7,11 +7,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Edward Lau, Maggie Lam">
-<meta name="dcterms.date" content="2026-03-01">
+<meta name="dcterms.date" content="2026-11-13">
 <meta name="keywords" content="Alternative splicing, proteomics, mass spectrometry, RNA sequencing, protein isoforms, proteoforms">
 <meta name="description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 
-<title>Frequently Asked Questions – JCAST v0.3.5</title>
+<title>Frequently Asked Questions – JCAST v0.4.0</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -77,12 +77,12 @@ ul.task-list li input[type="checkbox"] {
 
 
 <link rel="stylesheet" href="styles.css">
-<meta property="og:title" content="Frequently Asked Questions – JCAST v0.3.5">
+<meta property="og:title" content="Frequently Asked Questions – JCAST v0.4.0">
 <meta property="og:description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 <meta property="og:image" content="https://ed-lau.github.io/jcast/images/logo2.png">
-<meta property="og:site_name" content="JCAST v0.3.5">
+<meta property="og:site_name" content="JCAST v0.4.0">
 <meta property="og:image:alt" content="JCAST - Junction Centric Alternative Splicing Translator">
-<meta name="twitter:title" content="Frequently Asked Questions – JCAST v0.3.5">
+<meta name="twitter:title" content="Frequently Asked Questions – JCAST v0.4.0">
 <meta name="twitter:description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 <meta name="twitter:image" content="https://ed-lau.github.io/jcast/images/logo2.png">
 <meta name="twitter:creator" content="@LauLabColorado">
@@ -200,7 +200,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 1, 2026</p>
+      <p class="date">November 13, 2026</p>
     </div>
   </div>
   
@@ -228,15 +228,23 @@ ul.task-list li input[type="checkbox"] {
 <h2 class="anchored" data-anchor-id="faqs">FAQs</h2>
 <section id="q-what-do-i-do-with-the-output-files" class="level4">
 <h4 class="anchored" data-anchor-id="q-what-do-i-do-with-the-output-files">Q: What do I do with the output files?</h4>
-<p>A: For a typical application, we would recommend appending T1.fasta to either the JCAST canonical output (which writes the canonical sequence for any gene that has been detected above the read count cutoff, regardless of whether the non-canonical translation was successful), or to a Uniprot canonical database. The lower tier fasta files contain sequences with frame shifts and/or termination codons. You can include them by appending them to the T1+canonical fasta, but the results should be interpreted with caution.</p>
+<p>A: With <code>--uniprot</code>, search <code>jcast_uniprot_merged.fasta</code>: Swiss-Prot plus the new T1 and T1 alternative-terminus isoforms. Otherwise, append <code>psq_T1.fasta</code> (and, if you want annotated alternative termini, <code>psq_T1_alt_cterm.fasta</code> / <code>psq_T1_alt_nterm.fasta</code>) to either <code>psq_canonical.fasta</code> (if you used <code>-c</code>) or your existing Swiss-Prot canonical database, and search that combined file in your MS pipeline. Lower-tier (T2/T4) and orphan outputs contain frameshifted or truncated sequences and should be interpreted with caution.</p>
 </section>
 <section id="q-what-files-are-required-in-the-rmats-directory-input" class="level4">
 <h4 class="anchored" data-anchor-id="q-what-files-are-required-in-the-rmats-directory-input">Q: What files are required in the rMATS directory input?</h4>
-<p>A: JCAST expects a typical unaltered rMATS output folder, including the individual splice types from rMATS being in the rMATS output directory, named exactly as MXE.MATS.JC.txt, SE.MATS.JC.txt, RI.MATS.JC.txt, A3SS.MATS.JC.txt, A5SS.MATS.JC.txt.</p>
+<p>A: JCAST reads an unaltered rMATS output folder: one file per splice type, named exactly <code>MXE.MATS.JC.txt</code>, <code>SE.MATS.JC.txt</code>, <code>RI.MATS.JC.txt</code>, <code>A3SS.MATS.JC.txt</code> and <code>A5SS.MATS.JC.txt</code>. Only the files of the splice types selected with <code>-s</code> must be there. With <code>-m</code>, the cutoff is fitted on every one of these files that is present.</p>
+</section>
+<section id="q-can-i-use-a-gencode-gtf" class="level4">
+<h4 class="anchored" data-anchor-id="q-can-i-use-a-gencode-gtf">Q: Can I use a GENCODE GTF?</h4>
+<p>A: Yes. JCAST reads GENCODE’s <code>transcript_type</code> as <code>transcript_biotype</code>. When no transcript of a gene passes the canonical filter, it uses the transcript GENCODE tags <code>Ensembl_canonical</code> (see the <a href="./about.html">Documentation</a>).</p>
+</section>
+<section id="q-does-jcast-write-anything-next-to-my-gtf" class="level4">
+<h4 class="anchored" data-anchor-id="q-does-jcast-write-anything-next-to-my-gtf">Q: Does JCAST write anything next to my GTF?</h4>
+<p>A: No.&nbsp;From v0.4.0, the parsed GTF is cached in the user cache directory, or in <code>--cache_dir</code>. <code>&lt;gtf&gt;.cached</code> files written by earlier versions are no longer used and can be deleted.</p>
 </section>
 <section id="q-how-can-i-contribute-to-jcast" class="level4">
 <h4 class="anchored" data-anchor-id="q-how-can-i-contribute-to-jcast">Q: How can I contribute to JCAST?</h4>
-<p>A: Contact us at <a href="mailto:edward.lau@cuanschutz.edu">edward.lau@cuanschutz.edu</a></p>
+<p>A: Open an issue or a pull request on <a href="https://github.com/ed-lau/jcast" class="uri">https://github.com/ed-lau/jcast</a>, or contact us at <a href="mailto:edward.lau@cuanschutz.edu">edward.lau@cuanschutz.edu</a>.</p>
 
 
 </section>
