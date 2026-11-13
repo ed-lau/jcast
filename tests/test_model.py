@@ -48,20 +48,6 @@ def test_general_mixture_model_degenerate(logger):
     assert min_count is None
 
 
-@pytest.mark.parametrize('dataset', ['encode_human_heart', 'encode_mouse_heart', 'ipsc_human_d14'])
-def test_gaussian_mixture(logger, tmp_path, dataset):
-    """ test the (unused) scikit-learn Box-Cox Gaussian mixture path; skipped without scikit-learn """
-
-    pytest.importorskip('sklearn')
-    min_jc_array = _junction_counts(logger, dataset)
-    pt, gmm, min_count = model.gaussian_mixture(min_jc_array=min_jc_array)
-    model.plot_model(min_jc_array=min_jc_array,
-                     pt=pt, gmm=gmm, min_count=min_count,
-                     write_dir=str(tmp_path), filename=dataset)
-
-    assert gmm.means_[1] > gmm.means_[0]
-
-
 def test_cutoff_is_the_models_boundary_in_reads(logger):
     """ the cutoff c is the smallest read count whose ln(count + 1) lies at or above the components' crossing """
     import math

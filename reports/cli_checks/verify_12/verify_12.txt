@@ -1,0 +1,21 @@
+before: af187e8; after: af187e8 + changes to jcast/
+runs: <rmats> <chr15 GTF> <chr15 genome> -c --uniprot <chr15 Swiss-Prot> <args>
+
+== The bundled rMATS folder (five files): before and after
+default: 14 output files, identical: yes; cutoff 1 / 1; summary identical: yes
+  log, Arguments: identical but for g_or_ln=0 before: yes
+-m: 11 output files, identical: yes; cutoff 26 / 26; summary identical: yes
+  log, Arguments: identical but for g_or_ln=0 before: yes
+-s SE -m: 11 output files, identical: yes; cutoff 26 / 26; summary identical: yes
+  log, Arguments: identical but for g_or_ln=0 before: yes
+  log, after only:  INFO~rMATS MXE (not selected by -s; read for the -m model): <repo>/tests/data/rmats/MXE.MATS.JC.txt (16,223 bytes, sha256 ea3877af20b9620898a750b5aeb6037e4c96f52249c38528d77f5f674ce604e0)
+  log, after only:  INFO~rMATS RI (not selected by -s; read for the -m model): <repo>/tests/data/rmats/RI.MATS.JC.txt (14,014 bytes, sha256 fc35b607c9389aee0a6314a014aedbfc92813abdc85ae2bed18232960ba5d1f7)
+  log, after only:  INFO~rMATS A5SS (not selected by -s; read for the -m model): <repo>/tests/data/rmats/A5SS.MATS.JC.txt (11,250 bytes, sha256 f6c1980e6ed62b2fb3a41c2ff74c9ed7723c70c43cb3d45036fdec9b3e12aff2)
+  log, after only:  INFO~rMATS A3SS (not selected by -s; read for the -m model): <repo>/tests/data/rmats/A3SS.MATS.JC.txt (21,549 bytes, sha256 28274cedf4939dd553e280b2c969492e3f218007495ec472924db9c67a8a6627)
+-s SE RI: 14 output files, identical: yes; cutoff 1 / 1; summary identical: yes
+  log, Arguments: identical but for g_or_ln=0 before: yes
+
+== A folder holding only SE.MATS.JC.txt
+before, -s SE: exit 1: FileNotFoundError: [Errno 2] No such file or directory: '<work>/se_only/MXE.MATS.JC.txt'
+after, -s SE: exit 0; output and summary identical to the bundled folder with -s SE: yes
+after, -s SE -m: exit 0; cutoff 6 (the model on the SE junctions alone; 26 with the five files present)

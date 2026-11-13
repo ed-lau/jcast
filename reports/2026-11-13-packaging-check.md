@@ -45,7 +45,8 @@
   scikit-learn is now in the `test` extra, with pytest:
   `pip install -e '.[test]'`. It is used only by the Gaussian mixture in
   `model.py`, which the command line does not use, and its test, which is
-  skipped without it.
+  skipped without it. (PR 12 removed both, and scikit-learn with them:
+  [command-line checks](2026-11-13-command-line-checks.md).)
 - **`tox.ini`** runs the tests on Python 3.11 to 3.15 (it ran 3.7 to 3.9).
 - **`jcast/__init__.py`** no longer builds `__all__` from the module files
   ([REVIEW.md §4](../REVIEW.md#low) LOW), which made

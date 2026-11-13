@@ -55,7 +55,7 @@ jobs:
           uv venv --python "$(command -v python)" .venv
           uv pip install --python .venv/bin/python -r pyproject.toml --extra test --resolution lowest-direct \
             --only-binary biopython --only-binary pandas --only-binary numpy --only-binary scipy \
-            --only-binary matplotlib --only-binary scikit-learn --only-binary contourpy \
+            --only-binary matplotlib --only-binary contourpy \
             --only-binary kiwisolver --only-binary pillow
           uv pip install --python .venv/bin/python --no-deps .
           uv pip list --python .venv/bin/python

@@ -9,6 +9,12 @@ import numpy as np
 
 from jcast import params
 from jcast.annots import gene_rows
+from jcast.outcomes import SPLICE_TYPES
+
+
+def rmats_path(rmats_dir, splice_type: str) -> str:
+    """ The rMATS file of a splice type: <rmats_dir>/<splice type>.MATS.JC.txt """
+    return os.path.join(rmats_dir, f'{splice_type}.MATS.JC.txt')
 
 
 class RmatsResults(object):
@@ -24,23 +30,32 @@ class RmatsResults(object):
     def __init__(self,
                  logger,
                  rmats_dir,
-
+                 splice_types=SPLICE_TYPES,
+                 others_if_present: bool = False,
                  ):
         """
+        2026-11-13 the five files were always read, so a folder without one of them failed even if -s did not select
+        it (REVIEW.md MED-8). The read count model (-m) fits on every file read, so main reads the others too with -m.
+
         :param rmats_dir: directory containing the rMATS output files
         :param logger: logger object
+        :param splice_types: the splice types whose files are read; each must exist
+        :param others_if_present: also read the other splice types' files that exist
         """
 
         self.logger = logger
 
         self.dir = rmats_dir
-        self.rmats_mxe = self._read_rmats_mxe()
-        self.rmats_se = self._read_rmats_se()
-        self.rmats_ri = self._read_rmats_ri()
-        self.rmats_a5ss = self._read_rmats_a5ss()
-        self.rmats_a3ss = self._read_rmats_a3ss()
+        readers = {'MXE': self._read_rmats_mxe, 'SE': self._read_rmats_se, 'RI': self._read_rmats_ri,
+                   'A5SS': self._read_rmats_a5ss, 'A3SS': self._read_rmats_a3ss}
 
-        self.rmats_list = [self.rmats_mxe, self.rmats_se, self.rmats_ri, self.rmats_a5ss, self.rmats_a3ss]
+        # splice type -> its table, for the files read, in the order of SPLICE_TYPES
+        self.tables = {t: readers[t]() for t in SPLICE_TYPES
+                       if t in splice_types or (others_if_present and os.path.isfile(rmats_path(rmats_dir, t)))}
+        self.rmats_mxe, self.rmats_se, self.rmats_ri, self.rmats_a5ss, self.rmats_a3ss = (
+            self.tables.get(t) for t in SPLICE_TYPES)
+
+        self.rmats_list = list(self.tables.values())
         self.min_jc_array = None
 
 
@@ -53,7 +68,7 @@ class RmatsResults(object):
         :return:
         """
 
-        df = pd.read_table(os.path.join(self.dir, 'MXE.MATS.JC.txt'), sep='\t', low_memory=False)
+        df = pd.read_table(rmats_path(self.dir, 'MXE'), sep='\t', low_memory=False)
         df.columns = ['id', 'gene_id', 'gene_symbol', 'chr', 'strand',
                       'alt1_es', 'alt1_ee', 'alt2_es', 'alt2_ee', 'anc_es',
                       'anc_ee', 'down_es', 'down_ee', 'id0', 'ijc_s1', 'sjc_s1',
@@ -71,7 +86,7 @@ class RmatsResults(object):
         :return:
         """
 
-        df = pd.read_table(os.path.join(self.dir, 'SE.MATS.JC.txt'), sep='\t', low_memory=False)
+        df = pd.read_table(rmats_path(self.dir, 'SE'), sep='\t', low_memory=False)
         df.columns = ['id', 'gene_id', 'gene_symbol', 'chr', 'strand',
                                  'alt1_es', 'alt1_ee', 'anc_es',
                                  'anc_ee', 'down_es', 'down_ee', 'id0', 'ijc_s1', 'sjc_s1',
@@ -90,7 +105,7 @@ class RmatsResults(object):
 
         :return:
         """
-        df = pd.read_table(os.path.join(self.dir, 'RI.MATS.JC.txt'), sep='\t', low_memory=False)
+        df = pd.read_table(rmats_path(self.dir, 'RI'), sep='\t', low_memory=False)
         df.columns = ['id', 'gene_id', 'gene_symbol', 'chr', 'strand',
                                  'alt1_es', 'alt1_ee', 'anc_es',
                                  'anc_ee', 'down_es', 'down_ee', 'id0', 'ijc_s1', 'sjc_s1',
@@ -114,7 +129,7 @@ class RmatsResults(object):
         :return:
         """
 
-        df = pd.read_table(os.path.join(self.dir, 'A5SS.MATS.JC.txt'), sep='\t', low_memory=False)
+        df = pd.read_table(rmats_path(self.dir, 'A5SS'), sep='\t', low_memory=False)
         df.columns = ['id', 'gene_id', 'gene_symbol', 'chr', 'strand',
                                    'alt1_es', 'alt1_ee', 'alt2_es',
                                    'alt2_ee', 'anc_es', 'anc_ee', 'id0', 'ijc_s1', 'sjc_s1',
@@ -138,7 +153,7 @@ class RmatsResults(object):
         :return:
         """
 
-        df = pd.read_table(os.path.join(self.dir, 'A3SS.MATS.JC.txt'), sep='\t', low_memory=False)
+        df = pd.read_table(rmats_path(self.dir, 'A3SS'), sep='\t', low_memory=False)
         df.columns = ['id', 'gene_id', 'gene_symbol', 'chr', 'strand',
                                    'alt1_es', 'alt1_ee', 'alt2_es',
                                    'alt2_ee', 'anc_es', 'anc_ee', 'id0', 'ijc_s1', 'sjc_s1',

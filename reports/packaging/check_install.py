@@ -41,9 +41,8 @@ REPO = Path(__file__).resolve().parents[2]
 
 # the dependencies, and the packages that need compiling: only their wheels are used for the lowest versions
 SHOWN = ('biopython', 'gtfparse', 'pandas', 'numpy', 'scipy', 'requests', 'platformdirs', 'tqdm', 'matplotlib',
-         'scikit-learn', 'pytest')
-COMPILED = ('biopython', 'pandas', 'numpy', 'scipy', 'matplotlib', 'scikit-learn', 'contourpy', 'kiwisolver',
-            'pillow')
+         'pytest')
+COMPILED = ('biopython', 'pandas', 'numpy', 'scipy', 'matplotlib', 'contourpy', 'kiwisolver', 'pillow')
 
 
 def sh(cmd, **kwargs):

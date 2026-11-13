@@ -6,7 +6,7 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 > **Status, 2026-11-13.** The sections below record the state at the review
 > date, with each item's fix marked; §3 describes the current code. Progress
 > since then is tracked in the roadmap
-> ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–11 and 14–17 are done.
+> ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–12 and 14–17 are done.
 > - JCAST installs and runs on current Python, pandas and numpy.
 > - The tiering issues of §5 are fixed, each with an audit under
 >   [reports/](reports/README.md).
@@ -16,7 +16,7 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 > - Each run records every junction's outcome in `junctions.tsv`, and the
 >   log holds the run's settings and a summary.
 >
-> Open: PRs 12–13 (argparse hygiene, GUI).
+> Open: PR 13 (GUI).
 
 This document is the developer-facing companion to [README.md](README.md) and
 [CHANGELOG.md](CHANGELOG.md). It catalogs the current state of the codebase,
@@ -187,21 +187,22 @@ bound could be widened to `>=1.5,<4` instead of forcing `numpy<2`.
 
 ## 3. Architecture overview
 
-JCAST is a small flat package (~3,400 lines of Python, 14 modules plus the GUI
+JCAST is a small flat package (~3,200 lines of Python, 14 modules plus the GUI
 skeleton) that runs as a CLI, in one process or, with `-p`, several.
 
 ```
 jcast/
 ├── __main__.py        Entry — dispatches to gui.launch_gui (--gui) or main.main()
 ├── main.py            CLI parsing, run loop (one process or -p workers), tier dispatch (_translate_one)
-├── junctions.py       RmatsResults reader; Junction (trim_cds, get_translated_phase, min_jc)
+├── junctions.py       RmatsResults reader (the -s files; with -m, the others present); Junction (trim_cds,
+│                       get_translated_phase, min_jc)
 ├── sequences.py       Sequence: nucleotide retrieval, translation, canonical lookup
 │                       (UniProt FASTA, GTF or UniProt API), stitching, FASTA writing
 ├── uniprot.py         --uniprot: UniProtFasta (canonical by sequence, then unique gene name),
 │                       uniprot_canonicals.tsv, psq_isoforms.tsv, jcast_uniprot_merged.fasta
 ├── annots.py          ReadAnnotations (GTF, indexed by gene), ReadGenome (FASTA), AnnotatedTranscript
 ├── helpers.py         get_local_nuc, get_complementary, make_pep, write_seqrecord_to_fasta
-├── model.py           Mixture-model read-count cutoff (numpy/scipy EM; vestigial sklearn path)
+├── model.py           Mixture-model read-count cutoff (numpy/scipy EM)
 ├── outcomes.py        junctions.tsv and the end-of-run summary
 ├── cache.py           The user cache directory (platformdirs, or --cache_dir)
 ├── params.py          Module-level run parameters (TSL threshold, anchor length, …)
@@ -463,15 +464,17 @@ Fix: cache in a user dir keyed on (path, size, mtime), with `index=False`.
 - On the `KeyError` path, `gtf0_start` / `gtf0_end` are set to `None` and then
   passed to `len()`, which raises `TypeError`. Use empty Series instead.
 
-### MED-8 — `RmatsResults` reads all five files regardless of `-s` ◎ *(new)*
+### MED-8 — `RmatsResults` reads all five files regardless of `-s` ◎ *(new)* — **fixed in PR 12**
 
-[jcast/junctions.py:37-41](jcast/junctions.py#L37-L41) versus the existence
-check at [jcast/main.py:755-757](jcast/main.py#L755-L757), which only checks
-the selected types. A folder with only `SE.MATS.JC.txt` passes validation
-and then raises `FileNotFoundError` (this is the existing `TODO` at
-[main.py:108](jcast/main.py#L108)). Open: PR 12.
-The check also uses `assert`, which is stripped under `python -O`; use
-`parser.error`.
+`RmatsResults` read all five files, while the existence check in `main`
+checked only the selected types. A folder with only `SE.MATS.JC.txt` passed
+validation and then raised `FileNotFoundError`. The check also used
+`assert`, which is stripped under `python -O`; use `parser.error`.
+**Fixed in PR 12** ([command-line checks](reports/2026-11-13-command-line-checks.md)):
+only the selected files must exist, and a missing one is a usage error.
+With `-m`, the others are read too when present, because the model fits on
+every junction read: fitting on the selected types alone would move the
+chr15 cutoff of `-s SE -m` from 26 to 6.
 
 ### MED-9 — `write_canonical`'s UniProt fallback is a no-op ◎ *(new)* — **fixed in PR 8**
 
@@ -564,11 +567,12 @@ handlers first, and close the file handler when the run ends.
   GENCODE genome → `KeyError`).
 - ~~`jcast/__init__.py`: the glob-built `__all__` makes `from jcast import *`
   import every submodule. Remove it.~~ **Removed in PR 10.**
-- [jcast/main.py:724-727](jcast/main.py#L724-L727): `--g_or_ln` is read by
-  nothing. Remove it (from the README too). Open: PR 12.
+- ~~`jcast/main.py`: `--g_or_ln` is read by nothing. Remove it (from the
+  README too).~~ **Removed in PR 12.**
 - ~~`sequences.py`: stray `print()`.~~ **Gone.**
-- [jcast/helpers.py:45-125](jcast/helpers.py#L45-L125): `get_rest_nuc` is
-  unused, uses bare `except:`, and has `print`-based logging. Remove it.
+- ~~`jcast/helpers.py`: `get_rest_nuc` is unused, uses bare `except:`, and
+  has `print`-based logging. Remove it.~~ **Removed in PR 12**, with the
+  unused scikit-learn Gaussian mixture in `model.py`.
 - ~~`model.py`: the KDE grid `linspace(-5, 20, 500000)` silently clips any
   parameter outside that range, and `gaussian_kde` raises if all restarts
   agree.~~ **Gone in PR 0**: Appendix A replaced the model.
@@ -736,7 +740,7 @@ None of this matters for the chr15 fixture, but all of it matters genome-wide
 | pandas | `>=1.0,<2` | `>=1.3.0` | 3.1 | ✅ `>=1.5,<4` (PR 0) |
 | numpy | *(implicit)* | *(implicit)* | 2.4 | ✅ `>=1.20,<3` declared (PR 0) |
 | scipy | *(missing)* | `>=1.7.0` | 1.17 | ✅ added to setup.py (PR 0) |
-| scikit-learn | *(commented out)* | `>=1.0` | 1.9 | ✅ lazy-imported; only needed for the vestigial `gaussian_mixture` path (PR 0) |
+| scikit-learn | *(commented out)* | `>=1.0` | 1.9 | ✅ lazy-imported; only needed for the vestigial `gaussian_mixture` path (PR 0); that path and the dependency removed (PR 12) |
 | matplotlib | `>=3.4,<4` | `==3.4.2` | 3.11 | ✅ `>=3.4,<4` in both; HIGH-5 fixed (PR 0) |
 | requests | `>=2,<3` | `>=2.24.0` | — | OK |
 | tqdm | `>=4,<5` | `>=4.61.2` | — | OK |
@@ -753,7 +757,8 @@ Modernizing is a small change.
 > bounds are tested at both ends on Python 3.11 to 3.15
 > ([packaging check](reports/2026-11-13-packaging-check.md)): numpy
 > ≥ 1.23.2, scipy ≥ 1.9.2, matplotlib ≥ 3.6, requests ≥ 2.20.
-> `requirements.txt` is removed; scikit-learn is in the `test` extra.
+> `requirements.txt` is removed; scikit-learn moved to the `test` extra, and
+> PR 12 removed its only use.
 
 ### Packaging issues *(new)* — ✅ fixed in PR 10
 
@@ -853,7 +858,7 @@ currently can't be installed and run from scratch.
 | 9 | ✅ Per-gene GTF index, in-memory FASTA de-dup ([parallel audit](reports/2026-11-12-parallel-audit.md)); filtering before the canonical lookup done in PR 6 | Performance | Done 2026-11-12 |
 | 10 | ✅ Packaging: `pyproject.toml` metadata with the version set once (0.4.0), Python ≥ 3.11, only `jcast` installed, the tests and their data in the sdist, dependency bounds tested at both ends on Python 3.11–3.15 ([packaging check](reports/2026-11-13-packaging-check.md); decided 2026-11-13: Python ≥ 3.11, CI on Linux and macOS, version 0.4.0; `4a039a9`) | Env | Done 2026-11-13 |
 | 11 | ✅ CI (GitHub Actions): the tests on Python 3.11–3.15 on Linux and macOS, at the lowest dependency versions, and against the installed wheel, on every push and pull request ([packaging check §6](reports/2026-11-13-packaging-check.md#6-ci-pr-11); `dee41b6`) | Infra | Done 2026-11-13 |
-| 12 | argparse hygiene: drop `--g_or_ln`, `-s` reads only selected files (MED-8), `parser.error` not `assert` | UX | PR 1 |
+| 12 | ✅ argparse hygiene: drop `--g_or_ln`; only the `-s` files must exist (MED-8), and with `-m` the others present are read too, for the model; `parser.error` not `assert`; `get_rest_nuc` and the scikit-learn Gaussian mixture removed ([command-line checks](reports/2026-11-13-command-line-checks.md); decided 2026-11-13; no output change) | UX | Done 2026-11-13 |
 | 13 | GUI v0 → wizard (§10) | New surface | PRs 7, 12 |
 | 14 | ✅ `--uniprot FASTA`: canonical from a supplied UniProt FASTA (no API calls), GTF fallback, built-in Swiss-Prot merge ([evaluation](reports/2026-11-11-uniprot-fasta-evaluation.md)) | Reproducibility | Done 2026-11-11 |
 | 15 | ✅ Parallel junctions: `-p/--processes` (fork; workers return records, the main process writes in order); one process without `--uniprot` ([parallel audit](reports/2026-11-12-parallel-audit.md)) | Performance | Done 2026-11-12 |

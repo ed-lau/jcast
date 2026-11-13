@@ -111,7 +111,6 @@ usage: jcast [-h] [-o OUT] [--overwrite] [--cache_dir CACHE_DIR]
              [-r READ] [-m] [-c] [--uniprot UNIPROT] [-p PROCESSES]
              [-v] [--mask MASK]
              [-s {MXE,SE,RI,A5SS,A3SS} [...]] [-q q_lo q_hi]
-             [--g_or_ln G_OR_LN]
              rmats_folder gtf_file genome
 
 positional arguments:
@@ -134,8 +133,10 @@ optional arguments:
                         counts, each summed over samples and replicates
                         [default: 1, which keeps every junction]
   -m, --model           take the read count cutoff from a Gamma + Normal
-                        mixture model of the read counts, instead of -r
-                        (used only if the fit fails) [default: False]
+                        mixture model of the read counts of every rMATS
+                        file in the folder (also those -s leaves out),
+                        instead of -r (used only if the fit fails)
+                        [default: False]
   -c, --canonical       write the canonical protein of every gene with a
                         junction to psq_canonical.fasta, whatever the
                         junction's fate [default: False]
@@ -152,12 +153,12 @@ optional arguments:
   --mask MASK           deprecated and ignored: slices containing any base
                         other than A, C, G or T are always skipped. Will be
                         removed in the next release.
-  -s, --splice_type     splice types to translate [default: MXE SE RI A5SS A3SS]
+  -s, --splice_type     splice types to translate; only their rMATS files
+                        need to be in the folder
+                        [default: MXE SE RI A5SS A3SS]
   -q, --qvalue q_lo q_hi
                         keep junctions whose rMATS FDR is in this range
                         [default: 0 1]
-  --g_or_ln G_OR_LN     experimental: low-end distribution selector
-                        (0 = Gamma, otherwise LogNormal)
 ```
 
 ### Canonicals from a UniProt FASTA (`--uniprot`, recommended)
@@ -256,9 +257,6 @@ loaded rather than copying them.
 
 Leave a core or two for the system: `-p` set to the number of cores minus
 2 is a reasonable maximum.
-
-The `--g_or_ln` flag is a development-only switch and will be removed in
-v0.4.0; see [REVIEW.md](REVIEW.md).
 
 ## Output files
 

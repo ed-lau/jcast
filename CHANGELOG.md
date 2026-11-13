@@ -291,7 +291,8 @@ and §9.
   When no stable two-component fit exists, JCAST logs a warning and falls back
   to `-r` instead of crashing. Fitted parameters are now written to the log.
 - scikit-learn and matplotlib are imported lazily, so a missing optional
-  package no longer breaks every CLI invocation.
+  package no longer breaks every CLI invocation (scikit-learn's only use was
+  removed in PR 12).
 - **Packaging (PR 10).**
   - **Python 3.11 or later** (was 3.7). Tested on Python 3.11 to 3.15.
   - **The package metadata is in `pyproject.toml`.** `setup.py` and
@@ -330,6 +331,20 @@ and §9.
   `TODO.md`, and the Quarto sources under `jcast_website/`.
 
 ### Fixed
+- **A folder without all five rMATS files works with `-s` (PR 12;
+  REVIEW.md MED-8).** Only the files of the `-s` splice types must exist.
+  Before, all five were read, so a folder holding only `SE.MATS.JC.txt`
+  failed with `FileNotFoundError` even with `-s SE`.
+  - **`-m` still fits on every rMATS file present,** including those `-s`
+    leaves out, as before. The log now lists every rMATS file read, and
+    marks those read only for the model. On a folder holding fewer files,
+    the model fits on those: on chr15, `-s SE -m` gives a cutoff of 26 with
+    the five files and 6 with SE alone.
+  - **A missing rMATS folder or selected file is a usage error** (exit
+    status 2) naming the files. It was an `assert`, which `python -O`
+    skips.
+  - Every run that worked before gives the same output. See
+    [reports/2026-11-13-command-line-checks.md](reports/2026-11-13-command-line-checks.md).
 - **`-c` now writes every gene's canonical (PR 8).**
   - Before, the T1, T2 and T4 paths wrote it only when a translated slice
     equalled it. Masked junctions never wrote it: the masked-base check
@@ -484,6 +499,11 @@ and §9.
   `pandas.core.computation.ops` location no longer exists).
 
 ### Removed
+- **`--g_or_ln`** (PR 12), a development switch that nothing read.
+- **Unused code (PR 12):** `helpers.get_rest_nuc` (sequence from the
+  Ensembl REST API), and the scikit-learn Gaussian mixture
+  (`model.gaussian_mixture`, `model.plot_model`), which the command line
+  never called. scikit-learn is no longer needed, even for the tests.
 - **Tier 3 and the three-frame fallback** (`psq_T3.fasta`,
   `psq_T3_orphan.fasta`, `fates.TIER3`, and `Sequence.translate(use_phase=...)`).
   They guessed a reading frame when the annotated one was missing or failed,
@@ -504,9 +524,6 @@ The following items are scheduled for v0.4.0 but live in subsequent focused
 PRs. See [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised) for the full
 table.
 
-- **Argument checks (PR 12):** drop the dev-only `--g_or_ln` flag; `-s`
-  reads only the selected rMATS files (REVIEW.md MED-8); report a missing
-  file with `parser.error`, not `assert`.
 - **GUI (PR 13):** expose `--uniprot`, `--overwrite`, `--cache_dir` and
   `--verbose`; run `-p` from a subprocess or with another start method,
   not by forking the Qt process.

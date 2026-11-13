@@ -16,7 +16,7 @@ import tqdm
 
 from jcast import params, fates, model, cache, outcomes
 from jcast import helpers as h
-from jcast.junctions import Junction, RmatsResults
+from jcast.junctions import Junction, RmatsResults, rmats_path
 from jcast.annots import ReadAnnotations, ReadGenome
 from jcast.sequences import Sequence
 from jcast.uniprot import UniProtFasta, MERGED_FILE, ISOFORMS_FILE, CANONICALS_FILE
@@ -88,24 +88,25 @@ def _run(args, logger, removed=()) -> bool:
     if removed:
         logger.info(f'--overwrite: removed the output of an earlier run: {", ".join(removed)}.')
 
+    # ---- Read in rMATS files: those of the -s splice types, and with -m, the others in the folder too, since the
+    # model fits on every junction read (reports/2026-11-13-command-line-checks.md) ----
+    rmats_results = RmatsResults(logger=logger,
+                                 rmats_dir=args.rmats_folder,
+                                 splice_types=args.splice_type,
+                                 others_if_present=args.model,
+                                 )
+
     # ---- The inputs. The GTF and the genome (GBs) get no checksum: it would read them again, about 20 s for GENCODE
     # and GRCh38 (reports/2026-11-12-log-audit.md §7) ----
-    for splice_type in outcomes.SPLICE_TYPES:
-        path = os.path.join(args.rmats_folder, f'{splice_type}.MATS.JC.txt')
-        if splice_type in args.splice_type and os.path.isfile(path):
-            logger.info(f'rMATS {splice_type}: {_describe(path)}')
+    for splice_type in rmats_results.tables:
+        unselected = '' if splice_type in args.splice_type else ' (not selected by -s; read for the -m model)'
+        logger.info(f'rMATS {splice_type}{unselected}: {_describe(rmats_path(args.rmats_folder, splice_type))}')
     logger.info(f'GTF: {_describe(args.gtf_file, checksum=False)}')
     logger.info(f'Genome: {_describe(args.genome, checksum=False)}')
 
     if getattr(args, 'mask', None) is not None:
         logger.warning('--mask is deprecated and ignored: slices containing any base other than A, C, G or T are '
                        'always skipped. It will be removed in the next release.')
-
-    # ---- Read in rMATS files ----
-    rmats_results = RmatsResults(logger=logger,
-                                 rmats_dir=args.rmats_folder,
-                                 )
-    # TODO: only read in the splice types that are needed
 
     # ---- Read the gtf file using  gtfpase then write as a pandas data frame. ----
     gtf = ReadAnnotations(logger=logger,
@@ -147,19 +148,6 @@ def _run(args, logger, removed=()) -> bool:
                 filename='model',
                 )
 
-        # Gaussian mixture model implementation
-        """
-        pt, gmm, min_count = model.gaussian_mixture(min_jc_array=rmats_results.min_jc_array)
-
-        # Plot out the model
-        model.plot_model(min_jc_array=rmats_results.min_jc_array,
-                         pt=pt,
-                         gmm=gmm,
-                         min_count=min_count,
-                         write_dir=args.out,
-                         filename='model',
-                         )
-        """
     # If the m flag is not set, use the r argument value as min count
     else:
         min_count = args.read
@@ -226,12 +214,13 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
     #
     # Main loop through every line of each of the five rMATS files to make junction object, then translate them
     #
-    for splice_type, rma in zip(["MXE", "SE", "RI", "A5SS", "A3SS"], rmats_results.rmats_list):
+    for splice_type in outcomes.SPLICE_TYPES:
 
         # ---- Skip if the splice type is not in the list of splice types to run ----
         if splice_type not in args.splice_type:
             logger.info(f'Skipping {splice_type} because it was not specified in the -s argument.')
             continue
+        rma = rmats_results.tables[splice_type]
 
         # ---- Get a list of junctions from each splice type ----
         junctions = [Junction(**rma.iloc[i].to_dict()) for i in range(len(rma))]
@@ -660,8 +649,9 @@ def main():
                         )
 
     parser.add_argument('-m', '--model',
-                        help='take the read count cutoff from a Gamma + Normal mixture model of the read counts, '
-                             'instead of -r (used only if the fit fails) [default: False]',
+                        help='take the read count cutoff from a Gamma + Normal mixture model of the read counts of '
+                             'every rMATS file in the folder (also those -s leaves out), instead of -r (used only if '
+                             'the fit fails) [default: False]',
                         action='store_true',
                         default=False,
                         #type=bool,
@@ -705,7 +695,8 @@ def main():
                         )
 
     parser.add_argument('-s', '--splice_type',
-                       help='splice type to be translated [default: MXE SE RI A5SS A3SS]',
+                       help='splice types to translate; only their rMATS files need to be in the folder '
+                            '[default: MXE SE RI A5SS A3SS]',
                        default=set(['MXE', 'SE', 'RI', 'A5SS', 'A3SS']),
                        choices=['MXE', 'SE', 'RI', 'A5SS', 'A3SS'],
                        nargs='+',
@@ -719,12 +710,6 @@ def main():
                         type=float,
                         action=CheckQValueRange,
                         )
-
-    # DEVELOPMENT ARGUMENT, Should be deleted when a default distribution - Gamma or LogNorm - is determined.
-    parser.add_argument("--g_or_ln",
-                        help="Switch on distribution to use for low end of histogram, 0 for Gamma, anything else for LogNorm",
-                        default=0,
-                        type=int)
 
     parser.set_defaults(func=run_jcast)
 
@@ -746,15 +731,18 @@ def main():
         if not os.path.isfile(path):
             parser.error(f'file not found: {path}')
 
+    # only the -s splice types' rMATS files must exist (REVIEW.md MED-8)
+    if not os.path.isdir(args.rmats_folder):
+        parser.error(f'rMATS folder not found: {args.rmats_folder}')
+    missing = [rmats_path(args.rmats_folder, t) for t in outcomes.SPLICE_TYPES
+               if t in args.splice_type and not os.path.isfile(rmats_path(args.rmats_folder, t))]
+    if missing:
+        parser.error(f'rMATS file not found: {", ".join(missing)}; select the splice types the folder has with -s')
+
     found = existing_outputs(args.out)
     if found and not args.overwrite:
         parser.error(f'output directory {args.out} already holds JCAST output ({", ".join(found)}); use --overwrite '
                      f'to replace it, or another -o')
-
-    # Check if the rMATS directory contains the expected files
-    for splice_type in args.splice_type:
-        assert os.path.exists(os.path.join(args.rmats_folder, f'{splice_type}.MATS.JC.txt')), \
-            'rMATS files not found, check directory.'
 
     # run the function in the argument
     args.func(args)

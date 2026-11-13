@@ -3,8 +3,6 @@
 """ Helper functions that translate nucleotides to amino acids, etc. """
 
 import os.path
-import sqlite3 as sq
-import requests as rq
 
 from Bio import SeqIO
 from Bio.Seq import reverse_complement
@@ -40,87 +38,6 @@ def get_local_nuc(genome_index,
 
     # soft-masked (lowercase) bases are ordinary sequence (reports/2026-11-11-masked-bases-audit.md)
     return genome_index[chromosome][es-1:ee].upper()
-
-
-def get_rest_nuc(species,
-                 chrom,
-                 es,
-                 ee,
-                 ):
-    """
-    :param species: Species, e.g., 'mouse
-    :param chrom: Chromosome, e.g., 1
-    :param es: Exon start, e.g., 10000000
-    :param ee: Exon end, e.g., 10000100
-    :return:
-
-    Function to get nucleotide sequences by REST API
-    (anchor, alternative-1, alternative-2, downstream)
-
-    If the coordinates are minus 1 such as in the case when a certain segment is not present in a particular splice
-    type, this should return an empty string
-
-    To reduce loading time, it will try to cache the sequence coordinates in a local SQLite DB.
-
-    To-do: note that if the network retrieval is affected by some redirecting so we are retrieving a HTML 200 result
-    that does not contain sequence, this could corrupt the database and require manual removal of the cached sequence.
-
-    >>> get_nuc('mouse', 1, 10000000, 10000050)
-    'GTTTTCAATGCAGGAAATGCAATTGTTCTGTAGGTACAAGTGGGTCAGATT'
-
-    >>> get_nuc('mouse', 1, -1, -1)
-    ''
-
-    """
-
-    if es <= 0 or ee <= 0:
-        return ''
-
-    cache = species + '-' + str(chrom) + '-' + str(es) + '-' + str(ee)
-
-    con = sq.connect('seq-cache.db')
-    cur = con.cursor()
-    cur.execute('''CREATE TABLE IF NOT EXISTS sequences(pk INTEGER PRIMARY KEY, id TEXT, seq TEXT)''')
-
-    try:
-        cur.execute('''SELECT id, seq FROM sequences WHERE id=:cache''',
-                    {'cache': cache})
-        sequence = cur.fetchone()
-
-        if len(sequence) > 0:
-            nuc = sequence[1]
-            print('Locally cached sequence retrieved')
-            con.close()
-            return nuc
-
-        else:
-            print("Sequence not yet cached locally. 0")
-
-    except:
-        print("Sequence not yet cached locally. 1")
-
-    server = "http://rest.ensembl.org"
-    ext = "/sequence/region/" + species + "/" + str(chrom) + ":" + str(es) + ".." + str(ee) + ":1?"
-
-    print(server+ext)
-
-    try:
-        ret = rq.get(server + ext, headers={"Content-Type": "text/plain"})
-
-        if ret.status_code == 200:
-            nuc = ret.text
-            cur.execute('''INSERT INTO sequences(id, seq) VALUES(:id, :seq)''', {'id': cache, 'seq': nuc})
-            print("Sequence retrieved from Uniprot and written into local cache.")
-            con.commit()
-            con.close()
-
-        else:
-            nuc = ''
-
-    except:
-        nuc = ''
-
-    return nuc
 
 
 def get_complementary(nt: str,

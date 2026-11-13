@@ -1,4 +1,4 @@
-# Handoff — v0.4.0 hardening (2026-11-12, after PRs 16–17)
+# Handoff — v0.4.0 hardening (2026-11-13, after PRs 10–12)
 
 For the next working session on the `v0.4.0-hardening` branch. It covers
 where things stand, how the work has been run, and what to do next.
@@ -6,40 +6,39 @@ where things stand, how the work has been run, and what to do next.
 ## State
 
 - **Branch:** `v0.4.0-hardening`, last commit at handoff in `git log`.
-  `origin` has it up to `8b845aa` (before PRs 6–8); later commits are
-  local until the maintainer asks for a push.
-- **Tests:** all 148 pass in about 2.5 minutes (`python -m pytest -q`; run
-  only the fast ones with `-m 'not slow'`).
+  Check `git status -sb` for what `origin` has; push only when the
+  maintainer asks.
+- **Tests:** all 153 pass in about 2.5 minutes (`python -m pytest -q`; run
+  only the fast ones with `-m 'not slow'`, offline with `-m 'not network'`).
+- **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml) (PR 11)
+  runs on every push. Its steps were checked locally on macOS; **check its
+  first run on GitHub**, on Linux and macOS, after the next push.
 - **Golden tests:**
   - `tests/test_pipeline.py::test_chr15_golden` (GTF-only canonicals). Its
     `read=1` keeps every junction since PR 6.
   - `tests/test_uniprot.py::test_chr15_uniprot` (`--uniprot`, on the
     Swiss-Prot subset in `tests/data/uniprot/`).
-- **Done:** roadmap PRs 0–9 and 14–17 ([REVIEW.md §9](REVIEW.md#9-v040-hardening-roadmap-revised)).
+- **Done:** roadmap PRs 0–12 and 14–17 ([REVIEW.md §9](REVIEW.md#9-v040-hardening-roadmap-revised)).
   Every output-changing PR has an audit, an evidence folder and a
   verification script, indexed in [reports/README.md](reports/README.md)
   with its decisions and commit hashes.
-- **Recent:**
-  - **PR 16** ([log audit §7](reports/2026-11-12-log-audit.md#7-implementation-and-verification-pr-16-a85f8fc)):
-    - `junctions.tsv`: one row per junction, in rMATS order, the same
-      with any `-p` (fate, frames, coding region, canonical, files
-      written).
-    - The log is small: settings, inputs, warnings, errors and an
-      end-of-run summary (5 kB for a whole genome, was 346 MB).
-      `-v/--verbose` writes the per-junction detail (300 MB).
-    - No output file changed.
-  - **PR 17** ([`Ensembl_canonical` audit §10](reports/2026-11-12-ensembl-canonical-audit.md#10-implementation-and-verification-pr-17-8ddf8c3)):
-    - When no transcript passes the GTF rule, the GTF canonical is the
-      `Ensembl_canonical` transcript, if it is protein_coding, complete
-      and not a readthrough transcript.
-    - 17 genes of the whole-genome run gain a canonical. No fate
-      changes, and the merged database is unchanged.
-    - Readthrough genes get no GTF canonical, by design (the
-      maintainer's choice: they are not JCAST's purpose, and their slices
-      would join to fusion proteins). They are 370 of the 371 coding
-      genes still without one.
-- **For the user's next whole-genome run:** the log is now small; the
-  per-junction outcome is in `junctions.tsv`. Pass `-v` only to debug.
+- **Recent (2026-11-13):**
+  - **PR 10** ([packaging check](reports/2026-11-13-packaging-check.md)):
+    - The metadata is in `pyproject.toml`; `setup.py` and
+      `requirements.txt` are gone. The version is set once, in
+      `jcast/__init__.py`: 0.4.0.
+    - Python ≥ 3.11. The tests pass on 3.11 to 3.15 with the newest
+      dependencies, and on 3.11 with the lowest the bounds allow.
+    - Only `jcast` is installed (the wheel is 62 kB); the sdist holds the
+      tests and their data (60 MB).
+  - **PR 11:** CI, as above: 10 test jobs, a lowest-versions job and a
+    package job.
+  - **PR 12** ([command-line checks](reports/2026-11-13-command-line-checks.md)):
+    - Only the `-s` files must exist (MED-8). With `-m`, the others
+      present are read too, so the cutoff is unchanged.
+    - A missing file is a usage error; `--g_or_ln`, `get_rest_nuc` and the
+      scikit-learn Gaussian mixture are removed.
+    - No output change for any run that worked before.
 
 ## How the work is run (agreed with the maintainer)
 
@@ -75,19 +74,26 @@ where things stand, how the work has been run, and what to do next.
 
 ## Next priorities
 
-1. **Smaller items:**
-   - PR 12, argparse hygiene: drop `--g_or_ln`; `-s` reads only the
-     selected files (MED-8); `parser.error`, not `assert`.
-   - PR 10 (packaging, Python ≥ 3.10) and PR 11 (CI).
-   - REVIEW.md §4 LOW items still open: the terminal-stop tolerance in
-     `make_pep`, `chr` never added to chromosome names, the glob-built
-     `__all__`, the unused `get_rest_nuc`, the header-only fetal-heart
-     test data.
-2. **PR 13, GUI:**
+1. **The first CI run on GitHub.** Fix anything it finds, on Linux in
+   particular: the `lowest` job takes biopython 1.79 there, untested
+   locally.
+2. **The v0.4.0 release.** The maintainer plans to merge into `main` and
+   release on GitHub after PRs 10–12. Still to decide or do:
+   - a PR from `v0.4.0-hardening` into `main`;
+   - the tag and the GitHub release notes, from CHANGELOG `[Unreleased]`;
+   - whether to upload to PyPI. It has sdists only, up to 0.3.5; a 0.4.0
+     wheel would make `pip install jcast` a 62 kB download;
+   - the website (`docs/`) still says Python 3.7+ and `tox`. It is built
+     from `jcast_website/`, which is not in the repository.
+3. **PR 13, GUI:**
    - Expose `--uniprot`, `--overwrite`, `--cache_dir` and `--verbose`.
    - `-p` must not fork from the GUI's Qt thread (REVIEW.md §10). Run a
-     subprocess or use another start method.
-3. **Planned follow-ups** (CHANGELOG "Planned"):
+     subprocess or use another start method. On Python ≥ 3.12, forking a
+     multi-threaded process warns ([packaging check §4.2](reports/2026-11-13-packaging-check.md#42-notes)).
+4. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
+   `make_pep`, `chr` never added to chromosome names, the header-only
+   fetal-heart test data, the date-stamped comments.
+5. **Planned follow-ups** (CHANGELOG "Planned"):
    - an option to add T2/T4 to `jcast_uniprot_merged.fasta`;
    - a UniProt download helper that names the file by its release
      (`X-UniProt-Release` header);
@@ -105,7 +111,10 @@ where things stand, how the work has been run, and what to do next.
 ## Useful facts
 
 - `run_jcast` creates the output directory and refuses one holding JCAST
-  output unless `args.overwrite`. It closes its log handlers when it ends.
+  output unless `args.overwrite`. It closes its log handlers when it ends,
+  and leaves the `jcast` logger not propagating: a test that reads its
+  records with `caplog` must set `propagate` itself (pytest before 9.1
+  does not capture them).
 - **Tests:**
   - `tests/conftest.py` points the caches at a session temp directory (the
     `cache_dir` fixture).
@@ -113,15 +122,25 @@ where things stand, how the work has been run, and what to do next.
     `args`, or they write to the user's cache.
   - `tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf.cached`
     (git-ignored, from before PR 7) is no longer read and can be deleted.
+    `MANIFEST.in` keeps it out of the sdist.
+- **Packaging checks** (`reports/packaging/check_install.py`) need `uv` and
+  an interpreter per Python version. `uv python install` gives them; set
+  `UV_PYTHON_INSTALL_DIR` and `UV_CACHE_DIR` to a scratch directory.
+  **Name the target of every `uv pip` command with `--python`:**
+  `--system` follows `CONDA_PREFIX` into the conda base environment.
+- **The maintainer's `.conda` environment is x86_64**, running under
+  Rosetta on an arm64 Mac (Python 3.11, pandas 2.3, numpy 1.26). A native
+  arm64 environment would likely be faster.
 - **Verification scripts:**
   - They take input paths as arguments and write only to the scratch
     directory.
-  - `reports/runs_audit/verify_6.py --pair 'label|repo|args|repo|args'`
-    compares two CLI runs in any two checkouts.
   - For whole-genome runs, pass `--cache_dir`, or set `HOME`, to keep the
     rebuilt GTF cache out of the user's cache.
   - `junctions.tsv` makes run comparisons cheap: fates, canonicals and
     records per junction, without parsing the log.
+  - `reports/runs_audit/verify_6.py` parses the log format from before
+    PR 16; use `reports/cli_checks/verify_12.py` or
+    `reports/canonical_audit/verify_17.py` as a model instead.
 - **Timings:** reading the GENCODE v50 GTF cache takes about 8 s, the
   genome about 35 s. In a whole-genome `-m -c --uniprot -p 16` run, the
   junction loop takes about 3 min, and the run about 4 min.
