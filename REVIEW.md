@@ -3,10 +3,10 @@
 *Review date: 2026-11-03. Reviewed version: v0.3.5a (HEAD `89a9dea` plus the
 uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 
-> **Status, 2026-11-12.** The sections below record the state at the review
+> **Status, 2026-11-13.** The sections below record the state at the review
 > date, with each item's fix marked; §3 describes the current code. Progress
 > since then is tracked in the roadmap
-> ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–9 and 14–17 are done.
+> ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–10 and 14–17 are done.
 > - JCAST installs and runs on current Python, pandas and numpy.
 > - The tiering issues of §5 are fixed, each with an audit under
 >   [reports/](reports/README.md).
@@ -16,7 +16,7 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 > - Each run records every junction's outcome in `junctions.tsv`, and the
 >   log holds the run's settings and a summary.
 >
-> Open: PRs 10–13 (packaging, CI, argparse hygiene, GUI).
+> Open: PRs 11–13 (CI, argparse hygiene, GUI).
 
 This document is the developer-facing companion to [README.md](README.md) and
 [CHANGELOG.md](CHANGELOG.md). It catalogs the current state of the codebase,
@@ -562,8 +562,8 @@ handlers first, and close the file handler when the run ends.
 - [jcast/helpers.py:30-35](jcast/helpers.py#L30-L35): chromosome-name
   reconciliation only strips `chr`. It never adds it (Ensembl rMATS +
   GENCODE genome → `KeyError`).
-- [jcast/__init__.py:6-11](jcast/__init__.py#L6-L11): the glob-built `__all__`
-  makes `from jcast import *` import every submodule. Remove it.
+- ~~`jcast/__init__.py`: the glob-built `__all__` makes `from jcast import *`
+  import every submodule. Remove it.~~ **Removed in PR 10.**
 - [jcast/main.py:724-727](jcast/main.py#L724-L727): `--g_or_ln` is read by
   nothing. Remove it (from the README too). Open: PR 12.
 - ~~`sequences.py`: stray `print()`.~~ **Gone.**
@@ -748,7 +748,14 @@ The tiering pipeline itself (everything except `-m`) ran without error on
 pandas 3.1 / numpy 2.4 / biopython 1.88 once HIGH-8 was worked around.
 Modernizing is a small change.
 
-### Packaging issues *(new)*
+> **Update — PR 10 (2026-11-13):** every item below is fixed. The metadata
+> is in `pyproject.toml`, the Python floor is 3.11, and the dependency
+> bounds are tested at both ends on Python 3.11 to 3.15
+> ([packaging check](reports/2026-11-13-packaging-check.md)): numpy
+> ≥ 1.23.2, scipy ≥ 1.9.2, matplotlib ≥ 3.6, requests ≥ 2.20.
+> `requirements.txt` is removed; scikit-learn is in the `test` extra.
+
+### Packaging issues *(new)* — ✅ fixed in PR 10
 
 - `find_packages()` picks up `tests/` (it has an `__init__.py`), so a
   top-level package named `tests` is installed into site-packages. Use
@@ -766,7 +773,8 @@ Modernizing is a small change.
 ### Python floor
 
 Bump to **3.10** for v0.4.0, as previously recommended. This is now also
-required by the GUI's annotations.
+required by the GUI's annotations. **Done in PR 10, at 3.11:** 3.10 reached
+its end of life in October 2026.
 
 ---
 
@@ -841,7 +849,7 @@ currently can't be installed and run from scratch.
 | 7 | ✅ Output dir, caches, idempotent output, logger handlers (MED-4/5/6/12/13); catch an exception per junction, record it as a fate and continue instead of aborting the run ([masked-bases audit §7](reports/2026-11-11-masked-bases-audit.md#7-decisions-requested)). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): refuse a directory holding JCAST output unless `--overwrite`; a failing junction writes nothing; caches in the user cache directory (`platformdirs`, `--cache_dir`), GTF cache keyed by path, size and mtime, written atomically, as a pickle | Robustness | Done 2026-11-12 |
 | 8 | ✅ Network resilience + `write_canonical` fallback (MED-9/10); `-c` writes the canonical on every path (MED-14). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): `-c` on every path, masked junctions included; a failed API lookup fails the junction (timeout, 429 retried); `write_canonical`'s fallback removed; gene names used for `--uniprot` only when unique in the GTF ([mapping audit](reports/2026-11-12-uniprot-mapping-audit.md)) | Robustness | Done 2026-11-12 |
 | 9 | ✅ Per-gene GTF index, in-memory FASTA de-dup ([parallel audit](reports/2026-11-12-parallel-audit.md)); filtering before the canonical lookup done in PR 6 | Performance | Done 2026-11-12 |
-| 10 | Packaging: pyproject metadata, Python ≥ 3.10, fix `find_packages`/`data_files`, bounds | Env | PR 0 |
+| 10 | ✅ Packaging: `pyproject.toml` metadata with the version set once (0.4.0), Python ≥ 3.11, only `jcast` installed, the tests and their data in the sdist, dependency bounds tested at both ends on Python 3.11–3.15 ([packaging check](reports/2026-11-13-packaging-check.md); decided 2026-11-13: Python ≥ 3.11, CI on Linux and macOS, version 0.4.0) | Env | Done 2026-11-13 |
 | 11 | CI (GitHub Actions) | Infra | PRs 1, 10 |
 | 12 | argparse hygiene: drop `--g_or_ln`, `-s` reads only selected files (MED-8), `parser.error` not `assert` | UX | PR 1 |
 | 13 | GUI v0 → wizard (§10) | New surface | PRs 7, 12 |

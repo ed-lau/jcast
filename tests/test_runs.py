@@ -271,6 +271,9 @@ def test_unusable_cache_directory(tmp_path, monkeypatch, caplog):
     blocked.write_text('a file, not a directory')
     monkeypatch.setattr(cache, '_directory', str(blocked / 'cache'))
     monkeypatch.setattr(cache, '_unusable', set())
+    # the warning goes to the jcast logger, which an earlier run_jcast leaves not propagating; pytest before 9.1 then
+    # does not capture it
+    monkeypatch.setattr(logging.getLogger('jcast'), 'propagate', True)
     path = tmp_path / 'a.gtf'
     path.write_text(GTF_TEXT)
 

@@ -285,7 +285,24 @@ and §9.
   to `-r` instead of crashing. Fitted parameters are now written to the log.
 - scikit-learn and matplotlib are imported lazily, so a missing optional
   package no longer breaks every CLI invocation.
-- Dependency bounds aligned between `setup.py` and `requirements.txt`:
+- **Packaging (PR 10).**
+  - **Python 3.11 or later** (was 3.7). Tested on Python 3.11 to 3.15.
+  - **The package metadata is in `pyproject.toml`.** `setup.py` and
+    `requirements.txt` are removed. The version is set once, in
+    `jcast/__init__.py`, and is now 0.4.0. For development:
+    `pip install -e '.[test]'`.
+  - **Installing JCAST no longer installs the tests or their data.** Before,
+    `tests` was installed as a top-level package, and 65 MB of chr15 data
+    went into `<prefix>/tests/`. The sdist holds the tests and all their
+    data.
+  - **The lowest dependency versions are tested.** numpy ≥ 1.23.2,
+    scipy ≥ 1.9.2, matplotlib ≥ 3.6 and requests ≥ 2.20 (were 1.20, 1.7,
+    3.4 and 2): the older ones have no Python 3.11 wheel or fail to import
+    on it.
+  - `from jcast import *` no longer imports every module.
+
+  See [reports/2026-11-13-packaging-check.md](reports/2026-11-13-packaging-check.md).
+- Dependency bounds aligned between `setup.py` and `requirements.txt` (PR 0):
   `gtfparse>=1.3,<2` (3.x is polars-based and incompatible), `pandas>=1.5,<4`,
   and `numpy` / `scipy` declared explicitly.
 - **Anchor length for joining to the canonical: 10 → 7 residues**
@@ -468,6 +485,8 @@ and §9.
 - The retry with the gene's second start codon in `trim_cds`. Once UTR exons
   are removed, it deleted exons coding in well-supported transcripts.
 - `pomegranate` dependency.
+- `setup.py` and `requirements.txt`, replaced by `pyproject.toml`, and
+  `jcast.__version_info__` (use `jcast.__version__`) (PR 10).
 - `CHANGES.txt` — content migrated to this file.
 - `TODO.md` — items (gff3 input, APPRIS-tag canonical, UniProt-failure
   fallback) absorbed into [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised).
@@ -478,10 +497,8 @@ The following items are scheduled for v0.4.0 but live in subsequent focused
 PRs. See [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised) for the full
 table.
 
-- **Packaging (PR 10):** `pyproject.toml` metadata with a single version
-  source; Python floor 3.10; `tests/` and the test data no longer
-  installed.
-- **CI (PR 11):** GitHub Actions running pytest on Python 3.10–3.13.
+- **CI (PR 11):** GitHub Actions running pytest on Python 3.11–3.15, on
+  Linux and macOS.
 - **Argument checks (PR 12):** drop the dev-only `--g_or_ln` flag; `-s`
   reads only the selected rMATS files (REVIEW.md MED-8); report a missing
   file with `parser.error`, not `assert`.

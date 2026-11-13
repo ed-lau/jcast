@@ -26,8 +26,8 @@ issues that occur when searching against a full transcriptome translation.
 
 ## Installation
 
-JCAST requires Python 3.7+. (For v0.4.0 the floor will move to 3.10; see
-[REVIEW.md](REVIEW.md).) We recommend installing into a virtual environment:
+JCAST requires Python 3.11 or later. It is tested on Python 3.11 to 3.15,
+on macOS and Linux. We recommend installing into a virtual environment:
 
 ```bash
 pip install jcast
@@ -39,12 +39,13 @@ To install the optional Qt-based GUI (PySide6):
 pip install 'jcast[gui]'
 ```
 
-To install from source for development:
+To install from source for development, with the GUI and what the tests
+need:
 
 ```bash
 git clone https://github.com/ed-lau/jcast
 cd jcast
-pip install -e '.[gui]'
+pip install -e '.[gui,test]'
 ```
 
 ## Quick start
@@ -81,12 +82,15 @@ To launch the (optional) graphical interface:
 python -m jcast --gui    # or: jcast-gui
 ```
 
-To run the bundled smoke test (rMATS sample + chromosome-15 genome):
+To run the tests (about 3 minutes; they use the bundled rMATS sample and
+chromosome-15 genome) from a source checkout:
 
 ```bash
-pip install tox
-tox
+pytest -m 'not network'
 ```
+
+Without `-m 'not network'`, three tests also query the UniProt API. To run
+the tests on each supported Python version, use `tox`.
 
 To exercise JCAST end-to-end on the bundled fixtures:
 

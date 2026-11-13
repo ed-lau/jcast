@@ -20,6 +20,9 @@ network. There are two exceptions:
   about 600,000 junctions). Those inputs are not bundled; its scripts take
   the paths as arguments.
 
+The packaging check (PR 10) changes no output. It runs the test suite on
+each Python version instead.
+
 ## Audits
 
 | Report | PR | Status | Evidence reproduces at |
@@ -39,6 +42,7 @@ network. There are two exceptions:
 | [The GTF canonical from GENCODE's `Ensembl_canonical` tag](2026-11-12-ensembl-canonical-audit.md) | 17 | Decisions approved 2026-11-12 (§9): the fallback without readthrough transcripts. **Implemented in PR 17 (`8ddf8c3`)** (§10). Prototype measured on the whole genome (§6) | audit: `ae3d937` (`python reports/canonical_audit/audit_canonical.py genes --gtf … --run … --rmats …`; `… compare --before … --after … --label …`; prototype in `prototype.diff`); PR 17 verification: `8ddf8c3` (`verify_17.py --before … --after … [--genome_before … --genome_prototype … --genome_after …]`, §10); whole-genome inputs not bundled |
 | [How `--uniprot` maps genes to UniProt entries](2026-11-12-uniprot-mapping-audit.md) | 8, 17 | Decisions approved 2026-11-12 (§7): mapping kept; unique-name rule and TrEMBL note **done in PR 8 (`890d631`)** (its measured effect: §8); `Ensembl_canonical` fallback **done in PR 17 (`8ddf8c3`)**, without readthrough transcripts ([its audit](2026-11-12-ensembl-canonical-audit.md)) | audit: `8b845aa` (`python reports/mapping_audit/audit_mapping.py --jcast_out … --uniprot … --gtf_cached … --xrefs … --gtf … --genome …`); whole-genome inputs and UniProt cross-references (release 2026_04) not bundled |
 | [A supplied UniProt FASTA; joining by coordinates](2026-11-11-uniprot-fasta-evaluation.md) | 14 | **Implemented in `0f3b409`** (§8); decisions approved 2026-11-11 (§7) | evaluation: `8b0c024` (`python reports/uniprot_eval/evaluate_uniprot_fasta.py --uniprot <Swiss-Prot FASTA>`); verification: `0f3b409` (`verify_14.py --uniprot <Swiss-Prot FASTA>`); both need the local UniProt cache |
+| [Packaging: Python versions and dependency bounds](2026-11-13-packaging-check.md) | 10 | Decisions taken 2026-11-13 (§5). **Implemented in PR 10** (§2); no output change | PR 10 (`python reports/packaging/check_install.py --uv … --python … [--resolution lowest]`); needs uv and an interpreter per Python version |
 
 Each script compares a baseline commit with the working tree, or patches
 the candidate in at runtime, so later code changes its output. To reproduce
@@ -66,6 +70,7 @@ first.
 | 2026-11-12 | Log: apply the read-count and FDR filters first (with PR 6); per-junction `junctions.tsv`, a small log with an end-of-run summary, sequences only with `--verbose`, no `~module~function` suffix (PR 16) | [log audit §6](2026-11-12-log-audit.md#6-decisions-2026-11-12) |
 | 2026-11-12 | `--uniprot` mapping kept (sequence, then gene name, then GTF); gene names used only when unique in the GTF (PR 8); README documents a Swiss-Prot + TrEMBL FASTA (not expected for human); GTF canonical from `Ensembl_canonical` when no transcript passes the filter, as PR 17 after PR 16, audit first | [mapping audit §7](2026-11-12-uniprot-mapping-audit.md#7-decisions-2026-11-12) |
 | 2026-11-12 | PR 17: when no transcript passes the GTF canonical rule, take the gene's `Ensembl_canonical` transcript if it is protein_coding, has start and stop codons and is not tagged `readthrough_transcript` (any TSL); the README says readthrough genes get no canonical, and why | [`Ensembl_canonical` audit §9](2026-11-12-ensembl-canonical-audit.md#9-decisions-2026-11-12) |
+| 2026-11-13 | PRs 10–12: Python ≥ 3.11, tested on 3.11–3.15, with the dependency bounds checked; CI on Linux and macOS; version 0.4.0, to be released on GitHub after PRs 10–12; in the order 10, 11, 12; PR 12 also removes `--g_or_ln` and the unused `get_rest_nuc` | [packaging check §5](2026-11-13-packaging-check.md#5-decisions-2026-11-13) |
 
 ## Current tiers (after PR 4c)
 

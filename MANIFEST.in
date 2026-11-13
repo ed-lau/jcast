@@ -1,11 +1,7 @@
-include pyproject.toml
+include README.md CHANGELOG.md LICENSE.md
 
-# Include the README
-include *.md
-
-# Include the license file
-include LICENSE.md
-
-# Include the data files
-recursive-include tests/data/genome *
-recursive-include tests/data/rmats *
+# The tests and the data they read, so that the tests run from the source distribution
+recursive-include tests *.py
+recursive-include tests/data *
+global-exclude *.cached *.py[cod]
+prune tests/__pycache__
