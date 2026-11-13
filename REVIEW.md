@@ -4,13 +4,19 @@
 uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 
 > **Status, 2026-11-12.** The sections below record the state at the review
-> date. Progress since then is tracked in the roadmap
-> ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–5, 9, 14 and 15 are done.
-> JCAST installs and runs on current Python, pandas and numpy. The tiering
-> issues of §5 are fixed, each with an audit under
-> [reports/](reports/README.md). `--uniprot` and `-p` make a whole-genome
-> run take about 15 minutes, where it used to take days. Open: PRs 6, 7, 8,
-> 10–13.
+> date, with each item's fix marked; §3 describes the current code. Progress
+> since then is tracked in the roadmap
+> ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–9 and 14–17 are done.
+> - JCAST installs and runs on current Python, pandas and numpy.
+> - The tiering issues of §5 are fixed, each with an audit under
+>   [reports/](reports/README.md).
+> - With `--uniprot` and `-p 16`, a whole-genome run takes about 4 minutes
+>   with `-m`, and about 15 minutes translating every junction. It used to
+>   take days.
+> - Each run records every junction's outcome in `junctions.tsv`, and the
+>   log holds the run's settings and a summary.
+>
+> Open: PRs 10–13 (packaging, CI, argparse hygiene, GUI).
 
 This document is the developer-facing companion to [README.md](README.md) and
 [CHANGELOG.md](CHANGELOG.md). It catalogs the current state of the codebase,
@@ -181,44 +187,62 @@ bound could be widened to `>=1.5,<4` instead of forcing `numpy<2`.
 
 ## 3. Architecture overview
 
-JCAST is a small flat package (~2,500 lines of Python, 12 modules plus the GUI
-skeleton) that runs as a single-process CLI.
+JCAST is a small flat package (~3,400 lines of Python, 14 modules plus the GUI
+skeleton) that runs as a CLI, in one process or, with `-p`, several.
 
 ```
 jcast/
 ├── __main__.py        Entry — dispatches to gui.launch_gui (--gui) or main.main()
-├── main.py            CLI parsing, top-level run loop, tier dispatch (_translate_one)
-├── junctions.py       RmatsResults reader; Junction (trim_cds, get_translated_phase, sum_sjc)
+├── main.py            CLI parsing, run loop (one process or -p workers), tier dispatch (_translate_one)
+├── junctions.py       RmatsResults reader; Junction (trim_cds, get_translated_phase, min_jc)
 ├── sequences.py       Sequence: nucleotide retrieval, translation, canonical lookup
-│                       (GTF or UniProt), stitching, FASTA writing
-├── annots.py          ReadAnnotations (GTF), ReadGenome (FASTA), AnnotatedTranscript
+│                       (UniProt FASTA, GTF or UniProt API), stitching, FASTA writing
+├── uniprot.py         --uniprot: UniProtFasta (canonical by sequence, then unique gene name),
+│                       uniprot_canonicals.tsv, psq_isoforms.tsv, jcast_uniprot_merged.fasta
+├── annots.py          ReadAnnotations (GTF, indexed by gene), ReadGenome (FASTA), AnnotatedTranscript
 ├── helpers.py         get_local_nuc, get_complementary, make_pep, write_seqrecord_to_fasta
-├── model.py           Mixture-model read-count cutoff (pomegranate + vestigial sklearn path)
-├── params.py          Module-level run parameters (TSL threshold, stitch length, …)
+├── model.py           Mixture-model read-count cutoff (numpy/scipy EM; vestigial sklearn path)
+├── outcomes.py        junctions.tsv and the end-of-run summary
+├── cache.py           The user cache directory (platformdirs, or --cache_dir)
+├── params.py          Module-level run parameters (TSL threshold, anchor length, …)
 ├── constants.py       Genetic code table
-├── fates.py           Per-junction outcome strings
+├── fates.py           Per-junction outcome strings and their short names
 ├── logger.py          Logger setup
-└── gui/               Optional PySide6 skeleton (uncommitted)
+└── gui/               Optional PySide6 skeleton
 ```
 
 ### Data flow
 
-1. **`RmatsResults`** reads all five `*.MATS.JC.txt` files and renames their
-   columns positionally.
-2. **`ReadAnnotations`** parses the GTF via `gtfparse` and caches a TSV copy
-   next to the input.
+1. **`RmatsResults`** reads all five `*.MATS.JC.txt` files (MED-8) and
+   renames their columns positionally.
+2. **`ReadAnnotations`** parses the GTF via `gtfparse`, caches the table as
+   a pickle in the user cache directory (PR 7), and indexes its rows by
+   gene (PR 9).
 3. **`ReadGenome`** loads the genome FASTA (optionally gzip) into a `SeqIO`
    dict held in memory.
-4. **Optional `-m`**: fit a mixture to ln(count + 1) and use the decision
-   boundary as the read cutoff.
-5. **Per junction** (as of PR 4b):
-   1. `trim_cds` trims every exon to the gene's coding region and removes
+4. **`UniProtFasta`**, with `--uniprot`, reads the supplied UniProt FASTA
+   (PR 14).
+5. **Optional `-m`**: fit a mixture to ln(count + 1) and use the decision
+   boundary as the read cutoff, in reads (PR 6).
+6. **Per junction**, in rMATS file order. With `-p`, workers translate and
+   the main process writes their results in that order (PR 15).
+   1. The read-count and FDR filters (PR 6). A skipped junction only
+      writes its gene's canonical, with `-c`.
+   2. `trim_cds` trims every exon to the gene's coding region and removes
       exons outside it (PR 4/4a).
-   2. `get_translated_phase` reads each slice's frame at its 5′ end (PR 4b).
-   3. Slice nucleotides are built (RI per PR 4a2), then the mask check.
-   4. Canonical lookup, then the read-count and FDR filters.
-   5. The junction is skipped if its event lies outside the coding region.
-   6. Tier T1, T2 or T4, or fail; the result is appended to `psq_*.fasta`.
+   3. `get_translated_phase` reads each slice's frame at its 5′ end (PR 4b).
+   4. Slice nucleotides are built (RI per PR 4a2). A slice with a base
+      outside `ACGT` is skipped (PR 3).
+   5. Canonical lookup: the UniProt FASTA, then the GTF (with the
+      `Ensembl_canonical` fallback, PR 17); or the UniProt API without
+      `--uniprot`.
+   6. The junction is skipped if its event lies outside the coding region.
+   7. Tier T1, T1 ALT TERMINUS, T2 or T4, or fail. The records are written
+      to `psq_*.fasta`, and a row to `junctions.tsv` (PR 16).
+
+   An exception fails only its junction (PR 7).
+7. **At the end:** the `--uniprot` outputs, then the log's summary of fates
+   and records per file (PR 16).
 
 ### Tier classification (current, after PR 4c)
 
@@ -249,10 +273,15 @@ Before tiering, each junction is processed in four steps:
 
 **Output files.**
 
-- T1/T2/T4 slices that stitch to the canonical go to `psq_T#.fasta`.
-- Slices that do not stitch go to `psq_T#_orphan.fasta`.
+- T1/T2/T4 slices that stitch to the canonical go to `psq_T#.fasta`, and
+  T1 ALT TERMINUS slices to `psq_T1_alt_*.fasta`.
+- Slices that do not stitch go to the matching `_orphan` file.
 - A stitched slice identical to the canonical is written to
-  `psq_canonical.fasta`.
+  `psq_canonical.fasta`. With `-c`, every gene's canonical is (PR 8).
+- `junctions.tsv` has one row per junction; `logfile.log` has the run's
+  settings, warnings and summary (PR 16).
+- With `--uniprot`: `uniprot_canonicals.tsv`, `psq_isoforms.tsv` and
+  `jcast_uniprot_merged.fasta` (PR 14).
 
 **Known limitations of the current tiers**, with the audit for each:
 
@@ -436,10 +465,11 @@ Fix: cache in a user dir keyed on (path, size, mtime), with `index=False`.
 
 ### MED-8 — `RmatsResults` reads all five files regardless of `-s` ◎ *(new)*
 
-[jcast/junctions.py:36-40](jcast/junctions.py#L36-L40) versus the existence
-check at [jcast/main.py:437-440](jcast/main.py#L437-L440), which only checks
+[jcast/junctions.py:37-41](jcast/junctions.py#L37-L41) versus the existence
+check at [jcast/main.py:755-757](jcast/main.py#L755-L757), which only checks
 the selected types. A folder with only `SE.MATS.JC.txt` passes validation
-and then raises `FileNotFoundError` (this is the existing `TODO` at main.py:35).
+and then raises `FileNotFoundError` (this is the existing `TODO` at
+[main.py:108](jcast/main.py#L108)). Open: PR 12.
 The check also uses `assert`, which is stripped under `python -O`; use
 `parser.error`.
 
@@ -518,7 +548,7 @@ handlers first, and close the file handler when the run ends.
   (was HIGH-1). Only `TypeError` can occur here, so there is no observed
   impact.~~ **Gone in PR 4a**: `_trim` was rewritten and tests `None`
   bounds explicitly.
-- [jcast/helpers.py:232](jcast/helpers.py#L232): the terminal-stop tolerance
+- [jcast/helpers.py:234](jcast/helpers.py#L234): the terminal-stop tolerance
   accepts a stop followed by 0–1 trailing nt but rejects 2 trailing nt
   (`'ATGAAATAAG'` → `'MK'`, `'ATGAAATAAGG'` → `''`). Both cases are the same
   biologically.
@@ -529,20 +559,19 @@ handlers first, and close the file handler when the run ends.
   Before, headers carried `nan`, and `str()`/`repr()` of the junction raised
   `TypeError`. Nothing in the package calls them, so translation was
   unaffected.
-- [jcast/helpers.py:29-34](jcast/helpers.py#L29-L34): chromosome-name
+- [jcast/helpers.py:30-35](jcast/helpers.py#L30-L35): chromosome-name
   reconciliation only strips `chr`. It never adds it (Ensembl rMATS +
   GENCODE genome → `KeyError`).
 - [jcast/__init__.py:6-11](jcast/__init__.py#L6-L11): the glob-built `__all__`
   makes `from jcast import *` import every submodule. Remove it.
-- [jcast/main.py:421-425](jcast/main.py#L421-L425): `--g_or_ln` is read by
-  nothing. Remove it (from the README too).
-- [jcast/sequences.py:153](jcast/sequences.py#L153): stray `print()`.
-- [jcast/helpers.py:43-121](jcast/helpers.py#L43-L121): `get_rest_nuc` is
+- [jcast/main.py:724-727](jcast/main.py#L724-L727): `--g_or_ln` is read by
+  nothing. Remove it (from the README too). Open: PR 12.
+- ~~`sequences.py`: stray `print()`.~~ **Gone.**
+- [jcast/helpers.py:45-125](jcast/helpers.py#L45-L125): `get_rest_nuc` is
   unused, uses bare `except:`, and has `print`-based logging. Remove it.
-- [jcast/model.py:44-50](jcast/model.py#L44-L50): the KDE grid
-  `linspace(-5, 20, 500000)` silently clips any parameter outside that range,
-  and `gaussian_kde` raises if all restarts agree. This is moot if Appendix A
-  is adopted.
+- ~~`model.py`: the KDE grid `linspace(-5, 20, 500000)` silently clips any
+  parameter outside that range, and `gaussian_kde` raises if all restarts
+  agree.~~ **Gone in PR 0**: Appendix A replaced the model.
 - `tests/data/model/encode_mouse_fetalheart/*.MATS.JC.txt` are header-only
   (0 junctions).
 - Date-stamped comments (`# 2020-07-25 …`) throughout. Move them to git
@@ -660,12 +689,22 @@ Consequences, observed across the 12 bundled datasets:
 - Write the cutoff into a run manifest in the output dir.
 - Don't describe it as a statistical decision boundary in the docs.
 
+**Status:** the parameters and the cutoff (in reads, PR 6) are logged, and a
+degenerate fit falls back to `-r` with a warning (PR 0). Since PR 16 the
+log is the run's record: version, arguments, inputs, model and cutoff.
+
 ---
 
 ## 6. Performance *(new section)*
 
 None of this matters for the chr15 fixture, but all of it matters genome-wide
 (~10⁵ junctions, ~3 M GTF rows).
+
+> **Status, 2026-11-12:** the first three are fixed: the per-gene index and
+> the in-memory de-duplication in PR 9, filters first in PR 6. Together
+> with `-p` (PR 15) a whole-genome run went from days to minutes
+> ([parallel audit](reports/2026-11-12-parallel-audit.md)). The fourth
+> applies only to the API path; `--uniprot` makes no API calls.
 
 - **Repeated full-GTF scans.** `gtf.annot.query('gene_id == …')` scans the
   entire GTF 3–5 times per junction (`_get_translated_region` ×1–2,
@@ -702,6 +741,7 @@ None of this matters for the chr15 fixture, but all of it matters genome-wide
 | requests | `>=2,<3` | `>=2.24.0` | — | OK |
 | tqdm | `>=4,<5` | `>=4.61.2` | — | OK |
 | pomegranate | `>=0.13,<1.0` | `>=0.14.5` | **1.1.2 (breaks)** | ✅ removed (PR 0) |
+| platformdirs | — | — | — | ✅ `>=2.5,<5` added for the cache directory (PR 7) |
 | PySide6 | extra `gui` | — | 6.11 | OK |
 
 The tiering pipeline itself (everything except `-m`) ran without error on
@@ -740,6 +780,10 @@ required by the GUI's annotations.
 > `pytest -m "not network"` offline. Gaps 1, 2 (marking only; network tests
 > still run by default), 5 and 6 below are done. The table and hygiene notes
 > describe the state before PR 1.
+>
+> **Update — 2026-11-12:** 148 tests in 16 files, about 2.5 minutes. Each
+> output-changing PR added regression tests that fail on the code before it.
+> Gap 4 was done in PR 3 (`tests/test_masking.py`). Gap 7 is PR 11.
 
 | File | Tests | Status (2026-11-03 run) |
 |---|---|---|
@@ -762,7 +806,8 @@ paths), `tearDown` deletes `.cached` files from the repo's data directory,
    `params.use_gtf_only` elsewhere.
 3. ✅ Regression tests pinning `tx0`/`tx1` for one `+` and one `−` transcript
    (the gate for §5.1). Added in PR 4.
-4. `make_pep` / `get_complementary` with lowercase and IUPAC input.
+4. ✅ `make_pep` / `get_complementary` with lowercase and IUPAC input.
+   Added in PR 3.
 5. A model test asserting `min_count` within a tolerance band per dataset,
    plus the degenerate-fit fallback (the stomach dataset is a natural fixture).
 6. **End-to-end golden test.** Run the chr15 fixture in GTF-only mode and
@@ -811,7 +856,8 @@ currently can't be installed and run from scratch.
 - `Config` dataclass replacing module-state `params.py` (prerequisite for a
   clean GUI parameter panel).
 - Split `sequences.py` into translation / canonical / stitch modules.
-- gff3 input; APPRIS-tag canonical selection (the `Ensembl_canonical` fallback moved to v0.4.0 as PR 17); "longest sequence" fallback when
+- gff3 input; APPRIS-tag canonical selection (the `Ensembl_canonical`
+  fallback was done in v0.4.0, PR 17); "longest sequence" fallback when
   UniProt fails.
 - ~~Optional concurrency.~~ Done in PR 15 (`-p`, with `--uniprot`).
 - StringTie input support.
@@ -820,9 +866,13 @@ currently can't be installed and run from scratch.
 
 - Stable Python API beyond the CLI/GUI.
 - Splice-graph-based canonical mapping
-  ([jcast/main.py:224](jcast/main.py#L224) `TODO`).
+  ([jcast/main.py:520](jcast/main.py#L520) `TODO`).
 - Reproducibility manifest: input hashes, tool version, effective thresholds
-  and model parameters, written to the output dir.
+  and model parameters, written to the output dir. **Mostly done in PR 16:**
+  the log records the version, the arguments, the inputs (sha256 for the
+  rMATS files and the UniProt FASTA; size and modification time for the GTF
+  and genome), the model and the cutoff. A machine-readable manifest is
+  still open.
 
 ---
 
@@ -838,17 +888,20 @@ stands.
 - So the GUI must keep `processes=1` (the default) when it calls
   `run_jcast` in-process. Alternatively, it can run `python -m jcast` as a
   subprocess, or the pool can use `spawn` or `forkserver` for GUI runs.
-- `--uniprot` has no such constraint and should be exposed. The skeleton in [jcast/gui/](jcast/gui/) imports and launches. Points
+- `--uniprot` has no such constraint and should be exposed, with
+  `--overwrite`, `--cache_dir` and `--verbose`.
+
+The skeleton in [jcast/gui/](jcast/gui/) imports and launches. Points
 the first review missed:
 
-- **Logger handler stacking (MED-13)** must be fixed before the GUI can run
-  more than one job per session.
+- ~~**Logger handler stacking (MED-13)** must be fixed before the GUI can
+  run more than one job per session.~~ Fixed in PR 7.
 - **Model-plot embedding** needs the plot functions refactored to draw onto a
   caller-supplied `Axes` instead of calling `plt.subplots` / `savefig`
   internally. Appendix A already returns plain parameters, which makes this
   easy.
-- **The draggable cutoff** only makes sense once MED-11 settles which scale
-  the cutoff is on.
+- **The draggable cutoff:** MED-11 is settled (PR 6). The cutoff is in
+  reads, and the model is fitted on ln(count + 1).
 - **Cancellation.** `run_jcast` has no cancellation hook. The worker needs a
   per-junction check of a flag/event.
 - `--gui` is only recognized via `python -m jcast`, not by the `jcast`

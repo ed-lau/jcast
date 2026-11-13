@@ -79,8 +79,10 @@ where things stand, how the work has been run, and what to do next.
    - PR 12, argparse hygiene: drop `--g_or_ln`; `-s` reads only the
      selected files (MED-8); `parser.error`, not `assert`.
    - PR 10 (packaging, Python ≥ 3.10) and PR 11 (CI).
-   - CHANGELOG "Planned" still lists items done in PRs 7 and 8 (exception
-     per junction, `-c` for every gene, output directory and caches).
+   - REVIEW.md §4 LOW items still open: the terminal-stop tolerance in
+     `make_pep`, `chr` never added to chromosome names, the glob-built
+     `__all__`, the unused `get_rest_nuc`, the header-only fetal-heart
+     test data.
 2. **PR 13, GUI:**
    - Expose `--uniprot`, `--overwrite`, `--cache_dir` and `--verbose`.
    - `-p` must not fork from the GUI's Qt thread (REVIEW.md §10). Run a

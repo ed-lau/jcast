@@ -87,11 +87,13 @@ and §9.
 - **`-v/--verbose` (PR 16):** also log each junction's steps and
   sequences, as every run did before (300 MB for a whole-genome `-m` run).
 - **`-p/--processes N`: translate junctions in N processes (PR 15).**
-  - **Same output:** the output files and the log are the same as with one
-    process. Workers only translate; the main process writes everything in
-    rMATS file order.
+  - **Same output:** the output files and `junctions.tsv` are the same as
+    with one process, and so is the log's summary. Workers only translate;
+    the main process writes everything in rMATS file order.
   - **Measured on a whole-genome sample:** 16 processes give 736 junctions/s,
     11.3× one process, so a 600,000-junction run takes about 15 minutes.
+    With `-m`, which translates about 131,000 of them, the user's
+    whole-genome run takes about 4 minutes.
   - **Default 1.**
   - **Requires `--uniprot`:** without it, canonicals come from the UniProt
     API and its local cache, which cannot be shared between processes.
@@ -476,21 +478,20 @@ The following items are scheduled for v0.4.0 but live in subsequent focused
 PRs. See [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised) for the full
 table.
 
-- Catch an exception in one junction, record it as that junction's fate,
-  and continue, instead of aborting the whole run (PR 7).
-- Remove the deprecated `--mask` option (next release).
+- **Packaging (PR 10):** `pyproject.toml` metadata with a single version
+  source; Python floor 3.10; `tests/` and the test data no longer
+  installed.
+- **CI (PR 11):** GitHub Actions running pytest on Python 3.10–3.13.
+- **Argument checks (PR 12):** drop the dev-only `--g_or_ln` flag; `-s`
+  reads only the selected rMATS files (REVIEW.md MED-8); report a missing
+  file with `parser.error`, not `assert`.
+- **GUI (PR 13):** expose `--uniprot`, `--overwrite`, `--cache_dir` and
+  `--verbose`; run `-p` from a subprocess or with another start method,
+  not by forking the Qt process.
 - An option to add T2 and T4 records to `jcast_uniprot_merged.fasta`.
-- `--uniprot` (and, from a subprocess or with another start method, `-p`)
-  in the GUI.
 - A helper that downloads a UniProt proteome and names the file by its
   release (`X-UniProt-Release`).
-- With `-c`, write the canonical for every gene, whatever its junctions'
-  tiers (REVIEW.md MED-14; 2 chr15 genes affected).
-- Output-directory creation guarantee; route the UniProt cache through
-  `args.out` (or the platform user-cache dir) instead of CWD.
-- Bump Python floor to 3.10.
-- GitHub Actions CI matrix across 3.10–3.13.
-- Drop the dev-only `--g_or_ln` flag.
+- Remove the deprecated `--mask` option (next release).
 
 ## [0.3.5a] — 2022-10-28
 
