@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§5). **Implemented in PR 10** (`4a039a9`, §2); **CI in PR 11** (§6). No output changes: the code under `jcast/` is unchanged apart from its `__init__.py`. |
+| **Status** | Decisions taken 2026-11-13 (§5). **Implemented in PR 10** (`4a039a9`, §2); **CI in PR 11** (`dee41b6`, §6). No output changes: the code under `jcast/` is unchanged apart from its `__init__.py`. |
 | **Question** | Does JCAST build, install and pass its tests on each Python version it should support, at the newest dependency versions and at the lowest that its bounds allow? Which bounds are true? |
 | **Reproduce** | `python reports/packaging/check_install.py --uv <uv> --python <python 3.11> … --python <python 3.15> --resolution newest --jobs 5` (≈ 3 min) · `… --python <python 3.11> --resolution lowest` (≈ 2 min). The interpreters were uv's builds (`uv python install`), arm64. |
 | **Evidence** (at `4a039a9`) | [packaging/check_install/check_newest.txt](packaging/check_install/check_newest.txt) · [check_lowest.txt](packaging/check_install/check_lowest.txt) |
