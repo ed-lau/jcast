@@ -1,0 +1,8 @@
+/.quarto/
+
+**/*.quarto_ipynb
+
+# the old render (the site renders into ../docs) and the logo artwork
+/_site/
+/images/*.ai
+/images/300ppi/

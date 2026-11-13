@@ -1,18 +1,28 @@
-# Handoff — v0.4.0 hardening (2026-11-13, after PRs 10–12)
+# Handoff — after the v0.4.0 release (2026-11-13)
 
-For the next working session on the `v0.4.0-hardening` branch. It covers
-where things stand, how the work has been run, and what to do next.
+For the next working session. It covers where things stand, how the work
+has been run, and what to do next.
 
 ## State
 
-- **Branch:** `v0.4.0-hardening`, last commit at handoff in `git log`.
-  Check `git status -sb` for what `origin` has; push only when the
-  maintainer asks.
+- **Released:** v0.4.0, on 2026-11-13.
+  - PR #29 merged `v0.4.0-hardening` into `main` with a merge commit,
+    `e4d9117`, which the tag `v0.4.0` points to.
+  - GitHub release "JCAST v.0.4.0".
+  - PyPI 0.4.0: the wheel and the sdist built from `258d8b3` (sha256
+    `97edb11d…` and `bd5a4b4c…`), whose tree is the tag's. They were
+    uploaded three minutes before the merge, with no effect on the
+    contents.
+- **Branch:** `docs-after-0.4.0`, from `main`, with the documentation
+  changes made after the release (below). Pushed, with a PR into `main`
+  (`gh pr list`). The website updates when it is merged. Start v0.5.0 work
+  on a new branch from `main` after that merge.
 - **Tests:** all 153 pass in about 2.5 minutes (`python -m pytest -q`; run
   only the fast ones with `-m 'not slow'`, offline with `-m 'not network'`).
-- **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml) (PR 11)
-  runs on every push and pull request. Its first run on GitHub
-  (43455685837, at `efed80b`) passed all 12 jobs.
+- **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml) runs on
+  every push and pull request: Python 3.11 to 3.15 on Linux and macOS, the
+  lowest dependency versions, and the installed wheel. Green since its
+  first run (43455685837).
 - **Golden tests:**
   - `tests/test_pipeline.py::test_chr15_golden` (GTF-only canonicals). Its
     `read=1` keeps every junction since PR 6.
@@ -22,23 +32,45 @@ where things stand, how the work has been run, and what to do next.
   Every output-changing PR has an audit, an evidence folder and a
   verification script, indexed in [reports/README.md](reports/README.md)
   with its decisions and commit hashes.
-- **Recent (2026-11-13):**
-  - **PR 10** ([packaging check](reports/2026-11-13-packaging-check.md)):
-    - The metadata is in `pyproject.toml`; `setup.py` and
-      `requirements.txt` are gone. The version is set once, in
-      `jcast/__init__.py`: 0.4.0.
-    - Python ≥ 3.11. The tests pass on 3.11 to 3.15 with the newest
-      dependencies, and on 3.11 with the lowest the bounds allow.
-    - Only `jcast` is installed (the wheel is 62 kB); the sdist holds the
-      tests and their data (60 MB).
-  - **PR 11:** CI, as above: 10 test jobs, a lowest-versions job and a
-    package job.
-  - **PR 12** ([command-line checks](reports/2026-11-13-command-line-checks.md)):
-    - Only the `-s` files must exist (MED-8). With `-m`, the others
-      present are read too, so the cutoff is unchanged.
-    - A missing file is a usage error; `--g_or_ln`, `get_rest_nuc` and the
-      scikit-learn Gaussian mixture are removed.
-    - No output change for any run that worked before.
+
+## The session of 2026-11-13
+
+- **PR 10, packaging** (`4a039a9`; [packaging check](reports/2026-11-13-packaging-check.md)):
+  - The metadata is in `pyproject.toml`; `setup.py` and `requirements.txt`
+    are gone. The version is set once, in `jcast/__init__.py`.
+  - Python ≥ 3.11. The tests pass on 3.11 to 3.15 with the newest
+    dependencies, and on 3.11 with the lowest the bounds allow. The
+    numpy, scipy, matplotlib and requests floors were raised to versions
+    that install and work.
+  - The wheel installs only `jcast` (60 kB). The sdist holds the tests and
+    their data (60 MB).
+- **PR 11, CI** (`dee41b6`): as above, 12 jobs.
+- **PR 12, command-line checks** (`d84f49d`; [report](reports/2026-11-13-command-line-checks.md)):
+  - Only the `-s` files must exist (MED-8). With `-m`, the others present
+    are read too, so the cutoff is unchanged.
+  - A missing file is a usage error. `--g_or_ln`, `get_rest_nuc` and the
+    scikit-learn Gaussian mixture are removed.
+  - No output change for any run that worked before.
+- **The release:**
+  - The release commit `258d8b3` dated the CHANGELOG and made the README's
+    links absolute, since the README is also the PyPI page.
+  - PR #29, then the tag, the GitHub release and the PyPI upload, which
+    the maintainer did.
+- **After the release** (branch `docs-after-0.4.0`, PR into `main`):
+  - The README says the GUI is a preview that cannot run JCAST. Two FAQ
+    answers were out of date: the rMATS files needed (PR 12) and the GTF
+    cache next to the GTF (PR 7).
+  - **The website** was updated for v0.4.0. Its pages had described v0.3.5
+    (Python 3.7+, `tox`, `--g_or_ln`, Tier 3). Its Quarto source,
+    `jcast_website/`, is now tracked (maintainer's decision). The
+    Documentation and FAQ pages take their sections from the README.
+  - REVIEW.md's status records the release.
+- **The maintainer's environment:** `.conda` was rebuilt as native arm64
+  (Python 3.11.18, numpy 2.4, pandas 3.1, `jcast` installed editable,
+  `subdir: osx-arm64` pinned in `.conda/.condarc`). `~/miniconda3` itself
+  is still the Intel build, so its other environments run under Rosetta.
+- **A mistake, undone:** a `uv pip install --system` went into
+  `~/miniconda3` through `CONDA_PREFIX` (see Useful facts).
 
 ## How the work is run (agreed with the maintainer)
 
@@ -74,25 +106,28 @@ where things stand, how the work has been run, and what to do next.
 
 ## Next priorities
 
-1. **The v0.4.0 release** (the maintainer's plan, 2026-11-13):
-   - Done: the release commit (CHANGELOG `[0.4.0] — 2026-11-13`, its
-     Planned items moved to a new `[Unreleased]`; README links made
-     absolute, since the README is also the PyPI page); the pull request
-     from `v0.4.0-hardening` into `main` (`gh pr view`).
-   - After the merge: tag `v0.4.0` on `main`, and the GitHub release, with
-     the wheel and sdist attached.
-   - PyPI: the maintainer uploads, with their own token. Build the files
-     from the tagged commit, not the working tree (`git archive`, then
-     `uv build`), and run `twine check --strict`. setuptools ≥ 77 writes
-     Metadata-Version 2.4: twine ≥ 6.1 reads it, older twine only with
-     pkginfo ≥ 1.12. A version can be uploaded to PyPI only once.
-   - The website (`docs/`) still says Python 3.7+ and `tox`. It is built
-     from `jcast_website/`, which is not in the repository.
-2. **PR 13, GUI:**
-   - Expose `--uniprot`, `--overwrite`, `--cache_dir` and `--verbose`.
-   - `-p` must not fork from the GUI's Qt thread (REVIEW.md §10). Run a
-     subprocess or use another start method. On Python ≥ 3.12, forking a
-     multi-threaded process warns ([packaging check §4.2](reports/2026-11-13-packaging-check.md#42-notes)).
+1. **PR 13, GUI (v0.5.0)** ([REVIEW.md §10](REVIEW.md#10-gui-plan--notes)):
+   - The GUI released in 0.4.0 is a skeleton: three placeholder pages,
+     157 lines in `jcast/gui/`. It cannot run JCAST.
+   - Planned: a wizard (inputs, filters), the model preview, and a run
+     panel that runs `run_jcast` in a `QThread`. Expose `--uniprot`,
+     `--overwrite`, `--cache_dir` and `--verbose`.
+   - `-p` must not fork from the GUI's process, because Qt runs threads.
+     Run a subprocess or use another start method. On Python ≥ 3.12,
+     forking a multi-threaded process warns ([packaging check §4.2](reports/2026-11-13-packaging-check.md#42-notes)).
+   - Also needed: a cancellation hook in `run_jcast`, and the model plot
+     drawn on a caller-supplied `Axes`.
+   - The next release is v0.5.0 (the maintainer, 2026-11-13).
+2. **Before or with v0.5.0**, all small:
+   - PyPI's trusted publishing: a workflow that uploads when a GitHub
+     release is published, so the upload follows the tag and needs no
+     token.
+   - The `-h` text has two typos from before v0.4.0: "junctionsand" and
+     "transcriptslices". The website shows the `-h` text verbatim, so
+     render the site again after fixing them.
+   - The merged `v0.4.0-hardening` branch can be deleted: the commits
+     cited in `reports/` are in `main`'s history. The 0.4.0 GitHub release
+     (fixed by the maintainer) links to the tag, not the branch.
 3. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
    `make_pep`, `chr` never added to chromosome names, the header-only
    fetal-heart test data, the date-stamped comments.
@@ -131,9 +166,29 @@ where things stand, how the work has been run, and what to do next.
   `UV_PYTHON_INSTALL_DIR` and `UV_CACHE_DIR` to a scratch directory.
   **Name the target of every `uv pip` command with `--python`:**
   `--system` follows `CONDA_PREFIX` into the conda base environment.
-- **The maintainer's `.conda` environment is x86_64**, running under
-  Rosetta on an arm64 Mac (Python 3.11, pandas 2.3, numpy 1.26). A native
-  arm64 environment would likely be faster.
+- **The maintainer's environments:**
+  - `.conda` is arm64 since 2026-11-13.
+  - `~/miniconda3` is the Intel build (osx-64). Environments it creates,
+    including those made by VS Code's "Create Environment", are x86_64
+    unless built with `CONDA_SUBDIR=osx-arm64` and pinned with
+    `conda config --env --set subdir osx-arm64`.
+- **The website:**
+  - `cd jcast_website && quarto render` writes the site into `docs/`.
+    GitHub Pages serves `main:/docs` at https://ed-lau.github.io/jcast/.
+  - Quarto warns that `docs/` is outside the project and that it won't
+    clean `docs/site_libs`; harmless.
+  - `about.qmd` and `faqs.qmd` repeat the README's sections (output files,
+    `junctions.tsv`, header format, `--uniprot`, `-p`, known issues, FAQ),
+    and `about.qmd` shows `jcast --help` verbatim. Update them with the
+    README.
+  - Pandoc prints `\|` inside code in a table literally. Write such a cell
+    as `<code>…&#124;…</code>`.
+- **Building release files:**
+  - Build from the commit, not the working tree: `git archive <commit>`,
+    then `uv build`.
+  - `twine check --strict` them. setuptools ≥ 77 writes Metadata-Version
+    2.4: twine ≥ 6.1 reads it, older twine only with pkginfo ≥ 1.12.
+  - PyPI accepts each version once.
 - **Verification scripts:**
   - They take input paths as arguments and write only to the scratch
     directory.

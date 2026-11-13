@@ -1,0 +1,72 @@
+project:
+  type: website
+  output-dir: ../docs
+
+website:
+
+  page-navigation: true
+
+ 
+
+
+  title: "JCAST v0.4.0"
+  description: "Junction Centric Alternative Splicing Translator"
+  site-url: "https://ed-lau.github.io/jcast"
+
+  repo-url: https://github.com/ed-lau/jcast
+  repo-actions: [issue]
+
+  open-graph: true
+
+  twitter-card:
+    creator: "@LauLabColorado"
+    image: "images/jcast.png"
+
+  page-footer:
+    right: "This page is built with [Quarto](https://quarto.org/)."
+    left: "&copy; Copyright 2026 [Lau Lab Colorado](https://laulab.net) and [Maggie Lam Lab](https://maggielab.org)"
+    #background: "#F7F9FB"
+
+  sidebar:
+    style: "docked"
+    #background: "#F7F9FB"
+    logo: "images/jcast.png"
+    align: center
+    pinned: true
+    search: true
+    tools:
+      - icon: github
+        href: https://github.com/ed-lau/jcast
+        text: "GitHub repository"
+
+      - icon: twitter
+        href: https://twitter.com/LauLabColorado
+
+
+    contents:
+      - text: "Home"
+        file: index.qmd
+      - text: "Quick Start"
+        file: install.qmd 
+      - text: "Documentation"
+        file: about.qmd 
+      - text: "Change Log"
+        file: change.qmd
+      - text: "FAQs"
+        file: faqs.qmd
+
+format:
+  html:
+    theme: pulse
+    css: styles.css
+    toc: true
+    code-copy: true
+    code-overflow: wrap
+    code-block-bg: true
+    code-block-border-left: true
+    fontsize: "medium"
+
+
+
+
+

@@ -35,7 +35,8 @@ on macOS and Linux. We recommend installing into a virtual environment:
 pip install jcast
 ```
 
-To install the optional Qt-based GUI (PySide6):
+The optional Qt-based GUI (PySide6) is an early preview: it opens a window
+with placeholder pages and cannot run JCAST yet. To install it:
 
 ```bash
 pip install 'jcast[gui]'
@@ -78,7 +79,7 @@ The output directory is created if needed. A directory that already holds
 JCAST output is refused, so two runs never mix; pass `--overwrite` to
 replace that output.
 
-To launch the (optional) graphical interface:
+To open the graphical interface (a preview; it cannot run JCAST yet):
 
 ```bash
 python -m jcast --gui    # or: jcast-gui
@@ -420,8 +421,8 @@ python -m jcast /work/output \
   `junctions.tsv`, with the error in `fate_detail`, and the run continues.
   Its traceback is in `logfile.log`, and the console reports how many
   junctions failed.
-- **The GUI does not yet offer `--uniprot` or `-p`.** Use the command line
-  for these.
+- **The GUI is a preview and cannot run JCAST yet.** Its pages are
+  placeholders. Use the command line.
 - **Tier 4 contains products truncated at a stop codon.** Alternative
   C-termini at an annotated stop codon go to `psq_T1_alt_cterm.fasta`
   instead. A stop codon that the annotation does not support stays in T4,
@@ -441,18 +442,20 @@ outputs contain frameshifted or truncated sequences and should be
 interpreted with caution.
 
 **What files are required in the rMATS directory input?**
-JCAST expects an unaltered rMATS output folder with the five per-splice-type
-files named exactly `MXE.MATS.JC.txt`, `SE.MATS.JC.txt`, `RI.MATS.JC.txt`,
-`A3SS.MATS.JC.txt`, `A5SS.MATS.JC.txt`.
+JCAST reads an unaltered rMATS output folder: one file per splice type,
+named exactly `MXE.MATS.JC.txt`, `SE.MATS.JC.txt`, `RI.MATS.JC.txt`,
+`A3SS.MATS.JC.txt` and `A5SS.MATS.JC.txt`. Only the files of the splice
+types selected with `-s` must be there. With `-m`, the cutoff is fitted on
+every one of these files that is present.
 
 **Can I use a Gencode GTF?**
 Yes. JCAST silently aliases `transcript_type` to `transcript_biotype` when
 reading a Gencode-style GTF.
 
-**Why does my first run write a `.cached` file next to my GTF?**
-JCAST caches the parsed GTF as a TSV to speed re-runs. The cache lives next
-to the input file. If your reference directory is read-only, work around by
-copying the GTF to a writable location. (Targeted fix in v0.4.0.)
+**Does JCAST write anything next to my GTF?**
+No. From v0.4.0, the parsed GTF is cached in the user cache directory, or
+in `--cache_dir` (see [Known issues](#known-issues)). `<gtf>.cached` files
+written by earlier versions are no longer used and can be deleted.
 
 **How can I contribute?**
 Open an issue or a pull request on

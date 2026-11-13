@@ -1,0 +1,91 @@
+---
+title: "Change Log"
+format: html
+keywords: Alternative splicing, proteomics, mass spectrometry, RNA sequencing, protein isoforms, proteoforms
+abstract: This page provides the documentation for the JCAST package, which is a tool for create a database of protein isoforms from RNA-seq data.
+description: JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments
+author: "Edward Lau, Maggie Lam"
+date: 11/13/2026
+date-format: long
+image-caption: "JCAST logo"
+image: "images/logo2.png"
+image-alt: "JCAST - Junction Centric Alternative Splicing Translator"
+---
+
+v0.4.0 (November 13, 2026)
+---
+
+A hardening release. It corrects how junctions are translated and tiered, adds a few options, and makes runs faster
+and easier to reproduce. **The output changes: re-run any analysis made with v0.3.5a**, in particular if it used
+retained-intron output, C-terminal events or the lower tiers. The
+[CHANGELOG](https://github.com/ed-lau/jcast/blob/main/CHANGELOG.md#040--2026-11-13) has every change, with its effect
+on the test data.
+
+Translation and tiers:
+
+* The coding-region bounds come from the start and stop codons. Events entirely in UTRs are skipped, with their own fate.
+* Retained-intron slices no longer include the flanking exons twice.
+* Each slice is translated in its own annotated reading frame. The three-frame guess and Tier 3 (`psq_T3*.fasta`) are removed.
+* A slice ending at an annotated alternative stop codon, or starting at an annotated alternative start codon, is a new class, T1 ALT TERMINUS, written to `psq_T1_alt_cterm.fasta`, `psq_T1_alt_nterm.fasta` and `psq_T1_alt_both.fasta`.
+* Joining to the canonical is stricter: a complete end is not joined, and the 7-residue anchors must occur once, in order.
+
+New:
+
+* `--uniprot FASTA`: take canonical sequences from a downloaded UniProt FASTA instead of the UniProt API.
+* About 25× faster on a whole genome. `-p N` also translates junctions in N processes.
+* `junctions.tsv` records each junction's fate. The log is short and ends with a summary; `-v` adds each junction's steps.
+* When no transcript passes the canonical filter, the GTF canonical falls back to GENCODE's `Ensembl_canonical` transcript.
+
+Changed:
+
+* `-r N` keeps junctions with at least N reads. The default, `-r 1`, keeps every junction; use `-m` to fit a cutoff.
+* A run refuses an output directory that already holds JCAST output (use `--overwrite`).
+* One failing junction no longer stops the run.
+* Caches are kept in the user cache directory (`--cache_dir`), not next to the GTF.
+* `-s` works with only some of the five rMATS files in the folder. With `-m`, the model still fits on every rMATS file present.
+* `--mask` is deprecated and ignored. `--g_or_ln` is removed.
+* Requires Python 3.11 or later.
+
+v0.3.5a
+---
+
+* JCAST will now skip a junction if the nucleotide sequence contains masked bases
+* Added the --mask argument to determine masked nucleotide letters (default: NnXx)
+* Added an option to translate only a subset of splice types (MXE, RI, SE, A3SS, A5SS) with the -s argument
+
+
+v0.3.5
+---
+
+* Fixed an issue where a small number of slices were not translated.
+* Fixed an issue where JCAST quits if the model flag is not set.
+
+v0.3.2
+---
+
+* The -q --qvalue option now works by including splice junctions within the specified range. To preserve the previous behavior, use -q 0.01 1. The default -q 0 1 disables filtering.
+* The -c --canonical argument now defaults to False. To preserve prior behaviors, manually set the -c flag to translate canonical proteins detected in the RNA-seq experiments even if isoform translation failes
+* The -c --canonical argument now will translate a canonical sequence even if a splice event has low skipped junction counts or falls outside of the specified fdr range
+* JCAST now automatically models the likely translatable junction count threshold through the -m --model argument. Previously this was done manually then set as an integer (minimal read count) using the -r --read argument.
+* The skipped junction counts used for modeling now consider the sum of all biological and technical replicates
+rather than the minimum
+
+v0.3.1
+---
+
+* Fixed issues where Gencode GTF files without transcript_biotype annotations could not be read
+* Fixed issues of retrieving Uniprot canonical sequences from Ensembl transcript versions
+* Compatibility with biopython>=1.78
+
+v0.2.8
+---
+
+* Fixed an issue where jcast is called twice from the direct cli entry point
+* Added option to use longest coding sequence from GTF as canonical
+
+v0.2.6
+---
+
+* Fixed an issue where some A5SS minus-strand transcripts had incorrect phases retrieved from gtf
+* Fixed an issue where some transcripts using a secondary translation start sites are not trimmed
+

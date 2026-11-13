@@ -7,11 +7,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Edward Lau, Maggie Lam">
-<meta name="dcterms.date" content="2026-03-01">
+<meta name="dcterms.date" content="2026-11-13">
 <meta name="keywords" content="Alternative splicing, proteomics, mass spectrometry, RNA sequencing, protein isoforms, proteoforms">
 <meta name="description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 
-<title>Change Log – JCAST v0.3.5</title>
+<title>Change Log – JCAST v0.4.0</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -78,12 +78,12 @@ ul.task-list li input[type="checkbox"] {
 
 
 <link rel="stylesheet" href="styles.css">
-<meta property="og:title" content="Change Log – JCAST v0.3.5">
+<meta property="og:title" content="Change Log – JCAST v0.4.0">
 <meta property="og:description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 <meta property="og:image" content="https://ed-lau.github.io/jcast/images/logo2.png">
-<meta property="og:site_name" content="JCAST v0.3.5">
+<meta property="og:site_name" content="JCAST v0.4.0">
 <meta property="og:image:alt" content="JCAST - Junction Centric Alternative Splicing Translator">
-<meta name="twitter:title" content="Change Log – JCAST v0.3.5">
+<meta name="twitter:title" content="Change Log – JCAST v0.4.0">
 <meta name="twitter:description" content="JCAST software for alternative splicing proteomics analysis. Create custom protein databases using RNA-seq data to identify unique protein alternative splicing isoforms in mass spectrometry experiments">
 <meta name="twitter:image" content="https://ed-lau.github.io/jcast/images/logo2.png">
 <meta name="twitter:creator" content="@LauLabColorado">
@@ -170,7 +170,8 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#v0.3.5a" id="toc-v0.3.5a" class="nav-link active" data-scroll-target="#v0.3.5a">v0.3.5a</a></li>
+  <li><a href="#v0.4.0-november-13-2026" id="toc-v0.4.0-november-13-2026" class="nav-link active" data-scroll-target="#v0.4.0-november-13-2026">v0.4.0 (November 13, 2026)</a></li>
+  <li><a href="#v0.3.5a" id="toc-v0.3.5a" class="nav-link" data-scroll-target="#v0.3.5a">v0.3.5a</a></li>
   <li><a href="#v0.3.5" id="toc-v0.3.5" class="nav-link" data-scroll-target="#v0.3.5">v0.3.5</a></li>
   <li><a href="#v0.3.2" id="toc-v0.3.2" class="nav-link" data-scroll-target="#v0.3.2">v0.3.2</a></li>
   <li><a href="#v0.3.1" id="toc-v0.3.1" class="nav-link" data-scroll-target="#v0.3.1">v0.3.1</a></li>
@@ -206,7 +207,7 @@ ul.task-list li input[type="checkbox"] {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">March 1, 2026</p>
+      <p class="date">November 13, 2026</p>
     </div>
   </div>
   
@@ -230,6 +231,35 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
+<section id="v0.4.0-november-13-2026" class="level2">
+<h2 class="anchored" data-anchor-id="v0.4.0-november-13-2026">v0.4.0 (November 13, 2026)</h2>
+<p>A hardening release. It corrects how junctions are translated and tiered, adds a few options, and makes runs faster and easier to reproduce. <strong>The output changes: re-run any analysis made with v0.3.5a</strong>, in particular if it used retained-intron output, C-terminal events or the lower tiers. The <a href="https://github.com/ed-lau/jcast/blob/main/CHANGELOG.md#040--2026-11-13">CHANGELOG</a> has every change, with its effect on the test data.</p>
+<p>Translation and tiers:</p>
+<ul>
+<li>The coding-region bounds come from the start and stop codons. Events entirely in UTRs are skipped, with their own fate.</li>
+<li>Retained-intron slices no longer include the flanking exons twice.</li>
+<li>Each slice is translated in its own annotated reading frame. The three-frame guess and Tier 3 (<code>psq_T3*.fasta</code>) are removed.</li>
+<li>A slice ending at an annotated alternative stop codon, or starting at an annotated alternative start codon, is a new class, T1 ALT TERMINUS, written to <code>psq_T1_alt_cterm.fasta</code>, <code>psq_T1_alt_nterm.fasta</code> and <code>psq_T1_alt_both.fasta</code>.</li>
+<li>Joining to the canonical is stricter: a complete end is not joined, and the 7-residue anchors must occur once, in order.</li>
+</ul>
+<p>New:</p>
+<ul>
+<li><code>--uniprot FASTA</code>: take canonical sequences from a downloaded UniProt FASTA instead of the UniProt API.</li>
+<li>About 25× faster on a whole genome. <code>-p N</code> also translates junctions in N processes.</li>
+<li><code>junctions.tsv</code> records each junction’s fate. The log is short and ends with a summary; <code>-v</code> adds each junction’s steps.</li>
+<li>When no transcript passes the canonical filter, the GTF canonical falls back to GENCODE’s <code>Ensembl_canonical</code> transcript.</li>
+</ul>
+<p>Changed:</p>
+<ul>
+<li><code>-r N</code> keeps junctions with at least N reads. The default, <code>-r 1</code>, keeps every junction; use <code>-m</code> to fit a cutoff.</li>
+<li>A run refuses an output directory that already holds JCAST output (use <code>--overwrite</code>).</li>
+<li>One failing junction no longer stops the run.</li>
+<li>Caches are kept in the user cache directory (<code>--cache_dir</code>), not next to the GTF.</li>
+<li><code>-s</code> works with only some of the five rMATS files in the folder. With <code>-m</code>, the model still fits on every rMATS file present.</li>
+<li><code>--mask</code> is deprecated and ignored. <code>--g_or_ln</code> is removed.</li>
+<li>Requires Python 3.11 or later.</li>
+</ul>
+</section>
 <section id="v0.3.5a" class="level2">
 <h2 class="anchored" data-anchor-id="v0.3.5a">v0.3.5a</h2>
 <ul>
