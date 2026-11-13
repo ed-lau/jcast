@@ -4,10 +4,24 @@ All notable changes to JCAST are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
-For the upcoming v0.4.0 release plan and detailed code review, see
-[REVIEW.md](REVIEW.md).
+For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
 
-## [Unreleased] — v0.4.0 hardening release
+## [Unreleased]
+
+### Planned
+
+See [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised) for the full
+table.
+
+- **GUI (PR 13):** expose `--uniprot`, `--overwrite`, `--cache_dir` and
+  `--verbose`; run `-p` from a subprocess or with another start method,
+  not by forking the Qt process.
+- An option to add T2 and T4 records to `jcast_uniprot_merged.fasta`.
+- A helper that downloads a UniProt proteome and names the file by its
+  release (`X-UniProt-Release`).
+- Remove the deprecated `--mask` option.
+
+## [0.4.0] — 2026-11-13
 
 The v0.4.0 line is a hardening release: dependency modernization, correctness
 fixes, scientific-integrity audits, and the introduction of an optional Qt
@@ -517,20 +531,6 @@ and §9.
 - `CHANGES.txt` — content migrated to this file.
 - `TODO.md` — items (gff3 input, APPRIS-tag canonical, UniProt-failure
   fallback) absorbed into [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised).
-
-### Planned (not yet implemented in this milestone)
-
-The following items are scheduled for v0.4.0 but live in subsequent focused
-PRs. See [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised) for the full
-table.
-
-- **GUI (PR 13):** expose `--uniprot`, `--overwrite`, `--cache_dir` and
-  `--verbose`; run `-p` from a subprocess or with another start method,
-  not by forking the Qt process.
-- An option to add T2 and T4 records to `jcast_uniprot_merged.fasta`.
-- A helper that downloads a UniProt proteome and names the file by its
-  release (`X-UniProt-Release`).
-- Remove the deprecated `--mask` option (next release).
 
 ## [0.3.5a] — 2022-10-28
 

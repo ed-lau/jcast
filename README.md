@@ -10,8 +10,8 @@ issues that occur when searching against a full transcriptome translation.
 
 - Documentation: <https://ed-lau.github.io/jcast/>
 - Source: <https://github.com/ed-lau/jcast>
-- Changelog: [CHANGELOG.md](CHANGELOG.md)
-- Developer review & v0.4.0 roadmap: [REVIEW.md](REVIEW.md)
+- Changelog: [CHANGELOG.md](https://github.com/ed-lau/jcast/blob/main/CHANGELOG.md)
+- Developer review & v0.4.0 roadmap: [REVIEW.md](https://github.com/ed-lau/jcast/blob/main/REVIEW.md)
 
 ## Contents
 
@@ -190,7 +190,7 @@ A match is used only if it is unique. No identifiers are mapped: GTFs
 carry no UniProt accessions. On a whole human genome this agrees with
 UniProt's own Ensembl cross-references for 99.35% of protein-coding genes
 that have a Swiss-Prot entry
-([reports/2026-11-12-uniprot-mapping-audit.md](reports/2026-11-12-uniprot-mapping-audit.md)).
+([reports/2026-11-12-uniprot-mapping-audit.md](https://github.com/ed-lau/jcast/blob/main/reports/2026-11-12-uniprot-mapping-audit.md)).
 
 **The GTF canonical** is the longest coding sequence among the gene's
 protein-coding transcripts that have transcript support level ≤
@@ -211,7 +211,7 @@ transcripts passes the first rule.
   proteins, so they are written as orphans (`_orphan` files).
 - In that run (GENCODE v50, Swiss-Prot), 370 of the 371 protein-coding
   genes left without a canonical are readthrough genes
-  ([reports/2026-11-12-ensembl-canonical-audit.md](reports/2026-11-12-ensembl-canonical-audit.md)).
+  ([reports/2026-11-12-ensembl-canonical-audit.md](https://github.com/ed-lau/jcast/blob/main/reports/2026-11-12-ensembl-canonical-audit.md)).
 
 **Swiss-Prot or Swiss-Prot + TrEMBL.**
 - For human, Swiss-Prot is recommended.
@@ -282,7 +282,7 @@ coordinates, translation strand, frame, and tier (see below).
 
 There is no Tier 3 from v0.4.0. It re-translated in a guessed frame when the
 annotated frame failed, and was removed together with the three-frame
-fallback (see [CHANGELOG.md](CHANGELOG.md)).
+fallback (see [CHANGELOG.md](https://github.com/ed-lau/jcast/blob/main/CHANGELOG.md)).
 
 Annotated start and stop codons are taken from protein-coding transcripts
 with transcript support level ≤ `params.tsl_threshold`. A stop codon
@@ -406,7 +406,7 @@ python -m jcast /work/output \
   - A hard-masked genome (Ensembl `dna_rm`) replaces repeats with N, so
     every junction touching a repeat is skipped: 19% of the chr15 test
     junctions. See
-    [reports/2026-11-11-masked-bases-audit.md](reports/2026-11-11-masked-bases-audit.md).
+    [reports/2026-11-11-masked-bases-audit.md](https://github.com/ed-lau/jcast/blob/main/reports/2026-11-11-masked-bases-audit.md).
 - **Caches.** JCAST keeps two caches in the user cache directory, or in
   `--cache_dir`:
   - **the GTF**, read into a table: about 2 GB for GENCODE. The first run
@@ -458,7 +458,7 @@ copying the GTF to a writable location. (Targeted fix in v0.4.0.)
 Open an issue or a pull request on
 <https://github.com/ed-lau/jcast>, or reach out to
 [edward.lau@cuanschutz.edu](mailto:edward.lau@cuanschutz.edu). The
-[REVIEW.md](REVIEW.md) document enumerates the current backlog and is a good
+[REVIEW.md](https://github.com/ed-lau/jcast/blob/main/REVIEW.md) document enumerates the current backlog and is a good
 starting point for new contributors.
 
 ## Citations
@@ -487,4 +487,4 @@ If you use JCAST in published work, please cite:
 
 ## License
 
-MIT — see [LICENSE.md](LICENSE.md).
+MIT — see [LICENSE.md](https://github.com/ed-lau/jcast/blob/main/LICENSE.md).

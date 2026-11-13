@@ -11,8 +11,8 @@ where things stand, how the work has been run, and what to do next.
 - **Tests:** all 153 pass in about 2.5 minutes (`python -m pytest -q`; run
   only the fast ones with `-m 'not slow'`, offline with `-m 'not network'`).
 - **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml) (PR 11)
-  runs on every push. Its steps were checked locally on macOS; **check its
-  first run on GitHub**, on Linux and macOS, after the next push.
+  runs on every push and pull request. Its first run on GitHub
+  (43455685837, at `efed80b`) passed all 12 jobs.
 - **Golden tests:**
   - `tests/test_pipeline.py::test_chr15_golden` (GTF-only canonicals). Its
     `read=1` keeps every junction since PR 6.
@@ -74,26 +74,29 @@ where things stand, how the work has been run, and what to do next.
 
 ## Next priorities
 
-1. **The first CI run on GitHub.** Fix anything it finds, on Linux in
-   particular: the `lowest` job takes biopython 1.79 there, untested
-   locally.
-2. **The v0.4.0 release.** The maintainer plans to merge into `main` and
-   release on GitHub after PRs 10–12. Still to decide or do:
-   - a PR from `v0.4.0-hardening` into `main`;
-   - the tag and the GitHub release notes, from CHANGELOG `[Unreleased]`;
-   - whether to upload to PyPI. It has sdists only, up to 0.3.5; a 0.4.0
-     wheel would make `pip install jcast` a 62 kB download;
-   - the website (`docs/`) still says Python 3.7+ and `tox`. It is built
+1. **The v0.4.0 release** (the maintainer's plan, 2026-11-13):
+   - Done: the release commit (CHANGELOG `[0.4.0] — 2026-11-13`, its
+     Planned items moved to a new `[Unreleased]`; README links made
+     absolute, since the README is also the PyPI page); the pull request
+     from `v0.4.0-hardening` into `main` (`gh pr view`).
+   - After the merge: tag `v0.4.0` on `main`, and the GitHub release, with
+     the wheel and sdist attached.
+   - PyPI: the maintainer uploads, with their own token. Build the files
+     from the tagged commit, not the working tree (`git archive`, then
+     `uv build`), and run `twine check --strict`. setuptools ≥ 77 writes
+     Metadata-Version 2.4: twine ≥ 6.1 reads it, older twine only with
+     pkginfo ≥ 1.12. A version can be uploaded to PyPI only once.
+   - The website (`docs/`) still says Python 3.7+ and `tox`. It is built
      from `jcast_website/`, which is not in the repository.
-3. **PR 13, GUI:**
+2. **PR 13, GUI:**
    - Expose `--uniprot`, `--overwrite`, `--cache_dir` and `--verbose`.
    - `-p` must not fork from the GUI's Qt thread (REVIEW.md §10). Run a
      subprocess or use another start method. On Python ≥ 3.12, forking a
      multi-threaded process warns ([packaging check §4.2](reports/2026-11-13-packaging-check.md#42-notes)).
-4. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
+3. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
    `make_pep`, `chr` never added to chromosome names, the header-only
    fetal-heart test data, the date-stamped comments.
-5. **Planned follow-ups** (CHANGELOG "Planned"):
+4. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
    - an option to add T2/T4 to `jcast_uniprot_merged.fasta`;
    - a UniProt download helper that names the file by its release
      (`X-UniProt-Release` header);
