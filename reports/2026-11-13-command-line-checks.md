@@ -3,10 +3,10 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§3). **Implemented in PR 12** (§4). No output file changes for any run that worked before (§5). |
+| **Status** | Decisions taken 2026-11-13 (§3). **Implemented in PR 12** (`d84f49d`, §4). No output file changes for any run that worked before (§5). |
 | **Question** | `-s` selects the splice types to translate, but JCAST read all five rMATS files whatever `-s` said ([REVIEW.md](../REVIEW.md) MED-8). A folder without one of them failed. Which files should be read, and what should `-m` fit on? |
 | **Reproduce** | `python reports/cli_checks/verify_12.py --before <checkout> --after <checkout>` (≈ 3 min) |
-| **Evidence** | [cli_checks/verify_12/verify_12.txt](cli_checks/verify_12/verify_12.txt) |
+| **Evidence** (at `d84f49d`) | [cli_checks/verify_12/verify_12.txt](cli_checks/verify_12/verify_12.txt) |
 
 ## 1. Summary
 
