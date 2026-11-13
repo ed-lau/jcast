@@ -8,7 +8,8 @@ the splice isoforms that are likely present in a specific RNA-seq sample,
 JCAST avoids the database-size inflation and false-positive identification
 issues that occur when searching against a full transcriptome translation.
 
-- Documentation: <https://ed-lau.github.io/jcast/>
+- Documentation: <https://ed-lau.github.io/jcast/> (still describes v0.3.5;
+  this README is current)
 - Source: <https://github.com/ed-lau/jcast>
 - Changelog: [CHANGELOG.md](https://github.com/ed-lau/jcast/blob/main/CHANGELOG.md)
 - Developer review & v0.4.0 roadmap: [REVIEW.md](https://github.com/ed-lau/jcast/blob/main/REVIEW.md)
@@ -35,7 +36,8 @@ on macOS and Linux. We recommend installing into a virtual environment:
 pip install jcast
 ```
 
-To install the optional Qt-based GUI (PySide6):
+The optional Qt-based GUI (PySide6) is an early preview: it opens a window
+with placeholder pages and cannot run JCAST yet. To install it:
 
 ```bash
 pip install 'jcast[gui]'
@@ -78,7 +80,7 @@ The output directory is created if needed. A directory that already holds
 JCAST output is refused, so two runs never mix; pass `--overwrite` to
 replace that output.
 
-To launch the (optional) graphical interface:
+To open the graphical interface (a preview; it cannot run JCAST yet):
 
 ```bash
 python -m jcast --gui    # or: jcast-gui
@@ -420,8 +422,8 @@ python -m jcast /work/output \
   `junctions.tsv`, with the error in `fate_detail`, and the run continues.
   Its traceback is in `logfile.log`, and the console reports how many
   junctions failed.
-- **The GUI does not yet offer `--uniprot` or `-p`.** Use the command line
-  for these.
+- **The GUI is a preview and cannot run JCAST yet.** Its pages are
+  placeholders. Use the command line.
 - **Tier 4 contains products truncated at a stop codon.** Alternative
   C-termini at an annotated stop codon go to `psq_T1_alt_cterm.fasta`
   instead. A stop codon that the annotation does not support stays in T4,

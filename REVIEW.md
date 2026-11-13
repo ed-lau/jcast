@@ -6,7 +6,9 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 > **Status, 2026-11-13.** The sections below record the state at the review
 > date, with each item's fix marked; §3 describes the current code. Progress
 > since then is tracked in the roadmap
-> ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–12 and 14–17 are done.
+> ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–12 and 14–17 are done,
+> and were released as **v0.4.0** on 2026-11-13 (PR #29, merge commit
+> `e4d9117`, tag `v0.4.0`, GitHub release and PyPI).
 > - JCAST installs and runs on current Python, pandas and numpy.
 > - The tiering issues of §5 are fixed, each with an audit under
 >   [reports/](reports/README.md).
@@ -16,7 +18,9 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 > - Each run records every junction's outcome in `junctions.tsv`, and the
 >   log holds the run's settings and a summary.
 >
-> Open: PR 13 (GUI).
+> Open: PR 13 (GUI, [§10](#10-gui-plan--notes)); the GUI released in
+> v0.4.0 is a placeholder that cannot run JCAST. The website (`docs/`)
+> still describes v0.3.5.
 
 This document is the developer-facing companion to [README.md](README.md) and
 [CHANGELOG.md](CHANGELOG.md). It catalogs the current state of the codebase,
@@ -44,7 +48,7 @@ was checked against running code, not just by reading it:
 3. [Architecture overview](#3-architecture-overview)
 4. [Bugs & correctness issues](#4-bugs--correctness-issues)
 5. [Scientific integrity assessment](#5-scientific-integrity-assessment)
-6. [Performance](#6-performance)
+6. [Performance](#6-performance-new-section)
 7. [Dependencies, packaging & environment](#7-dependencies-packaging--environment)
 8. [Test coverage](#8-test-coverage)
 9. [v0.4.0 hardening roadmap (revised)](#9-v040-hardening-roadmap-revised)
