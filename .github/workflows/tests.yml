@@ -1,0 +1,94 @@
+# The tests on each supported Python version, on Linux and macOS; the tests at the lowest dependency versions the
+# bounds in pyproject.toml allow; and the packages, built and installed (PR 11). The three tests that query the
+# UniProt API are left out.
+name: tests
+
+# every push to a branch, and pull requests (from forks too)
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  MPLBACKEND: Agg
+
+jobs:
+  test:
+    name: Python ${{ matrix.python }}, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ['3.11', '3.12', '3.13', '3.14', '3.15']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Install
+        run: python -m pip install '.[test]'
+      - name: Test
+        run: python -m pytest -m 'not network'
+
+  lowest:
+    name: Lowest dependency versions, Python 3.11, ubuntu-latest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.11'
+      # the lowest version of each dependency within its bounds, from wheels for the packages that need compiling, in
+      # a virtual environment named on every command
+      - name: Install
+        run: |
+          python -m pip install uv
+          uv venv --python "$(command -v python)" .venv
+          uv pip install --python .venv/bin/python -r pyproject.toml --extra test --resolution lowest-direct \
+            --only-binary biopython --only-binary pandas --only-binary numpy --only-binary scipy \
+            --only-binary matplotlib --only-binary scikit-learn --only-binary contourpy \
+            --only-binary kiwisolver --only-binary pillow
+          uv pip install --python .venv/bin/python --no-deps .
+          uv pip list --python .venv/bin/python
+      - name: Test
+        run: .venv/bin/python -m pytest -m 'not network'
+
+  package:
+    name: Packages, built and installed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Build
+        run: |
+          python -m pip install build twine
+          python -m build
+          python -m twine check --strict dist/*
+      - name: The wheel holds only the jcast package
+        run: |
+          python -c "
+          import glob, zipfile
+          top = {n.split('/')[0] for n in zipfile.ZipFile(glob.glob('dist/*.whl')[0]).namelist()}
+          assert {t for t in top if not t.endswith('.dist-info')} == {'jcast'}, top
+          "
+      # from the sdist with its jcast/ removed, so that the tests import the installed wheel
+      - name: Test the installed wheel
+        run: |
+          python -m pip install "$(ls dist/*.whl)[test]"
+          mkdir sdist
+          tar -xzf dist/*.tar.gz -C sdist --strip-components 1
+          rm -r sdist/jcast
+          cd sdist
+          jcast --help > /dev/null
+          python -m pytest -m 'not network'

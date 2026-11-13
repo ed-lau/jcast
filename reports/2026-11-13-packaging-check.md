@@ -1,9 +1,9 @@
-# Packaging check: Python versions and dependency bounds (PR 10)
+# Packaging check: Python versions and dependency bounds (PRs 10, 11)
 
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§5). **Implemented in PR 10** (`4a039a9`, §2). No output changes: the code under `jcast/` is unchanged apart from its `__init__.py`. |
+| **Status** | Decisions taken 2026-11-13 (§5). **Implemented in PR 10** (`4a039a9`, §2); **CI in PR 11** (§6). No output changes: the code under `jcast/` is unchanged apart from its `__init__.py`. |
 | **Question** | Does JCAST build, install and pass its tests on each Python version it should support, at the newest dependency versions and at the lowest that its bounds allow? Which bounds are true? |
 | **Reproduce** | `python reports/packaging/check_install.py --uv <uv> --python <python 3.11> … --python <python 3.15> --resolution newest --jobs 5` (≈ 3 min) · `… --python <python 3.11> --resolution lowest` (≈ 2 min). The interpreters were uv's builds (`uv python install`), arm64. |
 | **Evidence** (at `4a039a9`) | [packaging/check_install/check_newest.txt](packaging/check_install/check_newest.txt) · [check_lowest.txt](packaging/check_install/check_lowest.txt) |
@@ -128,3 +128,37 @@ a full run, as in the whole suite. The test now sets `propagate` itself.
 2. Order: PR 10, then PR 11 (CI), then PR 12.
 3. CI on Linux and macOS (the maintainer runs JCAST on macOS).
 4. Version 0.4.0, to be released on GitHub after PRs 10 to 12.
+
+## 6. CI (PR 11)
+
+[.github/workflows/tests.yml](../.github/workflows/tests.yml) runs on every
+push to a branch and on pull requests, without the three network tests:
+
+| Job | Runs on | Steps |
+|---|---|---|
+| `test` (10 jobs) | `ubuntu-latest` and `macos-latest` (arm64), Python 3.11 to 3.15 | `pip install '.[test]'`; `pytest -m 'not network'` |
+| `lowest` | `ubuntu-latest`, Python 3.11 | the lowest version of each dependency, as in §3, in a virtual environment; the tests |
+| `package` | `ubuntu-latest`, Python 3.13 | `python -m build`; `twine check --strict`; the wheel holds only `jcast`; `jcast --help` and the tests, from the sdist against the installed wheel |
+
+**Checked locally** on macOS arm64. Each job's `run` steps were taken from
+the workflow file and run under `bash -e`, as GitHub runs them, on a fresh
+checkout of `c31bf68` (PR 10 and its hash), in a fresh virtual environment
+first on `PATH`:
+
+| Job | Python | Result |
+|---|---|---|
+| `test` | 3.15.2 | 145 passed |
+| `lowest` | 3.11.18 | 145 passed (pandas 1.5.0, numpy 1.23.2, scipy 1.9.2, matplotlib 3.6.0, biopython 1.83, requests 2.20.0) |
+| `package` | 3.13.18 | both packages pass `twine check --strict`; 145 passed against the installed wheel |
+
+- **The first local run of `lowest` installed into the wrong
+  environment.** It used `uv pip install --system`, which found the
+  machine's conda base environment through `CONDA_PREFIX`, not the job's
+  Python. It added five packages there (removed again). The job now
+  creates `.venv` and names it on every `uv` command, so it installs into
+  the same place on any machine.
+- **Not checked locally:**
+  - Linux. There, the `lowest` job will take biopython 1.79, the oldest
+    with Python 3.11 wheels.
+  - The workflow on GitHub itself: it first runs when the branch is pushed.
+    `actionlint` finds no problems in it.

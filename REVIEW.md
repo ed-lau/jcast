@@ -6,7 +6,7 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 > **Status, 2026-11-13.** The sections below record the state at the review
 > date, with each item's fix marked; §3 describes the current code. Progress
 > since then is tracked in the roadmap
-> ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–10 and 14–17 are done.
+> ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–11 and 14–17 are done.
 > - JCAST installs and runs on current Python, pandas and numpy.
 > - The tiering issues of §5 are fixed, each with an audit under
 >   [reports/](reports/README.md).
@@ -16,7 +16,7 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 > - Each run records every junction's outcome in `junctions.tsv`, and the
 >   log holds the run's settings and a summary.
 >
-> Open: PRs 11–13 (CI, argparse hygiene, GUI).
+> Open: PRs 12–13 (argparse hygiene, GUI).
 
 This document is the developer-facing companion to [README.md](README.md) and
 [CHANGELOG.md](CHANGELOG.md). It catalogs the current state of the codebase,
@@ -791,7 +791,7 @@ its end of life in October 2026.
 >
 > **Update — 2026-11-12:** 148 tests in 16 files, about 2.5 minutes. Each
 > output-changing PR added regression tests that fail on the code before it.
-> Gap 4 was done in PR 3 (`tests/test_masking.py`). Gap 7 is PR 11.
+> Gap 4 was done in PR 3 (`tests/test_masking.py`), gap 7 in PR 11.
 
 | File | Tests | Status (2026-11-03 run) |
 |---|---|---|
@@ -823,7 +823,9 @@ paths), `tearDown` deletes `.cached` files from the repo's data directory,
    T1 185, T2 25, T3 2. This catches silent regressions during refactors.
    ✅ Added in PR 1. Its values are updated with each output-changing PR; the
    history is in [reports/README.md](reports/README.md).
-7. GitHub Actions running pytest on 3.10–3.13.
+7. ✅ GitHub Actions running pytest on 3.10–3.13. Done in PR 11, on Python
+   3.11–3.15, on Linux and macOS, plus the lowest dependency versions and
+   the installed wheel ([.github/workflows/tests.yml](.github/workflows/tests.yml)).
 
 ---
 
@@ -850,7 +852,7 @@ currently can't be installed and run from scratch.
 | 8 | ✅ Network resilience + `write_canonical` fallback (MED-9/10); `-c` writes the canonical on every path (MED-14). Decided 2026-11-12 ([audit](reports/2026-11-12-thresholds-runs-canonical-audit.md)): `-c` on every path, masked junctions included; a failed API lookup fails the junction (timeout, 429 retried); `write_canonical`'s fallback removed; gene names used for `--uniprot` only when unique in the GTF ([mapping audit](reports/2026-11-12-uniprot-mapping-audit.md)) | Robustness | Done 2026-11-12 |
 | 9 | ✅ Per-gene GTF index, in-memory FASTA de-dup ([parallel audit](reports/2026-11-12-parallel-audit.md)); filtering before the canonical lookup done in PR 6 | Performance | Done 2026-11-12 |
 | 10 | ✅ Packaging: `pyproject.toml` metadata with the version set once (0.4.0), Python ≥ 3.11, only `jcast` installed, the tests and their data in the sdist, dependency bounds tested at both ends on Python 3.11–3.15 ([packaging check](reports/2026-11-13-packaging-check.md); decided 2026-11-13: Python ≥ 3.11, CI on Linux and macOS, version 0.4.0; `4a039a9`) | Env | Done 2026-11-13 |
-| 11 | CI (GitHub Actions) | Infra | PRs 1, 10 |
+| 11 | ✅ CI (GitHub Actions): the tests on Python 3.11–3.15 on Linux and macOS, at the lowest dependency versions, and against the installed wheel, on every push and pull request ([packaging check §6](reports/2026-11-13-packaging-check.md#6-ci-pr-11)) | Infra | Done 2026-11-13 |
 | 12 | argparse hygiene: drop `--g_or_ln`, `-s` reads only selected files (MED-8), `parser.error` not `assert` | UX | PR 1 |
 | 13 | GUI v0 → wizard (§10) | New surface | PRs 7, 12 |
 | 14 | ✅ `--uniprot FASTA`: canonical from a supplied UniProt FASTA (no API calls), GTF fallback, built-in Swiss-Prot merge ([evaluation](reports/2026-11-11-uniprot-fasta-evaluation.md)) | Reproducibility | Done 2026-11-11 |

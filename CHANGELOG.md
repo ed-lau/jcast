@@ -70,6 +70,13 @@ See
 and §9.
 
 ### Added
+- **Continuous integration (PR 11).** GitHub Actions runs the tests on every
+  push and pull request ([.github/workflows/tests.yml](.github/workflows/tests.yml)),
+  without the three that query the UniProt API:
+  - on Python 3.11 to 3.15, on Linux and on macOS;
+  - at the lowest dependency versions the bounds allow, on Python 3.11;
+  - against the installed wheel, after building the packages and checking
+    them with `twine check`.
 - **`junctions.tsv`: one row per junction (PR 16).**
   - **Contents:**
     - the junction's type, id, gene, read count and FDR;
@@ -497,8 +504,6 @@ The following items are scheduled for v0.4.0 but live in subsequent focused
 PRs. See [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised) for the full
 table.
 
-- **CI (PR 11):** GitHub Actions running pytest on Python 3.11–3.15, on
-  Linux and macOS.
 - **Argument checks (PR 12):** drop the dev-only `--g_or_ln` flag; `-s`
   reads only the selected rMATS files (REVIEW.md MED-8); report a missing
   file with `parser.error`, not `assert`.

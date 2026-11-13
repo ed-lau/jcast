@@ -1,5 +1,7 @@
 # JCAST — Junction-Centric Alternative Splicing Translator
 
+[![tests](https://github.com/ed-lau/jcast/actions/workflows/tests.yml/badge.svg)](https://github.com/ed-lau/jcast/actions/workflows/tests.yml)
+
 JCAST translates rMATS splice junctions into custom protein FASTA databases
 for shotgun mass-spectrometry-based proteomics. By restricting the database to
 the splice isoforms that are likely present in a specific RNA-seq sample,
