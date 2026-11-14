@@ -16,8 +16,8 @@ has been run, and what to do next.
     hash; `8975d02` the decision not to restore abbreviated long options;
   - `ec1068a`: PR 19, what the GUI needs from the pipeline; `b3c0852`
     records its hash;
-  - PR 20, `-m` without a fit falls back to `-r`, and the commit recording
-    its hash.
+  - `2f0e54c`: PR 20, `-m` without a fit falls back to `-r`, and the commit
+    recording its hash.
 - **Tests:** 200, all passing; 197 offline (`python -m pytest -q -m 'not network'`,
   about 1.5 minutes, 3 on a loaded machine). Run only the fast ones with
   `-m 'not slow'`.
