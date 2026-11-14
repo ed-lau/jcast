@@ -18,9 +18,11 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 > - Each run records every junction's outcome in `junctions.tsv`, and the
 >   log holds the run's settings and a summary.
 >
-> Open: PR 13 (GUI, [§10](#10-gui-plan--notes)); the GUI released in
-> v0.4.0 is a placeholder that cannot run JCAST. The website (`docs/`,
-> built from `jcast_website/`) was updated for v0.4.0 on 2026-11-13.
+> Open: v0.5.0, the GUI and the command line on Typer (PRs 18, 19 and 13;
+> [§9](#v050-the-gui-and-the-command-line), [§10](#10-gui-plan--notes)),
+> scoped and decided on 2026-11-13. The GUI released in v0.4.0 is a
+> placeholder that cannot run JCAST. The website (`docs/`, built from
+> `jcast_website/`) was updated for v0.4.0 on 2026-11-13.
 
 This document is the developer-facing companion to [README.md](README.md) and
 [CHANGELOG.md](CHANGELOG.md). It catalogs the current state of the codebase,
@@ -863,11 +865,23 @@ currently can't be installed and run from scratch.
 | 10 | ✅ Packaging: `pyproject.toml` metadata with the version set once (0.4.0), Python ≥ 3.11, only `jcast` installed, the tests and their data in the sdist, dependency bounds tested at both ends on Python 3.11–3.15 ([packaging check](reports/2026-11-13-packaging-check.md); decided 2026-11-13: Python ≥ 3.11, CI on Linux and macOS, version 0.4.0; `4a039a9`) | Env | Done 2026-11-13 |
 | 11 | ✅ CI (GitHub Actions): the tests on Python 3.11–3.15 on Linux and macOS, at the lowest dependency versions, and against the installed wheel, on every push and pull request ([packaging check §6](reports/2026-11-13-packaging-check.md#6-ci-pr-11); `dee41b6`) | Infra | Done 2026-11-13 |
 | 12 | ✅ argparse hygiene: drop `--g_or_ln`; only the `-s` files must exist (MED-8), and with `-m` the others present are read too, for the model; `parser.error` not `assert`; `get_rest_nuc` and the scikit-learn Gaussian mixture removed ([command-line checks](reports/2026-11-13-command-line-checks.md); decided 2026-11-13; no output change; `d84f49d`) | UX | Done 2026-11-13 |
-| 13 | GUI v0 → wizard (§10) | New surface | PRs 7, 12 |
+| 13 | GUI v0 → wizard (§10). Moved to v0.5.0 (below) | New surface | PRs 7, 12 |
 | 14 | ✅ `--uniprot FASTA`: canonical from a supplied UniProt FASTA (no API calls), GTF fallback, built-in Swiss-Prot merge ([evaluation](reports/2026-11-11-uniprot-fasta-evaluation.md)) | Reproducibility | Done 2026-11-11 |
 | 15 | ✅ Parallel junctions: `-p/--processes` (fork; workers return records, the main process writes in order); one process without `--uniprot` ([parallel audit](reports/2026-11-12-parallel-audit.md)) | Performance | Done 2026-11-12 |
 | 16 | ✅ Run record: per-junction `junctions.tsv`, a small log with an end-of-run summary, sequences only with `--verbose`, no `~module~function` suffix ([log audit](reports/2026-11-12-log-audit.md) §7; whole-genome log 346 MB → 5 kB, output unchanged) | UX | Done 2026-11-12 |
 | 17 | ✅ GTF canonical from GENCODE's `Ensembl_canonical` tag when no transcript passes the TSL ≤ 2 / start-and-stop filter: complete protein_coding transcripts, readthrough transcripts excluded ([`Ensembl_canonical` audit](reports/2026-11-12-ensembl-canonical-audit.md) §10, `8ddf8c3`; 17 genes in the whole-genome run, fates and merged database unchanged; 370 of the 371 coding genes still without a canonical are readthrough genes) | Sci-integrity | Done 2026-11-12 |
+
+### v0.5.0: the GUI and the command line
+
+Scoped and decided on 2026-11-13
+([GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md) §7).
+In this order:
+
+| # | PR | Theme | Gate |
+|---|---|---|---|
+| 18 | The command line on Typer (`typer>=0.26,<1`): `jcast run` and `jcast gui`, with `jcast RMATS GTF GENOME …` still running; `-s SE MXE` still accepted; `-h`, `--version`, grouped help; one `validate()` for the command line and the GUI; `--mask` removed. No output change, but for the log's `Arguments` line | UX | Decided 2026-11-13 |
+| 19 | What the GUI needs from the pipeline: the model plot on a supplied `Axes`; a model preview on the run's code; read counts from the tables' columns (20.7 of the preview's 26.7 s on the whole genome); a hidden progress option; a clean end on the stop signal; the run summary from `junctions.tsv`. No output change | GUI support | PR 18 |
+| 13 | The GUI: setup, the model before the run (cutoff set there), the run in a child process (`python -m jcast run …`, `-p` kept), results (the run summary, for any output folder); pytest-qt tests and a CI job; `gui` extra on `PySide6-Essentials`. Not in v0.5.0: a junction browser (v0.5.x), standalone bundles | New surface | PRs 18, 19 |
 
 ### Deferred to v0.5.x
 
@@ -897,38 +911,43 @@ currently can't be installed and run from scratch.
 
 ## 10. GUI plan — notes
 
-The PySide6 plan from the first review (wizard → model preview → run panel,
-`QThread` worker calling `run_jcast`, optional `jcast[gui]` extra) still
-stands.
+**Decided on 2026-11-13** ([GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md)),
+replacing the plan below where they differ:
+- `jcast gui` opens the GUI; `jcast` becomes a group of commands (`run`,
+  `gui`), and `jcast RMATS GTF GENOME …` still runs. `jcast-gui` and
+  `python -m jcast --gui` stay.
+- The GUI runs `python -m jcast run …` in a child process (`QProcess`),
+  not `run_jcast` in a `QThread`. `-p` works as on the command line, since
+  the child runs no Qt threads; cancelling stops the process; the GUI
+  shows the command it runs.
+- Four pages, as tabs: setup; the model before the run, where the cutoff
+  is set (`-m` if accepted, `-r N` otherwise); the run; the results (the
+  run's summary, for any JCAST output folder).
+- Not in v0.5.0: a junction browser (v0.5.x); standalone bundles.
 
-**`-p` from the GUI needs a different start method (added 2026-11-12).**
-- `-p` forks its workers (PR 15). Forking a process that runs Qt threads
-  is unsafe: the child copies locks that other threads may hold.
-- So the GUI must keep `processes=1` (the default) when it calls
-  `run_jcast` in-process. Alternatively, it can run `python -m jcast` as a
-  subprocess, or the pool can use `spawn` or `forkserver` for GUI runs.
-- `--uniprot` has no such constraint and should be exposed, with
-  `--overwrite`, `--cache_dir` and `--verbose`.
+The notes as they stood before (2026-11-12):
 
-The skeleton in [jcast/gui/](jcast/gui/) imports and launches. Points
-the first review missed:
-
+- The PySide6 plan from the first review (wizard → model preview → run
+  panel, `QThread` worker calling `run_jcast`, optional `jcast[gui]`
+  extra).
+- **`-p` from the GUI needs a different start method.** `-p` forks its
+  workers (PR 15), and forking a process that runs Qt threads is unsafe:
+  the child copies locks that other threads may hold. *Settled by the
+  child process.*
 - ~~**Logger handler stacking (MED-13)** must be fixed before the GUI can
   run more than one job per session.~~ Fixed in PR 7.
-- **Model-plot embedding** needs the plot functions refactored to draw onto a
-  caller-supplied `Axes` instead of calling `plt.subplots` / `savefig`
-  internally. Appendix A already returns plain parameters, which makes this
-  easy.
+- **Model-plot embedding** needs the plot functions refactored to draw onto
+  a caller-supplied `Axes` instead of calling `plt.subplots` / `savefig`
+  internally. *PR 19.*
 - **The draggable cutoff:** MED-11 is settled (PR 6). The cutoff is in
   reads, and the model is fitted on ln(count + 1).
-- **Cancellation.** `run_jcast` has no cancellation hook. The worker needs a
-  per-junction check of a flag/event.
+- **Cancellation.** `run_jcast` has no cancellation hook. *Settled by the
+  child process: a stop signal ends the run cleanly (PR 19).*
 - `--gui` is only recognized via `python -m jcast`, not by the `jcast`
-  console script (`main()` rejects it). Either accept it in argparse or
-  document `jcast-gui` as the only entry.
-
-Standalone bundles (PyInstaller / briefcase) stay in v0.5 scope. Dropping
-pomegranate (and thus torch) makes those bundles far smaller.
+  console script. *Settled by `jcast gui` (PR 18).*
+- Standalone bundles (PyInstaller / briefcase) were in v0.5 scope. *Moved
+  out of v0.5.0:* on macOS an app needs signing and notarization, and the
+  child process a bundle-specific way to start itself.
 
 ---
 

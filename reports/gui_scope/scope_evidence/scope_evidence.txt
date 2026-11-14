@@ -1,0 +1,35 @@
+Typer releases: dependencies, and whether Click is vendored (wheel metadata from PyPI)
+  typer 0.24.0: vendors Click: no; requires: click>=8.2.1, shellingham>=1.3.0, rich>=12.3.0, annotated-doc>=0.0.2
+  typer 0.25.1: vendors Click: no; requires: click>=8.2.1, shellingham>=1.3.0, rich>=13.8.0, annotated-doc>=0.0.2
+  typer 0.26.0: vendors Click: yes; requires: shellingham>=1.3.0, rich>=13.8.0, annotated-doc>=0.0.2, colorama; platform_system == "Windows"
+  typer 0.28.0: vendors Click: yes; requires: shellingham>=1.3.0, rich>=13.8.0, annotated-doc>=0.0.2, colorama; platform_system == "Windows"
+  typer 0.29.0: vendors Click: yes; requires: pydantic>=2.5.3, shellingham>=1.3.0, rich>=13.8.0, annotated-doc>=0.0.2, colorama; platform_system == "Windows"
+  typer 0.29.1: vendors Click: yes; requires: pydantic>=2.5.3, shellingham>=1.3.0, rich>=13.8.0, annotated-doc>=0.0.2, colorama; platform_system == "Windows"
+
+typer_cli.py on typer 0.26.0
+  installed: annotated-doc==0.0.6, markdown-it-py==4.3.0, mdurl==0.1.2, Pygments==2.21.0, rich==15.0.0, shellingham==1.5.4, typer==0.26.0
+  run a b c -s SE              exit 0  parsed: read=1 splice_type=['SE'] qvalue=(0.0, 1.0) cache_dir=None
+  run a b c -s SE MXE          exit 2  Got unexpected extra argument(s) (MXE)
+  run a b c -s SE -s MXE       exit 0  parsed: read=1 splice_type=['SE', 'MXE'] qvalue=(0.0, 1.0) cache_dir=None
+  run a b c -q 0 0.05          exit 0  parsed: read=1 splice_type=[] qvalue=(0.0, 0.05) cache_dir=None
+  run a b c --g_or_ln 1        exit 2  No such option: --g_or_ln
+  a b c                        exit 2  No such command 'a'.
+  gui                          exit 0  parsed: gui
+  run -h, the -r line: --read -r INTEGER the lowest read count [default: 1]
+  hand-written "[default: 1, which keeps every junction]" in the help: dropped
+
+typer_cli.py on typer 0.29.1
+  installed: annotated-doc==0.0.6, annotated-types==0.8.0, markdown-it-py==4.3.0, mdurl==0.1.2, pydantic==2.14.3, pydantic_core==2.50.4, Pygments==2.21.0, rich==15.0.0, shellingham==1.5.4, typer==0.29.1, typing_extensions==4.16.0, typing-inspection==0.4.5
+  run a b c -s SE              exit 0  parsed: read=1 splice_type=['SE'] qvalue=(0.0, 1.0) cache_dir=None
+  run a b c -s SE MXE          exit 2  Got unexpected extra argument(s) (MXE)
+  run a b c -s SE -s MXE       exit 0  parsed: read=1 splice_type=['SE', 'MXE'] qvalue=(0.0, 1.0) cache_dir=None
+  run a b c -q 0 0.05          exit 0  parsed: read=1 splice_type=[] qvalue=(0.0, 0.05) cache_dir=None
+  run a b c --g_or_ln 1        exit 2  No such option: --g_or_ln
+  a b c                        exit 2  No such command 'a'.
+  gui                          exit 0  parsed: gui
+  run -h, the -r line: --read -r <int> the lowest read count [default: 1]
+  hand-written "[default: 1, which keeps every junction]" in the help: dropped
+
+The -m model from the rMATS folder alone (no GTF or genome), as a GUI preview
+  tests/data/rmats: 1,105 junctions, cutoff 26; read 0.0 s, counts 0.0 s, fit 0.0 s, 0.1 s in all
+  /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats: 599,644 junctions, cutoff 40; read 0.7 s, counts 20.7 s, fit 5.2 s, 26.7 s in all

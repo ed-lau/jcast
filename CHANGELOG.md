@@ -10,16 +10,21 @@ For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
 
 ### Planned
 
-See [REVIEW.md → §9](REVIEW.md#9-v040-hardening-roadmap-revised) for the full
-table.
+See [REVIEW.md → §9](REVIEW.md#v050-the-gui-and-the-command-line) for the
+v0.5.0 plan, and the
+[GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md) for its
+decisions.
 
-- **GUI (PR 13):** expose `--uniprot`, `--overwrite`, `--cache_dir` and
-  `--verbose`; run `-p` from a subprocess or with another start method,
-  not by forking the Qt process.
+- **Command line on Typer (PR 18):** `jcast run …` and `jcast gui`;
+  `jcast RMATS GTF GENOME …` and `-s SE MXE` keep working; `-h`,
+  `--version` and grouped help; `--mask` removed.
+- **GUI (PRs 19, 13):** set up a run; see the `-m` model and set the cutoff
+  before the run; run JCAST as `python -m jcast run …` in a child process
+  (so `-p` works) and cancel it; see a run's summary, for any output
+  folder.
 - An option to add T2 and T4 records to `jcast_uniprot_merged.fasta`.
 - A helper that downloads a UniProt proteome and names the file by its
   release (`X-UniProt-Release`).
-- Remove the deprecated `--mask` option.
 
 ## [0.4.0] — 2026-11-13
 
