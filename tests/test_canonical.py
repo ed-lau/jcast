@@ -22,7 +22,7 @@ API_LOOKUP = Sequence.get_canonical_aa_uniprot
 
 
 def _args(out, **extra):
-    a = dict(out=str(out), read=1, model=False, canonical=True, mask=None, qvalue=[0, 1])
+    a = dict(out=str(out), read=1, model=False, canonical=True, qvalue=[0, 1])
     a.update(extra)
     return argparse.Namespace(**a)
 

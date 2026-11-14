@@ -3,10 +3,11 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). |
+| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented** (§9): no output change. |
 | **Question** | What should the v0.5.0 GUI do: start a run only, or also show results, and which? How is it launched? What does moving the command line to Typer change for users? |
 | **Reproduce** | `python reports/gui_scope/scope_evidence.py --work <scratch> [--python <interpreter for the venvs>] [--rmats <whole-genome rMATS folder>]` (≈ 2 min; needs PyPI) |
 | **Evidence** (code at `f37faf9`) | [gui_scope/scope_evidence/scope_evidence.txt](gui_scope/scope_evidence/scope_evidence.txt) |
+| **PR 18 verification** | `python reports/cli_checks/verify_18.py --before <checkout> --after <checkout>` (≈ 30 s); [cli_checks/verify_18/verify_18.txt](cli_checks/verify_18/verify_18.txt) |
 
 ## 1. Summary
 
@@ -245,3 +246,92 @@ before and after, comparing output files, cutoffs, logs and exit statuses
 
 Small items for v0.5.0: PyPI's trusted publishing; deleting the merged
 `v0.4.0-hardening` branch.
+
+## 9. Implementation and verification: PR 18
+
+### 9.1 What PR 18 changes
+
+- **[jcast/main.py](../jcast/main.py):**
+  - A Typer app with two commands, `run` and `gui`, and `--version`.
+  - `main(argv=None)` passes the command line through `_as_before`
+    first, which:
+    - puts `run` in front when the first argument is not a command name
+      or `-h`, `--help`, `--version`;
+    - turns `--gui` into `gui`;
+    - shows the help when there are no arguments;
+    - gives each splice type after one `-s` its own `-s`.
+
+    `main()` returns when the command succeeds, as before, so the tests
+    and the `jcast` script call it unchanged.
+  - `validate(args)` holds the checks `main()` made, with their
+    messages unchanged. It returns every problem, as (argument, message)
+    for the GUI. The command line reports them together as a usage error;
+    before, it stopped at the first.
+  - `run` builds the `argparse.Namespace` that argparse gave `run_jcast`,
+    in its order, less `mask` and `func`.
+  - The help: options grouped as Output, Filters, Canonicals and The run;
+    `-h` and `--help`; defaults printed by Typer. The `-c` and `-q` texts
+    are now the README's, the two typos are gone, and the description is
+    no longer misspelled. Typer's pretty tracebacks are off, so an error
+    prints Python's usual traceback.
+  - `--mask` is removed, with the warning `run_jcast` logged for it.
+- [jcast/__main__.py](../jcast/__main__.py) calls `main()`;
+  `python -m jcast --gui` goes through `_as_before`.
+- `pyproject.toml`: `typer>=0.26,<1`.
+- **Tests:**
+  - [tests/test_command_line.py](../tests/test_command_line.py): 12 new
+    tests and one changed (`--g_or_ln` and `--mask`, now one
+    parametrized test). All 13 fail on the code before (`fff9981`).
+  - `tests/conftest.py`: a wide console for every test, since Typer
+    prints a usage error in a box as wide as the console.
+  - The arguments the tests build for `run_jcast` no longer have `mask`.
+- **Docs:** the README's and the website's options (the help as printed
+  by Typer 0.29.1 at 88 columns), and `jcast gui`.
+
+### 9.2 Verification
+
+`verify_18.py` ran the chr15 test set with the code before (`fff9981`)
+and after, each frozen in a worktree
+([verify_18.txt](cli_checks/verify_18/verify_18.txt)):
+
+| Run (`<inputs>` = rMATS, GTF, genome, `-c --uniprot`) | Output files | Cutoff | Log |
+|---|---|---|---|
+| default | 14, byte-identical | 1 / 1 | identical, but the `Arguments` line |
+| `-m` | 11, byte-identical | 26 / 26 | the same |
+| `-s SE MXE -m` | 11, byte-identical | 26 / 26 | the same |
+| `-r 30 -q 0 0.05 -s RI A5SS` | 6, byte-identical | 30 / 30 | the same |
+| `-p 2` | 14, byte-identical | 1 / 1 | the same |
+| after only: `run <inputs> -m`; `<inputs> -s SE -s MXE -m` | identical to `-m` and to `-s SE MXE -m` | | |
+
+- **The `Arguments` line** holds the same values in the same order, less
+  `mask=None` and `func=<function run_jcast at 0x…>`. The default `-q`
+  prints as `[0.0, 1.0]` (`[0, 1]` before).
+- **JCAST's own usage errors** have the same exit status (2) and message:
+  - a missing GTF, rMATS folder or rMATS file of `-s`;
+  - `-p 2` without `--uniprot`, and `-p 0`;
+  - `-q` out of range;
+  - an output directory holding JCAST output.
+- **Changed:**
+
+  | Command line | Before | After |
+  |---|---|---|
+  | `jcast --version` | usage error | `jcast 0.4.0` |
+  | `jcast` | the options (`usage: __main__.py …` with `python -m jcast`) | the commands |
+  | several problems | the first | all of them |
+  | `--mask N` | runs, with a deprecation warning | usage error: `No such option: --mask` |
+  | `-s SE -s MXE` | MXE only: the second `-s` replaced the first | SE and MXE |
+  | `-s XX`, `--g_or_ln 1` | argparse's message | Click's (`Invalid value for '-s' …`, `No such option: --g_or_ln`) |
+  | `--overw` (an abbreviation) | `--overwrite` | usage error: `No such option: --overw (Possible options: --overwrite, --verbose)` |
+
+- **Typer 0.26.0, the floor:** the 157 fast tests pass with it in place
+  of 0.29.1. Its help names the types `TEXT` and `INTEGER`, where 0.29.1
+  writes `<str>` and `<int>`.
+- **The whole suite** passes: 162 tests offline, 165 with the three that
+  query the UniProt API (153 before PR 18).
+
+### 9.3 For the maintainer
+
+Not among the decisions of §7: argparse took unambiguous abbreviations of
+long options (`--overw`, `--uni`); Click takes only the full name, and
+suggests it. `_as_before` could expand abbreviations as argparse did, in
+a few lines. It does not yet.

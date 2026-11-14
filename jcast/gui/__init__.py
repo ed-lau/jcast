@@ -2,8 +2,8 @@
 
 """Optional PySide6 GUI for JCAST.
 
-This subpackage is reachable via ``python -m jcast --gui`` or the
-``jcast-gui`` console script. The Qt dependency is optional; install with
+This subpackage is reachable via ``jcast gui``, ``python -m jcast --gui`` or
+the ``jcast-gui`` console script. The Qt dependency is optional; install with
 ``pip install 'jcast[gui]'``.
 
 The current build is a skeleton: it opens an empty main window and reserves

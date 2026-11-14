@@ -1,0 +1,69 @@
+before: fff9981; after: 72dfab5
+<inputs>: <chr15 rMATS> <chr15 GTF> <chr15 genome> -c --uniprot <chr15 Swiss-Prot>
+
+== Runs that worked before, as written before: before and after
+<inputs> default: 14 output files, identical: yes; cutoff 1 / 1; summary identical: yes
+  Arguments: the same values, in the same order: yes; before only: {'mask': None}; printed differently: ['qvalue: [0, 1] / [0.0, 1.0]']
+<inputs> -m: 11 output files, identical: yes; cutoff 26 / 26; summary identical: yes
+  Arguments: the same values, in the same order: yes; before only: {'mask': None}; printed differently: ['qvalue: [0, 1] / [0.0, 1.0]']
+<inputs> -s SE MXE -m: 11 output files, identical: yes; cutoff 26 / 26; summary identical: yes
+  Arguments: the same values, in the same order: yes; before only: {'mask': None}; printed differently: ['qvalue: [0, 1] / [0.0, 1.0]']
+<inputs> -r 30 -q 0 0.05 -s RI A5SS: 6 output files, identical: yes; cutoff 30 / 30; summary identical: yes
+  Arguments: the same values, in the same order: yes; before only: {'mask': None}; printed differently: []
+<inputs> -p 2: 14 output files, identical: yes; cutoff 1 / 1; summary identical: yes
+  Arguments: the same values, in the same order: yes; before only: {'mask': None}; printed differently: ['qvalue: [0, 1] / [0.0, 1.0]']
+
+== Forms new in PR 18 (after only), against the run above
+run <inputs> -m: exit 0; output, summary and arguments identical to <inputs> -m: yes
+<inputs> -s SE -s MXE -m: exit 0; output, summary and arguments identical to <inputs> -s SE MXE -m: yes
+
+== Command lines that fail, or changed: exit status before / after, and the message
+no arguments: exit 0 / 0
+  before: stdout: usage: __main__.py [-h] [-o OUT] [--overwrite] [--cache_dir CACHE_DIR] [-r READ] [-m] [-c] [--uniprot UNIPROT] [-p PROCESSES] [-v] [--mask MASK] [-s {MXE,SE,RI,A5SS,A3SS} [{MXE,SE,RI,A5SS,A3SS} ...]] [-q q_lo q_hi] rmats_folder gtf_file genome
+  after:  stdout: Usage: jcast [OPTIONS] COMMAND [ARGS]...
+--version: exit 2 / 0
+  before: the following arguments are required: rmats_folder, gtf_file, genome
+  after:  stdout: jcast 0.4.0
+missing GTF: exit 2 / 2
+  before: file not found: missing.gtf
+  after:  file not found: missing.gtf
+missing rMATS folder: exit 2 / 2
+  before: rMATS folder not found: missing_rmats
+  after:  rMATS folder not found: missing_rmats
+missing rMATS file of -s: exit 2 / 2
+  before: rMATS file not found: <work>/se_only/MXE.MATS.JC.txt; select the splice types the folder has with -s
+  after:  rMATS file not found: <work>/se_only/MXE.MATS.JC.txt; select the splice types the folder has with -s
+-p 2 without --uniprot: exit 2 / 2
+  before: -p/--processes > 1 needs --uniprot: without it, canonicals come from the UniProt API, whose calls and local cache cannot be shared between processes
+  after:  -p/--processes > 1 needs --uniprot: without it, canonicals come from the UniProt API, whose calls and local cache cannot be shared between processes
+-p 0: exit 2 / 2
+  before: -p/--processes must be at least 1
+  after:  -p/--processes must be at least 1
+-q 0.5 0.2: exit 2 / 2
+  before: qvalue lower bound must be smaller than upper bound
+  after:  qvalue lower bound must be smaller than upper bound
+-q 0 1.5: exit 2 / 2
+  before: qvalue upper bound must be between 0 and 1
+  after:  qvalue upper bound must be between 0 and 1
+-s XX: exit 2 / 2
+  before: argument -s/--splice_type: invalid choice: 'XX' (choose from 'MXE', 'SE', 'RI', 'A5SS', 'A3SS')
+  after:  Invalid value for '-s' / '--splice_type': Value error, 'XX' is not one of 'MXE', 'SE', 'RI', 'A5SS', 'A3SS'.
+--g_or_ln 1: exit 2 / 2
+  before: unrecognized arguments: --g_or_ln 1
+  after:  No such option: --g_or_ln
+output directory holding JCAST output: exit 2 / 2
+  before: output directory <work>/used already holds JCAST output (logfile.log); use --overwrite to replace it, or another -o
+  after:  output directory <work>/used already holds JCAST output (logfile.log); use --overwrite to replace it, or another -o
+missing GTF and genome, -p 0: exit 2 / 2
+  before: -p/--processes must be at least 1
+  after:  -p/--processes must be at least 1 / file not found: missing.gtf / file not found: missing.fa
+--mask N (quick run): exit 0 / 2
+  before: WARNING -- --mask is deprecated and ignored: slices containing any base other than A, C, G or T are always skipped. It will be removed in the next release.
+  after:  No such option: --mask
+--overw, abbreviated (quick run): exit 0 / 2
+  before: (nothing printed)
+  after:  No such option: --overw (Possible options: --overwrite, --verbose)
+-s SE -s MXE (quick run): exit 0 / 0
+  before: (nothing printed)
+  after:  (nothing printed)
+  -s: ['MXE'] / ['SE', 'MXE']

@@ -20,7 +20,7 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 >
 > Open: v0.5.0, the GUI and the command line on Typer (PRs 18, 19 and 13;
 > [§9](#v050-the-gui-and-the-command-line), [§10](#10-gui-plan--notes)),
-> scoped and decided on 2026-11-13. The GUI released in v0.4.0 is a
+> scoped and decided on 2026-11-13. PR 18 is done. The GUI released in v0.4.0 is a
 > placeholder that cannot run JCAST. The website (`docs/`, built from
 > `jcast_website/`) was updated for v0.4.0 on 2026-11-13.
 
@@ -879,7 +879,7 @@ In this order:
 
 | # | PR | Theme | Gate |
 |---|---|---|---|
-| 18 | The command line on Typer (`typer>=0.26,<1`): `jcast run` and `jcast gui`, with `jcast RMATS GTF GENOME …` still running; `-s SE MXE` still accepted; `-h`, `--version`, grouped help; one `validate()` for the command line and the GUI; `--mask` removed. No output change, but for the log's `Arguments` line | UX | Decided 2026-11-13 |
+| 18 | ✅ The command line on Typer (`typer>=0.26,<1`): `jcast run` and `jcast gui`, with `jcast RMATS GTF GENOME …` still running; `-s SE MXE` still accepted; `-h`, `--version`, grouped help; one `validate()` for the command line and the GUI; `--mask` removed. No output change, but for the log's `Arguments` line ([scope report §9](reports/2026-11-13-gui-cli-scope.md#9-implementation-and-verification-pr-18)) | UX | Done 2026-11-13 |
 | 19 | What the GUI needs from the pipeline: the model plot on a supplied `Axes`; a model preview on the run's code; read counts from the tables' columns (20.7 of the preview's 26.7 s on the whole genome); a hidden progress option; a clean end on the stop signal; the run summary from `junctions.tsv`. No output change | GUI support | PR 18 |
 | 13 | The GUI: setup, the model before the run (cutoff set there), the run in a child process (`python -m jcast run …`, `-p` kept), results (the run summary, for any output folder); pytest-qt tests and a CI job; `gui` extra on `PySide6-Essentials`. Not in v0.5.0: a junction browser (v0.5.x), standalone bundles | New surface | PRs 18, 19 |
 

@@ -30,7 +30,7 @@ API_LOOKUP = Sequence.get_canonical_aa_uniprot
 def _args(out, cache_dir, **extra):
     """ the chr15 test set with --uniprot, as the CLI passes it """
     args = dict(rmats_folder=str(RMATS), gtf_file=str(HUMAN_GTF), genome=str(HUMAN_GENOME), out=str(out), read=1,
-                model=False, canonical=True, mask=None, qvalue=[0, 1], splice_type={'RI'}, uniprot=str(UNIPROT),
+                model=False, canonical=True, qvalue=[0, 1], splice_type={'RI'}, uniprot=str(UNIPROT),
                 processes=1, cache_dir=str(cache_dir))
     args.update(extra)
     return argparse.Namespace(**args)

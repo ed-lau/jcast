@@ -105,7 +105,7 @@ def test_c_terminal_event_translates(gtf, genome, rmats_results, tmp_path, monke
 
     monkeypatch.setattr(params, 'use_gtf_only', True)
     args = argparse.Namespace(out=str(tmp_path), read=1, model=False, canonical=False,
-                              mask='NnXx', qvalue=[0, 1])
+                              qvalue=[0, 1])
     junction = _junction(rmats_results.rmats_se, 5739)  # MFGE8
 
     fate = main._translate_one(junction, gtf, genome, args, pred_bound=args.read)
@@ -169,7 +169,7 @@ def test_event_outside_cds_is_skipped(gtf, genome, rmats_results, tmp_path, monk
 
     monkeypatch.setattr(params, 'use_gtf_only', True)
     args = argparse.Namespace(out=str(tmp_path), read=1, model=False, canonical=True,
-                              mask='NnXx', qvalue=[0, 1])
+                              qvalue=[0, 1])
     junction = _junction(rmats_results.rmats_mxe, 433)  # ZNF592: both alternative exons are 5' UTR
 
     fate = main._translate_one(junction, gtf, genome, args, pred_bound=args.read)
@@ -199,7 +199,7 @@ def test_retained_intron_in_utr_is_skipped(gtf, genome, rmats_results, tmp_path,
 
     monkeypatch.setattr(params, 'use_gtf_only', True)
     args = argparse.Namespace(out=str(tmp_path), read=1, model=False, canonical=False,
-                              mask='NnXx', qvalue=[0, 1])
+                              qvalue=[0, 1])
     junction = _junction(rmats_results.rmats_ri, 943)  # FAH, +
 
     assert main._translate_one(junction, gtf, genome, args, pred_bound=args.read) == fates.SKIPPED_OUTSIDE_CDS
@@ -222,7 +222,7 @@ def _annotated_protein(gtf, genome, transcript_name):
 def _translate(junction, gtf, genome, out_dir, monkeypatch):
     monkeypatch.setattr(params, 'use_gtf_only', True)
     args = argparse.Namespace(out=str(out_dir), read=1, model=False, canonical=False,
-                              mask='NnXx', qvalue=[0, 1])
+                              qvalue=[0, 1])
     return main._translate_one(junction, gtf, genome, args, pred_bound=args.read)
 
 

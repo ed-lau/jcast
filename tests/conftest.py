@@ -52,6 +52,13 @@ def rmats_results(logger):
 
 
 @pytest.fixture(autouse=True)
+def _wide_console(monkeypatch):
+    """ Typer prints a usage error in a box as wide as the console, 80 columns when it is not a terminal; a wide one
+    keeps each message on one line """
+    monkeypatch.setenv('COLUMNS', '1000')
+
+
+@pytest.fixture(autouse=True)
 def _run_in_tmp_dir(tmp_path, monkeypatch, cache_dir):
     """ Run each test in a temp dir, with the caches in the session's cache directory (run_jcast resets it from
     args.cache_dir, so it is set again for every test) """

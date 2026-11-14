@@ -8,6 +8,32 @@ For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
 
 ## [Unreleased]
 
+### Changed
+
+- **The command line is on Typer (PR 18;
+  [scope report §9](reports/2026-11-13-gui-cli-scope.md#9-implementation-and-verification-pr-18)).**
+  No output file changes.
+  - `jcast` has two commands, `jcast run` and `jcast gui`. A command line
+    without a command name runs `jcast run`, as before:
+    `jcast RMATS_FOLDER GTF_FILE GENOME …` works unchanged.
+  - `jcast gui` opens the GUI; `python -m jcast --gui` and `jcast-gui`
+    still do.
+  - The help groups the options (Output, Filters, Canonicals, The run).
+    `jcast -h` lists the commands, `jcast run -h` gives the options, and
+    `jcast --version` prints the version.
+  - `-s SE MXE` works as before, and so does `-s SE -s MXE`, which used to
+    keep only the last splice type.
+  - A command line with several problems reports them all, not the first
+    only. JCAST's own messages are unchanged; Click's replace argparse's
+    for an unknown option or an invalid value.
+  - Long options must be written in full: argparse also took unambiguous
+    abbreviations (`--overw` for `--overwrite`).
+  - New dependency: `typer>=0.26,<1` (with rich).
+
+### Removed
+
+- `--mask`, deprecated in 0.4.0 and ignored since. It is now a usage error.
+
 ### Planned
 
 See [REVIEW.md → §9](REVIEW.md#v050-the-gui-and-the-command-line) for the
@@ -15,9 +41,6 @@ v0.5.0 plan, and the
 [GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md) for its
 decisions.
 
-- **Command line on Typer (PR 18):** `jcast run …` and `jcast gui`;
-  `jcast RMATS GTF GENOME …` and `-s SE MXE` keep working; `-h`,
-  `--version` and grouped help; `--mask` removed.
 - **GUI (PRs 19, 13):** set up a run; see the `-m` model and set the cutoff
   before the run; run JCAST as `python -m jcast run …` in a child process
   (so `-p` works) and cancel it; see a run's summary, for any output

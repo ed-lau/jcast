@@ -82,7 +82,7 @@ replace that output.
 To open the graphical interface (a preview; it cannot run JCAST yet):
 
 ```bash
-python -m jcast --gui    # or: jcast-gui
+jcast gui    # or: python -m jcast --gui, or jcast-gui
 ```
 
 To run the tests (about 3 minutes; they use the bundled rMATS sample and
@@ -107,60 +107,82 @@ python -m jcast \
 
 ## Command-line options
 
+`jcast` has two commands: `jcast run` translates junctions, and `jcast gui`
+opens the graphical interface. `jcast RMATS_FOLDER GTF_FILE GENOME …`, as
+before v0.5.0, is short for `jcast run RMATS_FOLDER GTF_FILE GENOME …`.
+`jcast -h` lists the commands, `jcast run -h` gives the options below, and
+`jcast --version` prints the version.
+
 ```text
-usage: jcast [-h] [-o OUT] [--overwrite] [--cache_dir CACHE_DIR]
-             [-r READ] [-m] [-c] [--uniprot UNIPROT] [-p PROCESSES]
-             [-v] [--mask MASK]
-             [-s {MXE,SE,RI,A5SS,A3SS} [...]] [-q q_lo q_hi]
-             rmats_folder gtf_file genome
+$ jcast run -h
+ Usage: jcast run [OPTIONS] {RMATS_FOLDER} {GTF_FILE} {GENOME}
 
-positional arguments:
-  rmats_folder          path to folder storing rMATS output
-  gtf_file              path to Ensembl/Gencode GTF file
-  genome                path to genome FASTA (optionally .gz)
+ Translate the splice junctions in rMATS output into protein sequences.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -o, --out OUT         output directory, created if needed [default: out]
-  --overwrite           replace the output of an earlier run in the output
-                        directory; without it, a directory holding JCAST
-                        output is refused [default: False]
-  --cache_dir CACHE_DIR
-                        directory for the GTF cache and the UniProt API cache
-                        [default: the user cache directory, e.g.
-                        ~/Library/Caches/jcast or ~/.cache/jcast]
-  -r, --read READ       the lowest read count for a junction to be translated:
-                        the smaller of its inclusion and skipping junction
-                        counts, each summed over samples and replicates
-                        [default: 1, which keeps every junction]
-  -m, --model           take the read count cutoff from a Gamma + Normal
-                        mixture model of the read counts of every rMATS
-                        file in the folder (also those -s leaves out),
-                        instead of -r (used only if the fit fails)
-                        [default: False]
-  -c, --canonical       write the canonical protein of every gene with a
-                        junction to psq_canonical.fasta, whatever the
-                        junction's fate [default: False]
-  --uniprot UNIPROT     UniProt FASTA to take canonical proteins from instead
-                        of the UniProt API (see below) [default: use the API]
-  -p, --processes PROCESSES
-                        number of processes to translate junctions in; the
-                        output is the same for any number. More than 1 needs
-                        --uniprot, and macOS or Linux (see below) [default: 1]
-  -v, --verbose         also log each junction's steps and its sequences,
-                        at DEBUG level (large: 300 MB for a whole-genome
-                        -m run); each junction's outcome is always in
-                        junctions.tsv [default: False]
-  --mask MASK           deprecated and ignored: slices containing any base
-                        other than A, C, G or T are always skipped. Will be
-                        removed in the next release.
-  -s, --splice_type     splice types to translate; only their rMATS files
-                        need to be in the folder
-                        [default: MXE SE RI A5SS A3SS]
-  -q, --qvalue q_lo q_hi
-                        keep junctions whose rMATS FDR is in this range
-                        [default: 0 1]
+╭─ Arguments ──────────────────────────────────────────────────────────────────────────╮
+│ *    RMATS_FOLDER      <str>  path to folder storing rMATS output [required]         │
+│ *    GTF_FILE          <str>  path to Ensembl/Gencode GTF file [required]            │
+│ *    GENOME            <str>  path to genome FASTA (optionally .gz) [required]       │
+╰──────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ────────────────────────────────────────────────────────────────────────────╮
+│ --help  -h      <bool>  Show this message and exit.                                  │
+╰──────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Output ─────────────────────────────────────────────────────────────────────────────╮
+│ --out        -o      DIR     output directory, created if needed [default: out]      │
+│ --overwrite          <bool>  replace the output of an earlier run in the output      │
+│                              directory; without it, a directory holding JCAST output │
+│                              is refused                                              │
+│ --cache_dir          DIR     directory for the GTF cache and the UniProt API cache   │
+│                              [default: (the user cache directory, e.g.               │
+│                              ~/Library/Caches/jcast or ~/.cache/jcast)]              │
+╰──────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Filters ────────────────────────────────────────────────────────────────────────────╮
+│ --read         -r      <int>                the lowest read count for a junction to  │
+│                                             be translated: the smaller of its        │
+│                                             inclusion and skipping junction counts,  │
+│                                             each summed over samples and replicates. │
+│                                             1 keeps every junction                   │
+│                                             [default: 1]                             │
+│ --model        -m      <bool>               take the read count cutoff from a Gamma  │
+│                                             + Normal mixture model of the read       │
+│                                             counts of every rMATS file in the folder │
+│                                             (also those -s leaves out), instead of   │
+│                                             -r (used only if the fit fails)          │
+│ --qvalue       -q      Q_LO Q_HI            keep junctions whose rMATS FDR is in     │
+│                                             this range                               │
+│                                             [default: 0, 1]                          │
+│ --splice_type  -s      MXE|SE|RI|A5SS|A3SS  splice types to translate (-s SE MXE, or │
+│                                             -s SE -s MXE); only their rMATS files    │
+│                                             need to be in the folder                 │
+│                                             [default: (MXE SE RI A5SS A3SS)]         │
+╰──────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Canonicals ─────────────────────────────────────────────────────────────────────────╮
+│ --canonical  -c      <bool>  write the canonical protein of every gene with a        │
+│                              junction to psq_canonical.fasta, whatever the           │
+│                              junction's fate                                         │
+│ --uniprot            FASTA   UniProt FASTA (e.g. Swiss-Prot with isoforms for the    │
+│                              species, optionally .gz) to take canonical proteins     │
+│                              from instead of the UniProt API; genes without an entry │
+│                              use the GTF. Also writes jcast_uniprot_merged.fasta,    │
+│                              psq_isoforms.tsv and uniprot_canonicals.tsv             │
+│                              [default: (none, use the API)]                          │
+╰──────────────────────────────────────────────────────────────────────────────────────╯
+╭─ The run ────────────────────────────────────────────────────────────────────────────╮
+│ --processes  -p      <int>   number of processes to translate junctions in; the      │
+│                              output is the same for any number. More than 1 needs    │
+│                              --uniprot (canonicals from the UniProt API are fetched  │
+│                              and cached by one process only), and macOS or Linux     │
+│                              [default: 1]                                            │
+│ --verbose    -v      <bool>  also log each junction's steps and its sequences, at    │
+│                              DEBUG level (large: 300 MB for a whole-genome -m run);  │
+│                              without it, the log has the run's settings, warnings,   │
+│                              errors and a summary, and each junction's outcome is in │
+│                              junctions.tsv                                           │
+╰──────────────────────────────────────────────────────────────────────────────────────╯
 ```
+
+Several splice types can follow one `-s` (`-s SE MXE`), or each have their
+own (`-s SE -s MXE`).
 
 ### Canonicals from a UniProt FASTA (`--uniprot`, recommended)
 

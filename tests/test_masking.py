@@ -39,7 +39,7 @@ def test_get_complementary_iupac():
 def _run(junction, gtf, genome_index, out_dir, monkeypatch):
     monkeypatch.setattr(params, 'use_gtf_only', True)
     out_dir.mkdir()
-    args = argparse.Namespace(out=str(out_dir), read=1, model=False, canonical=True, mask=None, qvalue=[0, 1])
+    args = argparse.Namespace(out=str(out_dir), read=1, model=False, canonical=True, qvalue=[0, 1])
     genome = types.SimpleNamespace(genome=genome_index)
     return main._translate_one(junction, gtf, genome, args, pred_bound=args.read)
 

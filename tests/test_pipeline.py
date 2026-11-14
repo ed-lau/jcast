@@ -76,7 +76,7 @@ def pipeline_output(gtf, genome, rmats_results, tmp_path, monkeypatch):
                         lambda self, reviewed='true': SeqRecord(Seq('')))
 
     args = argparse.Namespace(out=str(tmp_path), read=1, model=False, canonical=True,
-                              mask='NnXx', qvalue=[0, 1])
+                              qvalue=[0, 1])
     fates = collections.Counter()
     for rma in rmats_results.rmats_list:
         for i in range(len(rma)):
@@ -131,7 +131,7 @@ def test_read_cutoff_keeps_a_count_equal_to_it(gtf, genome, rmats_results, tmp_p
     """ -r N keeps a junction with N reads; it used to need N + 1 (REVIEW.md MED-11) """
     monkeypatch.setattr(params, 'use_gtf_only', True)
     junction = _junction_with_count(rmats_results, 2)
-    args = argparse.Namespace(out=str(tmp_path), read=read, model=False, canonical=False, mask=None, qvalue=[0, 1])
+    args = argparse.Namespace(out=str(tmp_path), read=read, model=False, canonical=False, qvalue=[0, 1])
 
     fate = main._translate_one(junction, gtf, genome, args, pred_bound=read)
 
@@ -143,7 +143,7 @@ def test_filters_come_first(gtf, genome, rmats_results, tmp_path, monkeypatch):
     monkeypatch.setattr(params, 'use_gtf_only', True)
     monkeypatch.setattr(Sequence, 'get_canonical_aa_uniprot', lambda self, reviewed='true': SeqRecord(Seq('')))
     junction = _junction_with_count(rmats_results, 2)
-    args = argparse.Namespace(out=str(tmp_path), read=3, model=False, canonical=True, mask=None, qvalue=[0, 1])
+    args = argparse.Namespace(out=str(tmp_path), read=3, model=False, canonical=True, qvalue=[0, 1])
 
     assert main._translate_one(junction, gtf, genome, args, pred_bound=3) == fates.SKIPPED_LOW_COUNT
     assert junction.tx0 is None and junction.slice_phases == (None, None)

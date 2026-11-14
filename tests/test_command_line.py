@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
 
-""" The command line's checks, and the rMATS files read (PR 12; reports/2026-11-13-command-line-checks.md) """
+""" The command line: its checks and the rMATS files read (PR 12; reports/2026-11-13-command-line-checks.md), and the
+command line on Typer (PR 18; reports/2026-11-13-gui-cli-scope.md) """
 
+import argparse
 import csv
 import shutil
 
 import pytest
 
-from jcast import main
+import jcast.gui
+from jcast import main, __version__
 from jcast.junctions import RmatsResults
 
 from tests.conftest import HUMAN_GENOME, HUMAN_GTF, RMATS
@@ -86,10 +89,116 @@ def test_a_missing_rmats_folder_is_a_usage_error(tmp_path, monkeypatch, capsys):
     assert 'rMATS folder not found: ' in capsys.readouterr().err
 
 
-def test_g_or_ln_is_gone(tmp_path, monkeypatch, capsys):
-    """ 2026-11-13 --g_or_ln was accepted and read by nothing """
+@pytest.mark.parametrize('option', ['--g_or_ln', '--mask'])
+def test_removed_options(tmp_path, monkeypatch, capsys, option):
+    """ 2026-11-13 --g_or_ln was accepted and read by nothing (removed in PR 12); --mask was deprecated and ignored
+    (removed in PR 18) """
     with pytest.raises(SystemExit) as e:
-        _cli(monkeypatch, tmp_path / 'none', HUMAN_GTF, HUMAN_GENOME, '--g_or_ln', 1)
+        _cli(monkeypatch, tmp_path / 'none', HUMAN_GTF, HUMAN_GENOME, option, 1)
 
     assert e.value.code == 2
-    assert 'unrecognized arguments: --g_or_ln' in capsys.readouterr().err
+    assert f'No such option: {option}' in capsys.readouterr().err
+
+
+# ---- PR 18: the command line on Typer ----
+
+INPUTS = [RMATS, HUMAN_GTF, HUMAN_GENOME]
+
+
+def _parsed(monkeypatch, *argv):
+    """ the arguments the command line passes to run_jcast """
+    calls = []
+    monkeypatch.setattr(main, 'run_jcast', calls.append)
+    main.main([str(a) for a in argv])
+    return calls[0]
+
+
+def test_run_is_the_default_command(monkeypatch, tmp_path):
+    """ jcast RMATS GTF GENOME, as before PR 18, is jcast run RMATS GTF GENOME """
+    bare = _parsed(monkeypatch, *INPUTS, '-o', tmp_path, '-m', '-s', 'SE')
+    named = _parsed(monkeypatch, 'run', *INPUTS, '-o', tmp_path, '-m', '-s', 'SE')
+
+    assert bare == named
+    assert bare.model and bare.splice_type == ['SE']
+
+
+@pytest.mark.parametrize('argv, splice_types', [
+    ([], {'MXE', 'SE', 'RI', 'A5SS', 'A3SS'}),
+    (['-s', 'SE', 'MXE'], ['SE', 'MXE']),
+    (['-s', 'SE', '-s', 'MXE'], ['SE', 'MXE']),
+    (['--splice_type', 'RI', 'A3SS', '-m'], ['RI', 'A3SS']),
+])
+def test_several_splice_types(monkeypatch, tmp_path, argv, splice_types):
+    """ -s SE MXE as before PR 18: Click gives an option a fixed number of values, so main gives each its own -s """
+    assert _parsed(monkeypatch, *INPUTS, '-o', tmp_path, *argv).splice_type == splice_types
+
+
+def test_the_arguments_run_jcast_gets(monkeypatch, tmp_path):
+    """ the Namespace argparse gave run_jcast, in its order (the log's Arguments line), less --mask and func """
+    args = _parsed(monkeypatch, *INPUTS, '-o', tmp_path, '--overwrite', '--cache_dir', tmp_path, '-r', 3,
+                   '-q', 0, 0.05, '-mc', '-v')
+
+    assert list(vars(args)) == ['rmats_folder', 'gtf_file', 'genome', 'out', 'overwrite', 'cache_dir', 'read', 'model',
+                                'canonical', 'uniprot', 'processes', 'verbose', 'splice_type', 'qvalue']
+    assert (args.out, args.overwrite, args.cache_dir, args.read, args.model, args.canonical, args.verbose) == \
+           (str(tmp_path), True, str(tmp_path), 3, True, True, True)
+    assert args.qvalue == [0, 0.05] and args.processes == 1 and args.uniprot is None
+
+
+def test_every_problem_is_reported(tmp_path, capsys):
+    """ before PR 18, only the first. -q takes negative numbers as values, as before """
+    with pytest.raises(SystemExit) as e:
+        main.main([str(RMATS), 'missing.gtf', 'missing.fa', '-q', '-0.1', '-0.2', '-p', '0', '-o', str(tmp_path)])
+
+    assert e.value.code == 2
+    err = capsys.readouterr().err
+    for message in ['qvalue lower bound must be between 0 and 1', 'qvalue upper bound must be between 0 and 1',
+                    'qvalue lower bound must be smaller than upper bound', '-p/--processes must be at least 1',
+                    'file not found: missing.gtf', 'file not found: missing.fa']:
+        assert message in err
+
+
+def test_validate_names_the_arguments(tmp_path):
+    """ for the GUI, which shows each problem next to its field """
+    (tmp_path / 'logfile.log').write_text('')
+    args = argparse.Namespace(rmats_folder=str(tmp_path / 'none'), gtf_file=str(HUMAN_GTF), genome='missing.fa',
+                              out=str(tmp_path), overwrite=False, uniprot=None, processes=2, splice_type={'SE'},
+                              qvalue=[0, 1.5])
+
+    assert [name for name, _ in main.validate(args)] == ['qvalue', 'processes', 'genome', 'rmats_folder', 'out']
+    assert main.validate(argparse.Namespace(rmats_folder=str(RMATS), gtf_file=str(HUMAN_GTF), genome=str(HUMAN_GENOME),
+                                            out=str(tmp_path / 'new'), overwrite=False, uniprot=None, processes=1,
+                                            splice_type={'SE'}, qvalue=[0, 1])) == []
+
+
+def test_gui_command(monkeypatch):
+    """ jcast gui, and --gui as before PR 18 (python -m jcast --gui), open the GUI; its exit status is the command's """
+    opened = []
+    monkeypatch.setattr(jcast.gui, 'launch_gui', lambda: opened.append(True) or 0)
+    main.main(['gui'])
+    main.main(['--gui'])
+    assert opened == [True, True]
+
+    monkeypatch.setattr(jcast.gui, 'launch_gui', lambda: 1)
+    with pytest.raises(SystemExit) as e:
+        main.main(['gui'])
+    assert e.value.code == 1
+
+
+def test_version(capsys):
+    main.main(['--version'])
+    assert capsys.readouterr().out == f'jcast {__version__}\n'
+
+
+def test_help(capsys):
+    """ no arguments show the commands; run -h the options, spelled as before PR 18 """
+    main.main([])
+    commands = capsys.readouterr().out
+    assert ' run ' in commands and ' gui ' in commands
+
+    main.main(['run', '-h'])
+    options = capsys.readouterr().out
+    for option in ['--out', '--overwrite', '--cache_dir', '--read', '--model', '--qvalue', '--splice_type', '--canonical',
+                   '--uniprot', '--processes', '--verbose']:
+        assert option in options
+    assert '--mask' not in options and '--cache-dir' not in options

@@ -5,14 +5,19 @@
 import os
 import collections
 import datetime
+import enum
 import glob
 import hashlib
 import argparse
 import logging
 import multiprocessing
+import sys
 import time
 import traceback
+from typing import Annotated, Optional
+
 import tqdm
+import typer
 
 from jcast import params, fates, model, cache, outcomes
 from jcast import helpers as h
@@ -103,10 +108,6 @@ def _run(args, logger, removed=()) -> bool:
         logger.info(f'rMATS {splice_type}{unselected}: {_describe(rmats_path(args.rmats_folder, splice_type))}')
     logger.info(f'GTF: {_describe(args.gtf_file, checksum=False)}')
     logger.info(f'Genome: {_describe(args.genome, checksum=False)}')
-
-    if getattr(args, 'mask', None) is not None:
-        logger.warning('--mask is deprecated and ignored: slices containing any base other than A, C, G or T are '
-                       'always skipped. It will be removed in the next release.')
 
     # ---- Read the gtf file using  gtfpase then write as a pandas data frame. ----
     gtf = ReadAnnotations(logger=logger,
@@ -588,161 +589,190 @@ def _translate(junction: Junction,
         return fates.FAIL
 
 
-# Check the q value ranges are between 0 and 1 and the second value is larger than the first.
-class CheckQValueRange(argparse.Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        if not 0 <= values[0] <= 1:
-            parser.error("qvalue lower bound must be between 0 and 1")
-        if not 0 <= values[1] <= 1:
-            parser.error("qvalue upper bound must be between 0 and 1")
-        if values[0] >= values[1]:
-            parser.error("qvalue lower bound must be smaller than upper bound")
-        setattr(namespace, self.dest, values)
 
 
-def main():
-    """ running main with parsed arguments from command line """
+# ---- The command line: `jcast run` and `jcast gui`, on Typer. 2026-11-13 argparse, with one command; see
+# reports/2026-11-13-gui-cli-scope.md ----
+
+app = typer.Typer(add_completion=False,
+                  pretty_exceptions_enable=False,
+                  context_settings={'help_option_names': ['-h', '--help']},
+                  help='JCAST retrieves transcript splice junctions and translates them into amino acid sequences. '
+                       'jcast RMATS_FOLDER GTF_FILE GENOME [OPTIONS] is short for jcast run.',
+                  )
+
+COMMANDS = ['run', 'gui']
+
+# -s/--splice_type's choices
+SpliceType = enum.Enum('SpliceType', [(t, t) for t in outcomes.SPLICE_TYPES], type=str)
 
 
-    import sys
+def _show_version(value: bool) -> None:
+    if value:
+        typer.echo(f'jcast {__version__}')
+        raise typer.Exit()
 
-    parser = argparse.ArgumentParser(description='jcast retrieves transcript splice junctions'
-                                                 'and translates them into amino acid sequences')
 
-    parser.add_argument('rmats_folder',
-                        help='path to folder storing rMATS output',
-                        )
-    parser.add_argument('gtf_file',
-                        help='path to Ensembl gtf file',
-                        )
-    parser.add_argument('genome',
-                        help='path to genome file (optionally .gz)',
-                        )
+@app.callback()
+def _jcast(version: Annotated[bool, typer.Option('--version', help='show the version and exit', is_eager=True,
+                                                 callback=_show_version)] = False):
+    pass
 
-    # parser.add_argument('-n', '--num_threads', help='number of threads for concurrency [default: 6]',
-    #                     default=6,
-    #                     type=int)
 
-    parser.add_argument('-o', '--out',
-                        help='output directory, created if needed [default: out]',
-                        default='out')
+@app.command(no_args_is_help=True)
+def run(ctx: typer.Context,
+        rmats_folder: Annotated[str, typer.Argument(metavar='RMATS_FOLDER', help='path to folder storing rMATS output')],
+        gtf_file: Annotated[str, typer.Argument(metavar='GTF_FILE', help='path to Ensembl/Gencode GTF file')],
+        genome: Annotated[str, typer.Argument(metavar='GENOME', help='path to genome FASTA (optionally .gz)')],
+        out: Annotated[str, typer.Option('-o', '--out', rich_help_panel='Output', metavar='DIR',
+                                         help='output directory, created if needed')] = 'out',
+        overwrite: Annotated[bool, typer.Option('--overwrite', rich_help_panel='Output',
+                                                help='replace the output of an earlier run in the output directory; '
+                                                     'without it, a directory holding JCAST output is refused')] = False,
+        cache_dir: Annotated[Optional[str], typer.Option('--cache_dir', rich_help_panel='Output', metavar='DIR',
+                                                         help='directory for the GTF cache and the UniProt API cache',
+                                                         show_default='the user cache directory, e.g. '
+                                                                      '~/Library/Caches/jcast or ~/.cache/jcast'
+                                                         )] = None,
+        read: Annotated[int, typer.Option('-r', '--read', rich_help_panel='Filters',
+                                          help='the lowest read count for a junction to be translated: the smaller of '
+                                               'its inclusion and skipping junction counts, each summed over samples '
+                                               'and replicates. 1 keeps every junction')] = 1,
+        model: Annotated[bool, typer.Option('-m', '--model', rich_help_panel='Filters',
+                                            help='take the read count cutoff from a Gamma + Normal mixture model of the '
+                                                 'read counts of every rMATS file in the folder (also those -s leaves '
+                                                 'out), instead of -r (used only if the fit fails)')] = False,
+        qvalue: Annotated[tuple[float, float], typer.Option('-q', '--qvalue', rich_help_panel='Filters',
+                                                            metavar='Q_LO Q_HI',
+                                                            help="keep junctions whose rMATS FDR is in this range"
+                                                            )] = (0, 1),
+        splice_type: Annotated[Optional[list[SpliceType]], typer.Option('-s', '--splice_type', rich_help_panel='Filters',
+                                                                        metavar='MXE|SE|RI|A5SS|A3SS',
+                                                                        help='splice types to translate (-s SE MXE, or '
+                                                                             '-s SE -s MXE); only their rMATS files '
+                                                                             'need to be in the folder',
+                                                                        show_default='MXE SE RI A5SS A3SS')] = None,
+        canonical: Annotated[bool, typer.Option('-c', '--canonical', rich_help_panel='Canonicals',
+                                                help="write the canonical protein of every gene with a junction to "
+                                                     "psq_canonical.fasta, whatever the junction's fate")] = False,
+        uniprot: Annotated[Optional[str], typer.Option('--uniprot', rich_help_panel='Canonicals', metavar='FASTA',
+                                                       help='UniProt FASTA (e.g. Swiss-Prot with isoforms for the '
+                                                            'species, optionally .gz) to take canonical proteins from '
+                                                            'instead of the UniProt API; genes without an entry use '
+                                                            'the GTF. Also writes jcast_uniprot_merged.fasta, '
+                                                            'psq_isoforms.tsv and uniprot_canonicals.tsv',
+                                                       show_default='none, use the API')] = None,
+        processes: Annotated[int, typer.Option('-p', '--processes', rich_help_panel='The run',
+                                               help='number of processes to translate junctions in; the output is the '
+                                                    'same for any number. More than 1 needs --uniprot (canonicals from '
+                                                    'the UniProt API are fetched and cached by one process only), and '
+                                                    'macOS or Linux')] = 1,
+        verbose: Annotated[bool, typer.Option('-v', '--verbose', rich_help_panel='The run',
+                                              help="also log each junction's steps and its sequences, at DEBUG level "
+                                                   "(large: 300 MB for a whole-genome -m run); without it, the log has "
+                                                   "the run's settings, warnings, errors and a summary, and each "
+                                                   "junction's outcome is in junctions.tsv")] = False,
+        ) -> None:
+    """ Translate the splice junctions in rMATS output into protein sequences. """
+    # the arguments as argparse gave them before PR 18, in its order, so the log's Arguments line keeps its form
+    args = argparse.Namespace(rmats_folder=rmats_folder, gtf_file=gtf_file, genome=genome, out=out, overwrite=overwrite,
+                              cache_dir=cache_dir, read=read, model=model, canonical=canonical, uniprot=uniprot,
+                              processes=processes, verbose=verbose,
+                              splice_type=[t.value for t in splice_type] if splice_type else set(outcomes.SPLICE_TYPES),
+                              qvalue=list(qvalue),
+                              )
+    problems = validate(args)
+    if problems:
+        ctx.fail('\n'.join(message for _, message in problems))
+    run_jcast(args)
 
-    parser.add_argument('--overwrite',
-                        help='replace the output of an earlier run in the output directory; without it, a directory '
-                             'holding JCAST output is refused [default: False]',
-                        action='store_true',
-                        default=False,
-                        )
 
-    parser.add_argument('--cache_dir',
-                        help='directory for the GTF cache and the UniProt API cache [default: the user cache '
-                             'directory, e.g. ~/Library/Caches/jcast or ~/.cache/jcast]',
-                        default=None,
-                        )
+@app.command()
+def gui() -> None:
+    """ Open the graphical interface (a preview; it needs PySide6: pip install 'jcast\\[gui]'). """
+    from jcast.gui import launch_gui
 
-    parser.add_argument('-r', '--read',
-                        help='the lowest read count for a junction to be translated: the smaller of its inclusion and '
-                             'skipping junction counts, each summed over samples and replicates [default: 1, which '
-                             'keeps every junction]',
-                        default=1,
-                        type=int,
-                        )
+    raise typer.Exit(launch_gui())
 
-    parser.add_argument('-m', '--model',
-                        help='take the read count cutoff from a Gamma + Normal mixture model of the read counts of '
-                             'every rMATS file in the folder (also those -s leaves out), instead of -r (used only if '
-                             'the fit fails) [default: False]',
-                        action='store_true',
-                        default=False,
-                        #type=bool,
-                        )
 
-    parser.add_argument('-c', '--canonical', help='write out canonical protein sequence even if transcript'
-                                   'slices are untranslatable [default: False]',
-                        default=False,
-                        action='store_true',
-                        # type=bool,
-                        )
+def validate(args) -> list:
+    """
+    What keeps a run from starting, for the command line to report as a usage error and the GUI next to its fields
 
-    parser.add_argument('--uniprot',
-                        help='UniProt FASTA (e.g. Swiss-Prot with isoforms for the species, optionally .gz) to take '
-                             'canonical proteins from instead of the UniProt API; genes without an entry use the GTF. '
-                             'Also writes jcast_uniprot_merged.fasta, psq_isoforms.tsv and uniprot_canonicals.tsv '
-                             '[default: none, use the API]',
-                        default=None,
-                        )
-
-    parser.add_argument('-p', '--processes',
-                        help='number of processes to translate junctions in; the output is the same for any number. '
-                             'More than 1 needs --uniprot (canonicals from the UniProt API are fetched and cached by '
-                             'one process only), and macOS or Linux [default: 1]',
-                        default=1,
-                        type=int,
-                        )
-
-    parser.add_argument('-v', '--verbose',
-                        help="also log each junction's steps and its sequences, at DEBUG level (large: 300 MB for "
-                             "a whole-genome -m run); without it, the log has the run's settings, warnings, errors "
-                             "and a summary, and each junction's outcome is in junctions.tsv [default: False]",
-                        action='store_true',
-                        default=False,
-                        )
-
-    parser.add_argument('--mask',
-                        help='deprecated and ignored: slices containing any base other than A, C, G or T '
-                             '(case-insensitive) are always skipped. Will be removed in the next release.',
-                        default=None,
-                        )
-
-    parser.add_argument('-s', '--splice_type',
-                       help='splice types to translate; only their rMATS files need to be in the folder '
-                            '[default: MXE SE RI A5SS A3SS]',
-                       default=set(['MXE', 'SE', 'RI', 'A5SS', 'A3SS']),
-                       choices=['MXE', 'SE', 'RI', 'A5SS', 'A3SS'],
-                       nargs='+',
-                       )
-
-    parser.add_argument('-q', '--qvalue',
-                        help='take junctions with rMATS fdr within this threshold [default: 0 1]',
-                        metavar=('q_lo', 'q_hi'),
-                        nargs=2,
-                        default=[0, 1],
-                        type=float,
-                        action=CheckQValueRange,
-                        )
-
-    parser.set_defaults(func=run_jcast)
-
-    # print help message if no arguments are given
-    if len(sys.argv[1:]) == 0:
-        parser.print_help()
-        parser.exit()
-
-    # parse all the arguments
-    args = parser.parse_args()
+    :param args: the run's arguments, as run_jcast takes them
+    :return: (argument, message) for each problem, in the order the command line checked them before PR 18; empty if
+        the run can start
+    """
+    problems = []
+    q_lo, q_hi = args.qvalue
+    if not 0 <= q_lo <= 1:
+        problems.append(('qvalue', 'qvalue lower bound must be between 0 and 1'))
+    if not 0 <= q_hi <= 1:
+        problems.append(('qvalue', 'qvalue upper bound must be between 0 and 1'))
+    if q_lo >= q_hi:
+        problems.append(('qvalue', 'qvalue lower bound must be smaller than upper bound'))
 
     if args.processes < 1:
-        parser.error('-p/--processes must be at least 1')
+        problems.append(('processes', '-p/--processes must be at least 1'))
     if args.processes > 1 and not args.uniprot:
-        parser.error('-p/--processes > 1 needs --uniprot: without it, canonicals come from the UniProt API, whose '
-                     'calls and local cache cannot be shared between processes')
+        problems.append(('processes', '-p/--processes > 1 needs --uniprot: without it, canonicals come from the UniProt '
+                                      'API, whose calls and local cache cannot be shared between processes'))
 
-    for path in [args.gtf_file, args.genome] + ([args.uniprot] if args.uniprot else []):
-        if not os.path.isfile(path):
-            parser.error(f'file not found: {path}')
+    for name in ['gtf_file', 'genome'] + (['uniprot'] if args.uniprot else []):
+        if not os.path.isfile(getattr(args, name)):
+            problems.append((name, f'file not found: {getattr(args, name)}'))
 
     # only the -s splice types' rMATS files must exist (REVIEW.md MED-8)
     if not os.path.isdir(args.rmats_folder):
-        parser.error(f'rMATS folder not found: {args.rmats_folder}')
-    missing = [rmats_path(args.rmats_folder, t) for t in outcomes.SPLICE_TYPES
-               if t in args.splice_type and not os.path.isfile(rmats_path(args.rmats_folder, t))]
-    if missing:
-        parser.error(f'rMATS file not found: {", ".join(missing)}; select the splice types the folder has with -s')
+        problems.append(('rmats_folder', f'rMATS folder not found: {args.rmats_folder}'))
+    else:
+        missing = [rmats_path(args.rmats_folder, t) for t in outcomes.SPLICE_TYPES
+                   if t in args.splice_type and not os.path.isfile(rmats_path(args.rmats_folder, t))]
+        if missing:
+            problems.append(('splice_type', f'rMATS file not found: {", ".join(missing)}; select the splice types the '
+                                            f'folder has with -s'))
 
     found = existing_outputs(args.out)
     if found and not args.overwrite:
-        parser.error(f'output directory {args.out} already holds JCAST output ({", ".join(found)}); use --overwrite '
-                     f'to replace it, or another -o')
+        problems.append(('out', f'output directory {args.out} already holds JCAST output ({", ".join(found)}); use '
+                                f'--overwrite to replace it, or another -o'))
+    return problems
 
-    # run the function in the argument
-    args.func(args)
+
+def _as_before(argv: list) -> list:
+    """
+    The command line as Typer takes it, from the forms accepted before PR 18: no command name (jcast RMATS GTF GENOME
+    runs `jcast run`), --gui, no arguments (the help), and several splice types after one -s (-s SE MXE, which Click
+    cannot parse: an option takes a fixed number of values), given each its own -s
+    """
+    if not argv:
+        return ['--help']
+    if '--gui' in argv:
+        return ['gui']
+    if argv[0] not in COMMANDS + ['-h', '--help', '--version']:
+        argv = ['run'] + argv
+
+    words, option = [], None    # option: -s or --splice_type, while the words after it are splice types
+    for i, word in enumerate(argv):
+        if word == '--':
+            return words + argv[i:]
+        if option and word in outcomes.SPLICE_TYPES:
+            if words[-1] != option:
+                words.append(option)
+        else:
+            option = None
+        words.append(word)
+        if word in ('-s', '--splice_type'):
+            option = word
+    return words
+
+
+def main(argv: list = None) -> None:
+    """
+    The jcast command. It returns when the command succeeds, and exits with its status otherwise: 2 for a usage error
+    """
+    try:
+        app(args=_as_before(sys.argv[1:] if argv is None else list(argv)), prog_name='jcast')
+    except SystemExit as e:
+        if e.code:
+            raise

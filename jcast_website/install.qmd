@@ -25,8 +25,8 @@ $ pip install jcast
 ```
 
 :::{.callout-note}
-The optional graphical interface (`pip install 'jcast[gui]'`) is an early preview: it opens a window with
-placeholder pages and cannot run JCAST yet. Use the command line.
+The optional graphical interface (`pip install 'jcast[gui]'`, then `jcast gui`) is an early preview: it opens a
+window with placeholder pages and cannot run JCAST yet. Use the command line.
 :::
 
 ## Running JCAST

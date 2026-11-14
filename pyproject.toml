@@ -38,6 +38,8 @@ dependencies = [
     "platformdirs>=2.5,<5",
     "tqdm>=4,<5",
     "matplotlib>=3.6,<4",
+    # 0.26 is the first to vendor Click (reports/2026-11-13-gui-cli-scope.md §5)
+    "typer>=0.26,<1",
 ]
 
 [project.optional-dependencies]
