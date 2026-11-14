@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. **PR 13 implemented in `12e0576`** (§12): the GUI runs JCAST; no output change. **PR 21** (§13): a help line, progress counts and the last junction done, the logo. |
+| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. **PR 13 implemented in `12e0576`** (§12): the GUI runs JCAST; no output change. **PR 21 in `4cc72c2`** (§13): a help line, progress counts and the last junction done, the logo. |
 | **Question** | What should the v0.5.0 GUI do: start a run only, or also show results, and which? How is it launched? What does moving the command line to Typer change for users? |
 | **Reproduce** | `python reports/gui_scope/scope_evidence.py --work <scratch> [--python <interpreter for the venvs>] [--rmats <whole-genome rMATS folder>]` (≈ 2 min; needs PyPI) |
 | **Evidence** (code at `f37faf9`) | [gui_scope/scope_evidence/scope_evidence.txt](gui_scope/scope_evidence/scope_evidence.txt) |
@@ -797,7 +797,7 @@ a progress bar**, so on a Mac the bar was all there was.
 ### 13.3 Verification
 
 `verify_21.py` compares the code before (`fe65069`) with the code after:
-`89bd730`, a snapshot of the working tree whose code is PR 21's. Each
+`89bd730`, a snapshot of the working tree whose code is `4cc72c2`'s. Each
 process runs from a scratch directory
 ([verify_21.txt](gui_scope/verify_21/verify_21.txt)).
 

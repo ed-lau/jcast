@@ -19,7 +19,7 @@ has been run, and what to do next.
   - `2f0e54c`: PR 20, `-m` without a fit falls back to `-r`, and the commit
     recording its hash;
   - `12e0576`: PR 13, the GUI, and the commit recording its hash;
-  - `PR21HASH`: PR 21, the GUI after the maintainer's first run on a Mac
+  - `4cc72c2`: PR 21, the GUI after the maintainer's first run on a Mac
     (the help line, progress counts, the icon), and the commit recording
     its hash.
 - **Tests:** 230, all passing; 227 offline (`python -m pytest -q -m 'not network'`,
@@ -65,7 +65,7 @@ has been run, and what to do next.
   NumPy 2's warning about a module compiled with NumPy 1.x. The new
   `test-gui` extra adds `pytest-qt>=4.4`, which cannot go in `test`: with
   no Qt binding it stops every test run.
-- **PR 21** (report §13, `PR21HASH`). The maintainer ran the GUI on a Mac
+- **PR 21** (report §13, `4cc72c2`). The maintainer ran the GUI on a Mac
   and asked for three changes:
   - a help line at the bottom of the window, from status tips: for a
     setting, its help in `jcast run -h`;
