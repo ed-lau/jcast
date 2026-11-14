@@ -101,8 +101,8 @@ def test_read_count(counts, expected):
 def test_preview_is_the_runs_model(tmp_path):
     """ the -m model as a run fits it: on every rMATS file in the folder (cutoff 26 on chr15), here also with one
     file only (6, as the run's with only SE.MATS.JC.txt present; reports/2026-11-13-command-line-checks.md §5) """
-    counts, ln_sjc, params, cutoff = model.preview(RMATS)
-    assert (len(counts), cutoff) == (1105, 26) and len(ln_sjc) == 1105 and params is not None
+    counts, ln_sjc, params, cutoff, no_fit = model.preview(RMATS)
+    assert (len(counts), cutoff, no_fit) == (1105, 26, None) and len(ln_sjc) == 1105 and params is not None
 
     shutil.copy(RMATS / 'SE.MATS.JC.txt', tmp_path)
     assert model.preview(tmp_path)[3] == 6
@@ -133,7 +133,7 @@ def test_draw_model_on_a_callers_axes():
     """ the GUI draws the model on an Axes of its own """
     from matplotlib.figure import Figure
 
-    _, ln_sjc, params, cutoff = model.preview(RMATS)
+    _, ln_sjc, params, cutoff, _ = model.preview(RMATS)
     fig = Figure()
     ax = fig.subplots()
     model.draw_model(ax, ln_sjc, params, cutoff)
@@ -141,3 +141,76 @@ def test_draw_model_on_a_callers_axes():
     assert len(fig.axes) == 2       # and the twin axis in reads
     assert len(ax.lines) == 4 and ax.lines[3].get_xdata()[0] == pytest.approx(math.log(cutoff + 1))
     assert ax.texts[0].get_text() == 'cutoff = 26 reads'
+
+
+# ---- PR 20: when the -m model cannot be fitted, the run falls back to -r ----
+
+EMPTY = DATA / 'model' / 'encode_mouse_fetalheart'     # the five rMATS files, each its header only
+
+
+def test_fit_without_junctions():
+    """ 2026-11-13 general_mixture_model raised ZeroDivisionError, and the run failed """
+    ln_sjc, params, cutoff, no_fit = model.fit(np.array([]))
+
+    assert (len(ln_sjc), params, cutoff) == (0, None, None)
+    assert no_fit == 'failed: the rMATS files read hold no junctions'
+
+
+def test_fit_that_fails(monkeypatch, logger):
+    """ any failure of the fit is no fit, with its reason """
+    def fails(min_jc_array):
+        raise FloatingPointError('overflow')
+    monkeypatch.setattr(model, 'general_mixture_model', fails)
+
+    assert model.fit(_junction_counts(logger, 'encode_human_heart'))[1:] == \
+           (None, None, 'failed (FloatingPointError: overflow)')
+
+
+def test_fit_degenerate_and_fitted(logger):
+    assert model.fit(_junction_counts(logger, 'encode_human_stomach'))[1:] == (None, None, 'was degenerate')
+    assert model.fit(_junction_counts(logger, 'encode_human_heart'))[2:] == (14, None)
+
+
+def test_preview_without_junctions():
+    assert model.preview(EMPTY)[3:] == (None, 'failed: the rMATS files read hold no junctions')
+
+
+@pytest.mark.parametrize('extra, read', [([], 1), (['-r', 3], 3)])
+def test_a_run_without_junctions_falls_back_to_r(tmp_path, cache_dir, capsys, extra, read):
+    """ -m on rMATS files without junctions: the run warns, uses -r (1 by default) and completes. 2026-11-13 it failed
+    with ZeroDivisionError """
+    out = tmp_path / 'out'
+    main.main([str(a) for a in [EMPTY, HUMAN_GTF, HUMAN_GENOME, '-m', '-o', out, '--cache_dir', cache_dir] + extra])
+
+    warning = f'Mixture model fit failed: the rMATS files read hold no junctions; falling back to -r {read}.'
+    assert warning in capsys.readouterr().err
+    log = (out / 'logfile.log').read_text()
+    assert f'~WARNING~{warning}' in log and f'read count of at least {read} (-r)' in log
+    assert (out / 'junctions.tsv').read_text().count('\n') == 1 and not (out / 'model.pdf').exists()
+
+
+def test_a_run_whose_fit_fails_falls_back_to_r(tmp_path, cache_dir, capsys, monkeypatch):
+    def fails(min_jc_array):
+        raise FloatingPointError('overflow')
+    monkeypatch.setattr(model, 'general_mixture_model', fails)
+    out = tmp_path / 'out'
+    main.main([str(a) for a in [RMATS, HUMAN_GTF, HUMAN_GENOME, '-m', '-s', 'RI', '-r', 100000, '-o', out,
+                                '--cache_dir', cache_dir]])
+
+    assert 'Mixture model fit failed (FloatingPointError: overflow); falling back to -r 100000.' in \
+           capsys.readouterr().err
+    assert 'read count of at least 100000 (-r)' in (out / 'logfile.log').read_text()
+
+
+@pytest.mark.parametrize('folder, extra, expected', [
+    (RMATS, ['-m'], 'at least 26 (-m)'),
+    (RMATS, ['-r', 100000], 'at least 100000 (-r)'),
+    (DATA / 'model' / 'encode_human_stomach', ['-m', '-r', 100000], 'at least 100000 (-r)'),     # a degenerate fit
+])
+def test_the_cutoff_names_its_option(tmp_path, cache_dir, folder, extra, expected):
+    """ the log names the option the cutoff came from: -m when fitted; -r without -m, or when -m has no fit.
+    2026-11-13 it said -m whenever -m was given """
+    out = tmp_path / 'out'
+    main.main([str(a) for a in [folder, HUMAN_GTF, HUMAN_GENOME, '-s', 'RI', '-o', out, '--cache_dir', cache_dir]
+               + extra])
+    assert f'Translating junctions with a read count of {expected}:' in (out / 'logfile.log').read_text()

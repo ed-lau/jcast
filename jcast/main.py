@@ -173,10 +173,11 @@ def _run(args, logger, removed=(), progress=_no_progress) -> bool:
         # Make a numpy array of all junction SJC sum counts
         rmats_results.get_junction_count_array()
 
-        ln_sjc, mix_params, min_count = model.general_mixture_model(min_jc_array=rmats_results.min_jc_array)
+        ln_sjc, mix_params, min_count, no_fit = model.fit(rmats_results.min_jc_array)
+        modeled = min_count is not None
 
         if min_count is None:
-            logger.warning(f'Mixture model fit was degenerate; falling back to -r {args.read}.')
+            logger.warning(f'Mixture model fit {no_fit}; falling back to -r {args.read}.')
             min_count = args.read
         else:
             logger.info('Mixture model parameters (gamma shape, gamma rate, normal mean, normal sd, weights): '
@@ -191,9 +192,10 @@ def _run(args, logger, removed=(), progress=_no_progress) -> bool:
 
     # If the m flag is not set, use the r argument value as min count
     else:
-        min_count = args.read
+        min_count, modeled = args.read, False
 
-    logger.info(f'Translating junctions with a read count of at least {min_count} (-{"m" if args.model else "r"}): '
+    # the option the cutoff came from: -r also when -m has no fit. 2026-11-13 it said -m then
+    logger.info(f'Translating junctions with a read count of at least {min_count} (-{"m" if modeled else "r"}): '
                 f'the smaller of the summed inclusion and skipping junction counts. Others are skipped.')
 
     # ---- Worker processes (-p). Started before any progress bar, so no thread exists when they are forked ----

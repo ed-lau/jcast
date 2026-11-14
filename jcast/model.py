@@ -90,20 +90,41 @@ def general_mixture_model(min_jc_array,
     return ln_sjc, params, min_count
 
 
+def fit(min_jc_array) -> tuple:
+    """
+    The -m model, as the run and the GUI's preview fit it: general_mixture_model, where a fit that fails is no fit, as
+    a degenerate one is, so that the run warns and falls back to -r. 2026-11-13 a failure stopped the run: rMATS files
+    holding no junctions raised ZeroDivisionError (reports/2026-11-13-gui-cli-scope.md §11)
+
+    :param min_jc_array: junction read counts (Junction.min_jc) plus 1
+    :return: ln(count + 1), the parameters and the cutoff, as general_mixture_model returns them (the last two None if
+        there is no fit); and why there is no fit, completing 'Mixture model fit …' (None if there is one)
+    """
+    ln_sjc = np.log(np.asarray(min_jc_array, dtype=float).ravel())
+    if ln_sjc.size == 0:
+        return ln_sjc, None, None, 'failed: the rMATS files read hold no junctions'
+    try:
+        ln_sjc, params, min_count = general_mixture_model(min_jc_array=min_jc_array)
+    except Exception as e:
+        return ln_sjc, None, None, f'failed ({type(e).__name__}: {e})'
+    return ln_sjc, params, min_count, None if min_count is not None else 'was degenerate'
+
+
 def preview(rmats_dir) -> tuple:
     """
     The -m model of an rMATS folder, fitted as a run with -m fits it: on every rMATS file in the folder, also those -s
     leaves out. It needs no GTF or genome, so the GUI shows it before the run (reports/2026-11-13-gui-cli-scope.md §4).
 
     :param rmats_dir: the rMATS folder
-    :return: every junction's splice type, read count and FDR (RmatsResults.junction_counts); then, as
-        general_mixture_model returns them, ln(count + 1), the parameters and the cutoff (None if the fit is degenerate)
+    :return: every junction's splice type, read count and FDR (RmatsResults.junction_counts); then, as fit returns
+        them, ln(count + 1), the parameters, the cutoff (None if there is no fit: the run uses -r), and why there is no
+        fit
     """
     results = RmatsResults(logging.getLogger('jcast'), rmats_dir, splice_types=(), others_if_present=True)
     if not results.tables:
         raise FileNotFoundError(f'no rMATS file (<splice type>.MATS.JC.txt) in {rmats_dir}')
     results.get_junction_count_array()
-    return (results.counts, *general_mixture_model(min_jc_array=results.min_jc_array))
+    return (results.counts, *fit(results.min_jc_array))
 
 
 def filter_counts(counts, cutoff: int, qvalue) -> pd.DataFrame:

@@ -14,9 +14,11 @@ has been run, and what to do next.
     with the maintainer's decisions (§7) and its evidence;
   - `5479ee3`: PR 18, the command line on Typer; `7d36121` records its
     hash; `8975d02` the decision not to restore abbreviated long options;
-  - `ec1068a`: PR 19, what the GUI needs from the pipeline, and the commit
-    recording its hash.
-- **Tests:** 190, all passing; 187 offline (`python -m pytest -q -m 'not network'`,
+  - `ec1068a`: PR 19, what the GUI needs from the pipeline; `b3c0852`
+    records its hash;
+  - PR 20, `-m` without a fit falls back to `-r`, and the commit recording
+    its hash.
+- **Tests:** 200, all passing; 197 offline (`python -m pytest -q -m 'not network'`,
   about 1.5 minutes, 3 on a loaded machine). Run only the fast ones with
   `-m 'not slow'`.
 - **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml): Python
@@ -26,7 +28,7 @@ has been run, and what to do next.
 - **Golden tests:** `tests/test_pipeline.py::test_chr15_golden` (GTF-only
   canonicals) and `tests/test_uniprot.py::test_chr15_uniprot`
   (`--uniprot`). Unchanged by PR 18.
-- **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18 and 19
+- **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18, 19 and 20
   ([REVIEW.md §9](REVIEW.md#v050-the-gui-and-the-command-line)).
 
 ## The session of 2026-11-13 (evening)
@@ -67,6 +69,12 @@ has been run, and what to do next.
   - Verified with `reports/gui_scope/verify_19.py`. Its first run was
     wrong: started from the repository root, both sides imported the
     working tree (see Useful facts).
+- **PR 20** (report §11; the maintainer's decision): when `-m` has no fit,
+  for any reason, the run warns and falls back to `-r` (`model.fit`).
+  rMATS files without junctions raised `ZeroDivisionError`. The cutoff's
+  log line names `-r` then. Its verification found that PR 19 had also
+  made runs on header-only rMATS files complete (they failed with
+  `KeyError: 0`), unnoticed at the time.
 
 ## How the work is run (agreed with the maintainer)
 
@@ -102,30 +110,27 @@ has been run, and what to do next.
 
 ## Next priorities
 
-1. **A decision on `-m` with rMATS files without junctions** (report
-   §10.3): `general_mixture_model` raises `ZeroDivisionError` on an empty
-   array, so such a run fails instead of falling back to `-r`, and so does
-   the preview. Before and after PR 19.
-2. **PR 13, the GUI** (report §4): setup, model, run (`QProcess`),
+1. **PR 13, the GUI** (report §4): setup, model, run (`QProcess`),
    results; pytest-qt without a display; one CI job; the `gui` extra on
    `PySide6-Essentials`; README and website. What it calls:
    - `main.validate(args)` for the setup page's checks;
    - `model.preview`, `model.filter_counts` and `model.draw_model` for the
-     model page. On a whole genome the preview takes 8 to 20 s (the tables
+     model page; with no fit, `preview` gives the reason (5th value), and
+     the run uses `-r`. On a whole genome the preview takes 8 to 20 s (the tables
      1 to 14 s, the counts 2 s, the fit 5 s): run it off the GUI thread;
    - `python -m jcast run … --progress` in a `QProcess`: JSON lines on
      stdout; warnings on stderr; `terminate()` to cancel (exit status
      143);
    - `outcomes.read_counts` and `outcomes.summary` for the results page.
-3. **Small, before or with v0.5.0:**
+2. **Small, before or with v0.5.0:**
    - PyPI's trusted publishing: a workflow that uploads when a GitHub
      release is published.
    - Delete the merged `v0.4.0-hardening` branch: the commits cited in
      `reports/` are in `main`'s history.
-4. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
+3. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
    `make_pep`, `chr` never added to chromosome names, the header-only
    fetal-heart test data, the date-stamped comments.
-5. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
+4. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
    - an option to add T2/T4 to `jcast_uniprot_merged.fasta`;
    - a UniProt download helper that names the file by its release
      (`X-UniProt-Release` header), as a third command;

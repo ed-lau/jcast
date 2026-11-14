@@ -1,0 +1,24 @@
+before: /private/tmp/claude-501/-Users-edwardlau-projects-jcast/23dee81c-99b8-4395-a50b-c50dd23fd27c/scratchpad/wt20_before/jcast/__init__.py
+after: /private/tmp/claude-501/-Users-edwardlau-projects-jcast/23dee81c-99b8-4395-a50b-c50dd23fd27c/scratchpad/wt20_after/jcast/__init__.py
+earlier: /private/tmp/claude-501/-Users-edwardlau-projects-jcast/23dee81c-99b8-4395-a50b-c50dd23fd27c/scratchpad/wt20_pre19/jcast/__init__.py
+
+== Runs that worked before: before and after
+chr15, default: exit 0 / 0; 14 output files, identical: yes; cutoff at least 1 (-r) / at least 1 (-r)
+chr15, -m: exit 0 / 0; 11 output files, identical: yes; cutoff at least 26 (-m) / at least 26 (-m)
+encode_human_stomach, -m -s RI -r 100000: exit 0 / 0; 5 output files, identical: yes; cutoff at least 100000 (-m) / at least 100000 (-r)
+  log, before only: INFO~Translating junctions with a read count of at least 100000 (-m): the smaller of the summed inclusion and skipping junction counts. Others are skipped.
+  log, after only:  INFO~Translating junctions with a read count of at least 100000 (-r): the smaller of the summed inclusion and skipping junction counts. Others are skipped.
+
+== Header-only rMATS files (no junctions): exit status, last error or warning, cutoff
+header-only files, -m
+  before: exit 1; ZeroDivisionError: Weights sum to zero, can't be normalized; cutoff -; junctions.tsv rows -
+  after: exit 0; WARNING -- Mixture model fit failed: the rMATS files read hold no junctions; falling back to -r 1.; cutoff at least 1 (-r); junctions.tsv rows 0
+  earlier: exit 1; ZeroDivisionError: Weights sum to zero, can't be normalized; cutoff -; junctions.tsv rows -
+header-only files, -m -r 3
+  before: exit 1; ZeroDivisionError: Weights sum to zero, can't be normalized; cutoff -; junctions.tsv rows -
+  after: exit 0; WARNING -- Mixture model fit failed: the rMATS files read hold no junctions; falling back to -r 3.; cutoff at least 3 (-r); junctions.tsv rows 0
+  earlier: exit 1; ZeroDivisionError: Weights sum to zero, can't be normalized; cutoff -; junctions.tsv rows -
+header-only files, without -m
+  before: exit 0; (nothing); cutoff at least 1 (-r); junctions.tsv rows 0
+  after: exit 0; (nothing); cutoff at least 1 (-r); junctions.tsv rows 0
+  earlier: exit 1; KeyError: 0; cutoff at least 1 (-r); junctions.tsv rows 0

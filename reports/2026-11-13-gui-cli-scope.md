@@ -3,11 +3,12 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. |
+| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20** (§11): `-m` without a fit falls back to `-r`. |
 | **Question** | What should the v0.5.0 GUI do: start a run only, or also show results, and which? How is it launched? What does moving the command line to Typer change for users? |
 | **Reproduce** | `python reports/gui_scope/scope_evidence.py --work <scratch> [--python <interpreter for the venvs>] [--rmats <whole-genome rMATS folder>]` (≈ 2 min; needs PyPI) |
 | **Evidence** (code at `f37faf9`) | [gui_scope/scope_evidence/scope_evidence.txt](gui_scope/scope_evidence/scope_evidence.txt) |
 | **PR 18 verification** | `python reports/cli_checks/verify_18.py --before <checkout> --after <checkout>` (≈ 30 s); [cli_checks/verify_18/verify_18.txt](cli_checks/verify_18/verify_18.txt) |
+| **PR 20 verification** | `python reports/gui_scope/verify_20.py --before <checkout> --after <checkout> [--earlier <checkout before PR 19>]` (≈ 1 min); [gui_scope/verify_20/verify_20.txt](gui_scope/verify_20/verify_20.txt) |
 | **PR 19 verification** | `python reports/gui_scope/verify_19.py --before <checkout> --after <checkout> [--rmats <whole-genome rMATS folder>]` (≈ 1.5 min); [gui_scope/verify_19/verify_19.txt](gui_scope/verify_19/verify_19.txt) |
 
 ## 1. Summary
@@ -445,4 +446,68 @@ holds only the files' headers. On it, `general_mixture_model` raises
 and after PR 19. A run with `-m` on such a folder therefore fails,
 instead of falling back to `-r` as for a degenerate fit, and the preview
 fails the same way. Not changed here: it changes what a run does, so it
-needs a decision.
+needs a decision. **Decided 2026-11-13, done in PR 20 (§11).**
+
+## 11. `-m` without a fit falls back to `-r` (PR 20)
+
+### 11.1 Decision (2026-11-13)
+
+**When the `-m` model cannot be fitted, for any reason, the run warns,
+uses `-r` (1 by default: every junction kept) and continues.** Before,
+only a degenerate fit fell back to `-r`. A fit that raised an exception,
+such as `ZeroDivisionError` on rMATS files holding no junctions (§10.3),
+stopped the run.
+
+Which inputs fail: of the edge cases tried (no junctions; 1, 2 or 3
+junctions; all counts equal; all counts 0; two values; one large count
+among zeros), only no junctions raises. The others give a degenerate
+fit, which already fell back to `-r`.
+
+### 11.2 What PR 20 changes
+
+- **`model.fit(min_jc_array)`** fits the model for the run and the
+  preview alike. It returns `general_mixture_model`'s results and, when
+  there is no fit, why:
+  - `failed: the rMATS files read hold no junctions`, checked before
+    fitting;
+  - `failed (<exception>: <message>)` for any exception of the fit;
+  - `was degenerate`, as before.
+- **The run** logs `Mixture model fit <why>; falling back to -r <N>.` as
+  a warning, on the console too. The message for a degenerate fit is
+  unchanged.
+- **The log line with the cutoff names `-r` when `-m` has no fit:**
+  `Translating junctions with a read count of at least N (-r)`. It said
+  `(-m)` whenever `-m` was given, so a degenerate fit's run said `(-m)`
+  for `-r`'s value.
+- **`model.preview`** returns the reason too, as its fifth value, for
+  the GUI to show.
+- **Tests:**
+  - 10 new in [tests/test_model.py](../tests/test_model.py). 8 fail on
+    the code before (`b3c0852`); the other 2 pin cases where the log line
+    does not change (`-m` fitted, and `-r`).
+  - 2 changed: the preview's fifth value.
+
+### 11.3 Verification
+
+`verify_20.py`, with the code before (`b3c0852`), after (`a2e5f6b`, a
+snapshot of the working tree) and before PR 19 (`8975d02`), each run
+from a scratch directory ([verify_20.txt](gui_scope/verify_20/verify_20.txt)):
+
+| Run | Before | After |
+|---|---|---|
+| chr15, default and `-m` | | Output files byte-identical; logs identical (cutoffs 1 and 26) |
+| `encode_human_stomach` (degenerate), `-m -s RI -r 100000` | `… at least 100000 (-m)` | Output files byte-identical; `… at least 100000 (-r)` |
+| header-only rMATS files, `-m` | exit 1, `ZeroDivisionError` | exit 0; the warning; cutoff 1 (`-r`); `junctions.tsv` without rows |
+| the same, `-m -r 3` | exit 1, `ZeroDivisionError` | exit 0; cutoff 3 (`-r`) |
+| the same, without `-m` | exit 0 | exit 0 |
+
+**PR 19 changed a run without saying so.** Before PR 19 (`8975d02`),
+header-only rMATS files failed a run even without `-m`: `KeyError: 0`,
+from the progress bar's label (`rma.jxn_type[0]` of an empty table).
+PR 19's progress code labels the bar with the splice type instead, so
+since PR 19 such a run completes with an empty `junctions.tsv`. The
+report's "no output change" (§10) holds for runs that worked before, but
+this change of behaviour went unnoticed until this verification.
+
+The whole suite passes: 197 tests offline (187 before PR 20, and the 10
+new), 200 with the three that query the UniProt API.

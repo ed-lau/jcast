@@ -37,6 +37,17 @@ For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
   status is 143. Before, the process ended at once, and nothing said the
   output was incomplete.
 
+### Fixed
+
+- **`-m` falls back to `-r` whenever its model has no fit** (PR 20;
+  [scope report §11](reports/2026-11-13-gui-cli-scope.md#11--m-without-a-fit-falls-back-to--r-pr-20)).
+  The run warns and continues with `-r` (1 by default). rMATS files holding
+  no junctions used to stop a `-m` run with `ZeroDivisionError`. The log
+  line with the cutoff says `(-r)` when it falls back; it said `(-m)`.
+- **A run on rMATS files that hold only their header completes** (with
+  PR 19), with an empty `junctions.tsv`. It used to fail with
+  `KeyError: 0`.
+
 ### Added
 
 - For the GUI (PR 19;
