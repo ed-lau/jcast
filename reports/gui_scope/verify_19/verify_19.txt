@@ -1,0 +1,28 @@
+before: 8975d02; after: dbf0d58
+
+== chr15 runs (<inputs> -c --uniprot <chr15 Swiss-Prot> <args>): before and after
+default: exit 0 / 0; 14 output files, identical: yes; log identical but for timestamps, the output directory, the time taken and the order of the -s set: yes
+-m: exit 0 / 0; 11 output files, identical: yes; log identical but for timestamps, the output directory, the time taken and the order of the -s set: yes
+-r 30 -q 0 0.05: exit 0 / 0; 7 output files, identical: yes; log identical but for timestamps, the output directory, the time taken and the order of the -s set: yes
+-p 2: exit 0 / 0; 14 output files, identical: yes; log identical but for timestamps, the output directory, the time taken and the order of the -s set: yes
+
+== The -m model of each bundled rMATS folder: model.pdf drawn as PNG, and the read count array
+before: jcast from /private/tmp/claude-501/-Users-edwardlau-projects-jcast/23dee81c-99b8-4395-a50b-c50dd23fd27c/scratchpad/wt19_before/jcast/__init__.py, read counts from iloc per row
+after: jcast from /private/tmp/claude-501/-Users-edwardlau-projects-jcast/23dee81c-99b8-4395-a50b-c50dd23fd27c/scratchpad/wt19_after/jcast/__init__.py, read counts from columns
+tests/data/rmats: 1,105 junctions; counts identical: yes; cutoff 26 / 26, preview 26; plot: identical
+tests/data/model/encode_human_adrenalgland: 32,821 junctions; counts identical: yes; cutoff 12 / 12, preview 12; plot: identical
+tests/data/model/encode_human_heart: 31,776 junctions; counts identical: yes; cutoff 14 / 14, preview 14; plot: identical
+tests/data/model/encode_human_lung: 28,404 junctions; counts identical: yes; cutoff 7 / 7, preview 7; plot: identical
+tests/data/model/encode_human_spleen: 33,828 junctions; counts identical: yes; cutoff 5 / 5, preview 5; plot: identical
+tests/data/model/encode_human_stomach: 11,152 junctions; counts identical: yes; cutoff None / None, preview None; plot: no fit
+tests/data/model/encode_human_testis: 64,997 junctions; counts identical: yes; cutoff 8 / 8, preview 8; plot: identical
+tests/data/model/encode_human_uterus: 8,553 junctions; counts identical: yes; cutoff 5 / 5, preview 5; plot: identical
+tests/data/model/encode_mouse_fetalheart: 0 junctions; counts identical: yes; cutoff ZeroDivisionError / ZeroDivisionError, preview ZeroDivisionError; plot: no fit
+tests/data/model/encode_mouse_heart: 20,291 junctions; counts identical: yes; cutoff 6 / 6, preview 6; plot: identical
+tests/data/model/heart_mouse_old: 88,879 junctions; counts identical: yes; cutoff 29 / 29, preview 29; plot: identical
+tests/data/model/ipsc_human_d0: 99,220 junctions; counts identical: yes; cutoff 14 / 14, preview 14; plot: identical
+tests/data/model/ipsc_human_d14: 116,887 junctions; counts identical: yes; cutoff 15 / 15, preview 15; plot: identical
+tests/data/model/kidney_old_totalRNA_gencodeM26: 35,854 junctions; counts identical: yes; cutoff 4 / 4, preview 4; plot: identical
+
+== More rMATS folders: the read count array, and the time to compute it (before, then after)
+/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats: 599,644 junctions; counts identical: yes (int64, shape (599644, 1)); cutoff 40 / 40, preview 40; counts in 20.55 s / 1.69 s

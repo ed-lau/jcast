@@ -9,8 +9,10 @@ import enum
 import glob
 import hashlib
 import argparse
+import json
 import logging
 import multiprocessing
+import signal
 import sys
 import time
 import traceback
@@ -43,7 +45,7 @@ def existing_outputs(out_dir) -> list:
     return sorted(found)
 
 
-def run_jcast(args) -> None:
+def run_jcast(args, progress=None) -> None:
     """
     Main function for jcast
 
@@ -51,6 +53,7 @@ def run_jcast(args) -> None:
     args.overwrite is set, which removes that output first: appending to it mixed the two runs (REVIEW.md MED-12).
 
     :param args: parsed arguments
+    :param progress: None, or a function that takes each step of the run as a dict (run --progress; _progress)
     :return: None
     """
 
@@ -67,9 +70,36 @@ def run_jcast(args) -> None:
     # ---- Main logger setup ----
     logger = get_logger('jcast', args.out, verbose=getattr(args, 'verbose', False))
     try:
-        return _run(args, logger, removed=found)
+        return _run(args, logger, removed=found, progress=progress or _no_progress)
+    except Stopped:
+        logger.warning('Stopped by SIGTERM: the output is incomplete. Run again with --overwrite to replace it.')
+        raise
     finally:
         close_logger(logger)
+
+
+class Stopped(BaseException):
+    """
+    SIGTERM, during a run from the command line: the GUI's cancel. A BaseException, so that the junction it interrupts
+    does not take it for its own failure (_translate_safely catches Exception)
+    """
+
+
+# the exit status of a run stopped by SIGTERM, as for a process the signal ends
+STOPPED = 128 + signal.SIGTERM
+
+
+def _stop(signum, frame):
+    raise Stopped()
+
+
+def _no_progress(step: dict) -> None:
+    pass
+
+
+def _progress(step: dict) -> None:
+    """ run --progress: each step of the run as a line of JSON on stdout, for the GUI """
+    print(json.dumps(step), flush=True)
 
 
 def _describe(path, checksum: bool = True) -> str:
@@ -85,8 +115,12 @@ def _describe(path, checksum: bool = True) -> str:
     return f'{os.path.abspath(path)} ({os.path.getsize(path):,} bytes, {identity})'
 
 
-def _run(args, logger, removed=()) -> bool:
-    """ The run, logging to logger; removed: the output of an earlier run that --overwrite removed """
+def _run(args, logger, removed=(), progress=_no_progress) -> bool:
+    """
+    The run, logging to logger; removed: the output of an earlier run that --overwrite removed; progress: takes each
+    step: {'stage': <rmats, gtf, genome, uniprot, model, junctions, outputs or done>}, and for junctions also
+    splice_type, done and total
+    """
     started = time.monotonic()
     logger.info(f'JCAST {__version__}')
     logger.info(f'Arguments: {args}')
@@ -95,6 +129,7 @@ def _run(args, logger, removed=()) -> bool:
 
     # ---- Read in rMATS files: those of the -s splice types, and with -m, the others in the folder too, since the
     # model fits on every junction read (reports/2026-11-13-command-line-checks.md) ----
+    progress({'stage': 'rmats'})
     rmats_results = RmatsResults(logger=logger,
                                  rmats_dir=args.rmats_folder,
                                  splice_types=args.splice_type,
@@ -110,16 +145,20 @@ def _run(args, logger, removed=()) -> bool:
     logger.info(f'Genome: {_describe(args.genome, checksum=False)}')
 
     # ---- Read the gtf file using  gtfpase then write as a pandas data frame. ----
+    progress({'stage': 'gtf'})
     gtf = ReadAnnotations(logger=logger,
                           path=args.gtf_file,
                           )
 
     # ---- Read genome file into memory ----
+    progress({'stage': 'genome'})
     genome = ReadGenome(logger=logger,
                         path=args.genome,
                         )
 
     # ---- Read the UniProt FASTA if supplied; otherwise canonicals come from the UniProt API ----
+    if getattr(args, 'uniprot', None):
+        progress({'stage': 'uniprot'})
     uniprot = UniProtFasta(logger=logger, path=args.uniprot) if getattr(args, 'uniprot', None) else None
 
     #
@@ -129,6 +168,7 @@ def _run(args, logger, removed=()) -> bool:
     if args.model:
 
         logger.info('The -m flag is set. The modeled read count will override -r --read values.')
+        progress({'stage': 'model'})
 
         # Make a numpy array of all junction SJC sum counts
         rmats_results.get_junction_count_array()
@@ -167,7 +207,7 @@ def _run(args, logger, removed=()) -> bool:
     table = outcomes.JunctionTable(args.out)
     translating = time.monotonic()
     try:
-        failed = _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool, table)
+        failed = _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool, table, progress)
     except BaseException:
         if pool is not None:
             pool.terminate()
@@ -179,6 +219,7 @@ def _run(args, logger, removed=()) -> bool:
         pool.join()
     translated = time.monotonic()
 
+    progress({'stage': 'outputs'})
     if uniprot is not None:
         uniprot.write_outputs(out_dir=args.out)
 
@@ -194,6 +235,7 @@ def _run(args, logger, removed=()) -> bool:
             logger.warning(f'{failed["UniProtAPIError"]} of them failed on a UniProt API request, after retries. Rerun, '
                            f'or use --uniprot with a UniProt FASTA, which needs no network.')
 
+    progress({'stage': 'done'})
     return True
 
 
@@ -203,10 +245,12 @@ def _duration(seconds: float) -> str:
     return f'{minutes} min {seconds:02d} s' if minutes else f'{seconds} s'
 
 
-def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool, table) -> int:
+def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot, pool, table,
+                   progress=_no_progress) -> int:
     """
     Translate every junction of the selected splice types, in file order, in this process or in the pool; write
-    their records, and their rows of junctions.tsv
+    their records, and their rows of junctions.tsv. Progress is shown by tqdm, or with run --progress, reported to
+    progress
 
     :return: the junctions that failed with an exception, counted by the exception's type
     """
@@ -230,25 +274,35 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
         # the output and the log are those of a single process (reports/2026-11-12-parallel-audit.md) ----
         if pool is not None:
             results = pool.imap(_translate_in_worker, junctions, chunksize=JUNCTIONS_PER_TASK)
-            for jx, result in tqdm.tqdm(zip(junctions, results),
-                                        total=len(junctions),
-                                        desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
-                                        ):
+            for jx, result in _each(zip(junctions, results), len(junctions), splice_type, progress):
                 _log_start(jx, logger)
                 fate, records, found = _write_worker_result(result, logger, uniprot)
                 _finish(jx, fate, records, found, table, failed, logger)
             continue
 
         # ---- Single threaded for loop ----
-        for jx in tqdm.tqdm(junctions,
-                            total=len(junctions),
-                            desc='Processing {0} Junctions'.format(rma.jxn_type[0]),
-                            ):
+        for jx in _each(junctions, len(junctions), splice_type, progress):
             _log_start(jx, logger)
             fate, records, found = _translate_safely(jx, gtf, genome, args, pred_bound=min_count, uniprot=uniprot)
             _finish(jx, fate, records, found, table, failed, logger)
 
     return failed
+
+
+def _each(items, total: int, splice_type: str, progress):
+    """
+    The items, with a progress bar on the console; or with run --progress, about each 1 % of them reported to progress
+    instead, as {'stage': 'junctions', 'splice_type', 'done', 'total'}
+    """
+    if progress is _no_progress:
+        yield from tqdm.tqdm(items, total=total, desc='Processing {0} Junctions'.format(splice_type))
+        return
+    step = max(1, total // 100)
+    progress({'stage': 'junctions', 'splice_type': splice_type, 'done': 0, 'total': total})
+    for done, item in enumerate(items, 1):
+        yield item
+        if done % step == 0 or done == total:
+            progress({'stage': 'junctions', 'splice_type': splice_type, 'done': done, 'total': total})
 
 
 def _log_start(junction, logger) -> None:
@@ -344,7 +398,11 @@ class _CaptureLog(logging.Handler):
 
 
 def _init_worker() -> None:
-    """ In each new worker: capture the jcast logger instead of writing to the log file and the console """
+    """
+    In each new worker: capture the jcast logger instead of writing to the log file and the console. SIGTERM, which
+    pool.terminate sends, ends the worker, as before the command line handled it (Stopped)
+    """
+    signal.signal(signal.SIGTERM, signal.SIG_DFL)
     logger = logging.getLogger('jcast')
     _WORKER['capture'] = _CaptureLog()
     logger.handlers = [_WORKER['capture']]
@@ -441,14 +499,7 @@ def _translate(junction: Junction,
     # most of a run went on junctions it then skipped (reports/2026-11-12-log-audit.md §3). A junction is kept if its
     # read count is at least the cutoff; it used to need one read more
     # (reports/2026-11-12-thresholds-runs-canonical-audit.md §2) ----
-    q_lo, q_hi = args.qvalue
-    if junction.min_jc < pred_bound:
-        skipped = fates.SKIPPED_LOW_COUNT
-    elif not q_lo <= junction.fdr <= q_hi:
-        skipped = fates.SKIPPED_P_VALUE
-    else:
-        skipped = None
-
+    skipped = fates.filtered(junction.min_jc, junction.fdr, pred_bound, args.qvalue)
     if skipped:
         return skipped
 
@@ -672,6 +723,9 @@ def run(ctx: typer.Context,
                                                    "(large: 300 MB for a whole-genome -m run); without it, the log has "
                                                    "the run's settings, warnings, errors and a summary, and each "
                                                    "junction's outcome is in junctions.tsv")] = False,
+        progress: Annotated[bool, typer.Option('--progress', hidden=True,
+                                               help='write each step of the run as a line of JSON on stdout, for '
+                                                    'the GUI')] = False,
         ) -> None:
     """ Translate the splice junctions in rMATS output into protein sequences. """
     # the arguments as argparse gave them before PR 18, in its order, so the log's Arguments line keeps its form
@@ -684,7 +738,15 @@ def run(ctx: typer.Context,
     problems = validate(args)
     if problems:
         ctx.fail('\n'.join(message for _, message in problems))
-    run_jcast(args)
+
+    # SIGTERM (the GUI's cancel) stops the run cleanly: the worker processes ended, the log says so
+    previous = signal.signal(signal.SIGTERM, _stop)
+    try:
+        run_jcast(args, progress=_progress if progress else None)
+    except Stopped:
+        raise typer.Exit(STOPPED)
+    finally:
+        signal.signal(signal.SIGTERM, previous)
 
 
 @app.command()

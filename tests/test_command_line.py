@@ -5,7 +5,12 @@ command line on Typer (PR 18; reports/2026-11-13-gui-cli-scope.md) """
 
 import argparse
 import csv
+import json
 import shutil
+import signal
+import subprocess
+import sys
+import time
 
 import pytest
 
@@ -108,7 +113,7 @@ INPUTS = [RMATS, HUMAN_GTF, HUMAN_GENOME]
 def _parsed(monkeypatch, *argv):
     """ the arguments the command line passes to run_jcast """
     calls = []
-    monkeypatch.setattr(main, 'run_jcast', calls.append)
+    monkeypatch.setattr(main, 'run_jcast', lambda args, progress=None: calls.append(args))
     main.main([str(a) for a in argv])
     return calls[0]
 
@@ -202,3 +207,50 @@ def test_help(capsys):
                    '--uniprot', '--processes', '--verbose']:
         assert option in options
     assert '--mask' not in options and '--cache-dir' not in options
+
+
+# ---- PR 19: progress and SIGTERM, for the GUI ----
+
+UNIPROT = RMATS.parent / 'uniprot' / 'uniprot_sprot_human_isoforms_chr15_2026_04.fasta.gz'
+
+
+def test_progress(tmp_path, cache_dir, capsys):
+    """ run --progress writes each step as a line of JSON on stdout, the junctions about every 1 % """
+    sigterm = signal.getsignal(signal.SIGTERM)
+    main.main([str(a) for a in [RMATS, HUMAN_GTF, HUMAN_GENOME, '-s', 'RI', 'SE', '-r', 100000, '-o', tmp_path / 'out',
+                                '--cache_dir', cache_dir, '--progress']])
+    steps = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+
+    assert [s['stage'] for s in steps if s['stage'] != 'junctions'] == ['rmats', 'gtf', 'genome', 'outputs', 'done']
+    for splice_type, total in [('SE', 720), ('RI', 88)]:
+        done = [s['done'] for s in steps if s.get('splice_type') == splice_type]
+        assert done[0] == 0 and done[-1] == total and done == sorted(done) and len(done) < 110
+    assert signal.getsignal(signal.SIGTERM) == sigterm    # the run's handler is removed after it
+
+
+@pytest.mark.slow
+@pytest.mark.parametrize('processes', [1, 2])
+def test_sigterm_stops_the_run(tmp_path, cache_dir, processes):
+    """ SIGTERM, the GUI's cancel, stops a run cleanly: exit status 143, the log says so, no worker process is left,
+    and junctions.tsv holds the junctions done. The junction it interrupts is not taken for a failed one """
+    out = tmp_path / 'out'
+    run = subprocess.Popen([sys.executable, '-m', 'jcast', 'run', RMATS, HUMAN_GTF, HUMAN_GENOME, '-c', '--uniprot',
+                            UNIPROT, '-p', str(processes), '-o', out, '--cache_dir', cache_dir, '--progress'],
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    for line in run.stdout:
+        step = json.loads(line)
+        if step['stage'] == 'junctions' and step['done'] > 0:
+            run.send_signal(signal.SIGTERM)
+            break
+    _, err = run.communicate(timeout=120)
+
+    assert run.returncode == 143
+    assert 'Stopped by SIGTERM: the output is incomplete.' in err
+    assert (out / 'logfile.log').read_text().splitlines()[-1].endswith('~WARNING~Stopped by SIGTERM: the output is '
+                                                                      'incomplete. Run again with --overwrite to '
+                                                                      'replace it.')
+    with open(out / 'junctions.tsv') as fh:
+        rows = list(csv.DictReader(fh, delimiter='\t'))
+    assert 0 < len(rows) < 1105 and not [r for r in rows if r['fate'] == 'exception']
+    time.sleep(0.5)
+    assert subprocess.run(['pgrep', '-f', str(out)], capture_output=True, text=True).stdout == ''

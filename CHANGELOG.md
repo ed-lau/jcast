@@ -29,6 +29,26 @@ For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
   - Long options must be written in full: argparse also took unambiguous
     abbreviations (`--overw` for `--overwrite`).
   - New dependency: `typer>=0.26,<1` (with rich).
+- **`-m` computes the read counts for its model from the rMATS tables'
+  columns** (PR 19): 1.7 s instead of 20.6 s on a whole genome (599,644
+  junctions). The counts and the cutoff are the same.
+- **SIGTERM stops a run cleanly** (PR 19): the worker processes end, the
+  log and the console say that the output is incomplete, and the exit
+  status is 143. Before, the process ended at once, and nothing said the
+  output was incomplete.
+
+### Added
+
+- For the GUI (PR 19;
+  [scope report §10](reports/2026-11-13-gui-cli-scope.md#10-implementation-and-verification-pr-19)):
+  - `model.preview`: the `-m` model of an rMATS folder, as a run fits it,
+    without the GTF or the genome; `model.filter_counts`: how many
+    junctions of each splice type a cutoff and `-q` keep;
+    `model.draw_model`: the model on a caller's matplotlib `Axes`.
+  - `outcomes.read_counts` and `outcomes.summary`: the end-of-run summary
+    of any output folder, from its `junctions.tsv`.
+  - `jcast run --progress` (not in the help): each step of the run as a
+    line of JSON on stdout.
 
 ### Removed
 

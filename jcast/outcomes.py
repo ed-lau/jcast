@@ -75,26 +75,52 @@ class JunctionTable(object):
         self._fh.close()
 
     def summary(self, splice_types, out_dir) -> list:
-        """
-        The end-of-run summary: junctions by fate and splice type, and the records in each output FASTA
+        """ The end-of-run summary (summary) of the junctions added """
+        return summary(self.counts, splice_types, out_dir)
 
-        :param splice_types: the splice types run
-        :param out_dir: the output directory
-        :return: lines
-        """
-        types = [t for t in SPLICE_TYPES if t in splice_types]
-        rows = [['fate'] + types + ['total']]
-        for short in [s for _, s in fates.NAMES] + ['total']:
-            n = [sum(c for (f, t), c in self.counts.items() if t == type_ and short in (f, 'total')) for type_ in types]
-            rows.append([short] + [f'{c:,}' for c in n + [sum(n)]])
-        width = max(len(r[0]) for r in rows)
-        widths = [max(len(r[i]) for r in rows) for i in range(1, len(rows[0]))]
-        lines = [r[0].ljust(width) + ''.join(v.rjust(w + 2) for v, w in zip(r[1:], widths)) for r in rows]
 
-        records = []
-        for path in sorted(glob.glob(os.path.join(glob.escape(out_dir), 'psq_*.fasta'))):
-            with open(path) as fh:
-                records.append(f'{os.path.basename(path)} {sum(1 for _ in SeqIO.parse(fh, "fasta")):,}')
+def read_counts(path) -> collections.Counter:
+    """
+    The junctions of a junctions.tsv, counted as JunctionTable counts them: for the GUI, which shows the summary of
+    any run's output (reports/2026-11-13-gui-cli-scope.md §4)
 
-        return (['Junctions by fate and splice type (each junction is a row of {0}):'.format(JUNCTIONS_FILE)] + lines
-                + ['Records per file: ' + (', '.join(records) if records else 'none')])
+    :param path: a junctions.tsv
+    :return: (fate's short name, splice type) -> junctions
+    """
+    with open(path, newline='') as fh:
+        return collections.Counter((row['fate'], row['junction_type']) for row in csv.DictReader(fh, delimiter='\t'))
+
+
+def records_per_file(out_dir) -> dict:
+    """ psq_<name>.fasta -> its number of records, for the output FASTA files in out_dir """
+    records = {}
+    for path in sorted(glob.glob(os.path.join(glob.escape(out_dir), 'psq_*.fasta'))):
+        with open(path) as fh:
+            records[os.path.basename(path)] = sum(1 for _ in SeqIO.parse(fh, "fasta"))
+    return records
+
+
+def summary(counts, splice_types, out_dir) -> list:
+    """
+    The end-of-run summary: junctions by fate and splice type, and the records in each output FASTA
+
+    :param counts: (fate's short name, splice type) -> junctions, as JunctionTable or read_counts counts them
+    :param splice_types: the splice types run; None for those in counts
+    :param out_dir: the output directory
+    :return: lines
+    """
+    if splice_types is None:
+        splice_types = {t for _, t in counts}
+    types = [t for t in SPLICE_TYPES if t in splice_types]
+    rows = [['fate'] + types + ['total']]
+    for short in [s for _, s in fates.NAMES] + ['total']:
+        n = [sum(c for (f, t), c in counts.items() if t == type_ and short in (f, 'total')) for type_ in types]
+        rows.append([short] + [f'{c:,}' for c in n + [sum(n)]])
+    width = max(len(r[0]) for r in rows)
+    widths = [max(len(r[i]) for r in rows) for i in range(1, len(rows[0]))]
+    lines = [r[0].ljust(width) + ''.join(v.rjust(w + 2) for v, w in zip(r[1:], widths)) for r in rows]
+
+    records = [f'{name} {n:,}' for name, n in records_per_file(out_dir).items()]
+
+    return (['Junctions by fate and splice type (each junction is a row of {0}):'.format(JUNCTIONS_FILE)] + lines
+            + ['Records per file: ' + (', '.join(records) if records else 'none')])

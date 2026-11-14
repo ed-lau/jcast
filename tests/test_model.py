@@ -2,12 +2,20 @@
 
 """ Tests for read count model related functionalities """
 
+import csv
+import math
+import shutil
+
+import numpy as np
+import pandas as pd
 import pytest
 
-from jcast import model
-from jcast.junctions import RmatsResults
+from jcast import main, model
+from jcast.junctions import Junction, RmatsResults, read_count
 
-from tests.conftest import DATA
+from tests.conftest import DATA, HUMAN_GENOME, HUMAN_GTF, RMATS
+
+DATASETS = sorted(p.name for p in (DATA / 'model').iterdir() if p.is_dir())
 
 
 def _junction_counts(logger, dataset):
@@ -61,3 +69,75 @@ def test_cutoff_is_the_models_boundary_in_reads(logger):
         x = math.log(reads + 1)
         return w1 * stats.norm.pdf(x, mu, sd) >= w0 * stats.gamma.pdf(x, shape, scale=1 / rate)
     assert expressed(cutoff) and not expressed(cutoff - 1)
+
+
+# ---- PR 19: what the GUI needs (reports/2026-11-13-gui-cli-scope.md §8) ----
+
+@pytest.mark.parametrize('folder', [RMATS] + [DATA / 'model' / d for d in DATASETS])
+def test_read_counts_as_from_each_junction(logger, folder):
+    """ the read counts from the tables' columns are those of a Junction made for each row, as before PR 19 """
+    results = RmatsResults(logger=logger, rmats_dir=folder)
+    results.get_junction_count_array()
+    tot = pd.concat(results.rmats_list, ignore_index=True)
+    junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
+
+    assert list(results.counts.min_jc) == [j.min_jc for j in junctions]
+    assert list(results.counts.junction_type) == [j.junction_type for j in junctions]
+    assert list(results.counts.fdr) == [j.fdr for j in junctions]
+    expected = np.array([[j.min_jc + 1] for j in junctions])
+    assert results.min_jc_array.dtype == expected.dtype and np.array_equal(results.min_jc_array, expected)
+
+
+@pytest.mark.parametrize('counts, expected', [
+    ((3, 5, 4, 1), 6),                          # min(ijc 3 + 4, sjc 5 + 1)
+    (('1,2,3', '4,5', '0,0,1', '6'), 7),        # replicates, comma-separated
+    ((float('nan'), 5, 4, 1), 0),               # an inclusion count that does not parse: both samples' count 0
+    (('5.0', 5, 4, 1), 0),                      # a float, from a column with a missing value, does not parse either
+])
+def test_read_count(counts, expected):
+    assert read_count(*counts) == expected
+
+
+def test_preview_is_the_runs_model(tmp_path):
+    """ the -m model as a run fits it: on every rMATS file in the folder (cutoff 26 on chr15), here also with one
+    file only (6, as the run's with only SE.MATS.JC.txt present; reports/2026-11-13-command-line-checks.md §5) """
+    counts, ln_sjc, params, cutoff = model.preview(RMATS)
+    assert (len(counts), cutoff) == (1105, 26) and len(ln_sjc) == 1105 and params is not None
+
+    shutil.copy(RMATS / 'SE.MATS.JC.txt', tmp_path)
+    assert model.preview(tmp_path)[3] == 6
+
+    with pytest.raises(FileNotFoundError):
+        model.preview(tmp_path / 'none')
+
+
+@pytest.mark.slow
+def test_filter_counts_are_the_runs(tmp_path, cache_dir):
+    """ what the preview says the filters keep and skip, per splice type, is what a run's junctions.tsv records """
+    out = tmp_path / 'out'
+    main.main([str(a) for a in [RMATS, HUMAN_GTF, HUMAN_GENOME, '-s', 'RI', 'A5SS', '-r', 5, '-q', 0, 0.05, '-o', out,
+                                '--cache_dir', cache_dir]])
+    with open(out / 'junctions.tsv') as fh:
+        rows = list(csv.DictReader(fh, delimiter='\t'))
+
+    table = model.filter_counts(model.preview(RMATS)[0], 5, (0, 0.05))
+    for splice_type in ['RI', 'A5SS']:
+        fates = [r['fate'] for r in rows if r['junction_type'] == splice_type]
+        low, fdr = fates.count('skipped_low_count'), fates.count('skipped_fdr')
+        assert table.loc[splice_type].tolist() == [len(fates), low, fdr, len(fates) - low - fdr]
+        assert low and fdr
+    assert list(table.index) == ['MXE', 'SE', 'RI', 'A5SS', 'A3SS']
+
+
+def test_draw_model_on_a_callers_axes():
+    """ the GUI draws the model on an Axes of its own """
+    from matplotlib.figure import Figure
+
+    _, ln_sjc, params, cutoff = model.preview(RMATS)
+    fig = Figure()
+    ax = fig.subplots()
+    model.draw_model(ax, ln_sjc, params, cutoff)
+
+    assert len(fig.axes) == 2       # and the twin axis in reads
+    assert len(ax.lines) == 4 and ax.lines[3].get_xdata()[0] == pytest.approx(math.log(cutoff + 1))
+    assert ax.texts[0].get_text() == 'cutoff = 26 reads'

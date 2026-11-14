@@ -111,7 +111,7 @@ def test_read_gzipped_genome(genome):
 def test_cli_passes_paths(monkeypatch, tmp_path):
     """ GTF and genome reach run_jcast as plain paths, not open file handles. """
     calls = []
-    monkeypatch.setattr(main, 'run_jcast', lambda args: calls.append(args))
+    monkeypatch.setattr(main, 'run_jcast', lambda args, progress=None: calls.append(args))
     monkeypatch.setattr('sys.argv', ['jcast', str(RMATS), str(HUMAN_GTF), str(HUMAN_GENOME),
                                      '-o', str(tmp_path)])
 

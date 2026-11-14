@@ -17,6 +17,38 @@ def rmats_path(rmats_dir, splice_type: str) -> str:
     return os.path.join(rmats_dir, f'{splice_type}.MATS.JC.txt')
 
 
+def read_count(ijc_s1, sjc_s1, ijc_s2, sjc_s2) -> int:
+    """
+    A junction's read count: the smaller of its inclusion junction counts (IJC) and its skipping junction counts
+    (SJC), each summed over both samples and their replicates. If rMATS was run with one replicate, a count field is
+    an int, otherwise a comma-separated list. Both isoforms are translated, so both need read support; this is
+    what -r and -m filter on, and the r<count> field of FASTA headers.
+
+    2022-05-21: This now returns the min of SJC and IJC sums (it was the sum of SJC). 2026-11-12 renamed from
+    sum_sjc, which described the old count; see reports/2026-11-12-thresholds-runs-canonical-audit.md §2.1
+
+    :return: the read count. If an inclusion (or skipping) count does not parse, both samples' inclusion (or
+        skipping) counts are taken as 0, so the read count is 0
+    """
+    try:
+        sum_sjc_count_sample1 = int(sum([int(x) for x in (str(sjc_s1).split(sep=','))]))
+        sum_sjc_count_sample2 = int(sum([int(x) for x in (str(sjc_s2).split(sep=','))]))
+
+    except ValueError:
+        sum_sjc_count_sample1 = 0
+        sum_sjc_count_sample2 = 0
+
+    try:
+        sum_ijc_count_sample1 = int(sum([int(x) for x in (str(ijc_s1).split(sep=','))]))
+        sum_ijc_count_sample2 = int(sum([int(x) for x in (str(ijc_s2).split(sep=','))]))
+
+    except ValueError:
+        sum_ijc_count_sample1 = 0
+        sum_ijc_count_sample2 = 0
+
+    return min(sum_sjc_count_sample1 + sum_sjc_count_sample2, sum_ijc_count_sample1 + sum_ijc_count_sample2)
+
+
 class RmatsResults(object):
     """
     Container to hold the rMATS output folder and create individual objects based on the five splice types.
@@ -56,6 +88,7 @@ class RmatsResults(object):
             self.tables.get(t) for t in SPLICE_TYPES)
 
         self.rmats_list = list(self.tables.values())
+        self.counts = None
         self.min_jc_array = None
 
 
@@ -165,17 +198,31 @@ class RmatsResults(object):
 
         return df
 
+    def junction_counts(self) -> pd.DataFrame:
+        """
+        Every junction read: its splice type, read count (Junction.min_jc) and FDR, in the order of the files and
+        their rows
+
+        :return: columns junction_type, min_jc, fdr
+        """
+        tot = pd.concat(self.rmats_list, ignore_index=True)
+        return pd.DataFrame({'junction_type': tot.jxn_type,
+                             'min_jc': [read_count(*c) for c in zip(tot.ijc_s1, tot.sjc_s1, tot.ijc_s2, tot.sjc_s2)],
+                             'fdr': tot.fdr,
+                             })
+
     def get_junction_count_array(self):
         """
-        Output an array of every junction's read count (Junction.min_jc) plus 1, for the read count model
+        Output an array of every junction's read count (Junction.min_jc) plus 1, for the read count model, and keep
+        junction_counts in self.counts. 2026-11-13 the counts came from a Junction made for each row, 20.7 of the 26.7 s
+        the model took on a whole genome (reports/2026-11-13-gui-cli-scope.md §6)
+
         :return: True
         """
 
-        tot = pd.concat(self.rmats_list, ignore_index=True)
+        self.counts = self.junction_counts()
 
-        junctions = [Junction(**tot.iloc[i].to_dict()) for i in range(len(tot))]
-
-        self.min_jc_array = np.array([[j.min_jc + 1] for j in junctions])
+        self.min_jc_array = np.array([[c + 1] for c in self.counts.min_jc])
 
         return True
 
@@ -264,34 +311,8 @@ class Junction(object):
 
     @property
     def min_jc(self):
-        """
-        The junction's read count: the smaller of its inclusion junction counts (IJC) and its skipping junction counts
-        (SJC), each summed over both samples and their replicates. If rMATS was run with one replicate, a count field is
-        an int, otherwise a comma-separated list. Both isoforms are translated, so both need read support; this is
-        what -r and -m filter on, and the r<count> field of FASTA headers.
-
-        2022-05-21: This now returns the min of SJC and IJC sums (it was the sum of SJC). 2026-11-12 renamed from
-        sum_sjc, which described the old count; see reports/2026-11-12-thresholds-runs-canonical-audit.md §2.1
-
-        :return:
-        """
-        try:
-            sum_sjc_count_sample1 = int(sum([int(x) for x in (str(self.sjc_s1).split(sep=','))]))
-            sum_sjc_count_sample2 = int(sum([int(x) for x in (str(self.sjc_s2).split(sep=','))]))
-
-        except ValueError:
-            sum_sjc_count_sample1 = 0
-            sum_sjc_count_sample2 = 0
-
-        try:
-            sum_ijc_count_sample1 = int(sum([int(x) for x in (str(self.ijc_s1).split(sep=','))]))
-            sum_ijc_count_sample2 = int(sum([int(x) for x in (str(self.ijc_s2).split(sep=','))]))
-
-        except ValueError:
-            sum_ijc_count_sample1 = 0
-            sum_ijc_count_sample2 = 0
-
-        return min(sum_sjc_count_sample1 + sum_sjc_count_sample2, sum_ijc_count_sample1 + sum_ijc_count_sample2)
+        """ The junction's read count (read_count): what -r and -m filter on, and the r<count> field of FASTA headers """
+        return read_count(self.ijc_s1, self.sjc_s1, self.ijc_s2, self.sjc_s2)
 
     def _get_translated_region(self,
                                gtf,

@@ -12,8 +12,10 @@ has been run, and what to do next.
   collects the v0.5.0 PRs, as `v0.4.0-hardening` did for v0.4.0:
   - `fff9981`: the [GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md),
     with the maintainer's decisions (§7) and its evidence;
-  - `5479ee3`: PR 18, the command line on Typer;
-  - the commit recording that hash.
+  - `5479ee3`: PR 18, the command line on Typer; `7d36121` records its
+    hash; `8975d02` the decision not to restore abbreviated long options;
+  - PR 19, what the GUI needs from the pipeline, and the commit recording
+    its hash.
 - **Tests:** 165, all passing; 162 offline (`python -m pytest -q -m 'not network'`,
   about 1.5 minutes). Run only the fast ones with `-m 'not slow'`.
 - **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml): Python
@@ -23,7 +25,7 @@ has been run, and what to do next.
 - **Golden tests:** `tests/test_pipeline.py::test_chr15_golden` (GTF-only
   canonicals) and `tests/test_uniprot.py::test_chr15_uniprot`
   (`--uniprot`). Unchanged by PR 18.
-- **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18
+- **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18 and 19
   ([REVIEW.md §9](REVIEW.md#v050-the-gui-and-the-command-line)).
 
 ## The session of 2026-11-13 (evening)
@@ -50,6 +52,20 @@ has been run, and what to do next.
     log's `Arguments` line loses `mask` and `func`.
   - argparse took abbreviated long options (`--overw`); Click does not.
     The maintainer decided not to restore them (report §9.3).
+- **PR 19, what the GUI needs from the pipeline** (report §10), no output
+  change:
+  - `model.preview(rmats_dir)`, `model.filter_counts`, `model.draw_model`
+    (on a caller's `Axes`); `fates.filtered`, the filters shared by the
+    run and the preview;
+  - the read counts from the tables' columns (`junctions.read_count`,
+    `RmatsResults.junction_counts`): 20.6 s → 1.7 s on the whole genome;
+  - `outcomes.read_counts` and `outcomes.summary`: any output folder's
+    summary from its `junctions.tsv`;
+  - `jcast run --progress` (hidden): JSON lines on stdout;
+  - SIGTERM: `Stopped`, the workers terminated, the log line, exit 143.
+  - Verified with `reports/gui_scope/verify_19.py`. Its first run was
+    wrong: started from the repository root, both sides imported the
+    working tree (see Useful facts).
 
 ## How the work is run (agreed with the maintainer)
 
@@ -85,20 +101,21 @@ has been run, and what to do next.
 
 ## Next priorities
 
-1. **PR 19, what the GUI needs from the pipeline** (report §8), no output
-   change:
-   - the model plot drawn on a supplied `Axes`; `model.pdf` written with
-     `matplotlib.figure.Figure`, without pyplot;
-   - a model-preview function on the run's code (with `-m`, every rMATS
-     file in the folder);
-   - the read counts from the tables' columns, equal to
-     `get_junction_count_array`'s (20.7 s on the whole genome now);
-   - a hidden progress option (JSON lines) for the GUI to read;
-   - a clean end on SIGTERM: the pool terminated, the cancel logged;
-   - the run summary from `junctions.tsv`, by the code that writes it.
+1. **A decision on `-m` with rMATS files without junctions** (report
+   §10.3): `general_mixture_model` raises `ZeroDivisionError` on an empty
+   array, so such a run fails instead of falling back to `-r`, and so does
+   the preview. Before and after PR 19.
 2. **PR 13, the GUI** (report §4): setup, model, run (`QProcess`),
    results; pytest-qt without a display; one CI job; the `gui` extra on
-   `PySide6-Essentials`; README and website.
+   `PySide6-Essentials`; README and website. What it calls:
+   - `main.validate(args)` for the setup page's checks;
+   - `model.preview`, `model.filter_counts` and `model.draw_model` for the
+     model page. On a whole genome the preview takes 8 to 20 s (the tables
+     1 to 14 s, the counts 2 s, the fit 5 s): run it off the GUI thread;
+   - `python -m jcast run … --progress` in a `QProcess`: JSON lines on
+     stdout; warnings on stderr; `terminate()` to cancel (exit status
+     143);
+   - `outcomes.read_counts` and `outcomes.summary` for the results page.
 3. **Small, before or with v0.5.0:**
    - PyPI's trusted publishing: a workflow that uploads when a GitHub
      release is published.
@@ -123,6 +140,11 @@ has been run, and what to do next.
 
 ## Useful facts
 
+- **Verification scripts run each process outside the repository.**
+  `python -m jcast` and `python -c` put the current directory on
+  `sys.path` before `PYTHONPATH`: run from the repository root, the code
+  "before" is the working tree's. Set `cwd` to a scratch directory, and
+  record `jcast.__file__` in the evidence.
 - **The command line (PR 18):**
   - Typer prints usage errors in a box as wide as the console (80 columns
     when not a terminal). `tests/conftest.py` sets `COLUMNS=1000` for

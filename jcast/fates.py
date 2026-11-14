@@ -33,6 +33,26 @@ NAMES = [(TIER1, 'T1'),
          ]
 
 
+def filtered(min_jc, fdr, cutoff: int, qvalue) -> str:
+    """
+    The fate of a junction that the read count and FDR filters skip, or None if they keep it: it is translated. The
+    run applies it to each junction, and the GUI's preview of the -m model to every junction at once
+    (reports/2026-11-13-gui-cli-scope.md §4)
+
+    :param min_jc: the junction's read count (Junction.min_jc)
+    :param fdr: its rMATS FDR
+    :param cutoff: the read count cutoff (-r, or the -m model's): a junction with fewer reads is skipped
+    :param qvalue: (q_lo, q_hi) (-q): a junction whose FDR is outside is skipped
+    :return: SKIPPED_LOW_COUNT, SKIPPED_P_VALUE or None
+    """
+    q_lo, q_hi = qvalue
+    if min_jc < cutoff:
+        return SKIPPED_LOW_COUNT
+    if not q_lo <= fdr <= q_hi:
+        return SKIPPED_P_VALUE
+    return None
+
+
 def name(fate: str) -> tuple:
     """
     The fate's short name, and the detail not recorded elsewhere in junctions.tsv: the slice that hit a premature

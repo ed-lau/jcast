@@ -3,11 +3,12 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9): no output change. |
+| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented** (§10). No output change. |
 | **Question** | What should the v0.5.0 GUI do: start a run only, or also show results, and which? How is it launched? What does moving the command line to Typer change for users? |
 | **Reproduce** | `python reports/gui_scope/scope_evidence.py --work <scratch> [--python <interpreter for the venvs>] [--rmats <whole-genome rMATS folder>]` (≈ 2 min; needs PyPI) |
 | **Evidence** (code at `f37faf9`) | [gui_scope/scope_evidence/scope_evidence.txt](gui_scope/scope_evidence/scope_evidence.txt) |
 | **PR 18 verification** | `python reports/cli_checks/verify_18.py --before <checkout> --after <checkout>` (≈ 30 s); [cli_checks/verify_18/verify_18.txt](cli_checks/verify_18/verify_18.txt) |
+| **PR 19 verification** | `python reports/gui_scope/verify_19.py --before <checkout> --after <checkout> [--rmats <whole-genome rMATS folder>]` (≈ 1.5 min); [gui_scope/verify_19/verify_19.txt](gui_scope/verify_19/verify_19.txt) |
 
 ## 1. Summary
 
@@ -339,3 +340,109 @@ long options (`--overw`, `--uni`); Click takes only the full name, and
 suggests it. `_as_before` could have expanded them as argparse did.
 
 **Decided (2026-11-13): not restored.** Long options are written in full.
+
+## 10. Implementation and verification: PR 19
+
+What the GUI needs from the pipeline (§8). No output file changes.
+
+### 10.1 What PR 19 changes
+
+- **The filters, shared by the run and the preview.**
+  `fates.filtered(min_jc, fdr, cutoff, qvalue)` gives the fate of a
+  junction that the read count or FDR filter skips, or `None`.
+  `_translate` calls it for each junction, with the comparisons it made
+  before.
+- **The read counts from the tables' columns.**
+  - `junctions.read_count(ijc_s1, sjc_s1, ijc_s2, sjc_s2)` is
+    `Junction.min_jc`'s code, which now calls it.
+  - `RmatsResults.junction_counts()` gives every junction's splice type,
+    read count and FDR from the columns, without making a `Junction` per
+    row.
+  - `get_junction_count_array` builds the model's array from it, and
+    keeps the table in `counts`.
+- **[jcast/model.py](../jcast/model.py):**
+  - `preview(rmats_dir)`: the `-m` model as a run fits it, on every rMATS
+    file in the folder. It returns the junctions (type, read count, FDR),
+    ln(count + 1), the parameters and the cutoff.
+  - `filter_counts(counts, cutoff, qvalue)`: per splice type, the
+    junctions, those the two filters skip, and those kept, by
+    `fates.filtered`.
+  - `draw_model(ax, …)` draws the model on a caller's `Axes`.
+    `plot_general_mixture_model` draws on a `matplotlib.figure.Figure`
+    with it, without pyplot, and saves `model.pdf` as before.
+- **[jcast/outcomes.py](../jcast/outcomes.py):**
+  - `read_counts(junctions.tsv)` counts a run's junctions by fate and
+    splice type, as `JunctionTable` does.
+  - `summary(counts, splice_types, out_dir)`, which writes the log's
+    summary, and `records_per_file(out_dir)` are now module functions, so
+    the GUI shows any run's summary from its output.
+- **[jcast/main.py](../jcast/main.py):**
+  - `run --progress` (hidden from the help): each step of the run as a
+    line of JSON on stdout:
+    - `{"stage": …}` for `rmats`, `gtf`, `genome`, `uniprot`, `model`,
+      `outputs` and `done`;
+    - `{"stage": "junctions", "splice_type", "done", "total"}` about every
+      1 % of each splice type's junctions, instead of the progress bar.
+
+    `run_jcast(args, progress=None)` takes the function that receives
+    them.
+  - **SIGTERM, the GUI's cancel,** stops a run from the command line
+    cleanly. It raises `Stopped`, a `BaseException`, so the junction it
+    interrupts does not record it as its own failure. The worker
+    processes are terminated (they reset SIGTERM to its default), the log
+    and the console say `Stopped by SIGTERM: the output is incomplete…`,
+    `junctions.tsv` is closed, and the exit status is 143. The command
+    restores the previous handler when the run ends.
+- **Tests:** 25 new, all failing on the code before (`8975d02`):
+  - in [tests/test_model.py](../tests/test_model.py):
+    - the read counts equal those of a `Junction` per row, in the 14
+      bundled rMATS folders;
+    - `read_count`'s rules;
+    - the preview's cutoff: 26 on chr15, 6 with SE only;
+    - `filter_counts` against a run's `junctions.tsv`;
+    - drawing on a caller's `Axes`;
+  - the summary from `junctions.tsv`, line for line the log's;
+  - `--progress`;
+  - SIGTERM with 1 and 2 processes.
+  - Three stubs of `run_jcast` in the tests take the new `progress`
+    argument.
+
+### 10.2 Verification
+
+`verify_19.py` compared the code before (`8975d02`) and after (`dbf0d58`,
+a snapshot of the working tree, whose code differs from PR 19's only in
+the docstring of `read_count`), each frozen in a worktree
+([verify_19.txt](gui_scope/verify_19/verify_19.txt)):
+
+| Check | Result |
+|---|---|
+| chr15, `-c --uniprot` with default options, `-m`, `-r 30 -q 0 0.05`, `-p 2` | Output files byte-identical; logs identical but for timestamps, the output directory, the time taken and the order in which `-s`'s default set prints |
+| The read count array of the 14 bundled rMATS folders | Identical values, dtype (int64) and shape |
+| The cutoff | Unchanged in each folder: 26 on chr15; 4 to 29 in the others; no fit in `encode_human_stomach` |
+| `model.preview`'s cutoff | The run's, in each folder |
+| `model.pdf`'s figure, rendered as PNG | Byte-identical in the 12 folders with a fit |
+| The whole-genome rMATS folder (599,644 junctions) | Identical read count array; cutoff 40 before, after and in the preview; the counts in 20.6 s before and 1.7 s after (back to back; the machine's load average was about 25) |
+
+- **The verification's first run was wrong, and is not in the evidence.**
+  It started its processes from the repository root. `python -m` and
+  `-c` put the current directory on `sys.path` before `PYTHONPATH`, so
+  both sides imported the working tree's code. `verify_19.py` now runs
+  each process in a scratch directory, and records which `jcast` each
+  side imported and how it computes the counts.
+- **SIGTERM before PR 19** (a `-p 2` run of the code before):
+  - the process ended with the signal (exit status −15), and the log
+    ended at `Translating junctions in 2 worker processes.`;
+  - nothing in the log or in `junctions.tsv` said the run was incomplete;
+  - the workers exited too.
+- **The whole suite** passes: 187 tests offline (162 before PR 19, and the
+  25 new), 190 with the three that query the UniProt API.
+
+### 10.3 Found while verifying
+
+**`-m` on rMATS files without junctions fails.** `encode_mouse_fetalheart`
+holds only the files' headers. On it, `general_mixture_model` raises
+`ZeroDivisionError` (`numpy.average`, weights summing to zero), before
+and after PR 19. A run with `-m` on such a folder therefore fails,
+instead of falling back to `-r` as for a degenerate fit, and the preview
+fails the same way. Not changed here: it changes what a run does, so it
+needs a decision.

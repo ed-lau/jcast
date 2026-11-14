@@ -13,7 +13,7 @@ from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
 
-from jcast import fates, main, params
+from jcast import fates, main, outcomes, params
 from jcast import helpers as h
 from jcast.outcomes import COLUMNS
 from jcast.sequences import Sequence
@@ -159,9 +159,20 @@ def test_summary_counts_the_table(runs):
     assert summary[15].split('~')[2].startswith('Time: ')
 
 
+def test_summary_from_the_table(runs):
+    """ PR 19: the summary of any run's output, for the GUI, from its junctions.tsv: the log's lines """
+    out = runs[0]
+    log = (out / 'logfile.log').read_text()
+    logged = log[log.index('~INFO~Summary.'):].split('\n')[1:15]
+
+    counts = outcomes.read_counts(out / 'junctions.tsv')
+    assert outcomes.summary(counts, {'RI', 'A5SS'}, str(out)) == logged
+    assert outcomes.summary(counts, None, str(out)) == logged
+
+
 def test_cli_verbose(monkeypatch, tmp_path):
     seen = []
-    monkeypatch.setattr(main, 'run_jcast', lambda args: seen.append(args.verbose))
+    monkeypatch.setattr(main, 'run_jcast', lambda args, progress=None: seen.append(args.verbose))
     for flag in ([], ['--verbose'], ['-v']):
         monkeypatch.setattr('sys.argv', ['jcast', str(RMATS), str(HUMAN_GTF), str(HUMAN_GENOME),
                                          '-o', str(tmp_path / 'out')] + flag)

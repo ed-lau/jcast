@@ -2,11 +2,17 @@
 
 """ Mixture model for selecting read count cutoff """
 
+import logging
 import os
 import math
 import numpy as np
+import pandas as pd
 import scipy.special as special
 import scipy.stats as stats
+
+from jcast import fates
+from jcast.junctions import RmatsResults
+from jcast.outcomes import SPLICE_TYPES
 
 
 def general_mixture_model(min_jc_array,
@@ -84,30 +90,60 @@ def general_mixture_model(min_jc_array,
     return ln_sjc, params, min_count
 
 
-def plot_general_mixture_model(ln_sjc,
-                               params,
-                               min_count,
-                               write_dir: str,
-                               filename: str):
-    """Plot the Gamma + Normal mixture fitted to skip junction read counts.
-
-        Args:
-            ln_sjc(numpy array): Natural log of read counts from rMATS.
-            params(tuple): Output of general_mixture_model.
-            min_count(int): The read count cutoff from general_mixture_model.
-            write_dir(str): Path to directory for plot output.
-            filename(str): Name of plot output file.
-        Returns:
-            None
+def preview(rmats_dir) -> tuple:
     """
-    import matplotlib.pyplot as plt
+    The -m model of an rMATS folder, fitted as a run with -m fits it: on every rMATS file in the folder, also those -s
+    leaves out. It needs no GTF or genome, so the GUI shows it before the run (reports/2026-11-13-gui-cli-scope.md §4).
 
+    :param rmats_dir: the rMATS folder
+    :return: every junction's splice type, read count and FDR (RmatsResults.junction_counts); then, as
+        general_mixture_model returns them, ln(count + 1), the parameters and the cutoff (None if the fit is degenerate)
+    """
+    results = RmatsResults(logging.getLogger('jcast'), rmats_dir, splice_types=(), others_if_present=True)
+    if not results.tables:
+        raise FileNotFoundError(f'no rMATS file (<splice type>.MATS.JC.txt) in {rmats_dir}')
+    results.get_junction_count_array()
+    return (results.counts, *general_mixture_model(min_jc_array=results.min_jc_array))
+
+
+def filter_counts(counts, cutoff: int, qvalue) -> pd.DataFrame:
+    """
+    How many junctions of each splice type a run with this read count cutoff and -q would translate, and how many its
+    filters would skip: fates.filtered, which the run applies to each junction
+
+    :param counts: junctions, as preview returns them
+    :param cutoff: the read count cutoff (-r, or the -m model's)
+    :param qvalue: (q_lo, q_hi) (-q)
+    :return: one row per splice type, in the order of SPLICE_TYPES; columns junctions, skipped_low_count, skipped_fdr,
+        kept
+    """
+    skipped = pd.Series([fates.filtered(n, fdr, cutoff, qvalue) for n, fdr in zip(counts.min_jc, counts.fdr)],
+                        index=counts.index, dtype=object)
+    by_type = counts.junction_type
+    table = pd.DataFrame({'junctions': by_type.value_counts(),
+                          'skipped_low_count': (skipped == fates.SKIPPED_LOW_COUNT).groupby(by_type).sum(),
+                          'skipped_fdr': (skipped == fates.SKIPPED_P_VALUE).groupby(by_type).sum(),
+                          })
+    table['kept'] = table.junctions - table.skipped_low_count - table.skipped_fdr
+    return table.reindex([t for t in SPLICE_TYPES if t in table.index])
+
+
+def draw_model(ax, ln_sjc, params, min_count) -> None:
+    """
+    Draw the read count histogram, the two weighted components, their sum and the cutoff on ax, with a second x axis
+    in reads. 2026-11-13 plot_general_mixture_model drew on a figure of its own; the GUI draws on its own Axes
+    (REVIEW.md §10)
+
+    :param ax: a matplotlib Axes
+    :param ln_sjc: Natural log of read counts from rMATS.
+    :param params: Output of general_mixture_model.
+    :param min_count: The read count cutoff from general_mixture_model.
+    """
     shape, rate, mu, sd, w0, w1 = params
     x = np.linspace(0, 10, 2000)
     eval_dist0 = stats.gamma.pdf(x, shape, scale=1 / rate) * w0
     eval_dist1 = stats.norm.pdf(x, mu, sd) * w1
 
-    fig, ax = plt.subplots(constrained_layout=True, figsize=(10, 4))
     ax.hist(ln_sjc, bins=50, histtype='bar', density=True, ec='red', alpha=0.5)
     ax.set_xlabel('Natural logarithm of read count + 1')
     ax.set_ylabel('Frequency')
@@ -130,5 +166,26 @@ def plot_general_mixture_model(ln_sjc,
     ax2.set_xlabel('Read count')
     ax2.set_xticklabels((np.exp(tcks[1:-1]) - 1).round().astype(int))
 
+
+def plot_general_mixture_model(ln_sjc,
+                               params,
+                               min_count,
+                               write_dir: str,
+                               filename: str):
+    """Plot the Gamma + Normal mixture fitted to skip junction read counts.
+
+        Args:
+            ln_sjc(numpy array): Natural log of read counts from rMATS.
+            params(tuple): Output of general_mixture_model.
+            min_count(int): The read count cutoff from general_mixture_model.
+            write_dir(str): Path to directory for plot output.
+            filename(str): Name of plot output file.
+        Returns:
+            None
+    """
+    # a Figure without pyplot, which keeps no state between runs and needs no GUI backend
+    from matplotlib.figure import Figure
+
+    fig = Figure(constrained_layout=True, figsize=(10, 4))
+    draw_model(fig.subplots(), ln_sjc, params, min_count)
     fig.savefig(fname=os.path.join(write_dir, filename + '.pdf'))
-    plt.close(fig)
