@@ -50,6 +50,19 @@ For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
 
 ### Added
 
+- **The GUI runs JCAST** (PR 13;
+  [scope report §12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui)).
+  `jcast gui` opens four pages: Setup, the run's settings, with the command
+  line's checks under each field; Model, the `-m` model of the rMATS folder
+  before the run, where the cutoff is chosen (`-m`, or `-r` in a number
+  field or by clicking on the plot), with the junctions each splice type
+  keeps; Run, which shows the command line and runs it
+  (`python -m jcast run …`) in a child process, with each splice type's
+  progress, the warnings, Stop, and an offer to delete a stopped run's
+  output; and Results, the summary of any output folder. No output file
+  changes. The `gui` extra installs `PySide6-Essentials>=6.7` instead of
+  the whole of PySide6; the new `test-gui` extra adds pytest-qt for the
+  GUI's tests, which CI runs on macOS without a display.
 - For the GUI (PR 19;
   [scope report §10](reports/2026-11-13-gui-cli-scope.md#10-implementation-and-verification-pr-19-ec1068a)):
   - `model.preview`: the `-m` model of an rMATS folder, as a run fits it,
@@ -72,10 +85,7 @@ v0.5.0 plan, and the
 [GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md) for its
 decisions.
 
-- **GUI (PRs 19, 13):** set up a run; see the `-m` model and set the cutoff
-  before the run; run JCAST as `python -m jcast run …` in a child process
-  (so `-p` works) and cancel it; see a run's summary, for any output
-  folder.
+- A junction browser in the GUI (v0.5.x).
 - An option to add T2 and T4 records to `jcast_uniprot_merged.fasta`.
 - A helper that downloads a UniProt proteome and names the file by its
   release (`X-UniProt-Release`).

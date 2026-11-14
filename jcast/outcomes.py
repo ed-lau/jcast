@@ -100,6 +100,25 @@ def records_per_file(out_dir) -> dict:
     return records
 
 
+def fate_table(counts, splice_types) -> list:
+    """
+    Junctions by fate and splice type, as the summary shows them, and the GUI as a table
+
+    :param counts: (fate's short name, splice type) -> junctions, as JunctionTable or read_counts counts them
+    :param splice_types: the splice types run; None for those in counts
+    :return: rows: the header (fate, the splice types in the order of SPLICE_TYPES, total); then for each fate, in the
+        order of fates.NAMES, and for the total, its short name and the counts
+    """
+    if splice_types is None:
+        splice_types = {t for _, t in counts}
+    types = [t for t in SPLICE_TYPES if t in splice_types]
+    rows = [['fate'] + types + ['total']]
+    for short in [s for _, s in fates.NAMES] + ['total']:
+        n = [sum(c for (f, t), c in counts.items() if t == type_ and short in (f, 'total')) for type_ in types]
+        rows.append([short] + n + [sum(n)])
+    return rows
+
+
 def summary(counts, splice_types, out_dir) -> list:
     """
     The end-of-run summary: junctions by fate and splice type, and the records in each output FASTA
@@ -109,13 +128,8 @@ def summary(counts, splice_types, out_dir) -> list:
     :param out_dir: the output directory
     :return: lines
     """
-    if splice_types is None:
-        splice_types = {t for _, t in counts}
-    types = [t for t in SPLICE_TYPES if t in splice_types]
-    rows = [['fate'] + types + ['total']]
-    for short in [s for _, s in fates.NAMES] + ['total']:
-        n = [sum(c for (f, t), c in counts.items() if t == type_ and short in (f, 'total')) for type_ in types]
-        rows.append([short] + [f'{c:,}' for c in n + [sum(n)]])
+    table = fate_table(counts, splice_types)
+    rows = table[:1] + [[short] + [f'{c:,}' for c in n] for short, *n in table[1:]]
     width = max(len(r[0]) for r in rows)
     widths = [max(len(r[i]) for r in rows) for i in range(1, len(rows[0]))]
     lines = [r[0].ljust(width) + ''.join(v.rjust(w + 2) for v, w in zip(r[1:], widths)) for r in rows]

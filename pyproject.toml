@@ -43,8 +43,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-gui = ["PySide6>=6.6"]
+# QtCore, QtGui and QtWidgets, all the GUI uses. 6.6 printed NumPy's warning for a module compiled with NumPy 1.x
+# (reports/2026-11-13-gui-cli-scope.md §12)
+gui = ["PySide6-Essentials>=6.7"]
 test = ["pytest>=8"]
+# the GUI's tests (tests/test_gui.py); pytest-qt stops every test run if no Qt binding is installed, so it is not in test
+test-gui = ["jcast[gui,test]", "pytest-qt>=4.4"]
 
 [project.scripts]
 jcast = "jcast.main:main"

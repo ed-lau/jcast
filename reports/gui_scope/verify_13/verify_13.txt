@@ -1,0 +1,79 @@
+before: d9494a3
+after: 905f359
+
+== The pipeline, chr15 (<inputs> <args>): before and after
+-c --uniprot: exit 0 / 0; 14 output files, identical: yes; log identical but for timestamps, the output directory and the time taken: yes
+-m --uniprot: exit 0 / 0; 11 output files, identical: yes; log identical but for timestamps, the output directory and the time taken: yes
+model.pdf as PNG, the bundled folders with a fit (jcast from <before>/jcast/__init__.py / <after>/jcast/__init__.py):
+  rmats: identical
+  encode_human_adrenalgland: identical
+  encode_human_heart: identical
+  encode_human_lung: identical
+  encode_human_spleen: identical
+  encode_human_testis: identical
+  encode_human_uterus: identical
+  encode_mouse_heart: identical
+  heart_mouse_old: identical
+  ipsc_human_d0: identical
+  ipsc_human_d14: identical
+  kidney_old_totalRNA_gencodeM26: identical
+
+== GUI runs (jcast from <after>/jcast/__init__.py; the child process PYTHONPATH starts with <after>), and their command line run with another -o
+all splice types, --uniprot:
+  command: jcast run <after>/tests/data/rmats <after>/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf <after>/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz -o '<work>/gui all splice types, --uniprot' --cache_dir <work>/cache --uniprot <after>/tests/data/uniprot/uniprot_sprot_human_isoforms_chr15_2026_04.fasta.gz
+  GUI exit 0 in 9.2 s, command line exit 0 in 9.2 s; 14 output files, identical: yes; log identical but for timestamps, the output directory and the time taken: yes
+  stages shown: Reading the rMATS files, Reading the GTF, Reading the genome, Reading the UniProt FASTA, Translating junctions, Writing the outputs, Done
+  progress: MXE 90/90, SE 720/720, RI 88/88, A5SS 71/71, A3SS 136/136
+  Run page: Finished in 9 s. The Results page shows its summary.
+  Results page: Complete; JCAST 0.4.0; read count cutoff 1 read (-r); 8 s in all.
+-m (the Model page), --uniprot -c:
+  command: jcast run <after>/tests/data/rmats <after>/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf <after>/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz -o '<work>/gui -m (the Model page), --uniprot -c' --cache_dir <work>/cache -m -c --uniprot <after>/tests/data/uniprot/uniprot_sprot_human_isoforms_chr15_2026_04.fasta.gz
+  GUI exit 0 in 4.1 s, command line exit 0 in 4.2 s; 11 output files, identical: yes; log identical but for timestamps, the output directory and the time taken: yes
+  stages shown: Reading the rMATS files, Reading the GTF, Reading the genome, Reading the UniProt FASTA, Fitting the -m model, Translating junctions, Writing the outputs, Done
+  progress: MXE 90/90, SE 720/720, RI 88/88, A5SS 71/71, A3SS 136/136
+  Run page: Finished in 4 s. The Results page shows its summary.
+  Results page: Complete; JCAST 0.4.0; read count cutoff 26 reads (-m); 3 s in all.
+-r 10 (a click on the plot), -s RI A5SS, -q 0 0.05, --uniprot:
+  command: jcast run <after>/tests/data/rmats <after>/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf <after>/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz -o '<work>/gui -r 10 (a click on the plot), -s RI A5SS, -q 0 0.05, --uniprot' --cache_dir <work>/cache -r 10 -q 0 0.05 -s RI A5SS --uniprot <after>/tests/data/uniprot/uniprot_sprot_human_isoforms_chr15_2026_04.fasta.gz
+  GUI exit 0 in 2.0 s, command line exit 0 in 2.0 s; 6 output files, identical: yes; log identical but for timestamps, the output directory and the time taken: yes
+  stages shown: Reading the rMATS files, Reading the GTF, Reading the genome, Reading the UniProt FASTA, Translating junctions, Writing the outputs, Done
+  progress: RI 88/88, A5SS 71/71
+  Run page: Finished in 2 s. The Results page shows its summary.
+  Results page: Complete; JCAST 0.4.0; read count cutoff 10 reads (-r); 1 s in all.
+--uniprot -c -p 2 -v:
+  command: jcast run <after>/tests/data/rmats <after>/tests/data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf <after>/tests/data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz -o '<work>/gui --uniprot -c -p 2 -v' --cache_dir <work>/cache -c --uniprot <after>/tests/data/uniprot/uniprot_sprot_human_isoforms_chr15_2026_04.fasta.gz -p 2 -v
+  GUI exit 0 in 6.2 s, command line exit 0 in 6.3 s; 14 output files, identical: yes; log identical but for timestamps, the output directory and the time taken: yes
+  stages shown: Reading the rMATS files, Reading the GTF, Reading the genome, Reading the UniProt FASTA, Translating junctions, Writing the outputs, Done
+  progress: MXE 90/90, SE 720/720, RI 88/88, A5SS 71/71, A3SS 136/136
+  Run page: Finished in 6 s. The Results page shows its summary.
+  Results page: Complete; JCAST 0.4.0; read count cutoff 1 read (-r); 5 s in all.
+
+== A GUI run stopped while translating (every chr15 junction, --uniprot -p 2)
+stopped at {'MXE': 40}; exit status 143; 2 worker processes, 0 left after the stop
+Run page: Stopped after 2 s: the output in <work>/gui stopped is incomplete. Its output was deleted.
+the log's last line: WARNING~Stopped by SIGTERM: the output is incomplete. Run again with --overwrite to replace it.
+files written: junctions.tsv, logfile.log, psq_T1.fasta, psq_T2.fasta, psq_T4.fasta, psq_T4_orphan.fasta, psq_canonical.fasta; Delete offered: True; left after Delete: none
+
+== The Model page, each bundled rMATS folder: what it shows, and the time to fit and draw
+rmats (0.06 s; -m enabled): The -m model of 1,105 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 26 reads.
+encode_human_adrenalgland (0.45 s; -m enabled): The -m model of 32,821 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 12 reads.
+encode_human_heart (0.41 s; -m enabled): The -m model of 31,776 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 14 reads.
+encode_human_lung (0.21 s; -m enabled): The -m model of 28,404 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 7 reads.
+encode_human_spleen (0.17 s; -m enabled): The -m model of 33,828 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 5 reads.
+encode_human_stomach (0.45 s; -m disabled): No -m model of 11,152 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): the fit was degenerate. A run with -m would fall back to -r.
+encode_human_testis (0.88 s; -m enabled): The -m model of 64,997 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 8 reads.
+encode_human_uterus (0.2 s; -m enabled): The -m model of 8,553 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 5 reads.
+encode_mouse_fetalheart (0.02 s; -m disabled): No -m model of 0 junctions of every rMATS file in the folder (none): the fit failed: the rMATS files read hold no junctions. A run with -m would fall back to -r.
+encode_mouse_heart (0.3 s; -m enabled): The -m model of 20,291 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 6 reads.
+heart_mouse_old (1.13 s; -m enabled): The -m model of 88,879 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 29 reads.
+ipsc_human_d0 (1.13 s; -m enabled): The -m model of 99,220 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 14 reads.
+ipsc_human_d14 (1.33 s; -m enabled): The -m model of 116,887 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 15 reads.
+kidney_old_totalRNA_gencodeM26 (0.55 s; -m enabled): The -m model of 35,854 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 4 reads.
+
+== The Model page on a whole genome (/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats)
+The -m model of 599,644 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 40 reads.
+fit, in the background: 9.1 s; the plot drawn: 0.09 s; a cutoff moved and drawn: 0.05 s at most; the table: 0.17 s
+
+== The Results page on a whole-genome output folder (/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/jcast)
+Complete; JCAST 0.4.0; read count cutoff 40 reads (-m); 9 min 30 s in all.
+599,644 junctions, 101,734 records; read, in the background: 2.4 s; the page filled: 0.001 s

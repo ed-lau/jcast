@@ -753,7 +753,7 @@ def run(ctx: typer.Context,
 
 @app.command()
 def gui() -> None:
-    """ Open the graphical interface (a preview; it needs PySide6: pip install 'jcast\\[gui]'). """
+    """ Open the graphical interface (it needs PySide6: pip install 'jcast\\[gui]'). """
     from jcast.gui import launch_gui
 
     raise typer.Exit(launch_gui())

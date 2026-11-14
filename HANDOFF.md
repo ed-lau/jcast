@@ -1,4 +1,4 @@
-# Handoff — v0.5.0 under way (2026-11-13)
+# Handoff — v0.5.0 under way (2026-11-14)
 
 For the next working session. It covers where things stand, how the work
 has been run, and what to do next.
@@ -17,19 +17,59 @@ has been run, and what to do next.
   - `ec1068a`: PR 19, what the GUI needs from the pipeline; `b3c0852`
     records its hash;
   - `2f0e54c`: PR 20, `-m` without a fit falls back to `-r`, and the commit
-    recording its hash.
-- **Tests:** 200, all passing; 197 offline (`python -m pytest -q -m 'not network'`,
-  about 1.5 minutes, 3 on a loaded machine). Run only the fast ones with
-  `-m 'not slow'`.
+    recording its hash;
+  - `PR13HASH`: PR 13, the GUI, and the commit recording its hash.
+- **Tests:** 226, all passing; 223 offline (`python -m pytest -q -m 'not network'`,
+  about 2.5 minutes). Run only the fast ones with `-m 'not slow'`. The
+  GUI's 15 (`tests/test_gui.py`) need PySide6 and pytest-qt
+  (`pip install -e '.[test-gui]'`; `.conda` has both) and are skipped
+  without them.
 - **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml): Python
-  3.11 to 3.15 on Linux and macOS, the lowest dependency versions, and the
-  installed wheel. It has not run on this branch yet (not pushed); the
-  lowest-versions job will be the first to run Typer 0.26.0 on Linux.
+  3.11 to 3.15 on Linux and macOS, the lowest dependency versions, the
+  GUI's tests on macOS (`gui`, new in PR 13), and the installed wheel. It
+  has not run on this branch yet (not pushed). The lowest-versions job
+  will be the first to run Typer 0.26.0 on Linux, and the `gui` job is
+  new.
 - **Golden tests:** `tests/test_pipeline.py::test_chr15_golden` (GTF-only
   canonicals) and `tests/test_uniprot.py::test_chr15_uniprot`
   (`--uniprot`). Unchanged by PR 18.
-- **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18, 19 and 20
-  ([REVIEW.md §9](REVIEW.md#v050-the-gui-and-the-command-line)).
+- **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18, 19, 20 and 13
+  ([REVIEW.md §9](REVIEW.md#v050-the-gui-and-the-command-line)): the
+  whole of the v0.5.0 plan.
+
+## The session of 2026-11-14
+
+- **PR 13, the GUI** (report §12, `PR13HASH`). Four pages in
+  [jcast/gui/](jcast/gui/), 1,220 lines:
+  - Setup checks with `main.validate`;
+  - Model fits `model.preview` in a background thread (`tasks.Background`);
+  - Run runs `python -P -m jcast run … --progress` in a `QProcess`
+    (`command.process`);
+  - Results reads any output folder (`results_page.read_output`).
+
+  [README](README.md#the-graphical-interface) describes them; screenshots
+  are in [reports/gui_scope/verify_13/](reports/gui_scope/verify_13/).
+- **Choices the maintainer has not seen yet** (report §12.1, "What the GUI
+  chose that §4 did not settle"):
+  - `-r 1` until the model's cutoff is chosen;
+  - another folder resets the cutoff to `-r`;
+  - the fit starts when the Model page opens;
+  - Delete removes only a run's files, and only if the run wrote its log;
+  - settings are not remembered.
+- **`-P` and `PYTHONPATH`.** The child imports the GUI's own `jcast`
+  wherever it runs: `python -m` imports from the working directory first.
+- **Packaging.** The `gui` extra is `PySide6-Essentials>=6.7`; 6.6 prints
+  NumPy 2's warning about a module compiled with NumPy 1.x. The new
+  `test-gui` extra adds `pytest-qt>=4.4`, which cannot go in `test`: with
+  no Qt binding it stops every test run.
+- **Verified** (`reports/gui_scope/verify_13.py`):
+  - the pipeline changes leave the chr15 output and `model.pdf`
+    identical;
+  - four GUI runs give the same output as their command line;
+  - a stopped run exits 143 and leaves no worker; Delete removes its
+    files;
+  - on the whole genome, the Model page fits in about 10 s, in the
+    background.
 
 ## The session of 2026-11-13 (evening)
 
@@ -110,27 +150,27 @@ has been run, and what to do next.
 
 ## Next priorities
 
-1. **PR 13, the GUI** (report §4): setup, model, run (`QProcess`),
-   results; pytest-qt without a display; one CI job; the `gui` extra on
-   `PySide6-Essentials`; README and website. What it calls:
-   - `main.validate(args)` for the setup page's checks;
-   - `model.preview`, `model.filter_counts` and `model.draw_model` for the
-     model page; with no fit, `preview` gives the reason (5th value), and
-     the run uses `-r`. On a whole genome the preview takes 8 to 20 s (the tables
-     1 to 14 s, the counts 2 s, the fit 5 s): run it off the GUI thread;
-   - `python -m jcast run … --progress` in a `QProcess`: JSON lines on
-     stdout; warnings on stderr; `terminate()` to cancel (exit status
-     143);
-   - `outcomes.read_counts` and `outcomes.summary` for the results page.
-2. **Small, before or with v0.5.0:**
+1. **Push `v0.5.0-gui` when the maintainer asks**, and check CI: the
+   lowest-versions job (Typer 0.26.0 on Linux) and the `gui` job (macOS)
+   run for the first time.
+2. **Release v0.5.0:** `__version__` (still 0.4.0), the CHANGELOG's date,
+   the website (`_quarto.yml`'s title, `change.qmd`), and, before or
+   with it:
    - PyPI's trusted publishing: a workflow that uploads when a GitHub
-     release is published.
-   - Delete the merged `v0.4.0-hardening` branch: the commits cited in
+     release is published;
+   - delete the merged `v0.4.0-hardening` branch: the commits cited in
      `reports/` are in `main`'s history.
-3. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
+3. **GUI follow-ups:**
+   - the junction browser (v0.5.x; report §4);
+   - remembering the settings between sessions;
+   - the GUI's tests on Linux: Qt's offscreen platform needs system
+     libraries there, not tried;
+   - screenshots in the README or on the website (they are in
+     `reports/gui_scope/verify_13/`).
+4. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
    `make_pep`, `chr` never added to chromosome names, the header-only
    fetal-heart test data, the date-stamped comments.
-4. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
+5. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
    - an option to add T2/T4 to `jcast_uniprot_merged.fasta`;
    - a UniProt download helper that names the file by its release
      (`X-UniProt-Release` header), as a third command;

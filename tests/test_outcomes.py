@@ -170,6 +170,19 @@ def test_summary_from_the_table(runs):
     assert outcomes.summary(counts, None, str(out)) == logged
 
 
+def test_fate_table(runs):
+    """ PR 13: the summary's table, as numbers, for the GUI's Results page """
+    table = _table(runs[0])
+    rows = outcomes.fate_table(outcomes.read_counts(runs[0] / 'junctions.tsv'), None)
+
+    assert rows[0] == ['fate', 'RI', 'A5SS', 'total']
+    assert [row[0] for row in rows[1:]] == [s for _, s in fates.NAMES] + ['total']
+    for short, ri, a5ss, total in rows[1:]:
+        of = table if short == 'total' else table[table['fate'] == short]
+        by_type = of['junction_type']
+        assert [ri, a5ss, total] == [(by_type == 'RI').sum(), (by_type == 'A5SS').sum(), len(of)]
+
+
 def test_cli_verbose(monkeypatch, tmp_path):
     seen = []
     monkeypatch.setattr(main, 'run_jcast', lambda args, progress=None: seen.append(args.verbose))

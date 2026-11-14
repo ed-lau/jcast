@@ -143,6 +143,23 @@ def test_draw_model_on_a_callers_axes():
     assert ax.texts[0].get_text() == 'cutoff = 26 reads'
 
 
+def test_draw_model_without_a_fit_and_move_the_cutoff():
+    """ PR 13: without a fit, the GUI draws the histogram and the -r cutoff; it moves the cutoff as it is set """
+    from matplotlib.figure import Figure
+
+    _, ln_sjc, params, _, _ = model.preview(DATA / 'model' / 'encode_human_stomach')
+    assert params is None
+    ax = Figure().subplots()
+    line, label = model.draw_model(ax, ln_sjc, params, 10)
+
+    assert list(ax.lines) == [line] and len(ax.patches) == 50 and list(ax.texts) == [label]
+    assert line.get_xdata()[0] == pytest.approx(math.log(11)) and label.get_text() == 'cutoff = 10 reads'
+    model.move_cutoff(line, label, 99)
+    assert list(line.get_xdata()) == pytest.approx([math.log(100)] * 2)
+    assert label.get_position() == pytest.approx((math.log(100) + math.log(1.25), 0.75))
+    assert label.get_text() == 'cutoff = 99 reads'
+
+
 # ---- PR 20: when the -m model cannot be fitted, the run falls back to -r ----
 
 EMPTY = DATA / 'model' / 'encode_mouse_fetalheart'     # the five rMATS files, each its header only

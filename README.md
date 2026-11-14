@@ -18,6 +18,7 @@ issues that occur when searching against a full transcriptome translation.
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [Command-line options](#command-line-options)
+- [The graphical interface](#the-graphical-interface)
 - [Output files](#output-files)
 - [Worked example: ENCODE heart](#worked-example-encode-heart)
 - [Known issues](#known-issues)
@@ -35,8 +36,8 @@ on macOS and Linux. We recommend installing into a virtual environment:
 pip install jcast
 ```
 
-The optional Qt-based GUI (PySide6) is an early preview: it opens a window
-with placeholder pages and cannot run JCAST yet. To install it:
+The [graphical interface](#the-graphical-interface) is optional. It needs
+Qt (PySide6), installed with:
 
 ```bash
 pip install 'jcast[gui]'
@@ -48,7 +49,7 @@ need:
 ```bash
 git clone https://github.com/ed-lau/jcast
 cd jcast
-pip install -e '.[gui,test]'
+pip install -e '.[test-gui]'
 ```
 
 ## Quick start
@@ -79,7 +80,8 @@ The output directory is created if needed. A directory that already holds
 JCAST output is refused, so two runs never mix; pass `--overwrite` to
 replace that output.
 
-To open the graphical interface (a preview; it cannot run JCAST yet):
+To set up and run JCAST in a window instead (see
+[The graphical interface](#the-graphical-interface)):
 
 ```bash
 jcast gui    # or: python -m jcast --gui, or jcast-gui
@@ -92,8 +94,10 @@ chromosome-15 genome) from a source checkout:
 pytest -m 'not network'
 ```
 
-Without `-m 'not network'`, three tests also query the UniProt API. To run
-the tests on each supported Python version, use `tox`.
+Without `-m 'not network'`, three tests also query the UniProt API. The
+GUI's tests run without a display; they are skipped unless PySide6 and
+pytest-qt are installed (`pip install -e '.[test-gui]'`). To run the tests
+on each supported Python version, use `tox`.
 
 To exercise JCAST end-to-end on the bundled fixtures:
 
@@ -281,6 +285,35 @@ loaded rather than copying them.
 Leave a core or two for the system: `-p` set to the number of cores minus
 2 is a reasonable maximum.
 
+## The graphical interface
+
+`jcast gui` opens a window with four pages (it needs `pip install 'jcast[gui]'`):
+
+1. **Setup.** The rMATS folder, GTF, genome and output folder, and the
+   options of `jcast run`. The command line's checks are shown under each
+   field, and each field's tooltip is its help from `jcast run -h`. Splice
+   types whose rMATS file is not in the folder cannot be selected.
+2. **Model.** The `-m` model of the rMATS folder, before any run: the read
+   count histogram, the fit and its cutoff, and how many junctions of each
+   splice type the cutoff and `-q` keep. It needs only the rMATS files and
+   is fitted when the page opens (seconds; up to 20 s on a whole genome).
+   Choose the model's cutoff (`-m`), or set another (`-r`) in the number
+   field or by clicking on the plot.
+3. **Run.** The command line of the run, which you can copy, and Start and
+   Stop. The GUI runs that command (`python -m jcast run …`) in a separate
+   process, so `-p` works as on the command line and the log is the same.
+   It shows each splice type's progress, and the warnings and errors as
+   they come. A stopped run ends cleanly, its output incomplete; the page
+   offers to delete that output.
+4. **Results.** The summary of an output folder: this run's, or any
+   earlier run's, also one made on the command line. Junctions by fate and
+   splice type (from `junctions.tsv`), records per FASTA file, the
+   junctions that failed, the log's warnings, the file to search, and
+   buttons that open the folder and its files.
+
+An output folder that holds JCAST output is replaced only once you agree
+(`--overwrite`).
+
 ## Output files
 
 JCAST writes a small number of FASTA files into the output directory. Each
@@ -443,8 +476,10 @@ python -m jcast /work/output \
   `junctions.tsv`, with the error in `fate_detail`, and the run continues.
   Its traceback is in `logfile.log`, and the console reports how many
   junctions failed.
-- **The GUI is a preview and cannot run JCAST yet.** Its pages are
-  placeholders. Use the command line.
+- **The GUI shows a run's summary, not its junctions.** A junction
+  browser is planned for v0.5.x; meanwhile, open `junctions.tsv` in R or a
+  spreadsheet. Like the command line, each GUI run reads the GTF and the
+  genome again (about 45 s for GENCODE and GRCh38).
 - **Tier 4 contains products truncated at a stop codon.** Alternative
   C-termini at an annotated stop codon go to `psq_T1_alt_cterm.fasta`
   instead. A stop codon that the annotation does not support stays in T4,

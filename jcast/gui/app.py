@@ -27,6 +27,7 @@ def launch_gui() -> int:
     from jcast.gui.main_window import MainWindow
 
     app = QApplication.instance() or QApplication(sys.argv)
+    app.setApplicationName("JCAST")
     window = MainWindow()
     window.show()
     return app.exec()

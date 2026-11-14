@@ -149,7 +149,7 @@ def filter_counts(counts, cutoff: int, qvalue) -> pd.DataFrame:
     return table.reindex([t for t in SPLICE_TYPES if t in table.index])
 
 
-def draw_model(ax, ln_sjc, params, min_count) -> None:
+def draw_model(ax, ln_sjc, params, min_count) -> tuple:
     """
     Draw the read count histogram, the two weighted components, their sum and the cutoff on ax, with a second x axis
     in reads. 2026-11-13 plot_general_mixture_model drew on a figure of its own; the GUI draws on its own Axes
@@ -157,27 +157,30 @@ def draw_model(ax, ln_sjc, params, min_count) -> None:
 
     :param ax: a matplotlib Axes
     :param ln_sjc: Natural log of read counts from rMATS.
-    :param params: Output of general_mixture_model.
-    :param min_count: The read count cutoff from general_mixture_model.
+    :param params: Output of general_mixture_model; None if there is no fit, for the histogram and the cutoff only
+        (the GUI, with -r)
+    :param min_count: The read count cutoff, from general_mixture_model or -r.
+    :return: the cutoff's line and label, which move_cutoff moves (the GUI)
     """
-    shape, rate, mu, sd, w0, w1 = params
-    x = np.linspace(0, 10, 2000)
-    eval_dist0 = stats.gamma.pdf(x, shape, scale=1 / rate) * w0
-    eval_dist1 = stats.norm.pdf(x, mu, sd) * w1
-
     ax.hist(ln_sjc, bins=50, histtype='bar', density=True, ec='red', alpha=0.5)
     ax.set_xlabel('Natural logarithm of read count + 1')
     ax.set_ylabel('Frequency')
     ax.set_title('Junction read counts (smaller of summed inclusion and skipping junction reads)')
     ax.set_ylim(0, 1)
 
-    ax.plot(x, eval_dist0, color="C0")
-    ax.plot(x, eval_dist1, color="C3")
-    ax.plot(x, eval_dist0 + eval_dist1, color="black")
-    ax.fill_between(x, 0, eval_dist0, color="C0", alpha=0.2)
-    ax.fill_between(x, 0, eval_dist1, color="C3", alpha=0.2)
-    ax.axvline(linewidth=2, ls='--', color='black', x=np.log(min_count + 1))
-    ax.text(np.log(min_count + 1) + math.log(1.25), 0.75, "cutoff = " + str(min_count) + " reads")
+    if params is not None:
+        shape, rate, mu, sd, w0, w1 = params
+        x = np.linspace(0, 10, 2000)
+        eval_dist0 = stats.gamma.pdf(x, shape, scale=1 / rate) * w0
+        eval_dist1 = stats.norm.pdf(x, mu, sd) * w1
+        ax.plot(x, eval_dist0, color="C0")
+        ax.plot(x, eval_dist1, color="C3")
+        ax.plot(x, eval_dist0 + eval_dist1, color="black")
+        ax.fill_between(x, 0, eval_dist0, color="C0", alpha=0.2)
+        ax.fill_between(x, 0, eval_dist1, color="C3", alpha=0.2)
+    line = ax.axvline(linewidth=2, ls='--', color='black', x=np.log(min_count + 1))
+    label = ax.text(0, 0.75, '')
+    move_cutoff(line, label, min_count)
 
     # Second axis for untransformed reads
     tcks = ax.get_xticks()
@@ -186,6 +189,15 @@ def draw_model(ax, ln_sjc, params, min_count) -> None:
     ax2.set_xticks(tcks[1:-1])
     ax2.set_xlabel('Read count')
     ax2.set_xticklabels((np.exp(tcks[1:-1]) - 1).round().astype(int))
+    return line, label
+
+
+def move_cutoff(line, label, min_count) -> None:
+    """ Put the cutoff's line and label, as draw_model returns them, at another read count """
+    x = np.log(min_count + 1)
+    line.set_xdata([x, x])
+    label.set_x(x + math.log(1.25))
+    label.set_text("cutoff = " + str(min_count) + " reads")
 
 
 def plot_general_mixture_model(ln_sjc,

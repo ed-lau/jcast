@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
-""" The command line: its checks and the rMATS files read (PR 12; reports/2026-11-13-command-line-checks.md), and the
-command line on Typer (PR 18; reports/2026-11-13-gui-cli-scope.md) """
+""" The command line: its checks and the rMATS files read (PR 12; reports/2026-11-13-command-line-checks.md), the
+command line on Typer (PR 18; reports/2026-11-13-gui-cli-scope.md), and the command line the GUI runs (PR 13) """
 
 import argparse
 import csv
 import json
+import os
+import shlex
 import shutil
 import signal
 import subprocess
@@ -14,9 +16,12 @@ import time
 
 import pytest
 
+import jcast
 import jcast.gui
 from jcast import main, __version__
+from jcast.gui import command
 from jcast.junctions import RmatsResults
+from jcast.outcomes import SPLICE_TYPES
 
 from tests.conftest import HUMAN_GENOME, HUMAN_GTF, RMATS
 
@@ -254,3 +259,58 @@ def test_sigterm_stops_the_run(tmp_path, cache_dir, processes):
     assert 0 < len(rows) < 1105 and not [r for r in rows if r['fate'] == 'exception']
     time.sleep(0.5)
     assert subprocess.run(['pgrep', '-f', str(out)], capture_output=True, text=True).stdout == ''
+
+
+# ---- PR 13: the command line the GUI shows and runs ----
+
+GUI_ARGS = dict(rmats_folder=str(RMATS), gtf_file=str(HUMAN_GTF), genome=str(HUMAN_GENOME), out='out dir',
+                overwrite=False, cache_dir=None, read=1, model=False, canonical=False, uniprot=None, processes=1,
+                verbose=False, splice_type=set(SPLICE_TYPES), qvalue=[0, 1])
+
+
+@pytest.mark.parametrize('changes, words', [
+    ({}, []),
+    ({'model': True}, ['-m']),
+    ({'read': 30, 'qvalue': [0.0, 0.05]}, ['-r', '30', '-q', '0', '0.05']),
+    ({'qvalue': [0.0001, 0.123456789]}, ['-q', '0.0001', '0.123456789']),
+    ({'splice_type': ['SE', 'RI']}, ['-s', 'SE', 'RI']),
+    ({'overwrite': True, 'cache_dir': 'cache', 'canonical': True, 'uniprot': str(UNIPROT), 'processes': 4,
+      'verbose': True}, ['--overwrite', '--cache_dir', 'cache', '-c', '--uniprot', str(UNIPROT), '-p', '4', '-v']),
+])
+def test_the_command_the_gui_runs(monkeypatch, changes, words):
+    """ the GUI's settings as a command line, which the command line parses into the same arguments """
+    args = argparse.Namespace(**dict(GUI_ARGS, **changes))
+
+    assert command.arguments(args) == [str(RMATS), str(HUMAN_GTF), str(HUMAN_GENOME), '-o', 'out dir'] + words
+    assert _parsed(monkeypatch, 'run', *command.arguments(args)) == args
+    assert command.command_line(args) == shlex.join(['jcast', 'run'] + command.arguments(args))
+
+
+def test_the_gui_runs_its_own_jcast(tmp_path, monkeypatch):
+    """ the child process imports the jcast the GUI runs, even in a folder holding another jcast: python -m imports
+    from the working directory first """
+    (tmp_path / 'jcast').mkdir()
+    (tmp_path / 'jcast' / '__init__.py').write_text('raise ImportError("the other jcast")')
+    program, arguments, pythonpath = command.process(argparse.Namespace(**GUI_ARGS))
+
+    assert program == sys.executable and arguments[:4] == ['-P', '-m', 'jcast', 'run'] and arguments[-1] == '--progress'
+    assert arguments[4:-1] == command.arguments(argparse.Namespace(**GUI_ARGS))
+    found = subprocess.run([program, '-P', '-c', 'import jcast; print(jcast.__file__)'], cwd=tmp_path, text=True,
+                           capture_output=True, env=dict(os.environ, PYTHONPATH=pythonpath), check=True)
+    assert found.stdout.strip() == jcast.__file__
+
+
+def test_option_help():
+    """ the GUI's tooltips are the help of jcast run -h """
+    assert command.option_help('read').startswith('the lowest read count for a junction to be translated')
+    with pytest.raises(KeyError):
+        command.option_help('mask')
+
+
+def test_gui_without_pyside6(monkeypatch, capsys):
+    """ jcast gui without the gui extra: how to install it, and exit status 1 """
+    monkeypatch.setitem(sys.modules, 'PySide6.QtWidgets', None)
+    from jcast.gui.app import launch_gui
+
+    assert launch_gui() == 1
+    assert "pip install 'jcast[gui]'" in capsys.readouterr().err

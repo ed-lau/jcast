@@ -3,13 +3,14 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. |
+| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. **PR 13 implemented** (§12): the GUI runs JCAST; no output change. |
 | **Question** | What should the v0.5.0 GUI do: start a run only, or also show results, and which? How is it launched? What does moving the command line to Typer change for users? |
 | **Reproduce** | `python reports/gui_scope/scope_evidence.py --work <scratch> [--python <interpreter for the venvs>] [--rmats <whole-genome rMATS folder>]` (≈ 2 min; needs PyPI) |
 | **Evidence** (code at `f37faf9`) | [gui_scope/scope_evidence/scope_evidence.txt](gui_scope/scope_evidence/scope_evidence.txt) |
 | **PR 18 verification** | `python reports/cli_checks/verify_18.py --before <checkout> --after <checkout>` (≈ 30 s); [cli_checks/verify_18/verify_18.txt](cli_checks/verify_18/verify_18.txt) |
-| **PR 20 verification** | `python reports/gui_scope/verify_20.py --before <checkout> --after <checkout> [--earlier <checkout before PR 19>]` (≈ 1 min); [gui_scope/verify_20/verify_20.txt](gui_scope/verify_20/verify_20.txt) |
 | **PR 19 verification** | `python reports/gui_scope/verify_19.py --before <checkout> --after <checkout> [--rmats <whole-genome rMATS folder>]` (≈ 1.5 min); [gui_scope/verify_19/verify_19.txt](gui_scope/verify_19/verify_19.txt) |
+| **PR 20 verification** | `python reports/gui_scope/verify_20.py --before <checkout> --after <checkout> [--earlier <checkout before PR 19>]` (≈ 1 min); [gui_scope/verify_20/verify_20.txt](gui_scope/verify_20/verify_20.txt) |
+| **PR 13 verification** | `python reports/gui_scope/verify_13.py --before <checkout> --after <checkout> [--rmats <whole-genome rMATS folder>] [--output <whole-genome output folder>]` (≈ 3 min; needs PySide6); [gui_scope/verify_13/verify_13.txt](gui_scope/verify_13/verify_13.txt) |
 
 ## 1. Summary
 
@@ -511,3 +512,209 @@ this change of behaviour went unnoticed until this verification.
 
 The whole suite passes: 197 tests offline (187 before PR 20, and the 10
 new), 200 with the three that query the UniProt API.
+
+## 12. Implementation and verification: PR 13, the GUI
+
+### 12.1 What PR 13 changes
+
+**The GUI runs JCAST.** [jcast/gui/](../jcast/gui/) has 1,220 lines
+instead of the 157 of the placeholder pages it replaces. Four pages, as
+tabs, as decided in §4:
+
+1. **Setup** ([setup_page.py](../jcast/gui/setup_page.py)). The paths,
+   the splice types, `-q`, `-c`, `--uniprot`, `-p`, `-v` and
+   `--cache_dir`.
+   - The page builds the `argparse.Namespace` that `run_jcast` takes. It
+     checks it with `main.validate`, the command line's checks, and shows
+     each message under its field. Each field's tooltip is its help from
+     `jcast run -h` (`command.option_help`).
+   - Splice types whose rMATS file is not in the folder cannot be
+     selected.
+2. **Model** ([model_page.py](../jcast/gui/model_page.py)).
+   - `model.preview` runs in a background thread when the page opens:
+     the run's own fit, on every rMATS file in the folder.
+   - `model.draw_model` draws the result on the page. Without a fit, the
+     page says why and draws the histogram only.
+   - The cutoff: the model's (`-m`), or another (`-r`) set in a number
+     field or by clicking or dragging on the plot.
+   - A table shows, for the selected splice types, the junctions, those
+     below the cutoff, those outside `-q`, and those kept
+     (`model.filter_counts`).
+3. **Run** ([run_page.py](../jcast/gui/run_page.py)).
+   - The page shows the command line (`jcast run …`, with a Copy
+     button). It runs that command in a child process (`QProcess`):
+     `python -P -m jcast run … --progress`, with the GUI's Python
+     (`command.process`).
+   - It shows the stage of the run, a progress bar per splice type (the
+     JSON lines of `--progress`), and the console's warnings and errors
+     as they come.
+   - Stop sends SIGTERM; a run that has not ended 15 s later is killed.
+     A stopped or failed run is marked incomplete, and Delete removes the
+     files it wrote.
+   - An output folder holding JCAST output is replaced only after a
+     question (`--overwrite`).
+4. **Results** ([results_page.py](../jcast/gui/results_page.py)).
+   - The summary of any output folder: this run's, an earlier one's, or
+     one made on the command line. It is read in the background.
+   - Junctions by fate and splice type (`outcomes.read_counts` and
+     `outcomes.fate_table`, the code of the log's summary), records per
+     file, the junctions that failed, and the log's warnings and errors.
+   - The version, cutoff and time from the log, and whether the run
+     finished (its log has the summary).
+   - The file to search (the README's FAQ), and buttons that open the
+     folder, the log, `junctions.tsv` and `model.pdf`.
+
+**`-P` and `PYTHONPATH`: the child runs the GUI's `jcast`.**
+`python -m` puts the working directory first on `sys.path`. A child
+started in a folder holding another `jcast` package (a checkout; a test's
+temporary folder) would import that one, or fail if `jcast` is not
+installed. `-P` (Python 3.11) leaves the working directory out. If the
+GUI's `jcast` is not in a site-packages folder (a source checkout, or an
+editable install), its folder is put first on `PYTHONPATH`. A test runs
+the child in a folder holding a `jcast` package that cannot be imported.
+
+**What the GUI chose that §4 did not settle.** For the maintainer to
+check:
+- The cutoff is `-r 1` until the model's is chosen, as on the command
+  line. The model's cutoff is not chosen by itself once fitted.
+- Another rMATS folder resets the cutoff to `-r`. The model's cutoff of
+  one folder is not kept for another.
+- The model is fitted when the Model page opens, not when the folder is
+  chosen, so typing a path does not start fits.
+- `-p` can only be set with `--uniprot`, and is 1 otherwise.
+- Fields left empty show "required" once a run is started, not before.
+- Stop asks first. Quitting during a run asks, then stops it as Stop
+  does.
+- Delete removes the files a run writes (`main.existing_outputs`), not
+  the folder. It is offered only if the run wrote its log: a run that
+  fails before starting leaves an earlier run's output in place.
+- Settings are not remembered between sessions.
+
+**Pipeline changes, for the pages; no output change:**
+- `outcomes.fate_table`: the summary's table, as numbers. The log's
+  summary is formatted from it.
+- `model.draw_model` draws without a fit (the histogram and the `-r`
+  cutoff) and returns the cutoff's line and label. `model.move_cutoff`
+  moves them, with the label's text written in one place.
+
+**Packaging and CI:**
+- The `gui` extra installs `PySide6-Essentials>=6.7` (QtCore, QtGui and
+  QtWidgets) instead of PySide6. 6.6.0 and 6.6.3.1 print NumPy's warning
+  for a module compiled with NumPy 1.x on import; 6.7.0 does not.
+- The GUI's tests pass with `PySide6-Essentials` 6.7.0 and pytest-qt
+  4.4.0, the floors, and with 6.12.0 and 4.5.0.
+- A new `test-gui` extra (`jcast[gui,test]` and `pytest-qt>=4.4`).
+  pytest-qt is not in `test`: without a Qt binding it stops every test
+  run with a usage error.
+- In a fresh virtual environment, `pip install '.[test-gui]'` installs
+  PySide6-Essentials 6.12.0 and pytest-qt 4.5.0, and the GUI's tests pass
+  against the installed wheel.
+- **CI:** a `gui` job on macos-latest, Python 3.13, runs
+  `tests/test_gui.py` without a display (`QT_QPA_PLATFORM=offscreen`).
+  The other jobs skip those tests: they do not install PySide6.
+- The GUI is not tested on Linux. There, Qt's offscreen platform needs
+  system libraries, which could not be checked without pushing.
+
+**Tests:**
+- 15 in [tests/test_gui.py](../tests/test_gui.py), 3 of them real runs
+  (marked slow): a run whose output equals its command line's, a stop,
+  and quitting during a run.
+- 11 more in `test_command_line.py`, `test_model.py` and
+  `test_outcomes.py`:
+  - the GUI's command line parses back into the same arguments, for 6
+    settings;
+  - the child runs the GUI's `jcast`;
+  - the tooltips;
+  - `jcast gui` without PySide6;
+  - `draw_model` without a fit;
+  - `fate_table`.
+
+**Documentation:**
+- README: a section on the GUI, the installation, the `test-gui` extra,
+  and a known issue (no junction browser yet).
+- The website's installation note, and `jcast -h`, whose `gui` line no
+  longer says "a preview".
+
+### 12.2 Verification
+
+`verify_13.py` compares the code before (`d9494a3`) with the code after:
+`905f359`, a snapshot of the working tree whose code is PR 13's. Each
+process runs from a scratch directory, and the GUI offscreen
+([verify_13.txt](gui_scope/verify_13/verify_13.txt)).
+
+**The pipeline: no output change.**
+- chr15 runs with `-c --uniprot` and with `-m --uniprot`: the output files
+  (14 and 11) are byte-identical, and the logs identical but for
+  timestamps, the output directory and the time taken.
+- `model.pdf` of the 12 bundled folders with a fit, drawn as PNG: the
+  same images.
+
+**A GUI run is its command line's run.** Each GUI run, then the command
+the Run page showed, run with another `-o`:
+
+| Settings (Setup and Model pages) | GUI | Command line | Output |
+|---|---|---|---|
+| all splice types, `--uniprot` | 9.2 s | 9.2 s | 14 files byte-identical; logs identical |
+| `-m` chosen on the Model page, `--uniprot -c` | 4.1 s | 4.2 s | 11 files byte-identical; logs identical |
+| `-r 10` by a click on the plot, `-s RI A5SS`, `-q 0 0.05`, `--uniprot` | 2.0 s | 2.0 s | 6 files byte-identical; logs identical |
+| `--uniprot -c -p 2 -v` | 6.2 s | 6.3 s | 14 files byte-identical; logs identical |
+
+- The child process imported the snapshot's `jcast`: its `PYTHONPATH`
+  starts with that checkout.
+- Each run showed its stages, and every splice type's progress to the
+  end.
+- The Results page read each cutoff back from the log: `1 read (-r)`,
+  `26 reads (-m)`, `10 reads (-r)`.
+
+**Stop.** A run of every chr15 junction (`--uniprot -p 2`) was stopped
+after 40 of the 90 MXE junctions:
+- exit status 143;
+- both worker processes ended;
+- the log ends with the stop warning;
+- Delete removed the 7 files written, and nothing else was in the folder.
+
+**The Model page, on each of the 14 bundled folders:**
+- The 12 with a fit show the cutoff that `model.preview` gave in §10.2.
+- `encode_human_stomach` shows "the fit was degenerate", and the
+  header-only folder "the fit failed: the rMATS files read hold no
+  junctions". `-m` cannot be chosen for either.
+- Each takes 0.02 to 1.3 s.
+
+**The whole genome** (599,644 junctions):
+
+| Model page | Time |
+|---|---|
+| The fit, in the background | 9.1 s |
+| The plot | 0.09 s |
+| A cutoff moved and drawn again | 0.05 s at most |
+| The table | 0.17 s |
+
+The Results page read the whole-genome output folder of 2026-11-13 (`-m`,
+`--uniprot`, 101,734 records) in 2.4 s, in the background.
+
+**Screenshots** of the four pages after a `-m` run:
+[Setup](gui_scope/verify_13/setup.png),
+[Model](gui_scope/verify_13/model.png),
+[Run](gui_scope/verify_13/run.png),
+[Results](gui_scope/verify_13/results.png).
+- The paths are relative to the scratch directory.
+- The Run page's console box shows gtfparse's
+  `INFO:root:Extracted GTF attributes …`. The command line prints it too,
+  whenever it parses a GTF that is not yet in the cache.
+
+**Tests:** 226 pass (223 offline): the 197 before and the 26 new.
+- The new tests test new code (`jcast.gui`'s modules, `fate_table`,
+  `move_cutoff`, `draw_model` without a fit), so they fail on the code
+  before.
+- The GUI's tests also pass with the floors (PySide6-Essentials 6.7.0,
+  pytest-qt 4.4.0), and after `pip install '.[test-gui]'` into a fresh
+  virtual environment.
+
+### 12.3 Not done
+
+- **The junction browser** (§4): v0.5.x.
+- **Remembering the settings** between sessions.
+- **The GUI on Linux and Windows**, which CI does not test. On Windows,
+  `QProcess.terminate` does not stop a console program; Stop kills the
+  run after 15 s, so its log does not say that it stopped.
+- **Screenshots in the README or on the website.**
