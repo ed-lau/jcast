@@ -14,10 +14,11 @@ has been run, and what to do next.
     with the maintainer's decisions (§7) and its evidence;
   - `5479ee3`: PR 18, the command line on Typer; `7d36121` records its
     hash; `8975d02` the decision not to restore abbreviated long options;
-  - PR 19, what the GUI needs from the pipeline, and the commit recording
-    its hash.
-- **Tests:** 165, all passing; 162 offline (`python -m pytest -q -m 'not network'`,
-  about 1.5 minutes). Run only the fast ones with `-m 'not slow'`.
+  - `ec1068a`: PR 19, what the GUI needs from the pipeline, and the commit
+    recording its hash.
+- **Tests:** 190, all passing; 187 offline (`python -m pytest -q -m 'not network'`,
+  about 1.5 minutes, 3 on a loaded machine). Run only the fast ones with
+  `-m 'not slow'`.
 - **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml): Python
   3.11 to 3.15 on Linux and macOS, the lowest dependency versions, and the
   installed wheel. It has not run on this branch yet (not pushed); the

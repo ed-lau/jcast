@@ -40,7 +40,7 @@ For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
 ### Added
 
 - For the GUI (PR 19;
-  [scope report §10](reports/2026-11-13-gui-cli-scope.md#10-implementation-and-verification-pr-19)):
+  [scope report §10](reports/2026-11-13-gui-cli-scope.md#10-implementation-and-verification-pr-19-ec1068a)):
   - `model.preview`: the `-m` model of an rMATS folder, as a run fits it,
     without the GTF or the genome; `model.filter_counts`: how many
     junctions of each splice type a cutoff and `-q` keep;

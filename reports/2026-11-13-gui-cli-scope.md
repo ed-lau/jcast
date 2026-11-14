@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented** (§10). No output change. |
+| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. |
 | **Question** | What should the v0.5.0 GUI do: start a run only, or also show results, and which? How is it launched? What does moving the command line to Typer change for users? |
 | **Reproduce** | `python reports/gui_scope/scope_evidence.py --work <scratch> [--python <interpreter for the venvs>] [--rmats <whole-genome rMATS folder>]` (≈ 2 min; needs PyPI) |
 | **Evidence** (code at `f37faf9`) | [gui_scope/scope_evidence/scope_evidence.txt](gui_scope/scope_evidence/scope_evidence.txt) |
@@ -341,7 +341,7 @@ suggests it. `_as_before` could have expanded them as argparse did.
 
 **Decided (2026-11-13): not restored.** Long options are written in full.
 
-## 10. Implementation and verification: PR 19
+## 10. Implementation and verification: PR 19 (`ec1068a`)
 
 What the GUI needs from the pipeline (§8). No output file changes.
 
@@ -410,7 +410,7 @@ What the GUI needs from the pipeline (§8). No output file changes.
 ### 10.2 Verification
 
 `verify_19.py` compared the code before (`8975d02`) and after (`dbf0d58`,
-a snapshot of the working tree, whose code differs from PR 19's only in
+a snapshot of the working tree, whose code differs from `ec1068a` only in
 the docstring of `read_count`), each frozen in a worktree
 ([verify_19.txt](gui_scope/verify_19/verify_19.txt)):
 
