@@ -12,9 +12,9 @@ import json
 import os
 import time
 
-from PySide6.QtCore import QElapsedTimer, QProcess, QProcessEnvironment, QTimer, Signal
+from PySide6.QtCore import QElapsedTimer, QProcess, QProcessEnvironment, Qt, QTimer, Signal
 from PySide6.QtGui import QFontDatabase, QGuiApplication
-from PySide6.QtWidgets import (QFormLayout, QHBoxLayout, QLabel, QMessageBox, QPlainTextEdit, QProgressBar, QPushButton,
+from PySide6.QtWidgets import (QGridLayout, QHBoxLayout, QLabel, QMessageBox, QPlainTextEdit, QProgressBar, QPushButton,
                                QVBoxLayout, QWidget)
 
 from jcast import main
@@ -25,6 +25,9 @@ from jcast.outcomes import SPLICE_TYPES
 STAGES = {'rmats': 'Reading the rMATS files', 'gtf': 'Reading the GTF', 'genome': 'Reading the genome',
           'uniprot': 'Reading the UniProt FASTA', 'model': 'Fitting the -m model', 'junctions': 'Translating junctions',
           'outputs': 'Writing the outputs', 'done': 'Done'}
+
+BARS_TIP = 'The junctions done, of each splice type, in file order; with -p, the junctions whose results have been ' \
+           'written. A junction skipped by the read count or FDR filters is done at once.'
 
 # after Stop, the time the run has to end its workers and log the stop before it is killed (as on Windows, where
 # QProcess.terminate does not stop a console program)
@@ -50,23 +53,39 @@ class RunPage(QWidget):
         self.command.setReadOnly(True)
         self.command.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
         self.command.setMaximumHeight(90)
+        self.command.setStatusTip('The command line of the run. The GUI runs it as python -P -m jcast run … '
+                                  '--progress, with its own Python; the output and the log are those of the command '
+                                  'line.')
         self.copy = QPushButton('Copy')
+        self.copy.setStatusTip('Copy the command, to run it in a terminal or keep it with the results.')
         self.copy.clicked.connect(lambda: QGuiApplication.clipboard().setText(self.command.toPlainText()))
         self.start = QPushButton('Start')
+        self.start.setStatusTip('Start the run, in a separate process. An output folder holding the output of an '
+                                'earlier run is replaced only after a question (--overwrite).')
         self.start.clicked.connect(self._start)
         self.stop = QPushButton('Stop')
+        self.stop.setStatusTip('Stop the run: it ends its worker processes and its log says that it stopped (exit '
+                               'status 143). Its output is then incomplete.')
         self.stop.setEnabled(False)
         self.stop.clicked.connect(lambda: self.stop_run(ask=True))
         self.status = QLabel('Not started.')
         self.status.setWordWrap(True)
         self.delete = QPushButton('Delete its output')
+        self.delete.setStatusTip('Delete the files the run wrote in the output folder; the folder and any other file '
+                                 'in it are kept.')
         self.delete.hide()
         self.delete.clicked.connect(self._delete_output)
-        self.bars = {}
-        self._bars = QFormLayout()
+        self.bars, self.counts = {}, {}             # each splice type's progress bar, and its count
+        self._bars = QGridLayout()
+        self._bars.setColumnStretch(1, 1)
+        self.last = QLabel()
+        self.last.setTextFormat(Qt.PlainText)
+        self.last.setStatusTip(BARS_TIP)
         self.messages = QPlainTextEdit()
         self.messages.setReadOnly(True)
         self.messages.setFont(QFontDatabase.systemFont(QFontDatabase.FixedFont))
+        self.messages.setStatusTip('What the run writes on the console: its warnings and errors, as they come. The '
+                                   'log (logfile.log) has them too.')
 
         buttons = QHBoxLayout()
         for button in (self.start, self.stop, self.copy):
@@ -81,6 +100,7 @@ class RunPage(QWidget):
         layout.addLayout(buttons)
         layout.addLayout(status)
         layout.addLayout(self._bars)
+        layout.addWidget(self.last)
         layout.addWidget(QLabel('Warnings and errors, as the run writes them on the console:'))
         layout.addWidget(self.messages, 1)
 
@@ -154,15 +174,18 @@ class RunPage(QWidget):
         self._show_stage()
 
     def _show_bars(self, splice_types: list) -> None:
-        while self._bars.rowCount():
-            self._bars.removeRow(0)
-        self.bars = {}
-        for t in splice_types:
-            bar = QProgressBar()
-            bar.setFormat('waiting')
-            bar.setValue(0)
-            self.bars[t] = bar
-            self._bars.addRow(t, bar)
+        """ A progress bar for each splice type, and its count beside it: the macOS style draws no text in a bar """
+        while self._bars.count():
+            self._bars.takeAt(0).widget().deleteLater()
+        self.bars, self.counts = {}, {}
+        for row, t in enumerate(splice_types):
+            self.bars[t], self.counts[t] = QProgressBar(), QLabel('waiting')
+            self.bars[t].setTextVisible(False)
+            self.bars[t].setValue(0)
+            for column, widget in enumerate((QLabel(t), self.bars[t], self.counts[t])):
+                widget.setStatusTip(BARS_TIP)
+                self._bars.addWidget(widget, row, column)
+        self.last.clear()
 
     # ---- the run's output ----
 
@@ -177,10 +200,14 @@ class RunPage(QWidget):
                 continue
             self._stage = STAGES.get(step['stage'], step['stage'])
             if step['stage'] == 'junctions' and step['splice_type'] in self.bars:
-                bar, done, total = self.bars[step['splice_type']], step['done'], step['total']
-                bar.setMaximum(max(total, 1))
-                bar.setValue(done if total else 1)
-                bar.setFormat(f'{done:,} of {total:,} junctions' if total else 'no junctions')
+                splice_type, done, total = step['splice_type'], step['done'], step['total']
+                self.bars[splice_type].setMaximum(max(total, 1))
+                self.bars[splice_type].setValue(done if total else 1)
+                self.counts[splice_type].setText(f'{done:,} of {total:,} ({done / total:.0%})' if total else
+                                                 'no junctions')
+                if 'gene' in step:
+                    self.last.setText(f'Last junction done: {splice_type} {step["junction"]}, gene {step["gene"]} '
+                                      f'({step["gene_id"]})')
             self._show_stage()
 
     def _read_messages(self) -> None:

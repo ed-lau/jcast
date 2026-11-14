@@ -2,6 +2,7 @@
 
 """GUI bootstrap. Creates the QApplication and shows the MainWindow."""
 
+import importlib.resources
 import sys
 
 
@@ -10,6 +11,16 @@ _MISSING_PYSIDE_MSG = (
     "dependency. Install it with:\n\n"
     "    pip install 'jcast[gui]'\n"
 )
+
+
+def icon():
+    """The JCAST logo (icon.png, made by reports/gui_scope/make_icon.py from the website's fish logo), for the
+    windows, and on macOS the Dock."""
+    from PySide6.QtGui import QIcon, QPixmap
+
+    pixmap = QPixmap()
+    pixmap.loadFromData(importlib.resources.files(__package__).joinpath("icon.png").read_bytes())
+    return QIcon(pixmap)
 
 
 def launch_gui() -> int:
@@ -28,6 +39,7 @@ def launch_gui() -> int:
 
     app = QApplication.instance() or QApplication(sys.argv)
     app.setApplicationName("JCAST")
+    app.setWindowIcon(icon())
     window = MainWindow()
     window.show()
     return app.exec()

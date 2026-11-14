@@ -7,6 +7,7 @@ reports/2026-11-13-gui-cli-scope.md §3). No Qt here, so that the tests of the c
 """
 
 import functools
+import html
 import os
 import shlex
 import site
@@ -77,12 +78,18 @@ def _number(q: float) -> str:
 
 
 @functools.lru_cache
-def option_help(name: str) -> str:
-    """ The help of an argument or option of `jcast run`, as jcast run -h shows it: the GUI's tooltips """
+def option_help(name: str) -> tuple:
+    """ An argument or option of `jcast run`, as jcast run -h shows it: its spellings (an argument's name) and help """
     import typer.main
     from jcast import main
 
     for param in typer.main.get_command(main.app).commands['run'].params:
         if param.name == name:
-            return param.help
+            return param.metavar if param.param_type_name == 'argument' else ', '.join(param.opts), param.help
     raise KeyError(name)
+
+
+def option_tip(name: str, note: str = '') -> str:
+    """ The GUI's help line for a setting (a status tip, which it shows as rich text): option_help, and a note """
+    flags, text = option_help(name)
+    return f'<b>{html.escape(flags)}</b> — {html.escape(text)}' + (f'. {html.escape(note)}' if note else '')

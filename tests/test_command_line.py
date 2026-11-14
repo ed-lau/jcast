@@ -219,18 +219,41 @@ def test_help(capsys):
 UNIPROT = RMATS.parent / 'uniprot' / 'uniprot_sprot_human_isoforms_chr15_2026_04.fasta.gz'
 
 
-def test_progress(tmp_path, cache_dir, capsys):
-    """ run --progress writes each step as a line of JSON on stdout, the junctions about every 1 % """
+@pytest.mark.parametrize('extra, stages', [([], ['rmats', 'gtf', 'genome', 'outputs', 'done']),
+                                           (['-p', 2, '--uniprot', UNIPROT],
+                                            ['rmats', 'gtf', 'genome', 'uniprot', 'outputs', 'done'])])
+def test_progress(tmp_path, cache_dir, capsys, extra, stages):
+    """ run --progress writes each step as a line of JSON on stdout, the junctions about every 1 %, each with the last
+    junction done (PR 21): in file order, also with -p """
     sigterm = signal.getsignal(signal.SIGTERM)
     main.main([str(a) for a in [RMATS, HUMAN_GTF, HUMAN_GENOME, '-s', 'RI', 'SE', '-r', 100000, '-o', tmp_path / 'out',
+                                '--cache_dir', cache_dir, '--progress'] + extra])
+    steps = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    with open(tmp_path / 'out' / 'junctions.tsv') as fh:
+        rows = list(csv.DictReader(fh, delimiter='\t'))
+
+    assert [s['stage'] for s in steps if s['stage'] != 'junctions'] == stages
+    for splice_type, total in [('SE', 720), ('RI', 88)]:
+        reported = [s for s in steps if s.get('splice_type') == splice_type]
+        done = [s['done'] for s in reported]
+        assert done[0] == 0 and done[-1] == total and done == sorted(done) and len(done) < 110
+        assert 'gene' not in reported[0]
+        of_type = [r for r in rows if r['junction_type'] == splice_type]
+        for s in reported[1:]:
+            row = of_type[s['done'] - 1]
+            assert (s['junction'], s['gene'], s['gene_id']) == (row['junction_id'], row['gene_symbol'], row['gene_id'])
+    assert signal.getsignal(signal.SIGTERM) == sigterm    # the run's handler is removed after it
+
+
+def test_progress_at_least_every_progress_seconds(tmp_path, cache_dir, capsys, monkeypatch):
+    """ PR 21: a report at least every PROGRESS_SECONDS, also between two of the about 1 %: a slow run's progress
+    moves. With 0 s, every junction is reported """
+    monkeypatch.setattr(main, 'PROGRESS_SECONDS', 0)
+    main.main([str(a) for a in [RMATS, HUMAN_GTF, HUMAN_GENOME, '-s', 'RI', '-r', 100000, '-o', tmp_path / 'out',
                                 '--cache_dir', cache_dir, '--progress']])
     steps = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
 
-    assert [s['stage'] for s in steps if s['stage'] != 'junctions'] == ['rmats', 'gtf', 'genome', 'outputs', 'done']
-    for splice_type, total in [('SE', 720), ('RI', 88)]:
-        done = [s['done'] for s in steps if s.get('splice_type') == splice_type]
-        assert done[0] == 0 and done[-1] == total and done == sorted(done) and len(done) < 110
-    assert signal.getsignal(signal.SIGTERM) == sigterm    # the run's handler is removed after it
+    assert [s['done'] for s in steps if s['stage'] == 'junctions'] == list(range(89))
 
 
 @pytest.mark.slow
@@ -301,8 +324,13 @@ def test_the_gui_runs_its_own_jcast(tmp_path, monkeypatch):
 
 
 def test_option_help():
-    """ the GUI's tooltips are the help of jcast run -h """
-    assert command.option_help('read').startswith('the lowest read count for a junction to be translated')
+    """ the GUI's help line for a setting is its spellings and help in jcast run -h (PR 21: the help line, which
+    replaced the tooltips) """
+    flags, text = command.option_help('read')
+    assert flags == '-r, --read' and text.startswith('the lowest read count for a junction to be translated')
+    assert command.option_help('gtf_file') == ('GTF_FILE', 'path to Ensembl/Gencode GTF file')
+    tip = command.option_tip('splice_type', 'a <note>')
+    assert tip.startswith('<b>-s, --splice_type</b> — splice types to translate') and tip.endswith('. a &lt;note&gt;')
     with pytest.raises(KeyError):
         command.option_help('mask')
 

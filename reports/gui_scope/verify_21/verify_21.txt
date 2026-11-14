@@ -1,0 +1,18 @@
+before: fe65069
+after: 89bd730
+
+== chr15 runs (<inputs> -c --uniprot <args>): before and after
+-p 1: 14 output files, identical: yes; log identical but for timestamps, the output directory and the time taken: yes
+-p 1 --progress: 14 output files, identical: yes; log identical but for timestamps, the output directory and the time taken: yes
+  progress, before: 499 lines, 493 about junctions, at most 0.28 s apart; none names a junction
+  progress, after: 499 lines, 493 about junctions, at most 0.31 s apart; 488 name the last junction done, 488 of them the junction at that place in junctions.tsv
+-p 2: 14 output files, identical: yes; log identical but for timestamps, the output directory and the time taken: yes
+-p 2 --progress: 14 output files, identical: yes; log identical but for timestamps, the output directory and the time taken: yes
+  progress, before: 499 lines, 493 about junctions, at most 0.36 s apart; none names a junction
+  progress, after: 499 lines, 493 about junctions, at most 0.42 s apart; 488 name the last junction done, 488 of them the junction at that place in junctions.tsv
+
+== The packages built from the code after
+jcast-0.4.0-py3-none-any.whl: jcast/gui/icon.png 121,080 bytes
+jcast-0.4.0.tar.gz: jcast/gui/icon.png 121,080 bytes
+
+== Screenshots: setup_help.png, run_progress.png

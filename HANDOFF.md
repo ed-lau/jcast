@@ -18,10 +18,13 @@ has been run, and what to do next.
     records its hash;
   - `2f0e54c`: PR 20, `-m` without a fit falls back to `-r`, and the commit
     recording its hash;
-  - `12e0576`: PR 13, the GUI, and the commit recording its hash.
-- **Tests:** 226, all passing; 223 offline (`python -m pytest -q -m 'not network'`,
+  - `12e0576`: PR 13, the GUI, and the commit recording its hash;
+  - `PR21HASH`: PR 21, the GUI after the maintainer's first run on a Mac
+    (the help line, progress counts, the icon), and the commit recording
+    its hash.
+- **Tests:** 230, all passing; 227 offline (`python -m pytest -q -m 'not network'`,
   about 2.5 minutes). Run only the fast ones with `-m 'not slow'`. The
-  GUI's 15 (`tests/test_gui.py`) need PySide6 and pytest-qt
+  GUI's 17 (`tests/test_gui.py`) need PySide6 and pytest-qt
   (`pip install -e '.[test-gui]'`; `.conda` has both) and are skipped
   without them.
 - **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml): Python
@@ -33,7 +36,7 @@ has been run, and what to do next.
 - **Golden tests:** `tests/test_pipeline.py::test_chr15_golden` (GTF-only
   canonicals) and `tests/test_uniprot.py::test_chr15_uniprot`
   (`--uniprot`). Unchanged by PR 18.
-- **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18, 19, 20 and 13
+- **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18, 19, 20, 13 and 21
   ([REVIEW.md §9](REVIEW.md#v050-the-gui-and-the-command-line)): the
   whole of the v0.5.0 plan.
 
@@ -62,6 +65,16 @@ has been run, and what to do next.
   NumPy 2's warning about a module compiled with NumPy 1.x. The new
   `test-gui` extra adds `pytest-qt>=4.4`, which cannot go in `test`: with
   no Qt binding it stops every test run.
+- **PR 21** (report §13, `PR21HASH`). The maintainer ran the GUI on a Mac
+  and asked for three changes:
+  - a help line at the bottom of the window, from status tips: for a
+    setting, its help in `jcast run -h`;
+  - counts beside the progress bars, since the macOS style draws no text
+    in a bar, and the last junction done, which `--progress` now names
+    (with `-p`, the last one written). It also reports at least every
+    0.5 s;
+  - the fish logo as the icon (`jcast/gui/icon.png`, package data, made by
+    `reports/gui_scope/make_icon.py`).
 - **Verified** (`reports/gui_scope/verify_13.py`):
   - the pipeline changes leave the chr15 output and `model.pdf`
     identical;
@@ -257,6 +270,16 @@ has been run, and what to do next.
   - `reports/runs_audit/verify_6.py` parses the log format from before
     PR 16; use `reports/cli_checks/verify_12.py` or
     `reports/canonical_audit/verify_17.py` as a model instead.
+- **The GUI:**
+  - Offscreen (`QT_QPA_PLATFORM=offscreen`), Qt draws the Fusion style;
+    the macOS style draws nothing there, and on a Mac draws no text in a
+    progress bar. Screenshots taken offscreen are not what a Mac shows.
+  - `widget.grab().save(<png>)` takes a screenshot without a display.
+  - A help line comes from `setStatusTip`; `MainWindow.event` shows it.
+    Rich text: escape what goes in it (`command.option_tip`).
+  - Test another PySide6 without touching `.conda`:
+    `.conda/bin/python -m venv --system-site-packages <dir>`, then
+    `<dir>/bin/python -m pip install PySide6-Essentials==<version>`.
 - **Timings:** reading the GENCODE v50 GTF cache takes about 8 s, the
   genome about 35 s. In a whole-genome `-m -c --uniprot -p 16` run, the
   junction loop takes about 3 min, and the run about 4 min.

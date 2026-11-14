@@ -6,6 +6,7 @@ PySide6 or pytest-qt: pip install '.[test-gui]'
 """
 
 import argparse
+import csv
 import math
 import os
 from types import SimpleNamespace
@@ -16,12 +17,14 @@ os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 pytest.importorskip('PySide6.QtWidgets')
 pytest.importorskip('pytestqt')
 
-from PySide6.QtGui import QDesktopServices                          # noqa: E402
-from PySide6.QtWidgets import QMessageBox                           # noqa: E402
+from PySide6.QtCore import QEvent, QPointF                          # noqa: E402
+from PySide6.QtGui import QDesktopServices, QEnterEvent             # noqa: E402
+from PySide6.QtWidgets import QApplication, QMessageBox             # noqa: E402
 
 from jcast import main, model, outcomes                             # noqa: E402
 from jcast.gui import command                                       # noqa: E402
-from jcast.gui.main_window import MainWindow                        # noqa: E402
+from jcast.gui.app import icon                                      # noqa: E402
+from jcast.gui.main_window import HELP, MainWindow                  # noqa: E402
 from jcast.gui.results_page import SEARCH_MERGED, SEARCH_PSQ, read_output     # noqa: E402
 from jcast.gui.run_page import RunPage                              # noqa: E402
 from jcast.outcomes import COLUMNS, SPLICE_TYPES                    # noqa: E402
@@ -80,6 +83,35 @@ def _errors(window) -> dict:
 
 def test_four_pages(window):
     assert [window.tabs.tabText(i) for i in range(window.tabs.count())] == ['Setup', 'Model', 'Run', 'Results']
+
+
+def test_the_icon(window):
+    """ PR 21: the fish logo, shipped in the package (reports/gui_scope/make_icon.py) """
+    assert not window.windowIcon().isNull()
+    assert icon().pixmap(512, 512).size().toTuple() == (512, 512)
+
+
+def _hover(widget):
+    QApplication.sendEvent(widget, QEnterEvent(QPointF(1, 1), QPointF(1, 1), QPointF(1, 1)))
+
+
+def test_the_help_line(window, tmp_path):
+    """ PR 21: what the mouse is over is explained under the pages: a setting by its help in jcast run -h """
+    assert window.help.text() == HELP
+    _hover(window.setup.gtf_file)
+    assert window.help.text() == '<b>GTF_FILE</b> — path to Ensembl/Gencode GTF file'
+    QApplication.sendEvent(window.setup.gtf_file, QEvent(QEvent.Leave))
+    assert window.help.text() == HELP
+
+    _hover(window.setup.processes)
+    assert window.help.text().startswith('<b>-p, --processes</b> — number of processes')
+    _fill(window, tmp_path / 'out', rmats=_folder_with(tmp_path, 'SE'))
+    _hover(window.setup.splice_types['MXE'])
+    assert window.help.text().endswith('MXE.MATS.JC.txt is not in the rMATS folder: MXE cannot be selected')
+    _hover(window.model.canvas)
+    assert window.help.text().startswith('Click or drag on the plot')
+    _hover(window.run.stop)
+    assert window.help.text().startswith('Stop the run')
 
 
 # ---- Setup ----
@@ -264,6 +296,12 @@ def test_a_run(window, qtbot, tmp_path, monkeypatch, cache_dir):
     assert finished.args == [str(tmp_path / 'gui'), 0]
     assert window.run.status.text().startswith('Finished in')
     assert {t: (b.value(), b.maximum()) for t, b in window.run.bars.items()} == {'RI': (88, 88), 'A5SS': (71, 71)}
+    assert {t: c.text() for t, c in window.run.counts.items()} == {'RI': '88 of 88 (100%)', 'A5SS': '71 of 71 (100%)'}
+    # the last junction done: the last A5SS row of junctions.tsv
+    with open(tmp_path / 'gui' / 'junctions.tsv') as fh:
+        row = list(csv.DictReader(fh, delimiter='\t'))[-1]
+    assert window.run.last.text() == f'Last junction done: A5SS {row["junction_id"]}, gene {row["gene_symbol"]} ' \
+                                     f'({row["gene_id"]})'
 
     qtbot.waitUntil(lambda: window.results.shown is not None, timeout=30000)
     assert window.tabs.currentWidget() is window.results

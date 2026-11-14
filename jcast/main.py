@@ -276,7 +276,8 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
         # the output and the log are those of a single process (reports/2026-11-12-parallel-audit.md) ----
         if pool is not None:
             results = pool.imap(_translate_in_worker, junctions, chunksize=JUNCTIONS_PER_TASK)
-            for jx, result in _each(zip(junctions, results), len(junctions), splice_type, progress):
+            for jx, result in _each(zip(junctions, results), len(junctions), splice_type, progress,
+                                    junction=lambda item: item[0]):
                 _log_start(jx, logger)
                 fate, records, found = _write_worker_result(result, logger, uniprot)
                 _finish(jx, fate, records, found, table, failed, logger)
@@ -291,20 +292,33 @@ def _translate_all(args, logger, rmats_results, gtf, genome, min_count, uniprot,
     return failed
 
 
-def _each(items, total: int, splice_type: str, progress):
+def _each(items, total: int, splice_type: str, progress, junction=lambda item: item):
     """
-    The items, with a progress bar on the console; or with run --progress, about each 1 % of them reported to progress
-    instead, as {'stage': 'junctions', 'splice_type', 'done', 'total'}
+    The items, with a progress bar on the console; or with run --progress, reported to progress instead, about each 1 %
+    of them and at least every PROGRESS_SECONDS, as {'stage': 'junctions', 'splice_type', 'done', 'total'}; once a
+    junction is done, also the last one done, in file order (with -p too: the last one written), as its rMATS id
+    ('junction'), 'gene' and 'gene_id'. 2026-11-14 about each 1 % only, without the junction
+    (reports/2026-11-13-gui-cli-scope.md §13)
+
+    :param junction: the item's Junction
     """
     if progress is _no_progress:
         yield from tqdm.tqdm(items, total=total, desc='Processing {0} Junctions'.format(splice_type))
         return
     step = max(1, total // 100)
     progress({'stage': 'junctions', 'splice_type': splice_type, 'done': 0, 'total': total})
+    reported = time.monotonic()
     for done, item in enumerate(items, 1):
         yield item
-        if done % step == 0 or done == total:
-            progress({'stage': 'junctions', 'splice_type': splice_type, 'done': done, 'total': total})
+        if done % step == 0 or done == total or time.monotonic() - reported >= PROGRESS_SECONDS:
+            jx = junction(item)
+            progress({'stage': 'junctions', 'splice_type': splice_type, 'done': done, 'total': total,
+                      'junction': jx.name, 'gene': jx.gene_symbol, 'gene_id': jx.gene_id})
+            reported = time.monotonic()
+
+
+# run --progress: the longest time between two reports of the junctions done
+PROGRESS_SECONDS = 0.5
 
 
 def _log_start(junction, logger) -> None:

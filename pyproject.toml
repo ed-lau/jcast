@@ -65,6 +65,10 @@ version = {attr = "jcast.__version__"}
 [tool.setuptools.packages.find]
 include = ["jcast", "jcast.*"]
 
+# the GUI's icon (reports/gui_scope/make_icon.py)
+[tool.setuptools.package-data]
+"jcast.gui" = ["icon.png"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 markers = [

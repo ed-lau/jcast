@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (QCheckBox, QDoubleSpinBox, QFileDialog, QFormLayo
                                QLineEdit, QPushButton, QScrollArea, QSpinBox, QVBoxLayout, QWidget)
 
 from jcast import main
-from jcast.gui.command import option_help
+from jcast.gui.command import option_tip
 from jcast.junctions import rmats_path
 from jcast.outcomes import SPLICE_TYPES
 
@@ -82,6 +82,7 @@ class SetupPage(QWidget):
             box.setChecked(True)
         self.q_lo, self.q_hi = QDoubleSpinBox(), QDoubleSpinBox()
         for spin, value in ((self.q_lo, 0), (self.q_hi, 1)):
+            spin.setStatusTip(option_tip('qvalue'))
             spin.setRange(0, 1)
             spin.setDecimals(4)
             spin.setSingleStep(0.01)
@@ -117,13 +118,13 @@ class SetupPage(QWidget):
 
         canonicals = QFormLayout()
         canonicals.addRow('', self.canonical)
-        self.canonical.setToolTip(option_help('canonical'))
+        self.canonical.setStatusTip(option_tip('canonical'))
         self._row(canonicals, 'UniProt FASTA (--uniprot)', self.uniprot, 'uniprot')
 
         the_run = QFormLayout()
         self._row(the_run, 'Processes (-p)', self.processes, 'processes')
         the_run.addRow('', self.verbose)
-        self.verbose.setToolTip(option_help('verbose'))
+        self.verbose.setStatusTip(option_tip('verbose'))
 
         page = QWidget()
         column = QVBoxLayout(page)
@@ -154,7 +155,7 @@ class SetupPage(QWidget):
         self.refresh()
 
     def _row(self, form: QFormLayout, label: str, field, name: str) -> None:
-        """ A field, with its problems under it, and the command line's help as its tooltip """
+        """ A field, with its problems under it; the command line's help is its status tip, and its label's """
         error = QLabel()
         error.setStyleSheet(ERROR_STYLE)
         error.setWordWrap(True)
@@ -163,13 +164,14 @@ class SetupPage(QWidget):
         cell = QVBoxLayout()
         cell.setSpacing(2)
         if isinstance(field, QWidget):
+            field.setStatusTip(option_tip(name))
             cell.addWidget(field)
         else:
             cell.addLayout(field)
         cell.addWidget(error)
-        tooltip = QLabel(label)
-        tooltip.setToolTip(option_help(name))
-        form.addRow(tooltip, cell)
+        title = QLabel(label)
+        title.setStatusTip(option_tip(name))
+        form.addRow(title, cell)
 
     def arguments(self) -> argparse.Namespace:
         """ The run's arguments, as run_jcast and main.validate take them, with the default cutoff: -r 1 """
@@ -212,7 +214,9 @@ class SetupPage(QWidget):
         for t, box in self.splice_types.items():
             present = not os.path.isdir(folder) or os.path.isfile(rmats_path(folder, t))
             box.setEnabled(present)
-            box.setToolTip('' if present else f'{os.path.basename(rmats_path(folder, t))} is not in the rMATS folder')
+            box.setStatusTip(option_tip('splice_type') if present else option_tip(
+                'splice_type', f'{os.path.basename(rmats_path(folder, t))} is not in the rMATS folder: {t} cannot be '
+                               f'selected'))
         self.processes.setEnabled(bool(self.uniprot.text()))
         if not self.uniprot.text():
             self.processes.setValue(1)

@@ -63,6 +63,19 @@ For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
   changes. The `gui` extra installs `PySide6-Essentials>=6.7` instead of
   the whole of PySide6; the new `test-gui` extra adds pytest-qt for the
   GUI's tests, which CI runs on macOS without a display.
+- **The GUI after its first run on a Mac** (PR 21;
+  [scope report §13](reports/2026-11-13-gui-cli-scope.md#13-the-gui-after-its-first-run-on-a-mac-pr-21)):
+  - a help line at the bottom of the window explains what the mouse is
+    over: for a setting, its spellings and its help from `jcast run -h`.
+    It replaces the tooltips, which were on the labels only.
+  - The Run page shows each splice type's count beside its progress bar
+    (the macOS style draws no text in a bar), and the last junction done,
+    with its gene. `jcast run --progress` names that junction (with `-p`,
+    the last one written), and reports at least every 0.5 s. Before, it
+    reported every 1 % of a splice type's junctions, which on a whole
+    genome was several thousand junctions.
+  - The JCAST logo (the fish) is the GUI's icon, in its windows and the
+    Dock.
 - For the GUI (PR 19;
   [scope report §10](reports/2026-11-13-gui-cli-scope.md#10-implementation-and-verification-pr-19-ec1068a)):
   - `model.preview`: the `-m` model of an rMATS folder, as a run fits it,

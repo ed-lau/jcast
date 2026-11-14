@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (QButtonGroup, QHBoxLayout, QHeaderView, QLabel, Q
                                QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
 
 from jcast import model
-from jcast.gui.command import option_help
+from jcast.gui.command import option_tip
 from jcast.gui.tasks import Background
 from jcast.outcomes import SPLICE_TYPES
 
@@ -45,18 +45,21 @@ class ModelPage(QWidget):
         self.figure = Figure(figsize=(8, 3.2), constrained_layout=True)
         self.canvas = FigureCanvasQTAgg(self.figure)
         self.canvas.setMinimumHeight(260)
+        self.canvas.setStatusTip('Click or drag on the plot to set a read count cutoff of your own (-r). The plot: the '
+                                 'read counts of every junction in the rMATS folder, the -m model fitted to them '
+                                 '(trace and expressed components, and their sum), and the cutoff.')
         self.canvas.mpl_connect('button_press_event', self._clicked)
         self.canvas.mpl_connect('motion_notify_event', self._clicked)
 
         self.use_read = QRadioButton('Read count cutoff (-r)')
-        self.use_read.setToolTip(option_help('read'))
+        self.use_read.setStatusTip(option_tip('read'))
         self.read = QSpinBox()
         self.read.setRange(0, 10 ** 9)
         self.read.setValue(1)
         self.read.setMinimumWidth(110)
-        self.read.setToolTip(option_help('read'))
+        self.read.setStatusTip(option_tip('read'))
         self.use_model = QRadioButton("The model's cutoff (-m)")
-        self.use_model.setToolTip(option_help('model'))
+        self.use_model.setStatusTip(option_tip('model'))
         self.use_model.setEnabled(False)
         options = QButtonGroup(self)
         options.addButton(self.use_read)
@@ -71,6 +74,9 @@ class ModelPage(QWidget):
         self.table.verticalHeader().setDefaultSectionSize(self.table.fontMetrics().height() + 8)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.setStatusTip('The junctions of each splice type selected on the Setup page: those whose read count '
+                                'is below the cutoff, those whose FDR is outside -q, and those kept, which the run '
+                                'translates.')
         self.table_note = QLabel('Junctions of the splice types selected on the Setup page. Those kept are translated; '
                                  'the others are skipped (skipped_low_count and skipped_fdr in junctions.tsv).')
         self.table_note.setWordWrap(True)

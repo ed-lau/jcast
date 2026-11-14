@@ -93,6 +93,8 @@ class ResultsPage(QWidget):
         self.path = QLabel('No output folder open.')
         self.path.setTextInteractionFlags(Qt.TextSelectableByMouse)
         choose = QPushButton('Open an output folder…')
+        choose.setStatusTip('Show the summary of another JCAST output folder, also that of a run made on the command '
+                            'line.')
         choose.clicked.connect(self._choose)
         self.status = QLabel()
         self.status.setWordWrap(True)
@@ -100,10 +102,17 @@ class ResultsPage(QWidget):
         self.search.setWordWrap(True)
 
         self.fates = self._table()
+        self.fates.setStatusTip('Each junction of junctions.tsv, by its fate and splice type: the summary at the end of '
+                                'the log. T1, T1_alt_terminus, T2 and T4 wrote records; fail and exception did not; the '
+                                'skipped ones were not translated.')
         self.records = self._table(['File', 'Records'])
+        self.records.setStatusTip('The records in each output FASTA file. Double-click a file to open it.')
         self.records.itemDoubleClicked.connect(lambda item: self._open(self.records.item(item.row(), 0).text()))
         self.failed = self._table(['Splice type', 'rMATS ID', 'Gene', 'Gene ID', 'Exception'])
+        self.failed.setStatusTip('The junctions that failed with an exception (fate exception): they wrote nothing. '
+                                 'Their tracebacks are in the log.')
         self.messages = QPlainTextEdit()
+        self.messages.setStatusTip("The log's warnings and errors, each by its first line.")
         self.messages.setReadOnly(True)
         self.details = QTabWidget()
         self.details.addTab(self.messages, 'Warnings and errors')
@@ -111,9 +120,16 @@ class ResultsPage(QWidget):
 
         self.buttons = {}
         row = QHBoxLayout()
-        for name, label in (('', 'Open the folder'), (LOG, 'Open the log'), (outcomes.JUNCTIONS_FILE,
-                            'Open junctions.tsv'), (MODEL, 'Open model.pdf')):
+        for name, label, tip in (
+                ('', 'Open the folder', 'Open the output folder in the Finder or the file manager.'),
+                (LOG, 'Open the log', "Open logfile.log: the run's settings, its inputs, warnings and errors, and the "
+                                      "summary."),
+                (outcomes.JUNCTIONS_FILE, 'Open junctions.tsv', 'Open junctions.tsv: a row per junction, with its '
+                                                                'fate, read count, FDR, canonical and the files of its '
+                                                                'records. It opens in R or a spreadsheet.'),
+                (MODEL, 'Open model.pdf', 'Open model.pdf: the -m model of the run (a run with -m only).')):
             button = QPushButton(label)
+            button.setStatusTip(tip)
             button.clicked.connect(lambda checked=False, name=name: self._open(name))
             self.buttons[name] = button
             row.addWidget(button)

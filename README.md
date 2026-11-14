@@ -287,12 +287,14 @@ Leave a core or two for the system: `-p` set to the number of cores minus
 
 ## The graphical interface
 
-`jcast gui` opens a window with four pages (it needs `pip install 'jcast[gui]'`):
+`jcast gui` opens a window with four pages (it needs `pip install 'jcast[gui]'`).
+A line at the bottom of the window explains what the mouse is over; for a
+setting, that is its help from `jcast run -h`.
 
 1. **Setup.** The rMATS folder, GTF, genome and output folder, and the
    options of `jcast run`. The command line's checks are shown under each
-   field, and each field's tooltip is its help from `jcast run -h`. Splice
-   types whose rMATS file is not in the folder cannot be selected.
+   field. Splice types whose rMATS file is not in the folder cannot be
+   selected.
 2. **Model.** The `-m` model of the rMATS folder, before any run: the read
    count histogram, the fit and its cutoff, and how many junctions of each
    splice type the cutoff and `-q` keep. It needs only the rMATS files and
@@ -302,8 +304,8 @@ Leave a core or two for the system: `-p` set to the number of cores minus
 3. **Run.** The command line of the run, which you can copy, and Start and
    Stop. The GUI runs that command (`python -m jcast run …`) in a separate
    process, so `-p` works as on the command line and the log is the same.
-   It shows each splice type's progress, and the warnings and errors as
-   they come. A stopped run ends cleanly, its output incomplete; the page
+   It shows how many junctions of each splice type are done, the last
+   junction done and its gene, and the warnings and errors as they come. A stopped run ends cleanly, its output incomplete; the page
    offers to delete that output.
 4. **Results.** The summary of an output folder: this run's, or any
    earlier run's, also one made on the command line. Junctions by fate and

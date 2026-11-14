@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. **PR 13 implemented in `12e0576`** (§12): the GUI runs JCAST; no output change. |
+| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. **PR 13 implemented in `12e0576`** (§12): the GUI runs JCAST; no output change. **PR 21** (§13): a help line, progress counts and the last junction done, the logo. |
 | **Question** | What should the v0.5.0 GUI do: start a run only, or also show results, and which? How is it launched? What does moving the command line to Typer change for users? |
 | **Reproduce** | `python reports/gui_scope/scope_evidence.py --work <scratch> [--python <interpreter for the venvs>] [--rmats <whole-genome rMATS folder>]` (≈ 2 min; needs PyPI) |
 | **Evidence** (code at `f37faf9`) | [gui_scope/scope_evidence/scope_evidence.txt](gui_scope/scope_evidence/scope_evidence.txt) |
@@ -11,6 +11,7 @@
 | **PR 19 verification** | `python reports/gui_scope/verify_19.py --before <checkout> --after <checkout> [--rmats <whole-genome rMATS folder>]` (≈ 1.5 min); [gui_scope/verify_19/verify_19.txt](gui_scope/verify_19/verify_19.txt) |
 | **PR 20 verification** | `python reports/gui_scope/verify_20.py --before <checkout> --after <checkout> [--earlier <checkout before PR 19>]` (≈ 1 min); [gui_scope/verify_20/verify_20.txt](gui_scope/verify_20/verify_20.txt) |
 | **PR 13 verification** | `python reports/gui_scope/verify_13.py --before <checkout> --after <checkout> [--rmats <whole-genome rMATS folder>] [--output <whole-genome output folder>]` (≈ 3 min; needs PySide6); [gui_scope/verify_13/verify_13.txt](gui_scope/verify_13/verify_13.txt) |
+| **PR 21 verification** | `python reports/gui_scope/verify_21.py --before <checkout> --after <checkout> [--build-python <Python with build>]` (≈ 1.5 min; needs PySide6); [gui_scope/verify_21/verify_21.txt](gui_scope/verify_21/verify_21.txt) |
 
 ## 1. Summary
 
@@ -718,3 +719,115 @@ The Results page read the whole-genome output folder of 2026-11-13 (`-m`,
   `QProcess.terminate` does not stop a console program; Stop kills the
   run after 15 s, so its log does not say that it stopped.
 - **Screenshots in the README or on the website.**
+
+## 13. The GUI after its first run on a Mac (PR 21)
+
+### 13.1 Requested (2026-11-14)
+
+The maintainer ran the GUI on a Mac and asked for three changes before
+v0.5.0 is pushed:
+
+1. The settings' help shown on hover, perhaps in a fixed place at the
+   bottom of the window.
+2. More than a filling bar on the Run page, such as counts or the gene
+   being translated, if that works with `-p`.
+3. The JCAST logo shipped with the GUI.
+
+The bars did show counts in the screenshots of §12.2, but those were
+drawn offscreen in Qt's Fusion style. **The macOS style draws no text in
+a progress bar**, so on a Mac the bar was all there was.
+
+### 13.2 What PR 21 changes
+
+**The help line** ([main_window.py](../jcast/gui/main_window.py)).
+- A panel under the pages shows the help of what the mouse is over: a
+  setting, a button, the plot or a table. Its text is the widget's status
+  tip, which Qt sends to the window when the mouse enters or leaves the
+  widget. The window shows it in the panel, not in the status bar, which
+  has room for one line only.
+- For a setting, the help line is its spellings and its help in
+  `jcast run -h` (`command.option_tip`), for example
+  **-p, --processes** — number of processes to translate junctions in; ….
+- A splice type that cannot be selected says why: its rMATS file is not
+  in the folder.
+- The tooltips of PR 13 are gone. They were on the fields' labels only,
+  not on the fields.
+
+**Progress** ([run_page.py](../jcast/gui/run_page.py),
+`main._each`).
+- Each splice type's count is now beside its bar, e.g.
+  "203 of 720 (28%)", and a line under the bars names the last junction
+  done: "Last junction done: SE 6211, gene BNIP2 (ENSG00000140299)".
+- `jcast run --progress` adds the junction (`junction`, its rMATS ID;
+  `gene`; `gene_id`) to each report after a junction is done.
+- **With `-p`**, the run writes the workers' results in file order, so
+  the last junction written is well defined: the line names it. The
+  workers may already be further on.
+- Reports come about every 1 % of a splice type's junctions, as before,
+  and now also at least every 0.5 s (`PROGRESS_SECONDS`). In the
+  maintainer's whole-genome run of 2026-11-13 (`-m -c --uniprot -p 8`;
+  8 min 20 s translating 599,644 junctions), 1 % of the SE junctions was
+  2,602 junctions, about 2 s apart; with `-p 1`, several times longer.
+- The console's progress bar (tqdm) and the output do not change.
+
+**The icon** ([jcast/gui/icon.png](../jcast/gui/icon.png), 512 × 512,
+121 kB).
+- It is the website's fish logo, its transparent margins trimmed and
+  centred on a square
+  ([make_icon.py](gui_scope/make_icon.py) makes it again).
+- The GUI sets it as the application's icon (on macOS, the Dock's) and
+  the window's.
+- It ships in the package as package data (`[tool.setuptools.package-data]`).
+- Of the two logos offered, the fish, since it is close to square once
+  trimmed. The wordmark (`jcast.png`) is twice as wide as it is high.
+
+**Tests.**
+- New:
+  - the help line (`test_the_help_line`);
+  - the icon (`test_the_icon`);
+  - the counts and the last junction after a run (in `test_a_run`);
+  - the junction named in each progress report, with `-p 1` and `-p 2`
+    (`test_progress`);
+  - a report at least every `PROGRESS_SECONDS`
+    (`test_progress_at_least_every_progress_seconds`).
+- Changed: `test_option_help`.
+- All of them fail on the code before (`fe65069`). `tests/test_gui.py`
+  fails there as it is imported: the help line and the icon do not exist.
+
+### 13.3 Verification
+
+`verify_21.py` compares the code before (`fe65069`) with the code after:
+`89bd730`, a snapshot of the working tree whose code is PR 21's. Each
+process runs from a scratch directory
+([verify_21.txt](gui_scope/verify_21/verify_21.txt)).
+
+**No output change.** chr15 runs (`-c --uniprot`), with `-p 1` and with
+`-p 2`, each without and with `--progress`: the output files (14) are
+byte-identical, and the logs identical but for timestamps, the output
+directory and the time taken.
+
+**The progress lines,** each of the four runs with `--progress`:
+- 499 lines, 493 of them about junctions, before and after.
+- After, 488 name the last junction done: all but each splice type's
+  first report, at 0 junctions done. Each of the 488 names the junction
+  at that place in its splice type's rows of `junctions.tsv`, with `-p 1`
+  and with `-p 2`.
+- The longest time between two lines: 0.28 and 0.36 s before (`-p 1`,
+  `-p 2`), 0.31 and 0.42 s after. On chr15, 1 % of a splice type comes
+  sooner than 0.5 s, so the new rule adds no line there. A test sets the
+  interval to 0 s and gets a line for every junction.
+
+**The packages** built from the code after hold `jcast/gui/icon.png`
+(121,080 bytes): the wheel and the sdist.
+
+**Screenshots,** taken offscreen, in Qt's Fusion style:
+- [the Setup page](gui_scope/verify_21/setup_help.png), the help line
+  showing `--uniprot`;
+- [the Run page during a run](gui_scope/verify_21/run_progress.png):
+  "210 of 720 (29%)" beside the SE bar, and "Last junction done: SE 6230,
+  gene ADAM10 (ENSG00000137845)".
+
+On a Mac the bars have no text of their own, so the counts beside them
+are what shows; neither screenshot shows the macOS style.
+
+**Tests:** 230 pass (227 offline).
