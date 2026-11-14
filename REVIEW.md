@@ -883,7 +883,7 @@ In this order:
 | 18 | ✅ The command line on Typer (`typer>=0.26,<1`): `jcast run` and `jcast gui`, with `jcast RMATS GTF GENOME …` still running; `-s SE MXE` still accepted; `-h`, `--version`, grouped help; one `validate()` for the command line and the GUI; `--mask` removed. No output change, but for the log's `Arguments` line ([scope report §9](reports/2026-11-13-gui-cli-scope.md#9-implementation-and-verification-pr-18-5479ee3); `5479ee3`) | UX | Done 2026-11-13 |
 | 19 | ✅ What the GUI needs from the pipeline: the model plot on a supplied `Axes`; a model preview on the run's code; read counts from the tables' columns (20.7 of the preview's 26.7 s on the whole genome); a hidden progress option; a clean end on the stop signal; the run summary from `junctions.tsv`. No output change ([scope report §10](reports/2026-11-13-gui-cli-scope.md#10-implementation-and-verification-pr-19-ec1068a); counts 20.6 s → 1.7 s; `ec1068a`) | GUI support | Done 2026-11-13 |
 | 20 | ✅ `-m` without a fit, for any reason, warns and falls back to `-r` (decided 2026-11-13): rMATS files without junctions raised `ZeroDivisionError`; the cutoff's log line names `-r` when it falls back ([scope report §11](reports/2026-11-13-gui-cli-scope.md#11--m-without-a-fit-falls-back-to--r-pr-20); `2f0e54c`) | Robustness | Done 2026-11-13 |
-| 13 | ✅ The GUI: Setup (the command line's checks under each field), Model (the `-m` model before the run; the cutoff set there), Run (the command line in a child process, `python -P -m jcast run …`, `-p` kept; Stop; deleting a stopped run's output), Results (the summary of any output folder); 15 pytest-qt tests and a CI job on macOS; the `gui` extra on `PySide6-Essentials>=6.7`. No output change ([scope report §12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui)). Not in v0.5.0: a junction browser (v0.5.x), standalone bundles | New surface | Done 2026-11-14 |
+| 13 | ✅ The GUI: Setup (the command line's checks under each field), Model (the `-m` model before the run; the cutoff set there), Run (the command line in a child process, `python -P -m jcast run …`, `-p` kept; Stop; deleting a stopped run's output), Results (the summary of any output folder); 15 pytest-qt tests and a CI job on macOS; the `gui` extra on `PySide6-Essentials>=6.7`. No output change ([scope report §12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui-12e0576); `12e0576`). Not in v0.5.0: a junction browser (v0.5.x), standalone bundles | New surface | Done 2026-11-14 |
 
 ### Deferred to v0.5.x
 
@@ -914,7 +914,7 @@ In this order:
 ## 10. GUI plan — notes
 
 **Done in PR 13** (2026-11-14;
-[scope report §12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui)).
+[scope report §12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui-12e0576); `12e0576`).
 
 **Decided on 2026-11-13** ([GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md)),
 replacing the plan below where they differ:

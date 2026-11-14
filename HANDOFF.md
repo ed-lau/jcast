@@ -18,7 +18,7 @@ has been run, and what to do next.
     records its hash;
   - `2f0e54c`: PR 20, `-m` without a fit falls back to `-r`, and the commit
     recording its hash;
-  - `PR13HASH`: PR 13, the GUI, and the commit recording its hash.
+  - `12e0576`: PR 13, the GUI, and the commit recording its hash.
 - **Tests:** 226, all passing; 223 offline (`python -m pytest -q -m 'not network'`,
   about 2.5 minutes). Run only the fast ones with `-m 'not slow'`. The
   GUI's 15 (`tests/test_gui.py`) need PySide6 and pytest-qt
@@ -39,7 +39,7 @@ has been run, and what to do next.
 
 ## The session of 2026-11-14
 
-- **PR 13, the GUI** (report §12, `PR13HASH`). Four pages in
+- **PR 13, the GUI** (report §12, `12e0576`). Four pages in
   [jcast/gui/](jcast/gui/), 1,220 lines:
   - Setup checks with `main.validate`;
   - Model fits `model.preview` in a background thread (`tasks.Background`);

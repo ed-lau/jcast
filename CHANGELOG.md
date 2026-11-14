@@ -51,7 +51,7 @@ For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
 ### Added
 
 - **The GUI runs JCAST** (PR 13;
-  [scope report §12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui)).
+  [scope report §12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui-12e0576)).
   `jcast gui` opens four pages: Setup, the run's settings, with the command
   line's checks under each field; Model, the `-m` model of the rMATS folder
   before the run, where the cutoff is chosen (`-m`, or `-r` in a number

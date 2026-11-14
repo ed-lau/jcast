@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. **PR 13 implemented** (§12): the GUI runs JCAST; no output change. |
+| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. **PR 13 implemented in `12e0576`** (§12): the GUI runs JCAST; no output change. |
 | **Question** | What should the v0.5.0 GUI do: start a run only, or also show results, and which? How is it launched? What does moving the command line to Typer change for users? |
 | **Reproduce** | `python reports/gui_scope/scope_evidence.py --work <scratch> [--python <interpreter for the venvs>] [--rmats <whole-genome rMATS folder>]` (≈ 2 min; needs PyPI) |
 | **Evidence** (code at `f37faf9`) | [gui_scope/scope_evidence/scope_evidence.txt](gui_scope/scope_evidence/scope_evidence.txt) |
@@ -513,7 +513,7 @@ this change of behaviour went unnoticed until this verification.
 The whole suite passes: 197 tests offline (187 before PR 20, and the 10
 new), 200 with the three that query the UniProt API.
 
-## 12. Implementation and verification: PR 13, the GUI
+## 12. Implementation and verification: PR 13, the GUI (`12e0576`)
 
 ### 12.1 What PR 13 changes
 
@@ -638,7 +638,7 @@ check:
 ### 12.2 Verification
 
 `verify_13.py` compares the code before (`d9494a3`) with the code after:
-`905f359`, a snapshot of the working tree whose code is PR 13's. Each
+`905f359`, a snapshot of the working tree whose code is `12e0576`'s. Each
 process runs from a scratch directory, and the GUI offscreen
 ([verify_13.txt](gui_scope/verify_13/verify_13.txt)).
 
