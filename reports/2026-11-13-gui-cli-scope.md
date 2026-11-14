@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented** (§9): no output change. |
+| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9): no output change. |
 | **Question** | What should the v0.5.0 GUI do: start a run only, or also show results, and which? How is it launched? What does moving the command line to Typer change for users? |
 | **Reproduce** | `python reports/gui_scope/scope_evidence.py --work <scratch> [--python <interpreter for the venvs>] [--rmats <whole-genome rMATS folder>]` (≈ 2 min; needs PyPI) |
 | **Evidence** (code at `f37faf9`) | [gui_scope/scope_evidence/scope_evidence.txt](gui_scope/scope_evidence/scope_evidence.txt) |
@@ -247,7 +247,7 @@ before and after, comparing output files, cutoffs, logs and exit statuses
 Small items for v0.5.0: PyPI's trusted publishing; deleting the merged
 `v0.4.0-hardening` branch.
 
-## 9. Implementation and verification: PR 18
+## 9. Implementation and verification: PR 18 (`5479ee3`)
 
 ### 9.1 What PR 18 changes
 
@@ -291,7 +291,8 @@ Small items for v0.5.0: PyPI's trusted publishing; deleting the merged
 ### 9.2 Verification
 
 `verify_18.py` ran the chr15 test set with the code before (`fff9981`)
-and after, each frozen in a worktree
+and after (`72dfab5`, a snapshot of the working tree whose `jcast/` and
+`tests/` are those of `5479ee3`), each frozen in a worktree
 ([verify_18.txt](cli_checks/verify_18/verify_18.txt)):
 
 | Run (`<inputs>` = rMATS, GTF, genome, `-c --uniprot`) | Output files | Cutoff | Log |

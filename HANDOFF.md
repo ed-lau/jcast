@@ -1,76 +1,55 @@
-# Handoff — after the v0.4.0 release (2026-11-13)
+# Handoff — v0.5.0 under way (2026-11-13)
 
 For the next working session. It covers where things stand, how the work
 has been run, and what to do next.
 
 ## State
 
-- **Released:** v0.4.0, on 2026-11-13.
-  - PR #29 merged `v0.4.0-hardening` into `main` with a merge commit,
-    `e4d9117`, which the tag `v0.4.0` points to.
-  - GitHub release "JCAST v.0.4.0".
-  - PyPI 0.4.0: the wheel and the sdist built from `258d8b3` (sha256
-    `97edb11d…` and `bd5a4b4c…`), whose tree is the tag's. They were
-    uploaded three minutes before the merge, with no effect on the
-    contents.
-- **Branch:** `docs-after-0.4.0`, from `main`, with the documentation
-  changes made after the release (below). Pushed, with a PR into `main`
-  (`gh pr list`). The website updates when it is merged. Start v0.5.0 work
-  on a new branch from `main` after that merge.
-- **Tests:** all 153 pass in about 2.5 minutes (`python -m pytest -q`; run
-  only the fast ones with `-m 'not slow'`, offline with `-m 'not network'`).
-- **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml) runs on
-  every push and pull request: Python 3.11 to 3.15 on Linux and macOS, the
-  lowest dependency versions, and the installed wheel. Green since its
-  first run (43455685837).
-- **Golden tests:**
-  - `tests/test_pipeline.py::test_chr15_golden` (GTF-only canonicals). Its
-    `read=1` keeps every junction since PR 6.
-  - `tests/test_uniprot.py::test_chr15_uniprot` (`--uniprot`, on the
-    Swiss-Prot subset in `tests/data/uniprot/`).
-- **Done:** roadmap PRs 0–12 and 14–17 ([REVIEW.md §9](REVIEW.md#9-v040-hardening-roadmap-revised)).
-  Every output-changing PR has an audit, an evidence folder and a
-  verification script, indexed in [reports/README.md](reports/README.md)
-  with its decisions and commit hashes.
+- **Released:** v0.4.0, on 2026-11-13 (PR #29, merge commit `e4d9117`,
+  tag `v0.4.0`, GitHub release, PyPI 0.4.0 built from `258d8b3`). The
+  website was updated for it in PR #30 (merged, `f37faf9`).
+- **Branch:** `v0.5.0-gui`, from `main` at `f37faf9`. **Not pushed.** It
+  collects the v0.5.0 PRs, as `v0.4.0-hardening` did for v0.4.0:
+  - `fff9981`: the [GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md),
+    with the maintainer's decisions (§7) and its evidence;
+  - `5479ee3`: PR 18, the command line on Typer;
+  - the commit recording that hash.
+- **Tests:** 165, all passing; 162 offline (`python -m pytest -q -m 'not network'`,
+  about 1.5 minutes). Run only the fast ones with `-m 'not slow'`.
+- **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml): Python
+  3.11 to 3.15 on Linux and macOS, the lowest dependency versions, and the
+  installed wheel. It has not run on this branch yet (not pushed); the
+  lowest-versions job will be the first to run Typer 0.26.0 on Linux.
+- **Golden tests:** `tests/test_pipeline.py::test_chr15_golden` (GTF-only
+  canonicals) and `tests/test_uniprot.py::test_chr15_uniprot`
+  (`--uniprot`). Unchanged by PR 18.
+- **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18
+  ([REVIEW.md §9](REVIEW.md#v050-the-gui-and-the-command-line)).
 
-## The session of 2026-11-13
+## The session of 2026-11-13 (evening)
 
-- **PR 10, packaging** (`4a039a9`; [packaging check](reports/2026-11-13-packaging-check.md)):
-  - The metadata is in `pyproject.toml`; `setup.py` and `requirements.txt`
-    are gone. The version is set once, in `jcast/__init__.py`.
-  - Python ≥ 3.11. The tests pass on 3.11 to 3.15 with the newest
-    dependencies, and on 3.11 with the lowest the bounds allow. The
-    numpy, scipy, matplotlib and requests floors were raised to versions
-    that install and work.
-  - The wheel installs only `jcast` (60 kB). The sdist holds the tests and
-    their data (60 MB).
-- **PR 11, CI** (`dee41b6`): as above, 12 jobs.
-- **PR 12, command-line checks** (`d84f49d`; [report](reports/2026-11-13-command-line-checks.md)):
-  - Only the `-s` files must exist (MED-8). With `-m`, the others present
-    are read too, so the cutoff is unchanged.
-  - A missing file is a usage error. `--g_or_ln`, `get_rest_nuc` and the
-    scikit-learn Gaussian mixture are removed.
-  - No output change for any run that worked before.
-- **The release:**
-  - The release commit `258d8b3` dated the CHANGELOG and made the README's
-    links absolute, since the README is also the PyPI page.
-  - PR #29, then the tag, the GitHub release and the PyPI upload, which
-    the maintainer did.
-- **After the release** (branch `docs-after-0.4.0`, PR into `main`):
-  - The README says the GUI is a preview that cannot run JCAST. Two FAQ
-    answers were out of date: the rMATS files needed (PR 12) and the GTF
-    cache next to the GTF (PR 7).
-  - **The website** was updated for v0.4.0. Its pages had described v0.3.5
-    (Python 3.7+, `tox`, `--g_or_ln`, Tier 3). Its Quarto source,
-    `jcast_website/`, is now tracked (maintainer's decision). The
-    Documentation and FAQ pages take their sections from the README.
-  - REVIEW.md's status records the release.
-- **The maintainer's environment:** `.conda` was rebuilt as native arm64
-  (Python 3.11.18, numpy 2.4, pandas 3.1, `jcast` installed editable,
-  `subdir: osx-arm64` pinned in `.conda/.condarc`). `~/miniconda3` itself
-  is still the Intel build, so its other environments run under Rosetta.
-- **A mistake, undone:** a `uv pip install --system` went into
-  `~/miniconda3` through `CONDA_PREFIX` (see Useful facts).
+- **Scope of v0.5.0** ([report](reports/2026-11-13-gui-cli-scope.md), `fff9981`).
+  Decided:
+  - `jcast` is a group of commands, `run` and `gui`; a command line without
+    a command name runs `run`. `-s SE MXE` keeps working.
+  - `typer>=0.26,<1`; options keep their spellings.
+  - The GUI runs `python -m jcast run …` in a child process (`QProcess`),
+    so `-p` works and cancelling stops the process.
+  - It shows the `-m` model before the run (the cutoff set there) and the
+    run's summary after (for any output folder). A junction browser in
+    v0.5.x; no standalone bundles in v0.5.0.
+  - The model preview takes 26.7 s on the whole genome, 20.7 s of it in
+    `get_junction_count_array` (a `Junction` per row).
+- **PR 18, the command line on Typer** (`5479ee3`; report §9):
+  - `validate(args)` returns every problem as (argument, message), for the
+    GUI; `_as_before` maps the old forms (no command, `--gui`,
+    `-s SE MXE`) onto the new command line.
+  - `--mask` removed; `--version` added; the help grouped and its typos
+    fixed; README and website updated, the site rendered again.
+  - Verified (`reports/cli_checks/verify_18.py`): no output change; the
+    log's `Arguments` line loses `mask` and `func`.
+  - **Open, for the maintainer** (report §9.3): argparse took abbreviated
+    long options (`--overw`); Click does not. Not restored.
 
 ## How the work is run (agreed with the maintainer)
 
@@ -106,36 +85,33 @@ has been run, and what to do next.
 
 ## Next priorities
 
-1. **PR 13, GUI (v0.5.0)** ([REVIEW.md §10](REVIEW.md#10-gui-plan--notes)):
-   - The GUI released in 0.4.0 is a skeleton: three placeholder pages,
-     157 lines in `jcast/gui/`. It cannot run JCAST.
-   - Planned: a wizard (inputs, filters), the model preview, and a run
-     panel that runs `run_jcast` in a `QThread`. Expose `--uniprot`,
-     `--overwrite`, `--cache_dir` and `--verbose`.
-   - `-p` must not fork from the GUI's process, because Qt runs threads.
-     Run a subprocess or use another start method. On Python ≥ 3.12,
-     forking a multi-threaded process warns ([packaging check §4.2](reports/2026-11-13-packaging-check.md#42-notes)).
-   - Also needed: a cancellation hook in `run_jcast`, and the model plot
-     drawn on a caller-supplied `Axes`.
-   - The next release is v0.5.0 (the maintainer, 2026-11-13).
-2. **Before or with v0.5.0**, all small:
+1. **The maintainer's answer on abbreviated long options** (report §9.3).
+2. **PR 19, what the GUI needs from the pipeline** (report §8), no output
+   change:
+   - the model plot drawn on a supplied `Axes`; `model.pdf` written with
+     `matplotlib.figure.Figure`, without pyplot;
+   - a model-preview function on the run's code (with `-m`, every rMATS
+     file in the folder);
+   - the read counts from the tables' columns, equal to
+     `get_junction_count_array`'s (20.7 s on the whole genome now);
+   - a hidden progress option (JSON lines) for the GUI to read;
+   - a clean end on SIGTERM: the pool terminated, the cancel logged;
+   - the run summary from `junctions.tsv`, by the code that writes it.
+3. **PR 13, the GUI** (report §4): setup, model, run (`QProcess`),
+   results; pytest-qt without a display; one CI job; the `gui` extra on
+   `PySide6-Essentials`; README and website.
+4. **Small, before or with v0.5.0:**
    - PyPI's trusted publishing: a workflow that uploads when a GitHub
-     release is published, so the upload follows the tag and needs no
-     token.
-   - The `-h` text has two typos from before v0.4.0: "junctionsand" and
-     "transcriptslices". The website shows the `-h` text verbatim, so
-     render the site again after fixing them.
-   - The merged `v0.4.0-hardening` branch can be deleted: the commits
-     cited in `reports/` are in `main`'s history. The 0.4.0 GitHub release
-     (fixed by the maintainer) links to the tag, not the branch.
-3. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
+     release is published.
+   - Delete the merged `v0.4.0-hardening` branch: the commits cited in
+     `reports/` are in `main`'s history.
+5. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
    `make_pep`, `chr` never added to chromosome names, the header-only
    fetal-heart test data, the date-stamped comments.
-4. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
+6. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
    - an option to add T2/T4 to `jcast_uniprot_merged.fasta`;
    - a UniProt download helper that names the file by its release
-     (`X-UniProt-Release` header);
-   - removing `--mask` in the next release;
+     (`X-UniProt-Release` header), as a third command;
    - joining by genomic coordinates was evaluated and deferred
      ([UniProt evaluation §4](reports/2026-11-11-uniprot-fasta-evaluation.md#4-joining-by-coordinates-question-1)).
      It would also be the better join for readthrough genes' events
@@ -148,6 +124,21 @@ has been run, and what to do next.
 
 ## Useful facts
 
+- **The command line (PR 18):**
+  - Typer prints usage errors in a box as wide as the console (80 columns
+    when not a terminal). `tests/conftest.py` sets `COLUMNS=1000` for
+    every test; set it for any script that reads the messages.
+  - The help in the README and on the website is
+    `COLUMNS=88 NO_COLOR=1 python -m jcast run -h`, trailing spaces
+    stripped, as Typer 0.29.1 prints it. Render it again when an option
+    changes.
+  - Test another Typer version without touching `.conda`:
+    `.conda/bin/python -m venv --system-site-packages <dir>`, then
+    `<dir>/bin/python -m pip install typer==<version>`.
+  - `uv` is not on the PATH of Claude's shell.
+- **`quarto render`** copies `jcast_website/images` and `styles.css` into
+  `docs/` with mode 755; `chmod 644 docs/images/*.png docs/styles.css`
+  before committing, or git records a mode change.
 - `run_jcast` creates the output directory and refuses one holding JCAST
   output unless `args.overwrite`. It closes its log handlers when it ends,
   and leaves the `jcast` logger not propagating: a test that reads its

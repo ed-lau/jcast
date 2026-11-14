@@ -11,7 +11,7 @@ For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
 ### Changed
 
 - **The command line is on Typer (PR 18;
-  [scope report §9](reports/2026-11-13-gui-cli-scope.md#9-implementation-and-verification-pr-18)).**
+  [scope report §9](reports/2026-11-13-gui-cli-scope.md#9-implementation-and-verification-pr-18-5479ee3)).**
   No output file changes.
   - `jcast` has two commands, `jcast run` and `jcast gui`. A command line
     without a command name runs `jcast run`, as before:
