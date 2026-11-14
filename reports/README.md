@@ -79,6 +79,7 @@ first.
 | 2026-11-13 | PRs 10–12: Python ≥ 3.11, tested on 3.11–3.15, with the dependency bounds checked; CI on Linux and macOS; version 0.4.0, to be released on GitHub after PRs 10–12; in the order 10, 11, 12; PR 12 also removes `--g_or_ln` and the unused `get_rest_nuc` | [packaging check §5](2026-11-13-packaging-check.md#5-decisions-2026-11-13) |
 | 2026-11-13 | PR 12: only the rMATS files of the `-s` splice types must exist; with `-m`, the others present are read too, so the model fits on every junction in the folder (fitting on the selected types alone would move the chr15 `-s SE -m` cutoff from 26 to 6); the log lists every rMATS file read; remove the unused scikit-learn Gaussian mixture and scikit-learn | [command-line checks §3](2026-11-13-command-line-checks.md#3-decisions-2026-11-13) |
 | 2026-11-13 | v0.5.0: `jcast` a group of commands (`run`, `gui`), `jcast RMATS GTF GENOME …` still running; `-s SE MXE` still accepted; `typer>=0.26,<1`; option spellings kept, no hyphenated aliases; the GUI runs `python -m jcast run …` in a child process; it shows the model before the run and the run summary after; junction browser in v0.5.x; no standalone bundles in v0.5.0 | [GUI and command-line scope §7](2026-11-13-gui-cli-scope.md#7-decisions-2026-11-13) |
+| 2026-11-13 | PR 18: argparse's abbreviated long options (`--overw` for `--overwrite`) are not restored; long options are written in full | [GUI and command-line scope §9.3](2026-11-13-gui-cli-scope.md#93-abbreviated-long-options) |
 
 ## Current tiers (after PR 4c)
 

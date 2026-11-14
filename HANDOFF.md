@@ -48,8 +48,8 @@ has been run, and what to do next.
     fixed; README and website updated, the site rendered again.
   - Verified (`reports/cli_checks/verify_18.py`): no output change; the
     log's `Arguments` line loses `mask` and `func`.
-  - **Open, for the maintainer** (report §9.3): argparse took abbreviated
-    long options (`--overw`); Click does not. Not restored.
+  - argparse took abbreviated long options (`--overw`); Click does not.
+    The maintainer decided not to restore them (report §9.3).
 
 ## How the work is run (agreed with the maintainer)
 
@@ -85,8 +85,7 @@ has been run, and what to do next.
 
 ## Next priorities
 
-1. **The maintainer's answer on abbreviated long options** (report §9.3).
-2. **PR 19, what the GUI needs from the pipeline** (report §8), no output
+1. **PR 19, what the GUI needs from the pipeline** (report §8), no output
    change:
    - the model plot drawn on a supplied `Axes`; `model.pdf` written with
      `matplotlib.figure.Figure`, without pyplot;
@@ -97,18 +96,18 @@ has been run, and what to do next.
    - a hidden progress option (JSON lines) for the GUI to read;
    - a clean end on SIGTERM: the pool terminated, the cancel logged;
    - the run summary from `junctions.tsv`, by the code that writes it.
-3. **PR 13, the GUI** (report §4): setup, model, run (`QProcess`),
+2. **PR 13, the GUI** (report §4): setup, model, run (`QProcess`),
    results; pytest-qt without a display; one CI job; the `gui` extra on
    `PySide6-Essentials`; README and website.
-4. **Small, before or with v0.5.0:**
+3. **Small, before or with v0.5.0:**
    - PyPI's trusted publishing: a workflow that uploads when a GitHub
      release is published.
    - Delete the merged `v0.4.0-hardening` branch: the commits cited in
      `reports/` are in `main`'s history.
-5. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
+4. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
    `make_pep`, `chr` never added to chromosome names, the header-only
    fetal-heart test data, the date-stamped comments.
-6. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
+5. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
    - an option to add T2/T4 to `jcast_uniprot_merged.fasta`;
    - a UniProt download helper that names the file by its release
      (`X-UniProt-Release` header), as a third command;

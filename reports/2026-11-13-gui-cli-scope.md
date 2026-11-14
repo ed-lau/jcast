@@ -223,6 +223,8 @@ The preview runs in the background, with a busy indicator, either way.
 6. **No standalone app bundles in v0.5.0.**
 7. **No hyphenated aliases** (`--cache-dir`); the options keep their
    spellings.
+8. *(After PR 18, §9.3.)* **Abbreviated long options are not restored**:
+   argparse took them, Click does not.
 
 Also agreed, from §4 and §5:
 - `-h` and `--version`;
@@ -330,9 +332,10 @@ and after (`72dfab5`, a snapshot of the working tree whose `jcast/` and
 - **The whole suite** passes: 162 tests offline, 165 with the three that
   query the UniProt API (153 before PR 18).
 
-### 9.3 For the maintainer
+### 9.3 Abbreviated long options
 
 Not among the decisions of §7: argparse took unambiguous abbreviations of
 long options (`--overw`, `--uni`); Click takes only the full name, and
-suggests it. `_as_before` could expand abbreviations as argparse did, in
-a few lines. It does not yet.
+suggests it. `_as_before` could have expanded them as argparse did.
+
+**Decided (2026-11-13): not restored.** Long options are written in full.
