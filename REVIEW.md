@@ -3,7 +3,7 @@
 *Review date: 2026-11-03. Reviewed version: v0.3.5a (HEAD `89a9dea` plus the
 uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 
-> **Status, 2026-11-13.** The sections below record the state at the review
+> **Status, 2026-11-14.** The sections below record the state at the review
 > date, with each item's fix marked; §3 describes the current code. Progress
 > since then is tracked in the roadmap
 > ([§9](#9-v040-hardening-roadmap-revised)): PRs 0–12 and 14–17 are done,
@@ -20,10 +20,18 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 >
 > Open: v0.5.0, the GUI and the command line on Typer (PRs 18, 19 and 13;
 > [§9](#v050-the-gui-and-the-command-line), [§10](#10-gui-plan--notes)),
-> scoped and decided on 2026-11-13. PRs 18, 19, 20 and 13 are done: the
-> GUI sets up, previews, runs and summarizes a run (the GUI released in
-> v0.4.0 was a placeholder). The website (`docs/`, built from
-> `jcast_website/`) was updated for v0.4.0 on 2026-11-13.
+> scoped and decided on 2026-11-13.
+> - **Done:** PRs 18, 19, 20, 13 and 21. The GUI sets up, previews, runs
+>   and summarizes a run; the GUI released in v0.4.0 was a placeholder.
+>   The branch `v0.5.0-gui` was pushed on 2026-11-14, and CI passes.
+> - **Added to v0.5.0 on 2026-11-14, before its release:**
+>   - a view of each junction and its peptides (row 22), after a
+>     feasibility analysis;
+>   - an assessment of the `-m` read-count model (row 23, from
+>     [§5.6](#56--the-modeled-read-cutoff-is-a-weakly-identified-heuristic--new)).
+>
+> The website (`docs/`, built from `jcast_website/`) was updated for
+> v0.4.0 on 2026-11-13.
 
 This document is the developer-facing companion to [README.md](README.md) and
 [CHANGELOG.md](CHANGELOG.md). It catalogs the current state of the codebase,
@@ -703,6 +711,17 @@ Consequences, observed across the 12 bundled datasets:
 **Status:** the parameters and the cutoff (in reads, PR 6) are logged, and a
 degenerate fit falls back to `-r` with a warning (PR 0). Since PR 16 the
 log is the run's record: version, arguments, inputs, model and cutoff.
+Since PR 20, a fit that fails for any reason falls back to `-r` too.
+
+**Open (v0.5.0, row 23 of §9; asked for on 2026-11-14):**
+- Does the model fit junction read counts?
+- Should each splice type have its own cutoff? On chr15, fitting SE alone
+  gives 6 reads, against 26 for every type
+  ([command-line checks §3](reports/2026-11-13-command-line-checks.md#3-decisions-2026-11-13)).
+- Which protein-coding isoforms does the cutoff lose? On the maintainer's
+  whole genome, `-r 7` reproduces 5,393 Swiss-Prot isoform sequences.
+  1,394 of them (26%) are not reproduced at the `-m` cutoff of 40 reads
+  (HANDOFF, 2026-11-14).
 
 ---
 
@@ -876,7 +895,8 @@ currently can't be installed and run from scratch.
 
 Scoped and decided on 2026-11-13
 ([GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md) §7).
-In this order:
+Rows 22 and 23 were added on 2026-11-14, before the release; each starts
+with an audit. In this order:
 
 | # | PR | Theme | Gate |
 |---|---|---|---|
@@ -885,6 +905,8 @@ In this order:
 | 20 | ✅ `-m` without a fit, for any reason, warns and falls back to `-r` (decided 2026-11-13): rMATS files without junctions raised `ZeroDivisionError`; the cutoff's log line names `-r` when it falls back ([scope report §11](reports/2026-11-13-gui-cli-scope.md#11--m-without-a-fit-falls-back-to--r-pr-20); `2f0e54c`) | Robustness | Done 2026-11-13 |
 | 13 | ✅ The GUI: Setup (the command line's checks under each field), Model (the `-m` model before the run; the cutoff set there), Run (the command line in a child process, `python -P -m jcast run …`, `-p` kept; Stop; deleting a stopped run's output), Results (the summary of any output folder); 15 pytest-qt tests and a CI job on macOS; the `gui` extra on `PySide6-Essentials>=6.7`. No output change ([scope report §12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui-12e0576); `12e0576`). Not in v0.5.0: a junction browser (v0.5.x), standalone bundles | New surface | Done 2026-11-14 |
 | 21 | ✅ The GUI after its first run on a Mac (requested 2026-11-14): a help line at the bottom of the window (each setting's help from `jcast run -h`); each splice type's count beside its progress bar and the last junction done, with its gene (`--progress` names it, and reports at least every 0.5 s); the fish logo as the icon. No output change ([scope report §13](reports/2026-11-13-gui-cli-scope.md#13-the-gui-after-its-first-run-on-a-mac-pr-21); `4cc72c2`) | GUI | Done 2026-11-14 |
+| 22 | **A view of each junction and its peptides** in the GUI's results: a junction's translated slices beside the canonical protein, where the event lies, its tier, and the tryptic peptides that tell the isoform apart. Moved from v0.5.x. Feasibility first: a junction's records cannot all be found by their headers, since a sequence already written by an earlier junction is not written again ([scope report §4](reports/2026-11-13-gui-cli-scope.md#4-what-the-gui-shows)); the view may need a new output file, or the GTF and the genome to translate again; whole-genome scale (599,644 junctions) | GUI | Feasibility report, then the maintainer's decisions |
+| 23 | **The `-m` read-count model, assessed** (§5.6): its fit to junction read counts, against models of counts; a cutoff per splice type; which protein-coding isoforms a cutoff loses, measured without mass spectrometry (Swiss-Prot isoforms reproduced, annotated transcripts, transcript expression, frame preservation) and with it if data are available | Sci-integrity | Audit, then the maintainer's decisions; an output change if `-m` changes |
 
 ### Deferred to v0.5.x
 
@@ -897,6 +919,8 @@ In this order:
   UniProt fails.
 - ~~Optional concurrency.~~ Done in PR 15 (`-p`, with `--uniprot`).
 - StringTie input support.
+- GUI: remembering the settings between sessions; its tests on Linux
+  (Qt's offscreen platform needs system libraries there).
 
 ### Deferred to v1.0
 
@@ -930,6 +954,8 @@ replacing the plan below where they differ:
   is set (`-m` if accepted, `-r N` otherwise); the run; the results (the
   run's summary, for any JCAST output folder).
 - Not in v0.5.0: a junction browser (v0.5.x); standalone bundles.
+  *2026-11-14: the junction browser moved into v0.5.0, as a view of each
+  junction and its peptides, after a feasibility analysis (§9, row 22).*
 
 The notes as they stood before (2026-11-12):
 

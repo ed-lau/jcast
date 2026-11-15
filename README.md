@@ -478,9 +478,9 @@ python -m jcast /work/output \
   `junctions.tsv`, with the error in `fate_detail`, and the run continues.
   Its traceback is in `logfile.log`, and the console reports how many
   junctions failed.
-- **The GUI shows a run's summary, not its junctions.** A junction
-  browser is planned for v0.5.x; meanwhile, open `junctions.tsv` in R or a
-  spreadsheet. Like the command line, each GUI run reads the GTF and the
+- **The GUI shows a run's summary, not its junctions.** A view of each
+  junction and its peptides is planned; meanwhile, open `junctions.tsv` in
+  R or a spreadsheet. Like the command line, each GUI run reads the GTF and the
   genome again (about 45 s for GENCODE and GRCh38).
 - **Tier 4 contains products truncated at a stop codon.** Alternative
   C-termini at an annotated stop codon go to `psq_T1_alt_cterm.fasta`

@@ -4,7 +4,8 @@ All notable changes to JCAST are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/).
 
-For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
+For the code review and the roadmap (v0.4.0 and v0.5.0), see
+[REVIEW.md](REVIEW.md).
 
 ## [Unreleased]
 
@@ -50,33 +51,32 @@ For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
 
 ### Added
 
-- **The GUI runs JCAST** (PR 13;
-  [scope report §12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui-12e0576)).
-  `jcast gui` opens four pages: Setup, the run's settings, with the command
-  line's checks under each field; Model, the `-m` model of the rMATS folder
-  before the run, where the cutoff is chosen (`-m`, or `-r` in a number
-  field or by clicking on the plot), with the junctions each splice type
-  keeps; Run, which shows the command line and runs it
-  (`python -m jcast run …`) in a child process, with each splice type's
-  progress, the warnings, Stop, and an offer to delete a stopped run's
-  output; and Results, the summary of any output folder. No output file
-  changes. The `gui` extra installs `PySide6-Essentials>=6.7` instead of
-  the whole of PySide6; the new `test-gui` extra adds pytest-qt for the
-  GUI's tests, which CI runs on macOS without a display.
-- **The GUI after its first run on a Mac** (PR 21;
-  [scope report §13](reports/2026-11-13-gui-cli-scope.md#13-the-gui-after-its-first-run-on-a-mac-pr-21)):
-  - a help line at the bottom of the window explains what the mouse is
-    over: for a setting, its spellings and its help from `jcast run -h`.
-    It replaces the tooltips, which were on the labels only.
-  - The Run page shows each splice type's count beside its progress bar
-    (the macOS style draws no text in a bar), and the last junction done,
-    with its gene. `jcast run --progress` names that junction (with `-p`,
-    the last one written), and reports at least every 0.5 s. Before, it
-    reported every 1 % of a splice type's junctions, which on a whole
-    genome was several thousand junctions.
-  - The JCAST logo (the fish) is the GUI's icon, in its windows and the
-    Dock.
-- For the GUI (PR 19;
+- **The GUI runs JCAST** (PRs 13 and 21; scope report
+  [§12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui-12e0576)
+  and [§13](reports/2026-11-13-gui-cli-scope.md#13-the-gui-after-its-first-run-on-a-mac-pr-21)).
+  It replaces the placeholder released in 0.4.0. No output file changes.
+  `jcast gui` opens four pages:
+  - **Setup:** the run's settings, with the command line's checks under
+    each field.
+  - **Model:** the `-m` model of the rMATS folder, before the run. The
+    cutoff is chosen here: `-m`, or `-r` in a number field or by clicking
+    on the plot. A table shows the junctions each splice type keeps.
+  - **Run:** the command line, which it runs (`python -m jcast run …`) in
+    a child process. Each splice type has a progress bar with its count,
+    and the last junction done is shown with its gene. Warnings appear as
+    they come. Stop ends the run, with an offer to delete a stopped run's
+    output.
+  - **Results:** the summary of any output folder, also of runs made on
+    the command line.
+
+  A help line at the bottom of the window explains what the mouse is
+  over: for a setting, its spellings and its help from `jcast run -h`. The
+  JCAST logo (the fish) is the GUI's icon.
+
+  The `gui` extra installs `PySide6-Essentials>=6.7` instead of the whole
+  of PySide6. The new `test-gui` extra adds pytest-qt for the GUI's tests,
+  which CI runs on macOS without a display.
+- For the GUI (PRs 19 and 21;
   [scope report §10](reports/2026-11-13-gui-cli-scope.md#10-implementation-and-verification-pr-19-ec1068a)):
   - `model.preview`: the `-m` model of an rMATS folder, as a run fits it,
     without the GTF or the genome; `model.filter_counts`: how many
@@ -85,7 +85,9 @@ For the v0.4.0 code review and roadmap, see [REVIEW.md](REVIEW.md).
   - `outcomes.read_counts` and `outcomes.summary`: the end-of-run summary
     of any output folder, from its `junctions.tsv`.
   - `jcast run --progress` (not in the help): each step of the run as a
-    line of JSON on stdout.
+    line of JSON on stdout, at least every 0.5 s while junctions are
+    translated, naming the last junction done (with `-p`, the last one
+    written).
 
 ### Removed
 
@@ -98,7 +100,18 @@ v0.5.0 plan, and the
 [GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md) for its
 decisions.
 
-- A junction browser in the GUI (v0.5.x).
+Before the v0.5.0 release (added to its scope on 2026-11-14):
+- **A view of each junction and its peptides** in the GUI's results: the
+  translated slices beside the canonical protein. It was planned for
+  v0.5.x. A feasibility analysis comes first.
+- **An assessment of the `-m` read-count model:**
+  - does it fit RNA-seq junction counts?
+  - should each splice type have its own cutoff?
+  - which protein-coding isoforms does a cutoff lose?
+
+  Its outcome may change how `-m` sets the cutoff.
+
+Later:
 - An option to add T2 and T4 records to `jcast_uniprot_merged.fasta`.
 - A helper that downloads a UniProt proteome and names the file by its
   release (`X-UniProt-Release`).

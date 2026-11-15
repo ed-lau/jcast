@@ -81,6 +81,7 @@ first.
 | 2026-11-13 | v0.5.0: `jcast` a group of commands (`run`, `gui`), `jcast RMATS GTF GENOME …` still running; `-s SE MXE` still accepted; `typer>=0.26,<1`; option spellings kept, no hyphenated aliases; the GUI runs `python -m jcast run …` in a child process; it shows the model before the run and the run summary after; junction browser in v0.5.x; no standalone bundles in v0.5.0 | [GUI and command-line scope §7](2026-11-13-gui-cli-scope.md#7-decisions-2026-11-13) |
 | 2026-11-13 | PR 18: argparse's abbreviated long options (`--overw` for `--overwrite`) are not restored; long options are written in full | [GUI and command-line scope §9.3](2026-11-13-gui-cli-scope.md#93-abbreviated-long-options) |
 | 2026-11-13 | PR 20: when the `-m` model has no fit, for any reason (also an exception, such as rMATS files without junctions), the run warns, falls back to `-r` (1 by default) and continues | [GUI and command-line scope §11.1](2026-11-13-gui-cli-scope.md#111-decision-2026-11-13) |
+| 2026-11-14 | v0.5.0 widened before its release: the junction browser (was v0.5.x) becomes a view of each junction and its peptides, designed after a feasibility analysis; the `-m` read-count model is assessed (its fit to junction counts, a cutoff per splice type, the protein-coding isoforms a cutoff loses); each starts with an audit, and the release follows them | [REVIEW.md §9](../REVIEW.md#v050-the-gui-and-the-command-line), rows 22 and 23; HANDOFF.md |
 
 ## Current tiers (after PR 4c)
 
@@ -130,7 +131,7 @@ a repeated anchor
 
 PR 6 changes the test because its `read=1` now keeps every junction; with
 `-r 2` the output is byte for byte that of PR 5
-([PR 6–8 audit §9](2026-11-12-thresholds-runs-canonical-audit.md#9-implementation-and-verification-pr-6)).
+([PR 6–8 audit §9](2026-11-12-thresholds-runs-canonical-audit.md#9-implementation-and-verification-pr-6-05a6931)).
 
 PR 14 leaves this test unchanged: it does not use `--uniprot`. The new
 `tests/test_uniprot.py::test_chr15_uniprot` pins the same run with

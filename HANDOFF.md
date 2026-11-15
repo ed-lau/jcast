@@ -1,7 +1,9 @@
-# Handoff — v0.5.0 under way (2026-11-14)
+# Handoff — v0.5.0: two items before the release (2026-11-14)
 
 For the next working session. It covers where things stand, how the work
-has been run, and what to do next.
+has been run, and what to do next. **Start with
+[Next priorities](#next-priorities)**: the maintainer added two items to
+v0.5.0 on 2026-11-14, each to begin with an audit.
 
 ## State
 
@@ -24,27 +26,32 @@ has been run, and what to do next.
   - `4cc72c2`: PR 21, the GUI after the maintainer's first run on a Mac
     (the help line, progress counts, the icon), and the commit recording
     its hash;
-  - then a fix to the tests for CI (report §9.4).
-- **Tests:** 230, all passing; 227 offline (`python -m pytest -q -m 'not network'`,
-  about 2.5 minutes). Run only the fast ones with `-m 'not slow'`. The
-  GUI's 17 (`tests/test_gui.py`) need PySide6 and pytest-qt
-  (`pip install -e '.[test-gui]'`; `.conda` has both) and are skipped
-  without them.
+  - `0986558`: a fix to the tests for CI (report §9.4);
+  - then the CHANGELOG and roadmaps updated for the GUI and the two new
+    items, with this handoff. Not pushed.
+- **Tests:** 230, all passing; 227 offline
+  (`python -m pytest -q -m 'not network'`, about 2.5 minutes). Run only
+  the fast ones with `-m 'not slow'`. The GUI's 17 (`tests/test_gui.py`)
+  need PySide6 and pytest-qt (`pip install -e '.[test-gui]'`; `.conda`
+  has both) and are skipped without them.
 - **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml): Python
   3.11 to 3.15 on Linux and macOS, the lowest dependency versions, the
   GUI's tests on macOS (`gui`, new in PR 13), and the installed wheel.
-  Its first run on the branch (43662548893, at `b0a806e`):
-  - the `gui` job passed;
-  - the other twelve failed the same 7 command-line tests, because Typer
-    styles its text when `GITHUB_ACTIONS` is set;
-  - the fix is in `tests/conftest.py` (report §9.4). Check that the run
-    after it passes: `gh run list --branch v0.5.0-gui`.
+  - **Passes** on `0986558`: run 43663216086, all 13 jobs.
+  - The first run on the branch (43662548893, at `b0a806e`) failed 7
+    command-line tests in every job but `gui`: Typer styles its text when
+    `GITHUB_ACTIONS` is set. Fixed in `tests/conftest.py` (report §9.4).
+  - The lowest-versions job prints about 118 deprecation warnings from
+    the old matplotlib and urllib3 it installs. They are harmless.
 - **Golden tests:** `tests/test_pipeline.py::test_chr15_golden` (GTF-only
   canonicals) and `tests/test_uniprot.py::test_chr15_uniprot`
   (`--uniprot`). Unchanged by PR 18.
 - **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18, 19, 20, 13 and 21
   ([REVIEW.md §9](REVIEW.md#v050-the-gui-and-the-command-line)): the
-  whole of the v0.5.0 plan.
+  v0.5.0 plan of 2026-11-13.
+- **Open before the release:** rows 22 and 23, added on 2026-11-14:
+  - a view of each junction and its peptides;
+  - the `-m` read-count model, assessed.
 
 ## The session of 2026-11-14
 
@@ -85,6 +92,24 @@ has been run, and what to do next.
   run, 7 command-line tests failed in every job but `gui`: Typer forces a
   terminal, with styled text, when `GITHUB_ACTIONS` is set. Fixed in the
   tests (report §9.4).
+- **v0.5.0 widened** at the maintainer's request, since v0.4.0 is recent.
+  Two items come before the release, rows 22 and 23 of the
+  [REVIEW.md roadmap](REVIEW.md#v050-the-gui-and-the-command-line):
+  - the results view, a view of each junction and its peptides, to be
+    designed after a feasibility analysis (it was the v0.5.x junction
+    browser);
+  - the science of the `-m` read-count model:
+    - does it fit RNA counts?
+    - a cutoff per splice type?
+    - does the cutoff lose bona fide protein-coding isoforms?
+
+    The maintainer noted that the last is hard to test without mass
+    spectrometry data.
+
+  The CHANGELOG (one GUI entry for PRs 13 and 21; the plan), REVIEW.md
+  (status, §5.6, §9, §10), the scope report, the reports index and the
+  README's known issue were updated for it. The briefs are in
+  [Next priorities](#next-priorities).
 - **Verified** (`reports/gui_scope/verify_13.py`):
   - the pipeline changes leave the chr15 output and `model.pdf`
     identical;
@@ -173,37 +198,238 @@ has been run, and what to do next.
 
 ## Next priorities
 
-1. **Release v0.5.0**, once CI passes on the branch and the maintainer
-   asks (a pull request to `main`, as #29 was for v0.4.0): `__version__`
-   (still 0.4.0), the CHANGELOG's date, the website (`_quarto.yml`'s
-   title, `change.qmd`), and, before or with it:
-   - PyPI's trusted publishing: a workflow that uploads when a GitHub
-     release is published;
-   - delete the merged `v0.4.0-hardening` branch: the commits cited in
-     `reports/` are in `main`'s history.
-2. **GUI follow-ups:**
-   - the junction browser (v0.5.x; report §4);
-   - remembering the settings between sessions;
-   - the GUI's tests on Linux: Qt's offscreen platform needs system
-     libraries there, not tried;
-   - screenshots in the README or on the website (they are in
-     `reports/gui_scope/verify_13/`).
-3. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
-   `make_pep`, `chr` never added to chromosome names, the header-only
-   fetal-heart test data, the date-stamped comments.
-4. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
-   - an option to add T2/T4 to `jcast_uniprot_merged.fasta`;
-   - a UniProt download helper that names the file by its release
-     (`X-UniProt-Release` header), as a third command;
-   - joining by genomic coordinates was evaluated and deferred
-     ([UniProt evaluation §4](reports/2026-11-11-uniprot-fasta-evaluation.md#4-joining-by-coordinates-question-1)).
-     It would also be the better join for readthrough genes' events
-     ([`Ensembl_canonical` audit §4](reports/2026-11-12-ensembl-canonical-audit.md#4-readthrough-genes-and-rmats-events)).
-   - Possibly: prefer the gene with an HGNC id when a gene name is shared
-     ([mapping audit §8](reports/2026-11-12-uniprot-mapping-audit.md#8-addendum-the-unique-name-rule-on-the-whole-genome-pr-8)).
-     Not decided.
-   - Possibly: print the end-of-run summary on the console too. Not
-     decided.
+Rows 22 and 23 are independent and can run in either order. Each follows
+[the agreed workflow](#how-the-work-is-run-agreed-with-the-maintainer):
+an audit report with an evidence script, then the maintainer's decisions,
+then a PR. The release comes after both.
+
+**Ask the maintainer first:**
+- Are mass spectrometry data available that match one of the RNA-seq
+  datasets? Candidates:
+  - their lab's data;
+  - the proteomics behind the JCAST paper (Lau et al. 2019, *Cell
+    Reports*). The bundled ENCODE tissue folders may be that paper's.
+- Are the whole genome's samples a DMSO control and an NMD inhibitor
+  (`CM_DMSO1–3`, `CM_NMD1–3`)? If so, they offer a test for row 23.
+- PR 13's choices that they have not reviewed yet (scope report §12.1;
+  listed under [The session of 2026-11-14](#the-session-of-2026-11-14)).
+
+### 1. Row 22: a view of each junction and its peptides (feasibility first)
+
+**The goal.** In the GUI's results, pick a junction by gene, splice type,
+fate or read count. See its two slices, translated, beside the canonical
+protein:
+- where the alternative region lies, and the tier;
+- the joins to the canonical;
+- a T4's premature stop, a T2's frameshifted stretch;
+- the tryptic peptides only one isoform has: what a search could
+  identify.
+
+**What exists:**
+- **`junctions.tsv`:** one row per junction: fate, read count, frames,
+  coding region, canonical, files, `new_records`. The Results page reads
+  the whole-genome one (599,644 rows) in 2.4 s.
+- **The FASTA headers** name the junction: fields 5 and 6, the splice type
+  with the slice, and the rMATS id. They also give the exons'
+  coordinates, the strand and frame, the read count and the tier.
+- **The canonical and known isoforms:** `psq_canonical.fasta` (with
+  `-c`); with `--uniprot`, `uniprot_canonicals.tsv` and
+  `psq_isoforms.tsv`, the records identical to a UniProt isoform.
+- **The exons** are in the rMATS row; the log names the rMATS folder, the
+  GTF and the genome.
+- Biopython is a dependency already (pairwise alignment, if needed).
+
+**The obstacles** (scope report §4):
+- A record whose sequence is already in its file is not written again.
+  So a junction's sequence can sit under an earlier junction's header
+  (`new_records` is then smaller than its records).
+- Nothing records the residues where the alternative region starts and
+  ends.
+
+**To measure in the feasibility report:**
+- **(a) From the output files alone.** Index the records by splice type
+  and rMATS id. Show what was written, and say when a sequence came from
+  an earlier junction. No output change, but incomplete.
+- **(b) A new output,** a file or columns in `junctions.tsv`: each slice's
+  record (or a sequence hash) and the alternative region's residues. This
+  is an output change, so it needs an audit and a decision. Measure its
+  size on the whole genome and the run time it adds.
+- **(c) Translate again in the GUI,** on demand, with the run's own code
+  (`Junction`, `sequences`). Loading the GTF cache takes about 8 s and the
+  genome about 35 s. This is complete and exact, but needs the inputs
+  still in place. Measure the memory.
+- **The peptides:** an in-silico tryptic digest (K or R, not before P;
+  lengths and missed cleavages to choose). Each peptide's uniqueness
+  against the canonical, or against the search database
+  (`jcast_uniprot_merged.fasta`). Measure the time per junction and for a
+  whole database.
+- **The display:**
+  - a junction table over `junctions.tsv` (a `QTableView` with a model
+    that filters 600,000 rows);
+  - an exon diagram (QPainter, or matplotlib as on the Model page);
+  - a sequence panel in a monospace font, with the alternative region
+    and the unique peptides marked.
+
+  Prototype two or three layouts offscreen and show the screenshots
+  (Fusion style; see Useful facts).
+- **Out of scope unless asked:** showing the peptides that a search
+  identified (for example, FragPipe's `psm.tsv`). This would tie into
+  row 23.
+
+**Deliverable:** `reports/<date>-results-view-feasibility.md`, with:
+- the measurements and screenshots;
+- a recommended design;
+- the decisions requested.
+
+Then a PR with a verification script, as for PRs 13 and 21.
+
+### 2. Row 23: the `-m` read-count model, assessed
+
+**The model now** ([jcast/model.py](jcast/model.py), REVIEW.md §5.6):
+- **The count** (`junctions.read_count`): min(summed IJC, summed SJC),
+  over both samples and every replicate.
+- **The model:** a Gamma ("trace") + Normal ("expressed") mixture on
+  ln(count + 1), fitted by EM. The cutoff is where the weighted densities
+  cross.
+- **One fit for the whole folder:** every junction of every rMATS file in
+  it, even those `-s` leaves out (PR 12), so every splice type gets the
+  same cutoff.
+- **Already known to be weak:**
+  - the low counts form a lattice (ln 2, ln 3, …);
+  - `encode_human_stomach` has no fit;
+  - the lung cutoff moves from 11 to 8 when only the EM tolerance
+    changes.
+- **Pinned in tests:** `tests/test_model.py::test_general_mixture_model`
+  pins each bundled dataset's cutoff, and the GUI's tests pin chr15's 26.
+
+**Data:**
+- **Bundled:** 13 rMATS folders in `tests/data/model/` (ENCODE human and
+  mouse tissues, iPSC day 0 and 14, old mouse heart and kidney), and
+  chr15 (`tests/data/rmats`).
+- **The maintainer's whole genome,** at
+  `/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/`:
+  - `rmats/`: JC and JCEC files;
+  - `salmon/`: `CM_DMSO1–3` and `CM_NMD1–3`, each with `quant.sf` (TPM
+    per GENCODE transcript) and `quant.genes.sf`;
+  - `genome/`: GENCODE v50 GTF, GRCh38, and the Swiss-Prot isoform FASTA
+    of 2026-11-11.
+- **Two runs on those inputs, both with `--uniprot`:**
+
+  | | `jcast/` | `jcast_guitest/` (from the GUI) |
+  |---|---|---|
+  | cutoff | `-m`, 40 reads | `-r 7` |
+  | skipped as low count | 468,411 of 599,644 | 290,694 |
+  | T1 junctions | 24,965 | 50,972 |
+
+**The questions, and ways to answer them:**
+- **Does it fit RNA counts?**
+  - Compare on the count scale, where the data are. Take the model's
+    probability of each count c, which is its density integrated over
+    [ln(c + ½), ln(c + 1½)], against the observed frequencies: in
+    rootograms, and by log-likelihood or BIC.
+  - The models of counts to compare: a two-component negative-binomial
+    mixture; a negative binomial (trace) with a Poisson-lognormal
+    (expressed).
+  - Measure the cutoff's stability by bootstrap, and with other EM starts
+    and tolerances.
+  - Check what the count is:
+    - it is summed over every sample and replicate, so the cutoff grows
+      with depth and with the number of samples;
+    - it is the smaller of the two forms' counts;
+    - IJC and SJC count different numbers of junctions (two inclusion
+      junctions for SE). rMATS's `IncFormLen` and `SkipFormLen` allow for
+      that; JCAST does not.
+
+    Would a count per sample, or normalized for depth, compare better
+    across datasets?
+- **A cutoff per splice type?**
+  - Fit each type alone, on the bundled folders and the whole genome.
+    Compare cutoffs and fit quality.
+  - The small types (MXE, A5SS) may have too few junctions for a fit. A
+    middle way is a shared trace component with weights per type.
+  - Known so far: on chr15, SE alone gives 6 reads, against 26 for every
+    type (command-line checks §3).
+  - If adopted, it changes the Model page (a plot per type?), the log's
+    cutoff line and the pinned tests.
+- **Does the cutoff lose bona fide protein-coding isoforms?** Proxies
+  that need no mass spectrometry:
+  - **Known isoforms.** Preliminary (2026-11-14, from the two runs'
+    `psq_isoforms.tsv`): `-r 7` reproduces 5,393 Swiss-Prot isoform
+    accessions and `-m 40` 3,999. 1,394 (26%) are reproduced only at
+    `-r 7`; none only at `-m 40`.
+
+    Next, run the whole genome at `-r 1` (every junction; about
+    15 minutes with `-p 16`). Then, for each cutoff, measure:
+    - the isoforms reproduced: recall of the known ones;
+    - the new T1 records: the database's growth, which costs search FDR;
+    - the T1, T2 and T4 fractions.
+  - **Annotation:** junctions whose two forms both match annotated
+    protein-coding transcripts (TSL ≤ 2, `Ensembl_canonical`, MANE if the
+    GTF tags it), by read count.
+  - **Transcript expression:** Salmon's TPM for the transcripts that
+    carry each form, in the same samples.
+  - **Frame preservation:** a random event keeps the frame about a third
+    of the time (T1 against T2). Alternative exons in use are enriched in
+    lengths divisible by 3; cite the literature in the report. The count
+    above which the frame-keeping fraction levels off is a cutoff that
+    comes from the data.
+  - **NMD,** if the samples are DMSO and an NMD inhibitor: genuine
+    premature-stop junctions (T4) should gain reads under the inhibitor.
+    Low-count T4 junctions that respond are transcripts, not noise.
+  - **With mass spectrometry,** the decisive test:
+    - build databases at several cutoffs and search the same spectra
+      with each;
+    - count the junction-spanning peptides identified.
+
+    This needs spectra matched to the RNA-seq, and a search engine
+    outside JCAST.
+
+**Deliverable:** `reports/<date>-read-count-model-audit.md`, with:
+- an evidence script: the bundled folders offline, the whole genome by
+  paths;
+- the decisions requested, among them:
+  - keep the model and document it as a heuristic, or change it;
+  - cutoffs per splice type;
+  - a recommended `-r`.
+
+Output changes only after a decision.
+
+### 3. Release v0.5.0
+
+Once rows 22 and 23 are done, CI passes, and the maintainer asks. Open a
+pull request to `main`, as #29 was for v0.4.0. Then:
+- `__version__` (still 0.4.0), the CHANGELOG's date;
+- the website: `_quarto.yml`'s title, `change.qmd`, and the GUI's pages;
+- before or with the release:
+  - PyPI's trusted publishing: a workflow that uploads when a GitHub
+    release is published;
+  - delete the merged `v0.4.0-hardening` branch: the commits cited in
+    `reports/` are in `main`'s history.
+
+### 4. Later
+
+- **GUI follow-ups:**
+  - remembering the settings between sessions;
+  - the GUI's tests on Linux: Qt's offscreen platform needs system
+    libraries there, not tried;
+  - screenshots in the README or on the website (they are in
+    `reports/gui_scope/verify_13/` and `verify_21/`).
+- **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
+  `make_pep`, `chr` never added to chromosome names, the header-only
+  fetal-heart test data, the date-stamped comments.
+- **Planned follow-ups** (CHANGELOG `[Unreleased]`):
+  - an option to add T2/T4 to `jcast_uniprot_merged.fasta`;
+  - a UniProt download helper that names the file by its release
+    (`X-UniProt-Release` header), as a third command;
+  - joining by genomic coordinates was evaluated and deferred
+    ([UniProt evaluation §4](reports/2026-11-11-uniprot-fasta-evaluation.md#4-joining-by-coordinates-question-1)).
+    It would also be the better join for readthrough genes' events
+    ([`Ensembl_canonical` audit §4](reports/2026-11-12-ensembl-canonical-audit.md#4-readthrough-genes-and-rmats-events)).
+  - Possibly: prefer the gene with an HGNC id when a gene name is shared
+    ([mapping audit §8](reports/2026-11-12-uniprot-mapping-audit.md#8-addendum-the-unique-name-rule-on-the-whole-genome-pr-8)).
+    Not decided.
+  - Possibly: print the end-of-run summary on the console too. Not
+    decided.
 
 ## Useful facts
 
