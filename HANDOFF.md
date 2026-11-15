@@ -65,8 +65,8 @@ v0.5.0 on 2026-11-14, each to begin with an audit.
 
   [README](README.md#the-graphical-interface) describes them; screenshots
   are in [reports/gui_scope/verify_13/](reports/gui_scope/verify_13/).
-- **Choices the maintainer has not seen yet** (report §12.1, "What the GUI
-  chose that §4 did not settle"):
+- **Choices the scope did not settle** (report §12.1, "What the GUI
+  chose that §4 did not settle"), agreed by the maintainer on 2026-11-15:
   - `-r 1` until the model's cutoff is chosen;
   - another folder resets the cutoff to `-r`;
   - the fit starts when the Model page opens;
@@ -203,16 +203,18 @@ Rows 22 and 23 are independent and can run in either order. Each follows
 an audit report with an evidence script, then the maintainer's decisions,
 then a PR. The release comes after both.
 
-**Ask the maintainer first:**
-- Are mass spectrometry data available that match one of the RNA-seq
-  datasets? Candidates:
-  - their lab's data;
-  - the proteomics behind the JCAST paper (Lau et al. 2019, *Cell
-    Reports*). The bundled ENCODE tissue folders may be that paper's.
-- Are the whole genome's samples a DMSO control and an NMD inhibitor
-  (`CM_DMSO1–3`, `CM_NMD1–3`)? If so, they offer a test for row 23.
-- PR 13's choices that they have not reviewed yet (scope report §12.1;
-  listed under [The session of 2026-11-14](#the-session-of-2026-11-14)).
+**The maintainer's answers (2026-11-15):**
+- **Mass spectrometry: deferred**, as a future research item. No RNA-seq
+  here has spectra from the same samples, not even ENCODE's, and the
+  result would depend on the spectra's depth. Instead, row 23 measures at
+  each cutoff the known protein-coding isoforms (Swiss-Prot, GENCODE)
+  that a JCAST database reproduces.
+- **The whole genome's samples** are iPSC-derived cardiomyocytes, 3 DMSO
+  (`CM_DMSO1–3`) and 3 treated with the NMD inhibitor NMDI14
+  (`CM_NMD1–3`). In `rmats/`, `b1.txt` is DMSO, `b2.txt` NMDI14. Their
+  analysis is in the folder's `R/` (`01_DESeq.Rmd`; NMD targets in
+  `01_out/`).
+- **PR 13's choices** (scope report §12.1): agreed, every one.
 
 ### 1. Row 22: a view of each junction and its peptides (feasibility first)
 
@@ -373,10 +375,11 @@ Then a PR with a verification script, as for PRs 13 and 21.
     lengths divisible by 3; cite the literature in the report. The count
     above which the frame-keeping fraction levels off is a cutoff that
     comes from the data.
-  - **NMD,** if the samples are DMSO and an NMD inhibitor: genuine
+  - **NMD:** the samples are DMSO and the NMD inhibitor NMDI14. Genuine
     premature-stop junctions (T4) should gain reads under the inhibitor.
     Low-count T4 junctions that respond are transcripts, not noise.
-  - **With mass spectrometry,** the decisive test:
+  - **With mass spectrometry,** the decisive test. **Deferred** on
+    2026-11-15, as a future research item:
     - build databases at several cutoffs and search the same spectra
       with each;
     - count the junction-spanning peptides identified.

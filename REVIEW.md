@@ -722,6 +722,11 @@ Since PR 20, a fit that fails for any reason falls back to `-r` too.
   whole genome, `-r 7` reproduces 5,393 Swiss-Prot isoform sequences.
   1,394 of them (26%) are not reproduced at the `-m` cutoff of 40 reads
   (HANDOFF, 2026-11-14).
+- Mass spectrometry: deferred on 2026-11-15, as a future research item.
+  No RNA-seq here has spectra from the same samples, not even ENCODE's,
+  and the result would depend on the spectra's depth. The audit measures
+  instead, at each cutoff, the known protein-coding isoforms (Swiss-Prot,
+  GENCODE) that a JCAST database reproduces.
 
 ---
 
@@ -906,7 +911,7 @@ with an audit. In this order:
 | 13 | ✅ The GUI: Setup (the command line's checks under each field), Model (the `-m` model before the run; the cutoff set there), Run (the command line in a child process, `python -P -m jcast run …`, `-p` kept; Stop; deleting a stopped run's output), Results (the summary of any output folder); 15 pytest-qt tests and a CI job on macOS; the `gui` extra on `PySide6-Essentials>=6.7`. No output change ([scope report §12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui-12e0576); `12e0576`). Not in v0.5.0: a junction browser (v0.5.x), standalone bundles | New surface | Done 2026-11-14 |
 | 21 | ✅ The GUI after its first run on a Mac (requested 2026-11-14): a help line at the bottom of the window (each setting's help from `jcast run -h`); each splice type's count beside its progress bar and the last junction done, with its gene (`--progress` names it, and reports at least every 0.5 s); the fish logo as the icon. No output change ([scope report §13](reports/2026-11-13-gui-cli-scope.md#13-the-gui-after-its-first-run-on-a-mac-pr-21); `4cc72c2`) | GUI | Done 2026-11-14 |
 | 22 | **A view of each junction and its peptides** in the GUI's results: a junction's translated slices beside the canonical protein, where the event lies, its tier, and the tryptic peptides that tell the isoform apart. Moved from v0.5.x. Feasibility first: a junction's records cannot all be found by their headers, since a sequence already written by an earlier junction is not written again ([scope report §4](reports/2026-11-13-gui-cli-scope.md#4-what-the-gui-shows)); the view may need a new output file, or the GTF and the genome to translate again; whole-genome scale (599,644 junctions) | GUI | Feasibility report, then the maintainer's decisions |
-| 23 | **The `-m` read-count model, assessed** (§5.6): its fit to junction read counts, against models of counts; a cutoff per splice type; which protein-coding isoforms a cutoff loses, measured without mass spectrometry (Swiss-Prot isoforms reproduced, annotated transcripts, transcript expression, frame preservation) and with it if data are available | Sci-integrity | Audit, then the maintainer's decisions; an output change if `-m` changes |
+| 23 | **The `-m` read-count model, assessed** (§5.6): its fit to junction read counts, against models of counts; a cutoff per splice type; which protein-coding isoforms a cutoff loses, measured without mass spectrometry (Swiss-Prot and GENCODE isoforms reproduced, annotated transcripts, transcript expression, frame preservation); with it, deferred as a future research item (2026-11-15) | Sci-integrity | Audit, then the maintainer's decisions; an output change if `-m` changes |
 
 ### Deferred to v0.5.x
 
@@ -921,6 +926,10 @@ with an audit. In this order:
 - StringTie input support.
 - GUI: remembering the settings between sessions; its tests on Linux
   (Qt's offscreen platform needs system libraries there).
+- Research: test the read-count cutoff against mass spectrometry, by
+  searching the same spectra with databases built at several cutoffs
+  (deferred from row 23 on 2026-11-15; needs spectra from the samples of
+  the RNA-seq, and depends on their depth).
 
 ### Deferred to v1.0
 

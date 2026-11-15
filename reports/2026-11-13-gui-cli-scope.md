@@ -606,8 +606,8 @@ GUI's `jcast` is not in a site-packages folder (a source checkout, or an
 editable install), its folder is put first on `PYTHONPATH`. A test runs
 the child in a folder holding a `jcast` package that cannot be imported.
 
-**What the GUI chose that §4 did not settle.** For the maintainer to
-check:
+**What the GUI chose that §4 did not settle.** The maintainer agreed to
+each of these on 2026-11-15:
 - The cutoff is `-r 1` until the model's is chosen, as on the command
   line. The model's cutoff is not chosen by itself once fitted.
 - Another rMATS folder resets the cutoff to `-r`. The model's cutoff of
