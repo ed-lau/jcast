@@ -54,8 +54,10 @@ def rmats_results(logger):
 @pytest.fixture(autouse=True)
 def _wide_console(monkeypatch):
     """ Typer prints a usage error in a box as wide as the console, 80 columns when it is not a terminal; a wide one
-    keeps each message on one line """
+    keeps each message on one line. And it takes the console for a terminal, with colours and styles in the text, when
+    GITHUB_ACTIONS (on CI), FORCE_COLOR or PY_COLORS is set; the tests' console is not one """
     monkeypatch.setenv('COLUMNS', '1000')
+    monkeypatch.setattr('typer.rich_utils.FORCE_TERMINAL', False)
 
 
 @pytest.fixture(autouse=True)

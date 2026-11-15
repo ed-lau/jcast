@@ -8,8 +8,10 @@ has been run, and what to do next.
 - **Released:** v0.4.0, on 2026-11-13 (PR #29, merge commit `e4d9117`,
   tag `v0.4.0`, GitHub release, PyPI 0.4.0 built from `258d8b3`). The
   website was updated for it in PR #30 (merged, `f37faf9`).
-- **Branch:** `v0.5.0-gui`, from `main` at `f37faf9`. **Not pushed.** It
-  collects the v0.5.0 PRs, as `v0.4.0-hardening` did for v0.4.0:
+- **Branch:** `v0.5.0-gui`, from `main` at `f37faf9`. **Pushed** to
+  `origin` on 2026-11-14, when the maintainer asked, after their check of
+  PR 21 on a Mac. No pull request yet. It collects the v0.5.0 PRs, as
+  `v0.4.0-hardening` did for v0.4.0:
   - `fff9981`: the [GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md),
     with the maintainer's decisions (§7) and its evidence;
   - `5479ee3`: PR 18, the command line on Typer; `7d36121` records its
@@ -21,7 +23,8 @@ has been run, and what to do next.
   - `12e0576`: PR 13, the GUI, and the commit recording its hash;
   - `4cc72c2`: PR 21, the GUI after the maintainer's first run on a Mac
     (the help line, progress counts, the icon), and the commit recording
-    its hash.
+    its hash;
+  - then a fix to the tests for CI (report §9.4).
 - **Tests:** 230, all passing; 227 offline (`python -m pytest -q -m 'not network'`,
   about 2.5 minutes). Run only the fast ones with `-m 'not slow'`. The
   GUI's 17 (`tests/test_gui.py`) need PySide6 and pytest-qt
@@ -29,10 +32,13 @@ has been run, and what to do next.
   without them.
 - **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml): Python
   3.11 to 3.15 on Linux and macOS, the lowest dependency versions, the
-  GUI's tests on macOS (`gui`, new in PR 13), and the installed wheel. It
-  has not run on this branch yet (not pushed). The lowest-versions job
-  will be the first to run Typer 0.26.0 on Linux, and the `gui` job is
-  new.
+  GUI's tests on macOS (`gui`, new in PR 13), and the installed wheel.
+  Its first run on the branch (43662548893, at `b0a806e`):
+  - the `gui` job passed;
+  - the other twelve failed the same 7 command-line tests, because Typer
+    styles its text when `GITHUB_ACTIONS` is set;
+  - the fix is in `tests/conftest.py` (report §9.4). Check that the run
+    after it passes: `gh run list --branch v0.5.0-gui`.
 - **Golden tests:** `tests/test_pipeline.py::test_chr15_golden` (GTF-only
   canonicals) and `tests/test_uniprot.py::test_chr15_uniprot`
   (`--uniprot`). Unchanged by PR 18.
@@ -75,6 +81,10 @@ has been run, and what to do next.
     0.5 s;
   - the fish logo as the icon (`jcast/gui/icon.png`, package data, made by
     `reports/gui_scope/make_icon.py`).
+- **Pushed** after the maintainer ran PR 21 on their Mac. On CI's first
+  run, 7 command-line tests failed in every job but `gui`: Typer forces a
+  terminal, with styled text, when `GITHUB_ACTIONS` is set. Fixed in the
+  tests (report §9.4).
 - **Verified** (`reports/gui_scope/verify_13.py`):
   - the pipeline changes leave the chr15 output and `model.pdf`
     identical;
@@ -163,27 +173,25 @@ has been run, and what to do next.
 
 ## Next priorities
 
-1. **Push `v0.5.0-gui` when the maintainer asks**, and check CI: the
-   lowest-versions job (Typer 0.26.0 on Linux) and the `gui` job (macOS)
-   run for the first time.
-2. **Release v0.5.0:** `__version__` (still 0.4.0), the CHANGELOG's date,
-   the website (`_quarto.yml`'s title, `change.qmd`), and, before or
-   with it:
+1. **Release v0.5.0**, once CI passes on the branch and the maintainer
+   asks (a pull request to `main`, as #29 was for v0.4.0): `__version__`
+   (still 0.4.0), the CHANGELOG's date, the website (`_quarto.yml`'s
+   title, `change.qmd`), and, before or with it:
    - PyPI's trusted publishing: a workflow that uploads when a GitHub
      release is published;
    - delete the merged `v0.4.0-hardening` branch: the commits cited in
      `reports/` are in `main`'s history.
-3. **GUI follow-ups:**
+2. **GUI follow-ups:**
    - the junction browser (v0.5.x; report §4);
    - remembering the settings between sessions;
    - the GUI's tests on Linux: Qt's offscreen platform needs system
      libraries there, not tried;
    - screenshots in the README or on the website (they are in
      `reports/gui_scope/verify_13/`).
-4. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
+3. **REVIEW.md §4 LOW items still open:** the terminal-stop tolerance in
    `make_pep`, `chr` never added to chromosome names, the header-only
    fetal-heart test data, the date-stamped comments.
-5. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
+4. **Planned follow-ups** (CHANGELOG `[Unreleased]`):
    - an option to add T2/T4 to `jcast_uniprot_merged.fasta`;
    - a UniProt download helper that names the file by its release
      (`X-UniProt-Release` header), as a third command;
@@ -208,6 +216,10 @@ has been run, and what to do next.
   - Typer prints usage errors in a box as wide as the console (80 columns
     when not a terminal). `tests/conftest.py` sets `COLUMNS=1000` for
     every test; set it for any script that reads the messages.
+  - Typer styles its text, as on a terminal, when `GITHUB_ACTIONS`,
+    `FORCE_COLOR` or `PY_COLORS` is set: read once, at import, into
+    `typer.rich_utils.FORCE_TERMINAL`. `tests/conftest.py` sets it to
+    `False` for every test.
   - The help in the README and on the website is
     `COLUMNS=88 NO_COLOR=1 python -m jcast run -h`, trailing spaces
     stripped, as Typer 0.29.1 prints it. Render it again when an option

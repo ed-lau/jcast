@@ -3,7 +3,7 @@
 | | |
 |---|---|
 | **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. **PR 13 implemented in `12e0576`** (§12): the GUI runs JCAST; no output change. **PR 21 in `4cc72c2`** (§13): a help line, progress counts and the last junction done, the logo. |
+| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. **PR 13 implemented in `12e0576`** (§12): the GUI runs JCAST; no output change. **PR 21 in `4cc72c2`** (§13): a help line, progress counts and the last junction done, the logo. CI's first run (2026-11-14) failed 7 command-line tests: fixed in the tests (§9.4). |
 | **Question** | What should the v0.5.0 GUI do: start a run only, or also show results, and which? How is it launched? What does moving the command line to Typer change for users? |
 | **Reproduce** | `python reports/gui_scope/scope_evidence.py --work <scratch> [--python <interpreter for the venvs>] [--rmats <whole-genome rMATS folder>]` (≈ 2 min; needs PyPI) |
 | **Evidence** (code at `f37faf9`) | [gui_scope/scope_evidence/scope_evidence.txt](gui_scope/scope_evidence/scope_evidence.txt) |
@@ -343,6 +343,35 @@ long options (`--overw`, `--uni`); Click takes only the full name, and
 suggests it. `_as_before` could have expanded them as argparse did.
 
 **Decided (2026-11-13): not restored.** Long options are written in full.
+
+### 9.4 CI's first run (2026-11-14)
+
+The branch's first push ran PR 18's tests on CI for the first time (run
+43662548893). The GUI's job passed. The other twelve failed the same 7
+tests: Linux and macOS, every Python version, the lowest dependency
+versions, and the sdist's tests:
+- `test_removed_options` (two);
+- `test_every_problem_is_reported`;
+- `test_help`;
+- `test_cli_rejects_processes` (two);
+- `test_cli_refuses_directory_with_output`.
+
+**The cause was in the tests, not jcast.** Typer treats the console as a
+terminal when `GITHUB_ACTIONS`, `FORCE_COLOR` or `PY_COLORS` is set. It
+reads them once, at import, into `typer.rich_utils.FORCE_TERMINAL`, in
+0.26.0 as in 0.29.1. Rich then styles the text, and escape codes split
+the words the tests look for: `-p/--processes`, and words of the help.
+The tests expect the plain text printed to a console that is not a
+terminal. `GITHUB_ACTIONS=true` reproduces all 7 locally.
+
+**Fixed in `tests/conftest.py`.** Every test sets `FORCE_TERMINAL` to
+`False`, which Rich checks before any environment variable:
+- the 7 pass with each of `GITHUB_ACTIONS`, `FORCE_COLOR`, `PY_COLORS`
+  and `TTY_COMPATIBLE` set;
+- the whole suite passes with `GITHUB_ACTIONS=true`.
+
+jcast itself is unchanged: on CI its messages stay coloured, as Typer
+intends.
 
 ## 10. Implementation and verification: PR 19 (`ec1068a`)
 
