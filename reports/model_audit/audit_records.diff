@@ -1,0 +1,40 @@
+diff --git a/jcast/main.py b/jcast/main.py
+index a83282b..a6430b3 100644
+--- a/jcast/main.py
++++ b/jcast/main.py
+@@ -333,12 +333,34 @@ def _finish(junction, fate, records, found, table, failed, logger) -> None:
+     """ In the main process: write the junction's records, log its fate, and add its row to junctions.tsv """
+     new_records = 0
+     for output, suffix, seqrecord in records:
+-        new_records += h.write_seqrecord_to_fasta(seqrecord, output, suffix)
++        written = h.write_seqrecord_to_fasta(seqrecord, output, suffix)
++        new_records += written
++        _audit_record(junction, suffix, seqrecord, written)
+     logger.debug(fate.rstrip())
+     table.add(junction, fate, found, [suffix for _, suffix, _ in records], new_records)
+     _count_failure(junction, fate, failed, logger)
+ 
+ 
++# AUDIT ONLY (reports/model_audit/audit_records.diff): every record of every junction, written or not, as a line of
++# JCAST_AUDIT_RECORDS: splice type, rMATS id, gene id, read count, file suffix, SHA-1 of the sequence, its length,
++# whether it was written, its header
++_audit_fh = None
++
++
++def _audit_record(junction, suffix, seqrecord, written) -> None:
++    global _audit_fh
++    path = os.environ.get('JCAST_AUDIT_RECORDS')
++    if not path:
++        return
++    if _audit_fh is None:
++        _audit_fh = open(path, 'a')
++    seq = str(seqrecord.seq)
++    _audit_fh.write('\t'.join([junction.junction_type, str(junction.name), str(junction.gene_id),
++                               str(junction.min_jc), suffix, hashlib.sha1(seq.encode()).hexdigest(),
++                               str(len(seq)), str(int(written)), seqrecord.id]) + '\n')
++    _audit_fh.flush()
++
++
+ def _count_failure(junction, fate, failed, logger) -> None:
+     """ Count a junction that failed with an exception, by its type. The first is also shown on the console """
+     if not fate.startswith(fates.EXCEPTION.split('.')[0]):

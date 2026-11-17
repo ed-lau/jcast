@@ -1,0 +1,21 @@
+records: 482209 (not canonical), 256939 distinct sequences; junctions.tsv: 623738 rows
+known set Swiss-Prot: 22127 sequences
+known set GENCODE: 161440 sequences
+known set GENCODE MANE: 49 sequences
+known set GENCODE TSL<=2: 21206 sequences
+known set GENCODE NMD: 59955 sequences
+known set Swiss-Prot or GENCODE: 170037 sequences
+== /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/jcast at 42
+junctions kept: 136818 derived, 136818 in the run; same junctions: True; fates differing: 0
+psq_T1.fasta: 23375 derived, 23375 in the run, equal: True
+psq_T1_alt_both.fasta: 24 derived, 24 in the run, equal: True
+psq_T1_alt_cterm.fasta: 2087 derived, 2087 in the run, equal: True
+psq_T1_alt_cterm_orphan.fasta: 283 derived, 283 in the run, equal: True
+psq_T1_alt_nterm.fasta: 290 derived, 290 in the run, equal: True
+psq_T1_alt_nterm_orphan.fasta: 23 derived, 23 in the run, equal: True
+psq_T1_orphan.fasta: 3831 derived, 3831 in the run, equal: True
+psq_T2.fasta: 6826 derived, 6826 in the run, equal: True
+psq_T2_orphan.fasta: 431 derived, 431 in the run, equal: True
+psq_T4.fasta: 44951 derived, 44951 in the run, equal: True
+psq_T4_orphan.fasta: 10063 derived, 10063 in the run, equal: True
+Swiss-Prot isoform sequences: 4016 derived, 4016 in the run, equal: True

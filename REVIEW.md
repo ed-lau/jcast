@@ -727,6 +727,27 @@ Since PR 20, a fit that fails for any reason falls back to `-r` too.
   and the result would depend on the spectra's depth. The audit measures
   instead, at each cutoff, the known protein-coding isoforms (Swiss-Prot,
   GENCODE) that a JCAST database reproduces.
+- First results, 2026-11-15
+  ([read-count model audit §3](reports/2026-11-15-read-count-model-audit.md#3-which-known-isoforms-a-cutoff-loses)):
+  - no read count is a boundary on any proxy measured;
+  - `-m` (40) keeps 63% of the Swiss-Prot isoforms that `-r 1`
+    reproduces;
+  - annotated events with 1 read look like those with 100;
+  - novel events with 1–2 reads keep the frame at chance;
+  - a cutoff on novel events only keeps more known isoforms for the
+    database size.
+- More results, 2026-11-16
+  ([§§4–7](reports/2026-11-15-read-count-model-audit.md#4-the-same-samples-through-rmats-440)),
+  on rMATS 4.4.0 and a second data set (mouse ventricles):
+  - rMATS 4.1.0 called 40% of its novel-junction events wrongly; with
+    4.4.0's calls the novel and annotated split holds, more clearly;
+  - the novel-only rule wins at equal size on every measure, but cannot
+    go below about twice Swiss-Prot's size;
+  - `-m` keeps 35% of the database records in all three runs, at 25 to
+    42 reads;
+  - few heart proteins in PaxDb have so few reads (2.7–6.7% below `-m`),
+    and below about 256 reads a gene's count does not predict whether
+    PaxDb finds its protein.
 
 ---
 

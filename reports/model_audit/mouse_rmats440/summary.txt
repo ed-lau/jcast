@@ -1,0 +1,21 @@
+records: 252283 (not canonical), 151506 distinct sequences; junctions.tsv: 294320 rows
+known set Swiss-Prot: 8479 sequences
+known set GENCODE: 105156 sequences
+known set GENCODE MANE: 0 sequences
+known set GENCODE TSL<=2: 11071 sequences
+known set GENCODE NMD: 57412 sequences
+known set Swiss-Prot or GENCODE: 109822 sequences
+== /Volumes/Omics-Shared-2/Edward/GSE49906_MouseHeart_RNASeq/jcast at 25
+junctions kept: 75331 derived, 75331 in the run; same junctions: True; fates differing: 0
+psq_T1.fasta: 14984 derived, 14984 in the run, equal: True
+psq_T1_alt_both.fasta: 13 derived, 13 in the run, equal: True
+psq_T1_alt_cterm.fasta: 831 derived, 831 in the run, equal: True
+psq_T1_alt_cterm_orphan.fasta: 128 derived, 128 in the run, equal: True
+psq_T1_alt_nterm.fasta: 108 derived, 108 in the run, equal: True
+psq_T1_alt_nterm_orphan.fasta: 7 derived, 7 in the run, equal: True
+psq_T1_orphan.fasta: 2447 derived, 2447 in the run, equal: True
+psq_T2.fasta: 3291 derived, 3291 in the run, equal: True
+psq_T2_orphan.fasta: 154 derived, 154 in the run, equal: True
+psq_T4.fasta: 27376 derived, 27376 in the run, equal: True
+psq_T4_orphan.fasta: 5141 derived, 5141 in the run, equal: True
+Swiss-Prot isoform sequences: 1444 derived, 1444 in the run, equal: True

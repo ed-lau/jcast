@@ -1,0 +1,6 @@
+quartile	proteins	abundance from (ppm)	gene matched	gene has an rMATS event	best junction, 10th percentile	best junction, median	best junction < 7	best junction < 20	best junction < 40	given an alternative sequence at -r 1
+all	9167	0.0001	9139	7650	216.0	3401.5	0.008	0.0222	0.0366	0.9722
+Q1	2292	0.0001	2285	1743	64.0	1328.0	0.0201	0.0453	0.0763	0.9627
+Q2	2292	0.188	2285	1899	141.0	2227.0	0.009	0.0274	0.0453	0.9626
+Q3	2291	2.08	2284	1979	448.0	3933.0	0.003	0.0116	0.0207	0.9773
+Q4	2292	27.2	2285	2029	1485.0	11447.0	0.0015	0.0079	0.0099	0.9842

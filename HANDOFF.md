@@ -1,4 +1,4 @@
-# Handoff — v0.5.0: two items before the release (2026-11-14)
+# Handoff — v0.5.0: two items before the release (2026-11-16)
 
 For the next working session. It covers where things stand, how the work
 has been run, and what to do next. **Start with
@@ -51,7 +51,84 @@ v0.5.0 on 2026-11-14, each to begin with an audit.
   v0.5.0 plan of 2026-11-13.
 - **Open before the release:** rows 22 and 23, added on 2026-11-14:
   - a view of each junction and its peptides;
-  - the `-m` read-count model, assessed.
+  - the `-m` read-count model, assessed. Its audit is under way
+    ([report](reports/2026-11-15-read-count-model-audit.md)): §§3–7 are
+    measured, §8 (the fit, per-type cutoffs, NMDI14) is to come.
+
+## The session of 2026-11-16
+
+- **The maintainer's input:**
+  - the model went from a Gaussian mixture to Gamma plus Normal around
+    2021, because the counts stop abruptly at 0. Traced: `8c6f015`
+    (2021-09-03), `3aff172` (2021-09-16), `ba11fc5` (2021-09-23); report
+    §2;
+  - the human cells re-run through rMATS 4.4.0 (now `rmats/`; 4.1.0's
+    output moved to `rmats_4_1_0/`, and the 2026-11-13 `-m` run to
+    `jcast_rmats_4_1_0/`);
+  - a second data set, mouse ventricles at five ages (GSE49906, Giudice
+    et al. 2014), at `/Volumes/Omics-Shared-2/Edward/GSE49906_MouseHeart_RNASeq/`;
+  - asked for canonical genes by cutoff against PaxDb's heart proteins.
+- **Row 23's audit, §§4–7** (same report, evidence in
+  `reports/model_audit/human_rmats440/` and `mouse_rmats440/`; §3's moved
+  to `human_rmats410/`):
+  - **rMATS 4.1.0 mislabelled novel events.** 4.4.0 calls 61,246 of
+    4.1.0's 151,331 novel-junction events annotated (4.1.1's "novel event
+    classification" fix). Per-cutoff results barely change; the novel and
+    annotated split of §3 is superseded (§4.1).
+  - **Annotation separates better than read count,** more clearly on
+    4.4.0. Novel events keep the frame at chance at 1–2 reads in both
+    species, and at every count below 4,096 in the human cells (§§4.4,
+    5.4).
+  - **A cutoff on novel events only** now wins at equal size on every
+    measure in both species, but cannot go below about twice
+    Swiss-Prot's size (§§4.5, 5.6). Two cutoffs (low for annotated, higher
+    for novel) are suggested, not measured (§7).
+  - **`-m` lands at the same point:** 40, 42 and 25 reads each keep 35% of
+    the database records (§7). A fixed `-r` costs more in mouse (§5.3).
+  - **PaxDb (§6):** 0.8% (mouse) and 1.5% (human) of the heart proteins
+    have their best junction below 7 reads; 2.7% and 6.7% below `-m`.
+    Whether PaxDb finds a gene's protein is flat with read count below
+    about 256 reads. At `-m`, a quarter of them get no alternative
+    sequence.
+  - **Script changes:** `cutoff_recovery.py` gained `--paxdb`,
+    `tradeoff.tsv`, `novel.png` and a required `--out`; it reproduces
+    §3's tables byte for byte. New: `rmats_versions.py`. The two new
+    `-r 1` runs used `da06619` with the audit patch, `-p 10` each.
+  - **Still not committed:** the report, its evidence, the scripts, and
+    the index, REVIEW.md and handoff entries.
+
+## The session of 2026-11-15
+
+- **The maintainer's answers** (`da06619`; listed under
+  [Next priorities](#next-priorities)):
+  - PR 13's choices are kept;
+  - mass spectrometry is deferred, as a future research item;
+  - the whole genome's samples are DMSO and NMDI14.
+- **Row 23's audit, §3: which known isoforms a cutoff loses**
+  ([report](reports/2026-11-15-read-count-model-audit.md),
+  [evidence](reports/model_audit/)).
+  - **One run at `-r 1` gives every cutoff.** It is made with an
+    audit-only switch, [audit_records.diff](reports/model_audit/audit_records.diff):
+    `JCAST_AUDIT_RECORDS=<file>` logs every record of every junction,
+    written or not. Cut at 7 and at 40, the records give exactly the two
+    earlier whole-genome runs (§3.2). The run took 8 min with `-p 16`.
+  - **Recall falls steadily with the cutoff.** `-m` (40) keeps 63% of
+    the Swiss-Prot isoforms `-r 1` reproduces, 47% of GENCODE's
+    alternative proteins and 81% of those at ≥ 1 TPM (Salmon). It keeps
+    28% of the records found in neither. No read count is a boundary.
+  - **Annotated against novel events** (rMATS's
+    `fromGTF.novelJunction` and `novelSpliceSite` lists):
+    - annotated events with 1 read look like those with 100;
+    - novel events with 1–2 reads keep the frame at chance (33.3%).
+  - **A cutoff on novel events only** keeps 175–376 more Swiss-Prot
+    isoforms for the same database size. It ties on expressed GENCODE
+    isoforms up to about 20 reads and loses some above that (§3.6).
+  - **The paper's model** (a Gaussian mixture, cutoff at a posterior of
+    0.95) is not the code's (Gamma plus Normal, densities crossing; §2).
+  - **Not committed yet:** the report, its evidence and
+    `reports/model_audit/cutoff_recovery.py`. Their index, REVIEW.md and
+    handoff entries are not committed either. Commit them with the
+    decisions, as for other audits, or before if the maintainer asks.
 
 ## The session of 2026-11-14
 
@@ -287,6 +364,22 @@ Then a PR with a verification script, as for PRs 13 and 21.
 
 ### 2. Row 23: the `-m` read-count model, assessed
 
+**Progress (2026-11-16).** The audit report is
+[reports/2026-11-15-read-count-model-audit.md](reports/2026-11-15-read-count-model-audit.md).
+Done: the known isoforms a cutoff loses (§3, rMATS 4.1.0), again on rMATS
+4.4.0 (§4) and on mouse ventricles (§5), and the PaxDb heart proteins
+(§6). Still to do:
+- §8.1, the fit, on the three whole-genome folders too;
+- §8.2, a cutoff per splice type;
+- §8.3, NMDI14, on rMATS 4.4.0;
+- possibly: two cutoffs, annotated and novel, from the same records (§7);
+- the decisions (§9).
+
+The `-r 1` runs' records (166, 174 and 93 MB) were in a scratch folder.
+To regenerate them, apply `reports/model_audit/audit_records.diff` in a
+worktree and run as the report's Reproduce row says. GENCODE translations
+and PaxDb files are downloaded as its Inputs row says.
+
 **The model now** ([jcast/model.py](jcast/model.py), REVIEW.md §5.6):
 - **The count** (`junctions.read_count`): min(summed IJC, summed SJC),
   over both samples and every replicate.
@@ -310,12 +403,15 @@ Then a PR with a verification script, as for PRs 13 and 21.
   chr15 (`tests/data/rmats`).
 - **The maintainer's whole genome,** at
   `/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/`:
-  - `rmats/`: JC and JCEC files;
+  - `rmats/`: JC and JCEC files, rMATS 4.4.0 (2026-11-16); 4.1.0's are
+    in `rmats_4_1_0/`;
   - `salmon/`: `CM_DMSO1–3` and `CM_NMD1–3`, each with `quant.sf` (TPM
     per GENCODE transcript) and `quant.genes.sf`;
   - `genome/`: GENCODE v50 GTF, GRCh38, and the Swiss-Prot isoform FASTA
     of 2026-11-11.
-- **Two runs on those inputs, both with `--uniprot`:**
+- **Two runs on the rMATS 4.1.0 inputs, both with `--uniprot`** (the
+  first now in `jcast_rmats_4_1_0/`, the second removed; `jcast/` holds
+  the maintainer's `-m` run on 4.4.0, cutoff 42):
 
   | | `jcast/` | `jcast_guitest/` (from the GUI) |
   |---|---|---|

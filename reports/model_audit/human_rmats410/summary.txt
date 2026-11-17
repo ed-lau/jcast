@@ -1,0 +1,35 @@
+records: 459200 (not canonical), 249857 distinct sequences; junctions.tsv: 599644 rows
+known set Swiss-Prot: 22127 sequences
+known set GENCODE: 161440 sequences
+known set GENCODE MANE: 49 sequences
+known set GENCODE TSL<=2: 21206 sequences
+known set GENCODE NMD: 59955 sequences
+known set Swiss-Prot or GENCODE: 170037 sequences
+== /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/jcast_guitest at 7
+junctions kept: 308950 derived, 308950 in the run; same junctions: True; fates differing: 0
+psq_T1.fasta: 39106 derived, 39106 in the run, equal: True
+psq_T1_alt_both.fasta: 45 derived, 45 in the run, equal: True
+psq_T1_alt_cterm.fasta: 3070 derived, 3070 in the run, equal: True
+psq_T1_alt_cterm_orphan.fasta: 500 derived, 500 in the run, equal: True
+psq_T1_alt_nterm.fasta: 447 derived, 447 in the run, equal: True
+psq_T1_alt_nterm_orphan.fasta: 41 derived, 41 in the run, equal: True
+psq_T1_orphan.fasta: 8097 derived, 8097 in the run, equal: True
+psq_T2.fasta: 14223 derived, 14223 in the run, equal: True
+psq_T2_orphan.fasta: 937 derived, 937 in the run, equal: True
+psq_T4.fasta: 82510 derived, 82510 in the run, equal: True
+psq_T4_orphan.fasta: 21327 derived, 21327 in the run, equal: True
+Swiss-Prot isoform sequences: 5391 derived, 5391 in the run, equal: True
+== /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/jcast at 40
+junctions kept: 131233 derived, 131233 in the run; same junctions: True; fates differing: 0
+psq_T1.fasta: 22522 derived, 22522 in the run, equal: True
+psq_T1_alt_both.fasta: 23 derived, 23 in the run, equal: True
+psq_T1_alt_cterm.fasta: 2029 derived, 2029 in the run, equal: True
+psq_T1_alt_cterm_orphan.fasta: 274 derived, 274 in the run, equal: True
+psq_T1_alt_nterm.fasta: 288 derived, 288 in the run, equal: True
+psq_T1_alt_nterm_orphan.fasta: 23 derived, 23 in the run, equal: True
+psq_T1_orphan.fasta: 3672 derived, 3672 in the run, equal: True
+psq_T2.fasta: 6458 derived, 6458 in the run, equal: True
+psq_T2_orphan.fasta: 399 derived, 399 in the run, equal: True
+psq_T4.fasta: 42930 derived, 42930 in the run, equal: True
+psq_T4_orphan.fasta: 9625 derived, 9625 in the run, equal: True
+Swiss-Prot isoform sequences: 3997 derived, 3997 in the run, equal: True

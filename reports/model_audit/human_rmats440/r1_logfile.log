@@ -1,0 +1,32 @@
+2026-11-16 14:23:43,173~INFO~JCAST 0.4.0
+2026-11-16 14:23:43,173~INFO~Arguments: Namespace(rmats_folder='/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats', gtf_file='/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/gencode.v50.primary_assembly.annotation.gtf', genome='/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/GRCh38.primary_assembly.genome.fa', out='/private/tmp/claude-501/-Users-edwardlau-projects-jcast/1eb63304-8df1-46c6-8502-5bbacb5416ca/scratchpad/model_audit/h440/out', overwrite=False, cache_dir='/private/tmp/claude-501/-Users-edwardlau-projects-jcast/1eb63304-8df1-46c6-8502-5bbacb5416ca/scratchpad/model_audit/cache', read=1, model=False, canonical=True, uniprot='/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/20261111_human_uniprot_swissprot_isoform.fasta', processes=10, verbose=False, splice_type={'A3SS', 'MXE', 'A5SS', 'RI', 'SE'}, qvalue=[0.0, 1.0])
+2026-11-16 14:23:45,299~INFO~rMATS MXE: /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats/MXE.MATS.JC.txt (24,175,022 bytes, sha256 b19446523f28ab7da9e078267f9e52814a353c680851859fc601a3bd726d8a4a)
+2026-11-16 14:23:45,327~INFO~rMATS SE: /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats/SE.MATS.JC.txt (53,254,920 bytes, sha256 d3224a496f2c2297e4007379c014d4fdeab2558595889361d57a14765583520d)
+2026-11-16 14:23:45,334~INFO~rMATS RI: /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats/RI.MATS.JC.txt (8,113,184 bytes, sha256 2b115fa443c0bfab29706639228f67aeb2eea82def82983e179bb46a51f78624)
+2026-11-16 14:23:45,343~INFO~rMATS A5SS: /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats/A5SS.MATS.JC.txt (15,495,793 bytes, sha256 9e24dab3739e17bea62fc6ff68bc1e83402d2bd7c7c6379f9eb1c5b7e1899f81)
+2026-11-16 14:23:45,356~INFO~rMATS A3SS: /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats/A3SS.MATS.JC.txt (24,811,862 bytes, sha256 35605826fe53825cb21f39531674c018328873dcfb030f16bc5a58bb10e410ca)
+2026-11-16 14:23:45,357~INFO~GTF: /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/gencode.v50.primary_assembly.annotation.gtf (4,688,772,094 bytes, modified 2026-06-29 14:00:24)
+2026-11-16 14:23:45,358~INFO~Genome: /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/genome/GRCh38.primary_assembly.genome.fa (3,151,417,447 bytes, modified 2026-06-29 14:02:40)
+2026-11-16 14:23:45,358~INFO~Reading GTF file. This could take a minute.
+2026-11-16 14:23:49,349~INFO~Read the GTF from the cache /private/tmp/claude-501/-Users-edwardlau-projects-jcast/1eb63304-8df1-46c6-8502-5bbacb5416ca/scratchpad/model_audit/cache/gtf/gencode.v50.primary_assembly.annotation.gtf.e7bbc96da8ec.36b06229e40e.pkl.
+2026-11-16 14:24:50,812~INFO~Read from genome.
+2026-11-16 14:24:51,330~INFO~UniProt FASTA 20261111_human_uniprot_swissprot_isoform.fasta (sha256 d0100c8da86ebcb4d0d05417c34c14d835f87ea87bdf1eaf18003af366ef9b33): 42545 entries, 20414 canonical.
+2026-11-16 14:24:51,330~INFO~Translating junctions with a read count of at least 1 (-r): the smaller of the summed inclusion and skipping junction counts. Others are skipped.
+2026-11-16 14:24:51,428~INFO~Translating junctions in 10 worker processes.
+2026-11-16 14:35:00,583~INFO~Canonicals by source: {'gtf': 119, 'none': 3553, 'sp by gene name': 368, 'sp by sequence': 13108}. JCAST records identical to a UniProt entry: 8903 (see psq_isoforms.tsv). jcast_uniprot_merged.fasta: 42545 UniProt entries and 64213 JCAST records from T1, T1_alt_cterm, T1_alt_nterm, T1_alt_both.
+2026-11-16 14:35:01,228~INFO~Summary.
+Junctions by fate and splice type (each junction is a row of junctions.tsv):
+fate                     MXE       SE      RI    A5SS     A3SS    total
+T1                    13,669   43,312   1,414  10,380   27,417   96,192
+T1_alt_terminus        1,300    4,887     827   1,298    1,223    9,535
+T2                     3,320   11,424     966   4,427    9,729   29,866
+T4                    29,157   89,794  14,572  25,719   42,454  201,696
+fail                  44,788   85,395  18,137  26,859   33,455  208,634
+exception                  0        0       0       0        0        0
+skipped_low_count          0        0       0       0        0        0
+skipped_fdr                0        0       0       0        0        0
+skipped_masked             0        0       0       0        0        0
+skipped_outside_cds   17,544   34,024   3,902  10,764   11,581   77,815
+total                109,778  268,836  39,818  79,447  125,859  623,738
+Records per file: psq_T1.fasta 64,586, psq_T1_alt_both.fasta 73, psq_T1_alt_cterm.fasta 4,349, psq_T1_alt_cterm_orphan.fasta 899, psq_T1_alt_nterm.fasta 622, psq_T1_alt_nterm_orphan.fasta 45, psq_T1_orphan.fasta 16,658, psq_T2.fasta 28,464, psq_T2_orphan.fasta 2,157, psq_T4.fasta 138,333, psq_T4_orphan.fasta 41,832, psq_canonical.fasta 13,523
+2026-11-16 14:35:01,228~INFO~Time: 11 min 18 s in all, of which 10 min 08 s translating junctions.
