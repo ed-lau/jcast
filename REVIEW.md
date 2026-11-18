@@ -748,6 +748,39 @@ Since PR 20, a fit that fails for any reason falls back to `-r` too.
   - few heart proteins in PaxDb have so few reads (2.7–6.7% below `-m`),
     and below about 256 reads a gene's count does not predict whether
     PaxDb finds its protein.
+- The fit, two cutoffs and NMDI14, 2026-11-16
+  ([§§8–10](reports/2026-11-15-read-count-model-audit.md#8-the-models-fit-to-the-counts));
+  decisions requested in §13:
+  - the counts have one mode and a long tail. `-m` misfits them where its
+    cutoff falls; fitted to the counts, its family does not split. The
+    cutoff keeps the 22–26% of junctions with the most reads at any
+    depth: a depth-scaled share, not a boundary;
+  - a low cutoff for annotated events and a higher one for novel events
+    beats one cutoff in both species at every database size. JCAST could
+    call novel events from the GTF (98–99% agreement with rMATS 4.4.0);
+  - NMDI14 is inconclusive: these samples show no measurable block of
+    NMD;
+  - the maintainer leans against a cutoff per splice type, and agreed
+    that the GUI's Model page should show what a cutoff keeps.
+- Answers, a third data set and rMATS's filter, 2026-11-18
+  ([§§13–16](reports/2026-11-15-read-count-model-audit.md#14-a-third-data-set-ipsc-differentiation)):
+  - the maintainer keeps `-m`. The pair of cutoffs (`-m` on novel events
+    only) is to be tested against the spectra of two deep human heart
+    proteomes; `novel_only.diff` makes the second database. A cutoff per
+    splice type is dropped for now;
+  - an iPSC differentiation series (1.4 million events) changes no
+    conclusion;
+  - rMATS's statistics drop, before JCAST reads the folder, every event
+    with no reads in one group. That is 1.9–2.6% of events where the
+    groups share a tissue, and 4.8% across differentiation, where it
+    includes cardiac genes and known isoforms;
+  - JCAST cannot read rMATS's `--statoff` output (every FDR is `NA`) or
+    one-group output (the empty count fields make every count 0). The
+    maintainer adopted the fix and the advice to use `--statoff`
+    (§15.7). With the fix, `-m` is fitted on counts ≥ 1 and falls 3–5
+    reads; with the counts of 0 it would leave no cutoff (§15.8);
+  - the Model page shows, for now, only the charts that need no run
+    (§16.2).
 
 ---
 

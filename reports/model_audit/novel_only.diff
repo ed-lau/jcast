@@ -1,0 +1,41 @@
+diff --git a/jcast/main.py b/jcast/main.py
+index a83282b..0ef5b89 100644
+--- a/jcast/main.py
++++ b/jcast/main.py
+@@ -498,6 +498,27 @@ def _translate_one(junction: Junction,
+     return fate
+ 
+ 
++# AUDIT ONLY (reports/model_audit/novel_only.diff): with JCAST_AUDIT_ANNOTATED_CUTOFF=<n>, an event rMATS calls
++# annotated (in neither fromGTF.novelJunction.<type>.txt nor fromGTF.novelSpliceSite.<type>.txt) has the cutoff n; a
++# novel event keeps the run's (-r, or the -m model's)
++_audit_novel = None
++
++
++def _audit_cutoff(junction, args, pred_bound) -> int:
++    global _audit_novel
++    n = os.environ.get('JCAST_AUDIT_ANNOTATED_CUTOFF')
++    if not n:
++        return pred_bound
++    if _audit_novel is None:
++        import pandas as pd
++        files = glob.glob(os.path.join(args.rmats_folder, 'fromGTF.novel*.*.txt'))
++        if not files:
++            raise FileNotFoundError(f'JCAST_AUDIT_ANNOTATED_CUTOFF: no fromGTF.novel*.<type>.txt in {args.rmats_folder}')
++        _audit_novel = {(os.path.basename(f).split('.')[2], str(i))
++                        for f in files for i in pd.read_csv(f, sep='\t', usecols=['ID'])['ID']}
++    return pred_bound if (junction.junction_type, str(junction.name)) in _audit_novel else int(n)
++
++
+ def _translate(junction: Junction,
+                sequence: Sequence,
+                gtf: ReadAnnotations,
+@@ -515,7 +536,7 @@ def _translate(junction: Junction,
+     # most of a run went on junctions it then skipped (reports/2026-11-12-log-audit.md §3). A junction is kept if its
+     # read count is at least the cutoff; it used to need one read more
+     # (reports/2026-11-12-thresholds-runs-canonical-audit.md §2) ----
+-    skipped = fates.filtered(junction.min_jc, junction.fdr, pred_bound, args.qvalue)
++    skipped = fates.filtered(junction.min_jc, junction.fdr, _audit_cutoff(junction, args, pred_bound), args.qvalue)
+     if skipped:
+         return skipped
+ 

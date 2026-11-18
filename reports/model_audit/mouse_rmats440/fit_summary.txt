@@ -1,0 +1,5 @@
+/Volumes/Omics-Shared-2/Edward/GSE49906_MouseHeart_RNASeq/rmats: 294320 events, 4917 distinct counts
+general_mixture_model: cutoff 25, parameters (np.float64(3.7302393675222687), np.float64(2.28977295221827), np.float64(4.3463493825450925), 1.7881832630941121, np.float64(0.7058549887545768), np.float64(0.2941450112454233))
+em (weighted, distinct counts): cutoff 25, parameters (np.float64(3.7302393675222745), np.float64(2.2897729522182737), np.float64(4.346349382545092), 1.7881832630941124, np.float64(0.7058549887545766), np.float64(0.2941450112454233)); same: True
+junctions with a count of 1: 53238 (18.1%); kept at the cutoff: 0.2559
+bootstrap (100): cutoffs 23 to 27, 2.5-97.5%: 24.0 to 26.0

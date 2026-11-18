@@ -7,7 +7,8 @@ A run writes a sequence once per file, under the first junction that gives it, s
 higher cutoff would keep. The run is therefore made with an audit-only switch (audit_records.diff, in this folder):
 JCAST_AUDIT_RECORDS=<file> makes main._finish write a line for every record of every junction, written or not, with
 the junction's read count and the SHA-1 of the sequence. A sequence is in the output at cutoff c if any junction with
-a read count >= c gives it. --check compares that with full runs at their own cutoffs.
+a read count >= c gives it. --check compares that with full runs at their own cutoffs; --check_novel_only with a run
+made with the cutoff on novel events only (novel_only.diff), against the records cut by that rule.
 
 The known isoforms (each a set of distinct sequences):
     Swiss-Prot      the isoforms (accession -N) of the --uniprot FASTA, less any sequence that is also a canonical
@@ -49,7 +50,8 @@ and splice type); expression.tsv (with --salmon); genes.tsv, paxdb.tsv, paxdb_by
 Usage (from the repository root; the whole-genome inputs are not bundled):
     python reports/model_audit/cutoff_recovery.py --records <records.tsv> --run <-r 1 output dir> --rmats <dir>
         --uniprot <Swiss-Prot isoform FASTA> --gencode <pc_translations.fa.gz> --gtf <gtf> [--cache_dir <dir>]
-        [--salmon <dir>] [--paxdb <PaxDb file>] [--check <output dir>:<cutoff> ...] [--model_cutoff <n>] --out <dir>
+        [--salmon <dir>] [--paxdb <PaxDb file>] [--check <output dir>:<cutoff> ...]
+        [--check_novel_only <output dir>:<cutoff> ...] [--model_cutoff <n>] --out <dir>
 """
 
 import argparse
@@ -507,6 +509,8 @@ def main():
     p.add_argument('--salmon', default=None, help='a folder of Salmon outputs, <sample>/quant.sf')
     p.add_argument('--paxdb', default=None, help='a PaxDb integrated abundance file for the tissue')
     p.add_argument('--check', action='append', default=[], help='<output dir>:<cutoff> of a full run')
+    p.add_argument('--check_novel_only', action='append', default=[],
+                   help='<output dir>:<cutoff> of a run with the cutoff on novel events only (novel_only.diff)')
     p.add_argument('--model_cutoff', type=int, default=40, help='the -m cutoff, marked on the plot')
     p.add_argument('--out', required=True)
     a = p.parse_args()
@@ -547,6 +551,9 @@ def main():
     for c in a.check:
         d, cutoff = c.rsplit(':', 1)
         lines += check(rec, jx, known, d, int(cutoff), sp_iso)
+    for c in a.check_novel_only:
+        d, cutoff = c.rsplit(':', 1)
+        lines += ['(the cutoff on novel events only)'] + check(*novel_only(rec, jx), known, d, int(cutoff), sp_iso)
     (out / 'summary.txt').write_text('\n'.join(lines) + '\n')
     print('\n'.join(lines))
     with pd.option_context('display.width', 250, 'display.max_columns', 40):

@@ -1,0 +1,5 @@
+/Volumes/Omics-Shared-2/Edward/2019_iPSC_Diff_RNA/rmats: 1436384 events, 13130 distinct counts
+general_mixture_model: cutoff 39, parameters (np.float64(3.5500449334489232), np.float64(1.9694715309545499), np.float64(4.72882967265319), 1.8895835806438273, np.float64(0.7453046434023598), np.float64(0.2546953565976401))
+em (weighted, distinct counts): cutoff 39, parameters (np.float64(3.5500449334489286), np.float64(1.9694715309545536), np.float64(4.728829672653191), 1.8895835806438268, np.float64(0.7453046434023601), np.float64(0.25469535659764003)); same: True
+junctions with a count of 1: 220288 (15.3%); kept at the cutoff: 0.2189
+bootstrap (100): cutoffs 38 to 40, 2.5-97.5%: 39.0 to 40.0

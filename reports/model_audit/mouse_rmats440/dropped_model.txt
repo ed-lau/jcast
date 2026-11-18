@@ -1,0 +1,3 @@
+-m cutoff, kept events (as JCAST reads the folder): 25 (294320 events)
+-m cutoff, kept, and dropped with a read in both forms: 22 (302055 events)
+-m cutoff, every event (as JCAST would read the --statoff folder): 1 (448231 events)

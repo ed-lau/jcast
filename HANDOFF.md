@@ -1,9 +1,10 @@
-# Handoff — v0.5.0: two items before the release (2026-11-16)
+# Handoff — v0.5.0: three items before the release (2026-11-18)
 
 For the next working session. It covers where things stand, how the work
 has been run, and what to do next. **Start with
 [Next priorities](#next-priorities)**: the maintainer added two items to
-v0.5.0 on 2026-11-14, each to begin with an audit.
+v0.5.0 on 2026-11-14, each to begin with an audit, and a third (the GUI
+remembers its settings) on 2026-11-18.
 
 ## State
 
@@ -28,7 +29,8 @@ v0.5.0 on 2026-11-14, each to begin with an audit.
     its hash;
   - `0986558`: a fix to the tests for CI (report §9.4);
   - then the CHANGELOG and roadmaps updated for the GUI and the two new
-    items, with this handoff. Not pushed.
+    items, with this handoff (`3bfb12a`, `da06619`), and row 23's audit
+    §§3–7 (`f368783`). Not pushed.
 - **Tests:** 230, all passing; 227 offline
   (`python -m pytest -q -m 'not network'`, about 2.5 minutes). Run only
   the fast ones with `-m 'not slow'`. The GUI's 17 (`tests/test_gui.py`)
@@ -49,11 +51,95 @@ v0.5.0 on 2026-11-14, each to begin with an audit.
 - **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18, 19, 20, 13 and 21
   ([REVIEW.md §9](REVIEW.md#v050-the-gui-and-the-command-line)): the
   v0.5.0 plan of 2026-11-13.
-- **Open before the release:** rows 22 and 23, added on 2026-11-14:
+- **Open before the release:** rows 22 and 23, added on 2026-11-14, and
+  the GUI's settings, added on 2026-11-18:
   - a view of each junction and its peptides;
-  - the `-m` read-count model, assessed. Its audit is under way
-    ([report](reports/2026-11-15-read-count-model-audit.md)): §§3–7 are
-    measured, §8 (the fit, per-type cutoffs, NMDI14) is to come.
+  - the `-m` read-count model, assessed. Its audit
+    ([report](reports/2026-11-15-read-count-model-audit.md)) is measured
+    on three data sets (§§3–10, 14, 15). The maintainer answered §13 on
+    2026-11-18; the pair of cutoffs waits for a search against spectra
+    (§16.1); JCAST is to read `--statoff` folders (§15.7, adopted);
+  - the GUI remembers its settings between sessions.
+
+## The session of 2026-11-18
+
+- **The maintainer's answers to §13** (report §13, "The maintainer's
+  answers"):
+  - the `-m` model is kept; open is whether its cutoff should apply to
+    novel events only;
+  - the pair of cutoffs: leaning yes, to be decided after a search with
+    quantms. The maintainer will run JCAST on human heart and prepare
+    the spectra of two deep heart proteomes (probably the Mann and
+    Lundby labs'). They asked for help with two databases: `-m` on every
+    event, and `-m` on novel events only;
+  - a cutoff per splice type: dropped for now;
+  - the Model page: the database-size charts (§§3.6, 4.5, 5.6), the
+    alternative region by read count (§4.4), and the records by kind at
+    each cutoff (§4.3) if quick;
+  - NMDI14: recorded as inconclusive; a new science report is to follow
+    (under [Later](#5-later));
+  - the GUI is to remember its settings, in v0.5.0
+    ([item 3](#3-the-gui-remembers-its-settings)).
+- **They also asked** how the count treats replicates and conditions,
+  and how many junctions are lost when one is missing from a condition
+  (rMATS gives no p-value), with fetal and adult hearts in mind. A
+  fourth data set, ENCODE human adult and fetal heart, is being
+  downloaded to `ENCODE_HumanHeart_RNASeq/`, for the search.
+- **The third data set (report §14):** `2019_iPSC_Diff_RNA`, 12 samples
+  of iPSC to cardiomyocyte differentiation, rMATS 4.4.0, 1.4 million
+  events. No conclusion changes:
+  - `-m` (39) keeps 37% of the records and 70% of the Swiss-Prot
+    isoforms;
+  - novel events keep the frame at chance;
+  - novel-only wins at every size;
+  - the GTF call agrees 98.2%.
+
+  The `-r 1` records reproduce the maintainer's `-m` run exactly.
+- **Events rMATS drops (report §15):**
+  - JCAST's count sums both conditions. rMATS's post step, with its
+    statistics on, drops every event with no reads in one group
+    (`filter_countfile`); none reaches JCAST with an NA p-value.
+  - Measured against a post step with `--statoff`, JCAST loses 1.9%
+    (NMDI14), 2.6% (mouse) and 4.8% (iPSC) of events.
+  - In the iPSC series those include the cardiac genes that days 0–2 do
+    not express. They would add 148 Swiss-Prot isoforms at `-r 1` and
+    12 at `-m`.
+  - JCAST cannot read a `--statoff` folder (every FDR `NA` is
+    `skipped_fdr`) or a one-group folder (the empty fields make every
+    count 0). Decisions requested in §15.7.
+- **For the search (report §16.1):**
+  [novel_only.diff](reports/model_audit/novel_only.diff) is an
+  audit-only switch, `JCAST_AUDIT_ANNOTATED_CUTOFF=<n>`, that gives the
+  events rMATS calls annotated their own cutoff. On the iPSC series, a
+  run with it at `-m` (39) equals the `-r 1` records cut by the novel-only
+  rule, file by file (481,191 junctions; 7,261 Swiss-Prot isoforms
+  against 5,556 at `-m` on every event).
+- **Tools:** the maintainer's `rmats440` environment is not on this
+  machine. rMATS 4.4.0 was installed from bioconda (osx-arm64) into the
+  session's scratch folder, for the `--statoff` post steps.
+- **New:**
+  - [dropped_events.py](reports/model_audit/dropped_events.py);
+  - `cutoff_recovery.py --check_novel_only`;
+  - the evidence folder `reports/model_audit/ipsc_diff_rmats440/`, and
+    `dropped*` files in the three 4.4.0 folders.
+- **Later the same day, the maintainer:**
+  - **the Model page:** only the charts that need no run (report §16.2:
+    junctions kept, annotated and novel; the alternative region by read
+    count). Those from a run's records wait for later decisions; they
+    would go on the results page or a Model page shown after a run;
+  - **§15.7, 1 and 2 adopted:** JCAST is to read `--statoff` and
+    one-group folders, and the documentation is to recommend
+    `--statoff`. The maintainer will make the three folders again with
+    `--statoff` and rerun JCAST after the fix;
+  - **asked how far the zero counts move `-m`** (report §15.8). Fitted as
+    JCAST fits today, a `--statoff` folder's counts of 0 leave no cutoff
+    (1, 1 and 5 reads). Fitted on counts ≥ 1, as the fix will, `-m` falls
+    3–5 reads (42 → 37, 25 → 22, 39 → 34), and the database at `-m`
+    grows 4.5–4.8%, mostly from events already in the folder.
+    `dropped_events.py` now measures at that cutoff too;
+- **Committed** with the maintainer's approval: everything since
+  `f368783` (report §§8–16, the scripts, the evidence, these notes), and
+  `.gitignore`'s `runs/` in place of `out/` and `mzml/`.
 
 ## The session of 2026-11-16
 
@@ -94,8 +180,36 @@ v0.5.0 on 2026-11-14, each to begin with an audit.
     `tradeoff.tsv`, `novel.png` and a required `--out`; it reproduces
     §3's tables byte for byte. New: `rmats_versions.py`. The two new
     `-r 1` runs used `da06619` with the audit patch, `-p 10` each.
-  - **Still not committed:** the report, its evidence, the scripts, and
-    the index, REVIEW.md and handoff entries.
+  - **Committed** as `f368783`, when the maintainer asked. The three
+    `-r 1` logs are force-added: `*.log` is ignored.
+- **The maintainer's answers, later the same day:**
+  - commit, and go on with §8;
+  - a cutoff per splice type looks less promising than one for novel
+    events and one for annotated events; the novel-only cutoff has strong
+    potential;
+  - agreed: the GUI's Model page should show what a cutoff keeps, with
+    charts like the audit's, so users can choose (other data sets may
+    behave differently);
+  - a third data set is being prepared: the 2019 paper's deep iPSC
+    differentiation series, through rMATS 4.4.0.
+- **Row 23's audit, §§8–13** (same report; new scripts `model_fit.py`,
+  `two_cutoffs.py`, `nmd_response.py`):
+  - **The fit (§8).** The counts have one mode (2 reads) and a long
+    tail; `-m` misfits them where its cutoff falls; fitted to the counts
+    the same family does not split. The cutoff keeps the 22–26% of
+    junctions with the most reads at any depth. JCAST's EM stops before
+    converging (converged: 45, 43, 26 against 42, 40, 25).
+  - **Two cutoffs (§9).** A low cutoff for annotated events and a higher
+    one for novel events beats one cutoff in both species at every size;
+    novel-only is best at large sizes. From the GTF, JCAST could call
+    novel events itself: 98.0% and 98.8% agreement with rMATS 4.4.0.
+  - **NMDI14 (§10): inconclusive.** Neither JCAST's T4 stop forms nor
+    GENCODE's NMD forms gain under NMDI14, and in the folder's DESeq2
+    results NMD transcripts are no more often up than coding ones.
+  - **Per-type cutoffs (§11)** recorded, not pursued; **the Model page
+    (§12)**: what each chart would need; **decisions (§13)**.
+  - **Not committed:** §§8–13, their evidence and scripts, and these
+    notes.
 
 ## The session of 2026-11-15
 
@@ -293,6 +407,21 @@ then a PR. The release comes after both.
   `01_out/`).
 - **PR 13's choices** (scope report §12.1): agreed, every one.
 
+**The maintainer's answers (2026-11-16):** row 23 favours a cutoff for
+novel events (with one for annotated events) over a cutoff per splice
+type; the GUI's Model page is to show what a cutoff keeps; a third data
+set (the 2019 paper's iPSC differentiation series, rMATS 4.4.0) is to
+come.
+
+**The maintainer's answers (2026-11-18):** listed in
+[the session of 2026-11-18](#the-session-of-2026-11-18) and the report's
+§13. In short:
+- `-m` is kept;
+- the pair of cutoffs waits for the search against spectra;
+- no per-type cutoffs;
+- the Model page charts are chosen;
+- the GUI remembers its settings in v0.5.0.
+
 ### 1. Row 22: a view of each junction and its peptides (feasibility first)
 
 **The goal.** In the GUI's results, pick a junction by gene, splice type,
@@ -364,18 +493,34 @@ Then a PR with a verification script, as for PRs 13 and 21.
 
 ### 2. Row 23: the `-m` read-count model, assessed
 
-**Progress (2026-11-16).** The audit report is
+**Progress (2026-11-18).** The audit report is
 [reports/2026-11-15-read-count-model-audit.md](reports/2026-11-15-read-count-model-audit.md).
-Done: the known isoforms a cutoff loses (§3, rMATS 4.1.0), again on rMATS
-4.4.0 (§4) and on mouse ventricles (§5), and the PaxDb heart proteins
-(§6). Still to do:
-- §8.1, the fit, on the three whole-genome folders too;
-- §8.2, a cutoff per splice type;
-- §8.3, NMDI14, on rMATS 4.4.0;
-- possibly: two cutoffs, annotated and novel, from the same records (§7);
-- the decisions (§9).
+Measured on three data sets (§§3–10, 14):
+- the known isoforms a cutoff loses: on rMATS 4.1.0 (§3), 4.4.0 (§4),
+  mouse ventricles (§5) and iPSC differentiation (§14);
+- the PaxDb heart proteins (§6), the fit (§8), and two cutoffs (§9);
+- NMDI14 (§10, inconclusive);
+- the events rMATS's statistics drop (§15).
 
-The `-r 1` runs' records (166, 174 and 93 MB) were in a scratch folder.
+The maintainer answered §13 on 2026-11-18. Next:
+- **§15.7's fix (adopted 2026-11-18):** JCAST to read `--statoff` and
+  one-group folders (NA FDR, empty count fields, `-m` fitted on counts
+  ≥ 1, §15.8), and the documentation to recommend `--statoff`. Then the
+  maintainer remakes the three folders with `--statoff` and reruns
+  JCAST;
+- **the search against spectra (§16.1):** when the maintainer's heart
+  folder is ready, two runs from it: `-m`, and `-m` with
+  `novel_only.diff` and `JCAST_AUDIT_ANNOTATED_CUTOFF=1`. The folder is
+  to be made with `--statoff`, and both runs made after §15.7's fix;
+- **the ENCODE fetal and adult heart folder:** §15's measurement, run
+  both ways;
+- **then the PRs:**
+  - the §15.7 fixes;
+  - the Model page charts that need no run (§16.2); those from a run's
+    records wait for later decisions;
+  - the pair of cutoffs, if the search supports it.
+
+The `-r 1` runs' records (166, 174, 93 and 375 MB) were in a scratch folder.
 To regenerate them, apply `reports/model_audit/audit_records.diff` in a
 worktree and run as the report's Reproduce row says. GENCODE translations
 and PaxDb files are downloaded as its Inputs row says.
@@ -493,9 +638,17 @@ and PaxDb files are downloaded as its Inputs row says.
 
 Output changes only after a decision.
 
-### 3. Release v0.5.0
+### 3. The GUI remembers its settings
 
-Once rows 22 and 23 are done, CI passes, and the maintainer asks. Open a
+Decided 2026-11-18 (it was under Later): the GUI keeps its settings
+between sessions. A small PR: `QSettings` for the Setup page's paths and
+options, restored at start, with a way back to the defaults. Its test
+should use a temporary settings file, never the user's.
+
+### 4. Release v0.5.0
+
+Once rows 22 and 23 and item 3 are done, CI passes, and the maintainer
+asks. Open a
 pull request to `main`, as #29 was for v0.4.0. Then:
 - `__version__` (still 0.4.0), the CHANGELOG's date;
 - the website: `_quarto.yml`'s title, `change.qmd`, and the GUI's pages;
@@ -505,10 +658,14 @@ pull request to `main`, as #29 was for v0.4.0. Then:
   - delete the merged `v0.4.0-hardening` branch: the commits cited in
     `reports/` are in `main`'s history.
 
-### 4. Later
+### 5. Later
 
+- **A science report on NMDI14** (the maintainer's to-do, 2026-11-18): what
+  the treatment does to splicing, from rMATS (`rmats/`), and to gene
+  expression, from the folder's Salmon output, which the maintainer will
+  link in. The read-count audit's §10 found no NMD block; this would ask
+  what NMDI14 does instead. Not part of v0.5.0.
 - **GUI follow-ups:**
-  - remembering the settings between sessions;
   - the GUI's tests on Linux: Qt's offscreen platform needs system
     libraries there, not tried;
   - screenshots in the README or on the website (they are in

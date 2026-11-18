@@ -1,0 +1,14 @@
+folder	junctions	count 0	median count	-m cutoff	-m cutoff, converged	bootstrap 2.5%	bootstrap 97.5%	bootstrap: no fit	-m as run: delta BIC	-m as run: cutoff	Gamma + Normal: delta BIC	Gamma + Normal: cutoff	Normal + Normal: delta BIC	Normal + Normal: cutoff	NB + NB: delta BIC	NB + NB: cutoff	NB + PLN: delta BIC	NB + PLN: cutoff
+encode_human_adrenalgland	32821	0.0	6.0	12.0	12.0	10.0	13.0	0.0	1350.9	12.0	0.6		0.0	1.0	457.0	1.0	2.2	1.0
+encode_human_heart	31776	0.0	4.0	14.0	14.0	12.0	16.0	0.0	1889.6	14.0	1.2	94.0	0.0	45.0	550.8	78.0	37.8	
+encode_human_lung	28404	0.0	6.0	7.0	10.0	6.0	21.0	0.0	1191.3	7.0	0.0	2.0	4.4	2.0	464.5	1.0	114.5	1.0
+encode_human_spleen	33828	0.0	4.0	5.0	5.0	4.0	5.0	0.0	1496.0	5.0	5.8	6.0	0.5	7.0	197.8	1.0	0.0	4.0
+encode_human_stomach	11152	0.0	8.0			4.0	5.0	36.0			1.9	4.0	0.0	6.0	31.5	1.0	1.0	4.0
+encode_human_testis	64997	0.0	5.0	8.0	8.0	8.0	8.0	0.0	2375.8	8.0	118.0	12.0	0.0	66.0	581.2	1.0	21.3	11.0
+encode_human_uterus	8553	0.0	9.0	5.0	5.0	3.125	6.0	4.0	292.1	5.0	0.0	9.0	9.3	4.0	18.3	1.0	9.7	4.0
+encode_mouse_fetalheart	0																	
+encode_mouse_heart	20291	0.0	4.0	6.0	6.0	6.0	6.774999999999999	0.0	974.3	6.0	5.7	2.0	0.0	2.0	389.8	139.0	1.3	2.0
+heart_mouse_old	88879	0.0	10.0	29.0	30.0	27.225	30.0	0.0	2210.4	29.0	0.0	53.0	92.4	26.0	7922.0	103.0	430.9	12.0
+ipsc_human_d0	99220	0.0	7.0	14.0	15.0	14.0	15.774999999999999	0.0	4164.1	14.0	0.0	36.0	35.6	14.0	3457.2	111.0	155.3	3.0
+ipsc_human_d14	116887	0.0	6.0	15.0	16.0	14.225	16.0	0.0	4555.1	15.0	0.0	84.0	91.7	12.0	5328.8	81.0	260.4	5.0
+kidney_old_totalRNA_gencodeM26	35854	0.0	4.0	4.0	4.0	4.0	4.0	0.0	2283.5	4.0	9.2	4.0	2.0	4.0	1398.7	120.0	0.0	4.0

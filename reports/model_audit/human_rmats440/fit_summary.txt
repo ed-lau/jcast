@@ -1,0 +1,5 @@
+/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats: 623738 events, 7618 distinct counts
+general_mixture_model: cutoff 42, parameters (np.float64(3.5830401788181803), np.float64(1.9045903911217745), np.float64(4.694955085527937), 1.8142856643012164, np.float64(0.7431712714899488), np.float64(0.2568287285100513))
+em (weighted, distinct counts): cutoff 42, parameters (np.float64(3.583040178818178), np.float64(1.9045903911217723), np.float64(4.694955085527939), 1.8142856643012168, np.float64(0.7431712714899488), np.float64(0.2568287285100512)); same: True
+junctions with a count of 1: 83795 (13.4%); kept at the cutoff: 0.2194
+bootstrap (100): cutoffs 40 to 44, 2.5-97.5%: 41.0 to 44.0

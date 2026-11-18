@@ -2,8 +2,7 @@
 .DS_Store
 
 # Project specific
-out/
-mzml/
+runs/
 *.Rmd
 *.db
 *.cached

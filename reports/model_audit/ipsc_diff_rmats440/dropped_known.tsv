@@ -1,0 +1,16 @@
+measure	1	39	34
+dropped junctions	68613	2687	3081
+T1 junctions	3296	168	182
+T1_alt_terminus junctions	335	10	11
+T2 junctions	1430	35	41
+T4 junctions	10771	313	375
+records: kept events	473124	165313	173600
+records: dropped events, not given by a kept one	7434	387	434
+database records: kept events	105495	39167	40936
+database records: added	1272	101	104
+Swiss-Prot isoforms: kept events	7969	5556	5665
+Swiss-Prot isoforms: added	148	12	14
+GENCODE alternative proteins: kept events	61079	34105	35285
+GENCODE alternative proteins: added	641	75	83
+the same, >= 1 TPM: kept events	5827	4780	4825
+the same, >= 1 TPM: added	13	4	6

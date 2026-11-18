@@ -1,0 +1,21 @@
+size of	rule	annotated cutoff	novel cutoff	junctions kept	database records	Swiss-Prot	GENCODE TPM>=1	database records in neither
+-r 3	now, -r 3	3	3	514514	82892	7418	5604	47578
+-r 3	most Swiss-Prot isoforms	1	5	456779	80252	7615	5614	41422
+-r 3	the same, keeping novel events	1	5	456779	80252	7615	5614	41422
+-r 3	most expressed GENCODE isoforms	1	5	456779	80252	7615	5614	41422
+-r 7	now, -r 7	7	7	373142	65366	6874	5355	35002
+-r 7	most Swiss-Prot isoforms	1	25	299281	65360	7327	5437	27207
+-r 7	the same, keeping novel events	1	25	299281	65360	7327	5437	27207
+-r 7	most expressed GENCODE isoforms	1	25	299281	65360	7327	5437	27207
+-r 20	now, -r 20	20	20	243190	48201	6091	5021	24519
+-r 20	most Swiss-Prot isoforms	1	none kept	166802	47389	6831	4915	10458
+-r 20	the same, keeping novel events	3	1000	167750	47414	6599	4958	14138
+-r 20	most expressed GENCODE isoforms	10	50	210413	48054	6332	5077	20606
+-r 39	now, -r 39	39	39	181647	39167	5556	4780	19533
+-r 39	most Swiss-Prot isoforms	5	none kept	135830	38547	6249	4728	8487
+-r 39	the same, keeping novel events	10	1000	136207	38973	6014	4749	12258
+-r 39	most expressed GENCODE isoforms	25	80	162486	38940	5707	4816	17128
+-r 100	now, -r 100	100	100	116093	28674	4600	4358	14214
+-r 100	most Swiss-Prot isoforms	20	none kept	95426	27721	5417	4393	6125
+-r 100	the same, keeping novel events	39	1000	95168	28592	5117	4392	9953
+-r 100	most expressed GENCODE isoforms	60	300	100459	28418	4884	4406	11841

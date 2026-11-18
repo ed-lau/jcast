@@ -1,0 +1,4 @@
+transcript_type	transcripts	median log2FC	share up	padj < 0.05, up	padj < 0.05, down
+protein_coding	65320	0.0051	0.5283	4826	3721
+nonsense_mediated_decay	26194	0.0033	0.5223	1213	958
+retained_intron	14576	-0.0063	0.478	656	723

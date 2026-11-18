@@ -1,0 +1,7 @@
+splice_type	events	median IncFormLen / SkipFormLen	smaller: inclusion, as counted	smaller: inclusion, per junction position	the two disagree
+all	294320	1.8181818181818181	0.3687	0.3953	0.0282
+SE	123315	2.0	0.3259	0.3593	0.0334
+MXE	35586	1.0	0.5377	0.5414	0.0173
+A5SS	45480	1.5757575757575757	0.4273	0.4586	0.0313
+A3SS	68381	1.2626262626262625	0.301	0.3206	0.0195
+RI	21558	2.0	0.4264	0.4643	0.0379

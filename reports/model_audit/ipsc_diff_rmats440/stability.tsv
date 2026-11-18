@@ -1,0 +1,122 @@
+test	start quantile	tolerance	max_iter	iterations	cutoff	gamma weight	replicate
+start and tolerance	0.35	0.0001	500	32	25		
+start and tolerance	0.35	1e-05	500	54	35		
+start and tolerance	0.35	1e-06	500	78	39		
+start and tolerance	0.35	1e-07	500	103	41		
+start and tolerance	0.35	1e-08	500	129	42		
+converged	0.35	1e-12	200000	232	42	0.7531	
+start and tolerance	0.5	0.0001	500	25	25		
+start and tolerance	0.5	1e-05	500	47	35		
+start and tolerance	0.5	1e-06	500	71	39		
+start and tolerance	0.5	1e-07	500	96	41		
+start and tolerance	0.5	1e-08	500	122	42		
+converged	0.5	1e-12	200000	225	42	0.7531	
+start and tolerance	0.65	0.0001	500	16	25		
+start and tolerance	0.65	1e-05	500	38	35		
+start and tolerance	0.65	1e-06	500	63	39		
+start and tolerance	0.65	1e-07	500	88	41		
+start and tolerance	0.65	1e-08	500	114	42		
+converged	0.65	1e-12	200000	217	42	0.7531	
+bootstrap	0.5	1e-06	500	72	40		0.0
+bootstrap	0.5	1e-06	500	72	39		1.0
+bootstrap	0.5	1e-06	500	70	40		2.0
+bootstrap	0.5	1e-06	500	71	39		3.0
+bootstrap	0.5	1e-06	500	71	40		4.0
+bootstrap	0.5	1e-06	500	71	40		5.0
+bootstrap	0.5	1e-06	500	70	39		6.0
+bootstrap	0.5	1e-06	500	71	40		7.0
+bootstrap	0.5	1e-06	500	71	40		8.0
+bootstrap	0.5	1e-06	500	71	39		9.0
+bootstrap	0.5	1e-06	500	71	39		10.0
+bootstrap	0.5	1e-06	500	71	39		11.0
+bootstrap	0.5	1e-06	500	71	40		12.0
+bootstrap	0.5	1e-06	500	72	39		13.0
+bootstrap	0.5	1e-06	500	72	39		14.0
+bootstrap	0.5	1e-06	500	71	39		15.0
+bootstrap	0.5	1e-06	500	72	39		16.0
+bootstrap	0.5	1e-06	500	72	40		17.0
+bootstrap	0.5	1e-06	500	71	39		18.0
+bootstrap	0.5	1e-06	500	71	39		19.0
+bootstrap	0.5	1e-06	500	71	39		20.0
+bootstrap	0.5	1e-06	500	72	40		21.0
+bootstrap	0.5	1e-06	500	71	39		22.0
+bootstrap	0.5	1e-06	500	71	39		23.0
+bootstrap	0.5	1e-06	500	71	40		24.0
+bootstrap	0.5	1e-06	500	72	39		25.0
+bootstrap	0.5	1e-06	500	71	39		26.0
+bootstrap	0.5	1e-06	500	71	39		27.0
+bootstrap	0.5	1e-06	500	72	39		28.0
+bootstrap	0.5	1e-06	500	71	40		29.0
+bootstrap	0.5	1e-06	500	71	39		30.0
+bootstrap	0.5	1e-06	500	71	40		31.0
+bootstrap	0.5	1e-06	500	71	40		32.0
+bootstrap	0.5	1e-06	500	72	39		33.0
+bootstrap	0.5	1e-06	500	72	40		34.0
+bootstrap	0.5	1e-06	500	71	40		35.0
+bootstrap	0.5	1e-06	500	72	39		36.0
+bootstrap	0.5	1e-06	500	71	40		37.0
+bootstrap	0.5	1e-06	500	72	40		38.0
+bootstrap	0.5	1e-06	500	73	40		39.0
+bootstrap	0.5	1e-06	500	72	39		40.0
+bootstrap	0.5	1e-06	500	71	39		41.0
+bootstrap	0.5	1e-06	500	71	40		42.0
+bootstrap	0.5	1e-06	500	70	40		43.0
+bootstrap	0.5	1e-06	500	71	40		44.0
+bootstrap	0.5	1e-06	500	71	40		45.0
+bootstrap	0.5	1e-06	500	71	39		46.0
+bootstrap	0.5	1e-06	500	71	39		47.0
+bootstrap	0.5	1e-06	500	71	40		48.0
+bootstrap	0.5	1e-06	500	70	39		49.0
+bootstrap	0.5	1e-06	500	70	39		50.0
+bootstrap	0.5	1e-06	500	72	39		51.0
+bootstrap	0.5	1e-06	500	71	39		52.0
+bootstrap	0.5	1e-06	500	71	39		53.0
+bootstrap	0.5	1e-06	500	70	40		54.0
+bootstrap	0.5	1e-06	500	72	39		55.0
+bootstrap	0.5	1e-06	500	70	39		56.0
+bootstrap	0.5	1e-06	500	71	39		57.0
+bootstrap	0.5	1e-06	500	71	40		58.0
+bootstrap	0.5	1e-06	500	71	40		59.0
+bootstrap	0.5	1e-06	500	70	39		60.0
+bootstrap	0.5	1e-06	500	70	39		61.0
+bootstrap	0.5	1e-06	500	71	40		62.0
+bootstrap	0.5	1e-06	500	72	39		63.0
+bootstrap	0.5	1e-06	500	70	39		64.0
+bootstrap	0.5	1e-06	500	72	39		65.0
+bootstrap	0.5	1e-06	500	72	39		66.0
+bootstrap	0.5	1e-06	500	71	40		67.0
+bootstrap	0.5	1e-06	500	71	39		68.0
+bootstrap	0.5	1e-06	500	70	39		69.0
+bootstrap	0.5	1e-06	500	71	40		70.0
+bootstrap	0.5	1e-06	500	70	39		71.0
+bootstrap	0.5	1e-06	500	71	40		72.0
+bootstrap	0.5	1e-06	500	72	39		73.0
+bootstrap	0.5	1e-06	500	72	40		74.0
+bootstrap	0.5	1e-06	500	71	40		75.0
+bootstrap	0.5	1e-06	500	72	40		76.0
+bootstrap	0.5	1e-06	500	71	39		77.0
+bootstrap	0.5	1e-06	500	71	39		78.0
+bootstrap	0.5	1e-06	500	70	39		79.0
+bootstrap	0.5	1e-06	500	72	40		80.0
+bootstrap	0.5	1e-06	500	71	39		81.0
+bootstrap	0.5	1e-06	500	71	40		82.0
+bootstrap	0.5	1e-06	500	70	39		83.0
+bootstrap	0.5	1e-06	500	71	40		84.0
+bootstrap	0.5	1e-06	500	71	39		85.0
+bootstrap	0.5	1e-06	500	70	39		86.0
+bootstrap	0.5	1e-06	500	71	40		87.0
+bootstrap	0.5	1e-06	500	71	40		88.0
+bootstrap	0.5	1e-06	500	72	40		89.0
+bootstrap	0.5	1e-06	500	72	40		90.0
+bootstrap	0.5	1e-06	500	71	40		91.0
+bootstrap	0.5	1e-06	500	71	40		92.0
+bootstrap	0.5	1e-06	500	71	40		93.0
+bootstrap	0.5	1e-06	500	72	38		94.0
+bootstrap	0.5	1e-06	500	71	39		95.0
+bootstrap	0.5	1e-06	500	71	39		96.0
+bootstrap	0.5	1e-06	500	72	39		97.0
+bootstrap	0.5	1e-06	500	72	38		98.0
+bootstrap	0.5	1e-06	500	71	39		99.0
+spread over its interval	0.5	1e-06	500	76	56	0.7819	0.0
+spread over its interval	0.5	1e-06	500	76	55	0.7818	1.0
+spread over its interval	0.5	1e-06	500	76	55	0.7815	2.0

@@ -1,0 +1,7 @@
+replicates summed	junctions with a read in each form	junction reads (both forms, all events)	median count	cutoff	junctions kept
+1	326302	1025366562	5.0	22	0.2197
+2	410263	1880125055	5.0	26	0.224
+3	474501	3014953451	6.0	33	0.2199
+4	535446	3956211328	6.0	34	0.2253
+5	590035	5180101723	7.0	39	0.2214
+6	623738	6054681063	7.0	42	0.2194
