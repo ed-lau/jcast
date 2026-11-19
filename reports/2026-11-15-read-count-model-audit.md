@@ -1827,7 +1827,7 @@ left the other three for later decisions (§13).
 
 ## 17. Implementation and verification (PR 24)
 
-§15.7's decisions 1 and 2, as the maintainer refined them on 2026-11-18:
+Committed as `36f0fb6`. §15.7's decisions 1 and 2, as the maintainer refined them on 2026-11-18:
 JCAST reads folders made with `--statoff` or from one sample, and the
 documentation recommends `--statoff`.
 

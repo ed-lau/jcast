@@ -31,8 +31,9 @@ remembers its settings) on 2026-11-18.
   - then the CHANGELOG and roadmaps updated for the GUI and the two new
     items, with this handoff (`3bfb12a`, `da06619`), and row 23's audit
     §§3–7 (`f368783`) and §§8–16 (`5a1c425`);
-  - PR 24, JCAST reads rMATS folders made with `--statoff` or from one
-    sample (report §17). Not pushed.
+  - `36f0fb6`: PR 24, JCAST reads rMATS folders made with `--statoff` or
+    from one sample (report §17), and the commit recording its hash. Not
+    pushed.
 - **Tests:** 250, all passing; 247 offline
   (`python -m pytest -q -m 'not network'`, about 2.5 minutes). Run only
   the fast ones with `-m 'not slow'`. The GUI's 17 (`tests/test_gui.py`)
@@ -142,7 +143,7 @@ remembers its settings) on 2026-11-18.
 - **Committed** as `5a1c425` with the maintainer's approval: everything since
   `f368783` (report §§8–16, the scripts, the evidence, these notes), and
   `.gitignore`'s `runs/` in place of `out/` and `mzml/`.
-- **PR 24 (report §17),** at the maintainer's request: JCAST reads rMATS
+- **PR 24 (`36f0fb6`, report §17),** at the maintainer's request: JCAST reads rMATS
   folders made with `--statoff` or from one sample.
   - An `NA` FDR is kept by `-q 0 1` only; an empty count field counts 0
     for its sample only; events with no inclusion or no skipping read in
