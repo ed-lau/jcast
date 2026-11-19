@@ -41,13 +41,15 @@ cutoffs.
   - `24bee2a`: PR 25, the offline tests never connect to the internet,
     and the commit recording its hash;
   - `4fef85b`: PR 26, the GUI keeps the Setup page's settings between
-    sessions, and the commit recording its hash.
+    sessions, and the commit recording its hash;
+  - `8e0d747`: PR 27, the Model page's two charts of what a cutoff keeps
+    (report §18), and the commit recording its hash.
 
   Not pushed since `0986558`.
-- **Tests:** 255, all passing; 252 offline
+- **Tests:** 266, all passing; 263 offline
   (`python -m pytest -q -m 'not network'`, about 2 minutes). Since PR 25,
   a test not marked `network` fails if it connects to the internet. Run only
-  the fast ones with `-m 'not slow'`. The GUI's 17 (`tests/test_gui.py`)
+  the fast ones with `-m 'not slow'`. The GUI's 23 (`tests/test_gui.py`)
   need PySide6 and pytest-qt (`pip install -e '.[test-gui]'`; `.conda`
   has both) and are skipped without them.
 - **CI:** [.github/workflows/tests.yml](.github/workflows/tests.yml): Python
@@ -64,19 +66,21 @@ cutoffs.
   (`--uniprot`). Unchanged by PR 18.
 - **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18, 19, 20, 13 and 21
   ([REVIEW.md §9](REVIEW.md#v050-the-gui-and-the-command-line)): the
-  v0.5.0 plan of 2026-11-13. And PR 24, from row 23's audit.
-- **Open before the release:** row 23, added on 2026-11-14, the GUI's
-  settings, added on 2026-11-18, and two small PRs chosen on 2026-11-19
-  (row 22, a view of each junction and its peptides, moved to v0.6.0):
+  v0.5.0 plan of 2026-11-13. And PR 24, from row 23's audit; and on
+  2026-11-19 the three small PRs the maintainer chose: 25 (the tests off
+  the internet), 26 (the GUI's settings) and 27 (the Model page's charts).
+- **Open before the release:** row 23, added on 2026-11-14 (row 22, a
+  view of each junction and its peptides, moved to v0.6.0 on
+  2026-11-19):
   - the `-m` read-count model, assessed. Its audit
     ([report](reports/2026-11-15-read-count-model-audit.md)) is measured
     on three data sets (§§3–10, 14, 15). The maintainer answered §13 on
     2026-11-18; the pair of cutoffs waits for a search against spectra
     (§16.1); JCAST reads `--statoff` folders since PR 24 (§17), and the
-    maintainer's reruns on `--statoff` folders give its numbers (§17.4);
-  - the GUI remembers its settings between sessions;
-  - the Model page's two charts that need no run (report §16.2);
-  - the three tests that call the UniProt API without `--uniprot`.
+    maintainer's reruns on `--statoff` folders give its numbers (§17.4).
+    Next: the two heart databases for the maintainer's quantms search,
+    when the ENCODE heart folder is ready (made with `--statoff` and
+    `--novelSS`); then the decision on the pair of cutoffs.
 
 ## The session of 2026-11-18
 
