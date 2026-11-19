@@ -3,7 +3,9 @@
 """
 The Model page: the -m model of the rMATS folder before the run (model.preview), and the read count cutoff: the
 model's (-m), or another (-r), set in a number field or by clicking on the plot. A table shows how many junctions of
-each splice type the run would keep (reports/2026-11-13-gui-cli-scope.md §4)
+each splice type the run would keep (reports/2026-11-13-gui-cli-scope.md §4). Two more charts, beside the model, show
+what a cutoff keeps (PR 27; reports/2026-11-15-read-count-model-audit.md §16.2): the junctions a run would translate at
+each cutoff, annotated and novel, and by read count the events whose alternative region keeps the frame
 """
 
 import math
@@ -12,7 +14,7 @@ from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from PySide6.QtCore import Qt, QTimer, Signal
 from PySide6.QtWidgets import (QButtonGroup, QHBoxLayout, QHeaderView, QLabel, QProgressBar, QRadioButton, QSpinBox,
-                               QTableWidget, QTableWidgetItem, QVBoxLayout, QWidget)
+                               QTableWidget, QTableWidgetItem, QTabWidget, QVBoxLayout, QWidget)
 
 from jcast import model
 from jcast.gui.command import option_tip
@@ -34,6 +36,8 @@ class ModelPage(QWidget):
         self._task = None               # the fit running, and its folder
         self._fit = None                # the fit shown: its folder, then what model.preview returns
         self._cutoff = None             # the cutoff's line and label on the plot
+        self._chart_cutoffs = {}        # chart -> the cutoff's line and label on it
+        self._charts_for = None         # the splice types and -q the charts were drawn for
 
         self.status = QLabel('Choose an rMATS folder on the Setup page.')
         self.status.setWordWrap(True)
@@ -50,6 +54,31 @@ class ModelPage(QWidget):
                                  '(trace and expressed components, and their sum), and the cutoff.')
         self.canvas.mpl_connect('button_press_event', self._clicked)
         self.canvas.mpl_connect('motion_notify_event', self._clicked)
+
+        self.kept_figure = Figure(figsize=(8, 3.2), constrained_layout=True)
+        self.kept_canvas = FigureCanvasQTAgg(self.kept_figure)
+        self.kept_canvas.setMinimumHeight(260)
+        self.kept_canvas.setStatusTip(
+            'Click or drag on the plot to set a read count cutoff of your own (-r). The plot: how many junctions of '
+            'the splice types selected on the Setup page a run would translate at each cutoff, with -q; for the events '
+            'rMATS calls annotated and those it calls novel (its fromGTF.novelJunction and fromGTF.novelSpliceSite '
+            'files), if they are in the folder.')
+        self.kept_canvas.mpl_connect('button_press_event', self._clicked_kept)
+        self.kept_canvas.mpl_connect('motion_notify_event', self._clicked_kept)
+        self.frame_figure = Figure(figsize=(8, 3.2), constrained_layout=True)
+        self.frame_canvas = FigureCanvasQTAgg(self.frame_figure)
+        self.frame_canvas.setMinimumHeight(260)
+        self.frame_canvas.setStatusTip(
+            'By read count, the share of events whose alternative region (the skipped exon or the retained intron; for '
+            'the other splice types, the difference between the two forms) is a multiple of 3 nt, so that both forms '
+            'keep the reading frame. A random length does in one event of three. Events of the splice types selected '
+            'on the Setup page; annotated and novel, as rMATS calls them.')
+        self.charts = QTabWidget()
+        for canvas, title in ((self.canvas, 'Read counts and the model'),
+                              (self.kept_canvas, 'Junctions translated by cutoff'),
+                              (self.frame_canvas, 'Frame by read count')):
+            self.charts.addTab(canvas, title)
+        self._charts = {'kept': (self.kept_figure, self.kept_canvas), 'frame': (self.frame_figure, self.frame_canvas)}
 
         self.use_read = QRadioButton('Read count cutoff (-r)')
         self.use_read.setStatusTip(option_tip('read'))
@@ -93,9 +122,10 @@ class ModelPage(QWidget):
         cutoff.addStretch()
         layout = QVBoxLayout(self)
         layout.addLayout(top)
-        layout.addWidget(self.canvas, 3)
+        layout.addWidget(self.charts, 3)
         layout.addLayout(cutoff)
-        layout.addWidget(QLabel('Click or drag on the plot to set a cutoff of your own.'))
+        layout.addWidget(QLabel('Click or drag on the model, or on the junctions translated, to set a cutoff of your '
+                                'own.'))
         layout.addWidget(self.table, 2)
         layout.addWidget(self.table_note)
 
@@ -199,10 +229,21 @@ class ModelPage(QWidget):
         self.read.setValue(max(0, round(math.exp(event.xdata) - 1)))
         self.use_read.setChecked(True)
 
+    def _clicked_kept(self, event) -> None:
+        """ A click or a drag on the junctions translated sets the cutoff there (-r) """
+        if 'kept' not in self._chart_cutoffs or event.xdata is None or \
+                (event.name == 'motion_notify_event' and not event.button):
+            return
+        self.read.setValue(max(1, round(event.xdata)))
+        self.use_read.setChecked(True)
+
     def _move(self) -> None:
         if self._cutoff is not None:
             model.move_cutoff(*self._cutoff, self.cutoff())
             self.canvas.draw_idle()
+        for chart, (line, label) in self._chart_cutoffs.items():
+            model.move_chart_cutoff(line, label, self.cutoff())     # its numbers come with the table
+            self._charts[chart][1].draw_idle()
         self._table_timer.start()
 
     # ---- the plot and the table ----
@@ -217,6 +258,26 @@ class ModelPage(QWidget):
             else:
                 self.figure.text(0.5, 0.5, 'The rMATS files hold no junctions.', ha='center')
         self.canvas.draw_idle()
+        self._draw_charts()
+
+    def _draw_charts(self) -> None:
+        """ The junctions translated at each cutoff, and the frame by read count, for the splice types and -q """
+        self._chart_cutoffs = {}
+        self._charts_for = (list(self._splice_types), tuple(self._qvalue))
+        for figure, _ in self._charts.values():
+            figure.clear()
+        if self._fit is not None:
+            counts = self._fit[1]
+            if len(counts):
+                kept = model.kept_at_cutoffs(counts, self._qvalue, self._splice_types)
+                self._chart_cutoffs['kept'] = model.draw_kept(self.kept_figure.subplots(), kept, self.cutoff())
+                frame = model.frame_by_count(counts, self._splice_types)
+                self._chart_cutoffs['frame'] = model.draw_frame(self.frame_figure.subplots(), frame, self.cutoff())
+            else:
+                for figure, _ in self._charts.values():
+                    figure.text(0.5, 0.5, 'The rMATS files hold no junctions.', ha='center')
+        for _, canvas in self._charts.values():
+            canvas.draw_idle()
 
     def update_table(self) -> None:
         """ The junctions of each selected splice type, and how many the cutoff and -q keep (model.filter_counts) """
@@ -235,3 +296,12 @@ class ModelPage(QWidget):
                 item = QTableWidgetItem(value if j == 0 else f'{int(value):,}')
                 item.setTextAlignment((Qt.AlignLeft if j == 0 else Qt.AlignRight) | Qt.AlignVCenter)
                 self.table.setItem(i, j, item)
+
+        # the charts, for other splice types or -q; and the junctions translated at the cutoff, on its label
+        if self._charts_for != (list(self._splice_types), tuple(self._qvalue)):
+            self._draw_charts()
+        if 'kept' in self._chart_cutoffs:
+            at = model.kept_at_cutoffs(self._fit[1], self._qvalue, self._splice_types, cutoffs=[self.cutoff()])
+            text = ', '.join(f'{n:,} {name}' if name != 'all' else f'{n:,} junctions' for name, n in at.iloc[0].items())
+            model.move_chart_cutoff(*self._chart_cutoffs['kept'], self.cutoff(), text)
+            self.kept_canvas.draw_idle()

@@ -14,6 +14,15 @@ from jcast import fates
 from jcast.junctions import RmatsResults
 from jcast.outcomes import SPLICE_TYPES
 
+# the read count bins of the frame chart, [lo, next lo), as in reports/2026-11-15-read-count-model-audit.md §4.4
+FRAME_BINS = [1, 2, 3, 5, 8, 16, 32, 64, 128, 256, 512, 1024, 4096]
+FRAME_MIN_EVENTS = 20           # a bin's share is drawn for a group of at least so many events
+
+# the charts' colours: ink, secondary ink and grid, and the groups' (dataviz palette, slots 1 and 2, validated on a
+# light surface), each with a marker so that colour is not the only cue
+INK, INK2, GRID = '#0b0b0b', '#52514e', '#e4e3df'
+GROUPS = {'annotated': ('#2a78d6', 'o'), 'novel': ('#eb6834', 's'), 'all': ('#2a78d6', 'o')}
+
 
 def general_mixture_model(min_jc_array,
                           max_iter=500,
@@ -116,15 +125,71 @@ def preview(rmats_dir) -> tuple:
     leaves out. It needs no GTF or genome, so the GUI shows it before the run (reports/2026-11-13-gui-cli-scope.md §4).
 
     :param rmats_dir: the rMATS folder
-    :return: every junction's splice type, read count and FDR (RmatsResults.junction_counts); then, as fit returns
-        them, ln(count + 1), the parameters, the cutoff (None if there is no fit: the run uses -r), and why there is no
-        fit
+    :return: every junction's splice type, read count and FDR (RmatsResults.junction_counts), with its rMATS ID,
+        whether its alternative region keeps the frame and whether rMATS calls it novel (PR 27; events); then, as fit
+        returns them, ln(count + 1), the parameters, the cutoff (None if there is no fit: the run uses -r), and why
+        there is no fit
     """
     results = RmatsResults(logging.getLogger('jcast'), rmats_dir, splice_types=(), others_if_present=True)
     if not results.tables:
         raise FileNotFoundError(f'no rMATS file (<splice type>.MATS.JC.txt) in {rmats_dir}')
     results.get_junction_count_array()
-    return (results.counts, *fit(results.min_jc_array))
+    return (events(results), *fit(results.min_jc_array))
+
+
+def alternative_length(table, splice_type: str) -> pd.Series:
+    """
+    The length of each event's alternative region, in nt: the skipped exon (SE), the retained intron (RI), or the
+    difference between the two forms' exons (MXE, A5SS, A3SS). With a multiple of 3, both forms keep the reading frame
+    of the rest of the gene; a random length does in one event of three (reports/2026-11-15-read-count-model-audit.md
+    §4.4)
+
+    :param table: an RmatsResults table: rMATS's coordinates, the starts 0-based
+    :param splice_type: its splice type
+    """
+    alt1 = table.alt1_ee - table.alt1_es
+    if splice_type == 'SE':
+        return alt1
+    if splice_type == 'RI':
+        return table.down_es - table.anc_ee
+    return alt1 - (table.alt2_ee - table.alt2_es)
+
+
+def novel_events(rmats_dir, splice_type: str):
+    """
+    The IDs of the events that rMATS calls novel: those in fromGTF.novelJunction.<type>.txt, and with --novelSS in
+    fromGTF.novelSpliceSite.<type>.txt. rMATS before 4.1.1 calls some annotated events novel
+    (reports/2026-11-15-read-count-model-audit.md §4.1)
+
+    :return: a set of IDs; None if neither file is in the folder
+    """
+    files = [os.path.join(rmats_dir, f'fromGTF.{kind}.{splice_type}.txt') for kind in ('novelJunction',
+                                                                                        'novelSpliceSite')]
+    files = [f for f in files if os.path.isfile(f)]
+    if not files:
+        return None
+    return set().union(*(pd.read_csv(f, sep='\t', usecols=['ID'])['ID'] for f in files))
+
+
+def events(results) -> pd.DataFrame:
+    """
+    The junctions read (results.counts, after get_junction_count_array), with each event's rMATS ID (junction_id),
+    whether its alternative region is a multiple of 3 nt (frame_kept), and whether rMATS calls it novel (novel; NA for
+    a splice type whose novel-event files are not in the folder). For the Model page's charts (PR 27)
+    """
+    ids, frame, novel = [], [], []
+    for splice_type, table in results.tables.items():
+        ids.append(table.id)
+        frame.append(alternative_length(table, splice_type) % 3 == 0)
+        called = novel_events(results.dir, splice_type)
+        novel.append(pd.Series(pd.NA if called is None else table.id.isin(called), index=table.index,
+                               dtype='boolean'))
+    if not ids:
+        return results.counts.assign(junction_id=pd.Series(dtype=int), frame_kept=pd.Series(dtype=bool),
+                                     novel=pd.Series(dtype='boolean'))
+    return results.counts.assign(junction_id=pd.concat(ids, ignore_index=True).to_numpy(),
+                                 frame_kept=pd.concat(frame, ignore_index=True).to_numpy(),
+                                 novel=pd.concat(novel, ignore_index=True).array)
 
 
 def filter_counts(counts, cutoff: int, qvalue) -> pd.DataFrame:
@@ -147,6 +212,147 @@ def filter_counts(counts, cutoff: int, qvalue) -> pd.DataFrame:
                           })
     table['kept'] = table.junctions - table.skipped_low_count - table.skipped_fdr
     return table.reindex([t for t in SPLICE_TYPES if t in table.index])
+
+
+def _groups(counts) -> dict:
+    """ The annotated and the novel events, or all of them if rMATS's call is missing for one: name -> mask """
+    novel = counts.novel
+    if novel.isna().any() or not len(counts):
+        return {'all': np.ones(len(counts), dtype=bool)}
+    novel = novel.to_numpy(dtype=bool)
+    return {'annotated': ~novel, 'novel': novel}
+
+
+def kept_at_cutoffs(counts, qvalue, splice_types=SPLICE_TYPES, cutoffs=None) -> pd.DataFrame:
+    """
+    How many junctions a run would translate at each read count cutoff: those of the splice types whose read count is
+    at least the cutoff and whose FDR -q keeps, as fates.filtered decides; annotated and novel (PR 27)
+
+    :param counts: junctions, as preview returns them
+    :param qvalue: (q_lo, q_hi) (-q)
+    :param splice_types: the splice types selected (-s)
+    :param cutoffs: the cutoffs; by default about 200, evenly on a log scale from 1 to the read count that 0.1 % of
+        the junctions reach (at least 10), past which the counts barely change
+    :return: index the cutoffs; a column per group: annotated and novel, or all if rMATS's call is missing
+    """
+    counts = counts[counts.junction_type.isin(splice_types)]
+    q_lo, q_hi = qvalue
+    fdr = counts.fdr.to_numpy(dtype=float)
+    with np.errstate(invalid='ignore'):
+        q_kept = np.where(np.isnan(fdr), (q_lo, q_hi) == fates.ALL_FDRS, (q_lo <= fdr) & (fdr <= q_hi))
+    read = counts.min_jc.to_numpy()
+    if cutoffs is None:
+        top = max(int(np.quantile(read[q_kept], 0.999)) if q_kept.any() else 1, 10)
+        cutoffs = np.unique(np.round(np.geomspace(1, top, 200)).astype(int))
+    cutoffs = np.asarray(cutoffs)
+    kept = {}
+    for name, mask in _groups(counts).items():
+        n = np.sort(read[mask & q_kept])
+        kept[name] = len(n) - np.searchsorted(n, cutoffs, side='left')
+    return pd.DataFrame(kept, index=pd.Index(cutoffs, name='cutoff'))
+
+
+def frame_by_count(counts, splice_types=SPLICE_TYPES) -> pd.DataFrame:
+    """
+    By read count (FRAME_BINS), the events of the splice types, and the share whose alternative region is a multiple
+    of 3 nt: annotated and novel, or all (PR 27; the read-count audit's §4.4 chart, there for the junctions translated)
+
+    :return: index the bins' lower bounds; columns '<group> events' and '<group> frame kept' (a fraction) per group
+    """
+    counts = counts[counts.junction_type.isin(splice_types)]
+    bins = pd.cut(counts.min_jc, FRAME_BINS + [np.inf], right=False, labels=FRAME_BINS)
+    table = {}
+    for name, mask in _groups(counts).items():
+        by_bin = counts.frame_kept[mask].groupby(bins[mask], observed=False)
+        table[f'{name} events'] = by_bin.size()
+        table[f'{name} frame kept'] = by_bin.mean()
+    return pd.DataFrame(table).rename_axis('bin')
+
+
+def _style(ax) -> None:
+    for side in ['top', 'right']:
+        ax.spines[side].set_visible(False)
+    for side in ['left', 'bottom']:
+        ax.spines[side].set_color(INK2)
+    ax.tick_params(colors=INK2, labelsize=8.5)
+    ax.grid(True, color=GRID, linewidth=0.8)
+    ax.set_axisbelow(True)
+    ax.xaxis.set_major_formatter('{x:,.0f}')
+
+
+def _label(name: str) -> str:
+    return 'all events (rMATS\'s novel-event files are not in the folder)' if name == 'all' else f'{name} events'
+
+
+def _cutoff_line(ax, cutoff) -> tuple:
+    line = ax.axvline(max(cutoff, 1), color=INK, linewidth=1.5, linestyle=(0, (4, 3)))
+    label = ax.text(0, 1.01, '', transform=ax.get_xaxis_transform(), color=INK, fontsize=8.5)
+    return line, label
+
+
+def move_chart_cutoff(line, label, cutoff, text: str = None) -> None:
+    """ Put a chart's cutoff (draw_kept, draw_frame) at another read count; with text, its label's. The label is
+    right of the line, or left of it in the right half of the chart """
+    x = max(cutoff, 1)
+    line.set_xdata([x, x])
+    lo, hi = (math.log(max(v, 1e-9)) for v in label.axes.get_xlim())
+    right_half = math.log(x) > (lo + hi) / 2
+    label.set_x(x / 1.08 if right_half else x * 1.08)
+    label.set_horizontalalignment('right' if right_half else 'left')
+    label.set_text(f'cutoff = {cutoff} reads' + (f': {text}' if text else ''))
+
+
+def draw_kept(ax, kept, cutoff) -> tuple:
+    """
+    The junctions a run would translate at each read count cutoff (kept_at_cutoffs), annotated and novel, and the
+    cutoff (PR 27)
+
+    :return: the cutoff's line and label, which move_chart_cutoff moves
+    """
+    _style(ax)
+    for name in kept.columns:
+        color, _ = GROUPS[name]
+        ax.plot(kept.index, kept[name], color=color, linewidth=2, label=_label(name))
+    ax.set_xscale('log')
+    ax.xaxis.set_major_formatter('{x:,.0f}')
+    ax.yaxis.set_major_formatter('{x:,.0f}')
+    ax.set_ylim(bottom=0)
+    ax.set_xlabel('Read count cutoff (-r, or the model\'s)', color=INK, fontsize=9)
+    ax.set_ylabel('Junctions translated', color=INK, fontsize=9)
+    ax.set_title('Junctions a run would translate at each cutoff', color=INK, fontsize=10, loc='left', pad=16)
+    ax.legend(frameon=False, fontsize=8.5, labelcolor=INK, loc='upper right')
+    line, label = _cutoff_line(ax, cutoff)
+    move_chart_cutoff(line, label, cutoff)
+    return line, label
+
+
+def draw_frame(ax, frame, cutoff) -> tuple:
+    """
+    By read count, the share of events whose alternative region is a multiple of 3 nt (frame_by_count), annotated and
+    novel, against one in three, and the cutoff (PR 27). A group's bin of fewer than FRAME_MIN_EVENTS is not drawn
+
+    :return: the cutoff's line and label, which move_chart_cutoff moves
+    """
+    _style(ax)
+    edges = FRAME_BINS + [FRAME_BINS[-1] * 2]
+    x = [math.sqrt(lo * max(hi - 1, lo)) for lo, hi in zip(edges, edges[1:])]     # each bin's middle, on a log scale
+    groups = [c[:-len(' events')] for c in frame.columns if c.endswith(' events')]
+    for name in groups:
+        color, marker = GROUPS[name]
+        y = np.where(frame[f'{name} events'] >= FRAME_MIN_EVENTS, 100 * frame[f'{name} frame kept'], np.nan)
+        ax.plot(x, y, color=color, linewidth=2, marker=marker, markersize=5, label=_label(name))
+    ax.axhline(100 / 3, color=INK2, linewidth=1, linestyle=(0, (2, 2)), label='one in three: a random length')
+    ax.set_xscale('log')
+    ax.xaxis.set_major_formatter('{x:,.0f}')
+    ax.set_ylim(0, 100)
+    ax.set_xlabel('Read count', color=INK, fontsize=9)
+    ax.set_ylabel('% of events', color=INK, fontsize=9)
+    ax.set_title('Events whose alternative region is a multiple of 3 nt, by read count', color=INK, fontsize=10,
+                 loc='left', pad=16)
+    ax.legend(frameon=False, fontsize=8.5, labelcolor=INK, loc='upper right')
+    line, label = _cutoff_line(ax, cutoff)
+    move_chart_cutoff(line, label, cutoff)
+    return line, label
 
 
 def draw_model(ax, ln_sjc, params, min_count) -> tuple:

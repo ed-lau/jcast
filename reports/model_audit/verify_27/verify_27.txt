@@ -1,0 +1,43 @@
+before: /private/tmp/claude-501/-Users-edwardlau-projects-jcast/1eb63304-8df1-46c6-8502-5bbacb5416ca/scratchpad/wt27/jcast/__init__.py
+after: <repo>/jcast/__init__.py
+
+== chr15 runs: before and after
+chr15, default: exit 0 / 0; 14 output files, identical: yes; logs identical: True
+chr15, -m: exit 0 / 0; 11 output files, identical: yes; logs identical: True
+
+== events: the Model page's reading against the audit's (cutoff_recovery.frame_kept)
+NMDI14 cells, statistics: 623,738 events; each in the audit's reading: True; the frame as the audit's: True; rMATS's call as the audit's: True (402,821 novel (64.6%)); alternative region a multiple of 3: 36.8%
+mouse, statistics: 294,320 events; each in the audit's reading: True; the frame as the audit's: True; rMATS's call as the audit's: True (155,547 novel (52.8%)); alternative region a multiple of 3: 38.5%
+iPSC, statistics: 1,436,384 events; each in the audit's reading: True; the frame as the audit's: True; rMATS's call as the audit's: True (1,152,518 novel (80.2%)); alternative region a multiple of 3: 35.6%
+NMDI14 cells, --statoff: 635,424 events; each in the audit's reading: True; the frame as the audit's: True; rMATS's call as the audit's: True (412,377 novel (64.9%)); alternative region a multiple of 3: 36.8%
+mouse, --statoff: 302,055 events; each in the audit's reading: True; the frame as the audit's: True; rMATS's call as the audit's: True (161,093 novel (53.3%)); alternative region a multiple of 3: 38.5%
+iPSC, --statoff: 1,504,997 events; each in the audit's reading: True; the frame as the audit's: True; rMATS's call as the audit's: True (1,214,064 novel (80.7%)); alternative region a multiple of 3: 35.6%
+
+== the frame chart for the junctions a -r 1 run translated, against the audit's bins.tsv
+NMDI14 cells: 337,289 junctions translated; per bin as bins.tsv: junctions True, the shares (to 4 decimals) all equal
+  annotated: 1 46.6%, 2 46.6%, 3 45.8%, 5 44.2%, 8 44.2%, 16 43.3%, 32 44.6%, 64 45.0%, 128 44.5%, 256 46.0%, 512 49.5%, 1024 49.6%, 4096 51.2%
+  novel: 1 31.9%, 2 31.9%, 3 32.7%, 5 32.6%, 8 33.0%, 16 34.4%, 32 34.1%, 64 34.7%, 128 35.4%, 256 34.4%, 512 33.3%, 1024 35.4%, 4096 40.6%
+mouse: 184,614 junctions translated; per bin as bins.tsv: junctions True, the shares (to 4 decimals) all equal
+  annotated: 1 40.4%, 2 41.2%, 3 41.6%, 5 40.0%, 8 41.0%, 16 41.2%, 32 43.6%, 64 43.7%, 128 47.4%, 256 49.2%, 512 51.8%, 1024 51.1%, 4096 49.1%
+  novel: 1 34.0%, 2 35.3%, 3 36.7%, 5 36.7%, 8 37.8%, 16 39.7%, 32 39.7%, 64 39.5%, 128 40.6%, 256 43.7%, 512 40.1%, 1024 44.4%, 4096 46.6%
+iPSC: 697,604 junctions translated; per bin as bins.tsv: junctions True, the shares (to 4 decimals) all equal
+  annotated: 1 49.8%, 2 49.6%, 3 47.9%, 5 46.0%, 8 45.9%, 16 44.4%, 32 43.1%, 64 43.0%, 128 44.3%, 256 43.7%, 512 46.3%, 1024 47.4%, 4096 49.2%
+  novel: 1 32.4%, 2 32.5%, 3 32.6%, 5 32.9%, 8 32.2%, 16 33.0%, 32 33.1%, 64 33.6%, 128 34.1%, 256 33.8%, 512 33.0%, 1024 32.6%, 4096 33.8%
+
+== the junctions translated at a run's cutoff: the chart against the run
+NMDI14 cells, --statoff, -m: cutoff 37, -q 0 1: the chart 146,200 (75,566 annotated, 70,634 novel); the run 146,200; equal: True
+mouse, --statoff, -m: cutoff 22, -q 0 1: the chart 80,546 (46,795 annotated, 33,751 novel); the run 80,546; equal: True
+iPSC, --statoff, -m: cutoff 34, -q 0 1: the chart 340,212 (124,549 annotated, 215,663 novel); the run 340,212; equal: True
+NMDI14 cells, statistics, -m: cutoff 42, -q 0 1: the chart 136,818 (71,203 annotated, 65,615 novel); the run 136,818; equal: True
+iPSC, statistics, -m: cutoff 39, -q 0 1: the chart 314,396 (117,071 annotated, 197,325 novel); the run 314,396; equal: True
+
+== model.preview, seconds: before, after, before, after
+NMDI14 cells, statistics: 7, 7.4, 7.2, 7.2
+mouse, statistics: 3.3, 3.3, 3.2, 3.3
+iPSC, statistics: 18.7, 18.9, 18.6, 18.9
+NMDI14 cells, --statoff: 8.1, 8.1, 8, 7.8
+mouse, --statoff: 3.9, 3.9, 3.7, 3.8
+iPSC, --statoff: 20.3, 20.4, 20.2, 20.4
+
+== screenshots (kept.png, frame.png): /Volumes/Omics-Shared-2/Edward/2019_iPSC_Diff_RNA/rmats
+The -m model of 1,504,997 junctions of every rMATS file in the folder (MXE, SE, RI, A5SS, A3SS): its cutoff is 34 reads.

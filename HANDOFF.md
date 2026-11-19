@@ -440,9 +440,10 @@ cutoffs.
 ## Next priorities
 
 **The order, decided 2026-11-19:**
-1. Three small PRs: the tests that call the UniProt API get `--uniprot`;
-   the GUI remembers its settings (item 3); the Model page's two charts
-   that need no run (report §16.2).
+1. Three small PRs, **done on 2026-11-19**: the tests that call the
+   UniProt API get `--uniprot` (PR 25); the GUI remembers its settings
+   (item 3, PR 26); the Model page's two charts that need no run (report
+   §§16.2, 18; PR 27).
 2. The search against spectra (row 23, report §16.1): the maintainer's
    human heart folder (ENCODE, `ENCODE_HumanHeart_RNASeq`, downloading
    on 2026-11-19) is expected within a day. Two databases from it: `-m`
@@ -586,8 +587,8 @@ The maintainer answered §13 on 2026-11-18. Next:
   both ways;
 - **then the PRs:**
   - the §15.7 fixes (done, PR 24);
-  - the Model page charts that need no run (§16.2); those from a run's
-    records wait for later decisions;
+  - the Model page charts that need no run (§16.2): done in PR 27
+    (§18); those from a run's records wait for later decisions;
   - the pair of cutoffs, if the search supports it.
 
 The `-r 1` runs' records (166, 174, 93 and 375 MB) were in a scratch folder.

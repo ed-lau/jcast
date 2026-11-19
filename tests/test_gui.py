@@ -304,6 +304,53 @@ def test_the_model_and_its_cutoff(window, qtbot, tmp_path):
     assert page.options() == (False, 40)
 
 
+def test_the_charts_of_what_a_cutoff_keeps(window, qtbot, tmp_path):
+    """ PR 27: beside the model, the junctions a run would translate at each cutoff, annotated and novel, and the frame
+    by read count; each with the cutoff, which moves with it, and the junctions translated at it, as the table counts
+    them; a click on the first sets -r; other splice types or -q draw them again """
+    from tests.test_model import _with_novel_files
+
+    folder, _ = _with_novel_files(tmp_path)
+    _fill(window, tmp_path / 'out', rmats=folder)
+    page = _fitted(window, qtbot)
+    page.update_table()
+
+    assert [page.charts.tabText(i) for i in range(page.charts.count())] == [
+        'Read counts and the model', 'Junctions translated by cutoff', 'Frame by read count']
+    kept_line, kept_label = page._chart_cutoffs['kept']
+    frame_line, _ = page._chart_cutoffs['frame']
+    counts = page._fit[1]
+
+    def translated(cutoff, qvalue=(0, 1), types=SPLICE_TYPES):
+        at = model.kept_at_cutoffs(counts, qvalue, types, cutoffs=[cutoff]).iloc[0]
+        assert at.sum() == model.filter_counts(counts, cutoff, qvalue).loc[types].kept.sum()
+        return f"cutoff = {cutoff} reads: {at['annotated']:,} annotated, {at['novel']:,} novel"
+
+    assert kept_label.get_text() == translated(1) and kept_line.get_xdata()[0] == 1
+    page.use_model.setChecked(True)
+    page.update_table()
+    assert kept_label.get_text() == translated(26)
+    assert kept_line.get_xdata()[0] == frame_line.get_xdata()[0] == 26
+
+    # a click on the junctions translated: -r there
+    page._clicked_kept(SimpleNamespace(name='button_press_event', xdata=60.4, button=1))
+    assert page.options() == (False, 60) and frame_line.get_xdata()[0] == 60
+    page._clicked_kept(SimpleNamespace(name='motion_notify_event', xdata=200, button=None))
+    assert page.read.value() == 60
+    page.update_table()
+    assert kept_label.get_text() == translated(60)
+
+    # other splice types and -q: drawn again
+    for t in ('SE', 'MXE'):
+        window.setup.splice_types[t].setChecked(False)
+    window.setup.q_hi.setValue(0.05)
+    window.setup.refresh()
+    page.update_table()
+    assert page._chart_cutoffs['kept'][1].get_text() == translated(60, (0, 0.05), ['RI', 'A5SS', 'A3SS'])
+    frame = page.frame_figure.axes[0]
+    assert frame.lines[0].get_label() == 'annotated events' and page._charts_for == (['RI', 'A5SS', 'A3SS'], (0, 0.05))
+
+
 @pytest.mark.parametrize('folder, reason', [(STOMACH, 'the fit was degenerate'),
                                             (EMPTY, 'the fit failed: the rMATS files read hold no junctions')])
 def test_a_folder_without_a_fit(window, qtbot, tmp_path, folder, reason):

@@ -12,6 +12,7 @@ import pytest
 
 from jcast import main, model
 from jcast.junctions import Junction, RmatsResults, read_count
+from jcast.outcomes import SPLICE_TYPES
 
 from tests.conftest import DATA, HUMAN_GENOME, HUMAN_GTF, RMATS
 from tests.test_uniprot import UNIPROT
@@ -235,3 +236,135 @@ def test_the_cutoff_names_its_option(tmp_path, cache_dir, folder, extra, expecte
     main.main([str(a) for a in [folder, HUMAN_GTF, HUMAN_GENOME, '-s', 'RI', '-o', out, '--cache_dir', cache_dir,
                                 '--uniprot', UNIPROT] + extra])
     assert f'Translating junctions with a read count of {expected}:' in (out / 'logfile.log').read_text()
+
+
+# ---- what a cutoff keeps: the Model page's charts (PR 27; reports/2026-11-15-read-count-model-audit.md §16.2) ----
+
+# each splice type's alternative region, from rMATS's own columns (0-based starts)
+ALTERNATIVE = {'SE': lambda m: m.exonEnd - m.exonStart_0base,
+               'RI': lambda m: m.downstreamES - m.upstreamEE,
+               'MXE': lambda m: ((m['1stExonEnd'] - m['1stExonStart_0base'])
+                                 - (m['2ndExonEnd'] - m['2ndExonStart_0base'])),
+               'A5SS': lambda m: (m.longExonEnd - m.longExonStart_0base) - (m.shortEE - m.shortES),
+               'A3SS': lambda m: (m.longExonEnd - m.longExonStart_0base) - (m.shortEE - m.shortES)}
+
+
+def _with_novel_files(tmp_path, splice_types=SPLICE_TYPES, every=3) -> tuple:
+    """ the bundled folder, with rMATS's novel-event files for these splice types: every third event novel, half of
+    them in fromGTF.novelJunction.<type>.txt and half in fromGTF.novelSpliceSite.<type>.txt """
+    folder = tmp_path / 'rmats'
+    shutil.copytree(RMATS, folder)
+    novel = {}
+    for t in splice_types:
+        ids = pd.read_table(RMATS / f'{t}.MATS.JC.txt', usecols=['ID'])['ID'].tolist()[::every]
+        novel[t] = set(ids)
+        for kind, part in [('novelJunction', ids[::2]), ('novelSpliceSite', ids[1::2])]:
+            pd.DataFrame({'ID': part, 'GeneID': 'G'}).to_csv(folder / f'fromGTF.{kind}.{t}.txt', sep='\t', index=False)
+    return folder, novel
+
+
+def test_each_events_frame_from_rmats_coordinates():
+    """ preview's events: the rMATS ID, and whether the alternative region is a multiple of 3, as from rMATS's own
+    columns; without rMATS's novel-event files, no call (NA) """
+    counts = model.preview(RMATS)[0]
+
+    for t in SPLICE_TYPES:
+        m = pd.read_table(RMATS / f'{t}.MATS.JC.txt')
+        mine = counts[counts.junction_type == t]
+        assert mine.junction_id.tolist() == m.ID.tolist()
+        assert mine.frame_kept.tolist() == (ALTERNATIVE[t](m) % 3 == 0).tolist()
+    assert counts.novel.isna().all()
+    assert 0.3 < counts.frame_kept.mean() < 0.6
+
+
+def test_novel_events_from_rmats_files(tmp_path):
+    folder, novel = _with_novel_files(tmp_path, splice_types=['SE', 'RI'])
+    counts = model.preview(folder)[0]
+
+    for t in SPLICE_TYPES:
+        mine = counts[counts.junction_type == t]
+        if t in novel:
+            assert mine.novel.tolist() == mine.junction_id.isin(novel[t]).tolist() and mine.novel.any()
+        else:
+            assert mine.novel.isna().all()
+    assert model.novel_events(folder, 'MXE') is None and model.novel_events(folder, 'SE') == novel['SE']
+
+    # the call splits the events only if every splice type selected has it
+    assert list(model.kept_at_cutoffs(counts, (0, 1), ['SE', 'RI']).columns) == ['annotated', 'novel']
+    assert list(model.kept_at_cutoffs(counts, (0, 1)).columns) == ['all']
+    assert list(model.frame_by_count(counts, ['SE']).columns) == ['annotated events', 'annotated frame kept',
+                                                                 'novel events', 'novel frame kept']
+
+
+@pytest.mark.parametrize('qvalue', [(0, 1), (0, 0.05), (0.5, 1)])
+@pytest.mark.parametrize('splice_types', [SPLICE_TYPES, ['SE', 'A3SS']])
+def test_kept_at_cutoffs_is_what_the_filters_keep(tmp_path, qvalue, splice_types):
+    """ at each cutoff, the junctions kept are those fates.filtered keeps, as the Model page's table counts them
+    (filter_counts); also without an FDR (--statoff) """
+    from tests.test_statoff import _without_statistics
+
+    folder, _ = _with_novel_files(tmp_path)
+    statoff, _ = _without_statistics(tmp_path / 'statoff')
+    for f in folder.glob('fromGTF.*'):
+        shutil.copy(f, statoff)
+    for rmats in (folder, statoff):
+        counts = model.preview(rmats)[0]
+        cutoffs = [0, 1, 2, 5, 26, 100, 10 ** 6]
+        kept = model.kept_at_cutoffs(counts, qvalue, splice_types, cutoffs=cutoffs)
+        assert list(kept.columns) == ['annotated', 'novel']
+        for c in cutoffs:
+            table = model.filter_counts(counts, c, qvalue).loc[splice_types]
+            assert kept.loc[c].sum() == table.kept.sum()
+            chosen = counts[counts.junction_type.isin(splice_types) & counts.novel.to_numpy(dtype=bool)]
+            assert kept.loc[c, 'novel'] == model.filter_counts(chosen, c, qvalue).kept.sum()
+
+    default = model.kept_at_cutoffs(counts, qvalue, splice_types)
+    assert default.index[0] == 1 and default.index.is_monotonic_increasing and len(default) <= 200
+    assert (default.diff().dropna() <= 0).all().all()
+
+
+def test_frame_by_count(tmp_path):
+    folder, _ = _with_novel_files(tmp_path)
+    counts = model.preview(folder)[0]
+    frame = model.frame_by_count(counts, ['SE', 'MXE'])
+    chosen = counts[counts.junction_type.isin(['SE', 'MXE'])]
+
+    assert list(frame.index) == model.FRAME_BINS
+    assert frame['annotated events'].sum() + frame['novel events'].sum() == len(chosen)
+    novel = chosen[chosen.novel.to_numpy(dtype=bool)]
+    in_bin = novel[(novel.min_jc >= 8) & (novel.min_jc < 16)]
+    assert frame.loc[8, 'novel events'] == len(in_bin)
+    assert frame.loc[8, 'novel frame kept'] == pytest.approx(in_bin.frame_kept.mean())
+    assert frame.loc[4096, 'novel events'] == 0 and np.isnan(frame.loc[4096, 'novel frame kept'])
+
+
+def test_draw_the_charts_on_a_callers_axes(tmp_path):
+    """ the junctions translated at each cutoff and the frame by read count, each with its cutoff, which moves """
+    from matplotlib.figure import Figure
+
+    folder, _ = _with_novel_files(tmp_path)
+    counts = model.preview(folder)[0]
+    ax = Figure().subplots()
+    line, label = model.draw_kept(ax, model.kept_at_cutoffs(counts, (0, 1)), 26)
+    assert [l.get_label() for l in ax.lines[:2]] == ['annotated events', 'novel events']
+    assert line.get_xdata()[0] == 26 and label.get_text() == 'cutoff = 26 reads'
+    assert ax.get_xscale() == 'log' and label.get_horizontalalignment() == 'left'
+
+    model.move_chart_cutoff(line, label, 3000, '10 annotated, 2 novel')
+    assert line.get_xdata()[0] == 3000 and label.get_text() == 'cutoff = 3000 reads: 10 annotated, 2 novel'
+    assert label.get_horizontalalignment() == 'right'           # in the right half: left of the line
+    model.move_chart_cutoff(line, label, 0)
+    assert line.get_xdata()[0] == 1 and label.get_text() == 'cutoff = 0 reads'
+
+    ax = Figure().subplots()
+    frame = model.frame_by_count(counts)
+    line, label = model.draw_frame(ax, frame, 26)
+    assert [l.get_label() for l in ax.lines[:3]] == ['annotated events', 'novel events',
+                                                     'one in three: a random length']
+    drawn = ax.lines[1].get_ydata()
+    assert np.isnan(drawn[frame['novel events'].to_numpy() < model.FRAME_MIN_EVENTS]).all()
+    assert ax.get_ylim() == (0, 100) and line.get_xdata()[0] == 26
+
+    ax = Figure().subplots()
+    model.draw_kept(ax, model.kept_at_cutoffs(model.preview(RMATS)[0], (0, 1)), 26)
+    assert ax.lines[0].get_label() == "all events (rMATS's novel-event files are not in the folder)"

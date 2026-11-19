@@ -79,6 +79,21 @@ For the code review and the roadmap (v0.4.0 and v0.5.0), see
 
 ### Added
 
+- **The GUI's Model page shows what a cutoff keeps** (PR 27;
+  [read-count model audit §18](reports/2026-11-15-read-count-model-audit.md#18-the-model-pages-charts-pr-27)),
+  in two charts beside the model, before any run:
+  - how many junctions a run would translate at each read count cutoff,
+    for the events rMATS calls annotated and those it calls novel;
+  - by read count, the share of events whose alternative region is a
+    multiple of 3 nt, so that both forms keep the reading frame. A random
+    length does in one event of three, and novel events stay near that at
+    every read count in the audit's data sets.
+
+  The annotated and novel split needs rMATS's novel-event files
+  (`fromGTF.novelJunction.<type>.txt`, and with `--novelSS`
+  `fromGTF.novelSpliceSite.<type>.txt`) in the folder; without them the
+  charts show all events. A click on the first chart sets the cutoff, as
+  on the model's.
 - **The GUI keeps the Setup page's settings between sessions** (PR 26;
   [scope report §14](reports/2026-11-13-gui-cli-scope.md#14-the-gui-keeps-its-settings-pr-26)):
   the paths and options, kept as they change and restored at start, with

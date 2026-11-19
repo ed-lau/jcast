@@ -301,7 +301,15 @@ setting, that is its help from `jcast run -h`.
    splice type the cutoff and `-q` keep. It needs only the rMATS files and
    is fitted when the page opens (seconds; up to 20 s on a whole genome).
    Choose the model's cutoff (`-m`), or set another (`-r`) in the number
-   field or by clicking on the plot.
+   field or by clicking on the plot. Two more charts show what a cutoff
+   keeps: how many junctions a run would translate at each cutoff, for
+   the events rMATS calls annotated and those it calls novel; and, by
+   read count, the share of events whose alternative region is a
+   multiple of 3 nt, so that both forms keep the reading frame (a random
+   length does in one event of three). The annotated and novel split
+   needs rMATS's `fromGTF.novelJunction.<type>.txt` files in the folder
+   (and with `--novelSS`, `fromGTF.novelSpliceSite.<type>.txt`); rMATS
+   before 4.1.1 calls some annotated events novel.
 3. **Run.** The command line of the run, which you can copy, and Start and
    Stop. The GUI runs that command (`python -m jcast run …`) in a separate
    process, so `-p` works as on the command line and the log is the same.

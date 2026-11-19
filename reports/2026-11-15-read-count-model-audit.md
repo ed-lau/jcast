@@ -2,12 +2,12 @@
 
 | | |
 |---|---|
-| **Date** | 2026-11-15; §§4–13 added 2026-11-16; §§14–17 and the answers to §§13 and 15.7 on 2026-11-18; §17.4 on 2026-11-19 |
-| **Status** | Measured on three data sets. The maintainer answered §13 on 2026-11-18: the model is kept, and the pair of cutoffs waits for a search against spectra (§16.1). The third data set, iPSC differentiation (§14), changes no conclusion. rMATS's statistics drop the events that one condition does not express (§15); the maintainer adopted §15.7, and JCAST reads folders made with `--statoff` or from one sample since PR 24 (§17). The maintainer remade the three folders with `--statoff` and reran JCAST; the runs give §15.8's numbers (§17.4). Before 2026-11-18: measured; decisions requested (§13). Which known protein-coding isoforms a cutoff loses (§3), the same on rMATS 4.4.0 (§4) and on a second data set, mouse heart (§5); genes against the proteins PaxDb finds in heart (§6); the model's fit to the counts (§8); two cutoffs, for annotated and novel events (§9); the NMDI14 test (§10). The maintainer's steer of 2026-11-16: the annotated and novel rule over a cutoff per splice type (§11), and a Model page that shows what a cutoff keeps (§12). A third data set is to come. |
+| **Date** | 2026-11-15; §§4–13 added 2026-11-16; §§14–17 and the answers to §§13 and 15.7 on 2026-11-18; §17.4 and §18 on 2026-11-19 |
+| **Status** | Measured on three data sets. The maintainer answered §13 on 2026-11-18: the model is kept, and the pair of cutoffs waits for a search against spectra (§16.1). The third data set, iPSC differentiation (§14), changes no conclusion. rMATS's statistics drop the events that one condition does not express (§15); the maintainer adopted §15.7, and JCAST reads folders made with `--statoff` or from one sample since PR 24 (§17). The maintainer remade the three folders with `--statoff` and reran JCAST; the runs give §15.8's numbers (§17.4). The Model page's two charts that need no run are in PR 27 (§18). Before 2026-11-18: measured; decisions requested (§13). Which known protein-coding isoforms a cutoff loses (§3), the same on rMATS 4.4.0 (§4) and on a second data set, mouse heart (§5); genes against the proteins PaxDb finds in heart (§6); the model's fit to the counts (§8); two cutoffs, for annotated and novel events (§9); the NMDI14 test (§10). The maintainer's steer of 2026-11-16: the annotated and novel rule over a cutoff per splice type (§11), and a Model page that shows what a cutoff keeps (§12). A third data set is to come. |
 | **Question** | Does the `-m` model fit junction read counts? Should each splice type have its own cutoff? Does a cutoff lose bona fide protein-coding isoforms? ([REVIEW.md §5.6](../REVIEW.md#56--the-modeled-read-cutoff-is-a-weakly-identified-heuristic--new), roadmap row 23, asked for on 2026-11-14.) Mass spectrometry, the decisive test, was deferred by the maintainer on 2026-11-15 as a future research item: no RNA-seq here has spectra from the same samples, and the result would depend on the spectra's depth. On 2026-11-16 the maintainer re-ran rMATS, added the mouse data set, and asked for the PaxDb comparison. |
-| **Reproduce** | Run JCAST at `-r 1` with [audit_records.diff](model_audit/audit_records.diff) applied and `JCAST_AUDIT_RECORDS=<records.tsv>` set (8–11 min with `-p 10` to `-p 16`), then `python reports/model_audit/cutoff_recovery.py --records <records.tsv> --run <output dir> --rmats <dir> --uniprot <FASTA> --gencode <pc_translations.fa.gz> --gtf <gtf> [--cache_dir <dir>] [--salmon <dir>] [--paxdb <file>] [--check <output dir>:<cutoff> …] [--model_cutoff <n>] --out <dir>` (about 1 min with the GTF cache). §4.1: `python reports/model_audit/rmats_versions.py --old <rMATS 4.1.0 dir> --new <rMATS 4.4.0 dir> --out <dir>`. §8: `python reports/model_audit/model_fit.py --rmats <dir> --out <dir>` (3–8 min), and `--bundled tests/data/model` (offline, 10 min). §9: `python reports/model_audit/two_cutoffs.py` with `cutoff_recovery.py`'s inputs (5 min). §14: §§4, 8 and 9's steps on the third folder. §15: rMATS's post step again with `--statoff` and the folder's options (`rmats.py --task post --statoff`, `--tmp` a folder of links to its `.rmats` files), then `python reports/model_audit/dropped_events.py --rmats <dir> --statoff <dir> --dropped <dir> --out <dir>`, a `-r 1` run with the audit switch on the `--dropped` folder, and `dropped_events.py` again with `--records <records.tsv> --dropped_records <records.tsv> --dropped_run <dir>` and `cutoff_recovery.py`'s known sets (1 min). §16.1: [novel_only.diff](model_audit/novel_only.diff), `JCAST_AUDIT_ANNOTATED_CUTOFF=1` with `-m`, checked with `cutoff_recovery.py --check_novel_only <dir>:<cutoff>`. §17: `python reports/model_audit/verify_24.py --before <checkout> --after <checkout> [--folder <label>=<dir> …] [--union <statoff run>,<statistics run>,<dropped run>]` (4 min with three whole-genome data sets). §17.4: `python reports/model_audit/check_reruns.py --set <label>=<rMATS --statoff>,<JCAST on it>,<rMATS with statistics>,<JCAST on it>,<Swiss-Prot FASTA> …` (1 min). §10: `python reports/model_audit/nmd_response.py --rmats <dir> --run <-r 1 output dir> --targets <DTE_significant_NMD_targets.csv> --dte <DTE_results_NMD_vs_DMSO.csv> --gtf <gtf> [--cache_dir <dir>] --out <dir>` (1 min). |
+| **Reproduce** | Run JCAST at `-r 1` with [audit_records.diff](model_audit/audit_records.diff) applied and `JCAST_AUDIT_RECORDS=<records.tsv>` set (8–11 min with `-p 10` to `-p 16`), then `python reports/model_audit/cutoff_recovery.py --records <records.tsv> --run <output dir> --rmats <dir> --uniprot <FASTA> --gencode <pc_translations.fa.gz> --gtf <gtf> [--cache_dir <dir>] [--salmon <dir>] [--paxdb <file>] [--check <output dir>:<cutoff> …] [--model_cutoff <n>] --out <dir>` (about 1 min with the GTF cache). §4.1: `python reports/model_audit/rmats_versions.py --old <rMATS 4.1.0 dir> --new <rMATS 4.4.0 dir> --out <dir>`. §8: `python reports/model_audit/model_fit.py --rmats <dir> --out <dir>` (3–8 min), and `--bundled tests/data/model` (offline, 10 min). §9: `python reports/model_audit/two_cutoffs.py` with `cutoff_recovery.py`'s inputs (5 min). §14: §§4, 8 and 9's steps on the third folder. §15: rMATS's post step again with `--statoff` and the folder's options (`rmats.py --task post --statoff`, `--tmp` a folder of links to its `.rmats` files), then `python reports/model_audit/dropped_events.py --rmats <dir> --statoff <dir> --dropped <dir> --out <dir>`, a `-r 1` run with the audit switch on the `--dropped` folder, and `dropped_events.py` again with `--records <records.tsv> --dropped_records <records.tsv> --dropped_run <dir>` and `cutoff_recovery.py`'s known sets (1 min). §16.1: [novel_only.diff](model_audit/novel_only.diff), `JCAST_AUDIT_ANNOTATED_CUTOFF=1` with `-m`, checked with `cutoff_recovery.py --check_novel_only <dir>:<cutoff>`. §17: `python reports/model_audit/verify_24.py --before <checkout> --after <checkout> [--folder <label>=<dir> …] [--union <statoff run>,<statistics run>,<dropped run>]` (4 min with three whole-genome data sets). §17.4: `python reports/model_audit/check_reruns.py --set <label>=<rMATS --statoff>,<JCAST on it>,<rMATS with statistics>,<JCAST on it>,<Swiss-Prot FASTA> …` (1 min). §18: `python reports/model_audit/verify_27.py --before <checkout> --after <checkout> [--folder <label>=<rMATS> …] [--bins <label>=<rMATS>,<-r 1 output dir>,<bins.tsv> …] [--run <label>=<rMATS>,<output dir> …] [--screenshot <rMATS>]`. §10: `python reports/model_audit/nmd_response.py --rmats <dir> --run <-r 1 output dir> --targets <DTE_significant_NMD_targets.csv> --dte <DTE_results_NMD_vs_DMSO.csv> --gtf <gtf> [--cache_dir <dir>] --out <dir>` (1 min). |
 | **Inputs** | Not bundled. **Human** (`20240514_Boomi_NMDI_RNASeq`): iPSC-derived cardiomyocytes, 3 DMSO and 3 NMDI14, 2 × 150 nt; GENCODE v50, GRCh38; Swiss-Prot human with isoforms of 2026-11-11 (42,545 entries); GENCODE v50 translations (`gencode.v50.pc_translations.fa.gz`, sha256 `5d6408c3…`); the folder's Salmon quantifications. rMATS 4.1.0 (§3: `rmats_4_1_0/`, 599,644 events; run at `3bfb12a`) and 4.4.0 (§4: `rmats_4_4_0_stat/`, `rmats/` until 2026-11-18, 623,738 events; run at `da06619`). **Mouse** (§5, `GSE49906_MouseHeart_RNASeq`): ventricles of FVB mice at E17, P1, P10, P28 and P90, one each, 2 × 100 nt ([Giudice et al. 2014](https://doi.org/10.1038/ncomms4603)); rMATS 4.4.0 (294,320 events); GENCODE vM39, GRCm39; Swiss-Prot mouse with isoforms of 2026-11-15 (25,764 entries); GENCODE vM39 translations (sha256 `bb90bb10…`); Salmon. All runs `-r 1 -c --uniprot`. **PaxDb** 6.1 (§6), downloaded 2026-11-16: `10090-HEART-integrated.txt` (sha256 `e7c4694b…`) and `9606-HEART-integrated.txt` (`835d4ca5…`). **§10:** the human folder's DESeq2 transcript results, `R/01_out/DTE_results_NMD_vs_DMSO.csv` and `DTE_significant_NMD_targets.csv`. **iPSC differentiation** (§14, `2019_iPSC_Diff_RNA`): 12 samples, three at each of four stages, 2 × 150 nt; rMATS 4.4.0 (1,436,384 events), days 0 and 2 against days 7 and 14; the human references above; Salmon. **§15:** rMATS 4.4.0 from bioconda (osx-arm64, Python 3.11), the post step with `--statoff` on each folder's prep files. |
-| **Evidence** | One folder per run, each with `summary.txt` (the known sets and the check), `recovery.tsv` (per cutoff), `recovery_novel_only.tsv` and `tradeoff.tsv` (the cutoff on novel events only), `bins.tsv` (per read count and splice type), `expression.tsv`, the charts, and `r1_logfile.log` (the `-r 1` run, with its inputs' hashes): [human_rmats410/](model_audit/human_rmats410/) (§3), [human_rmats440/](model_audit/human_rmats440/) (§4) and [mouse_rmats440/](model_audit/mouse_rmats440/) (§5). The last two also have `rmats_versions.tsv` (§4.1), `genes.tsv`, `paxdb.tsv`, `paxdb_by_count.tsv` and `paxdb.png` (§6), and `pairs.tsv`, `frontier.tsv`, `gtf_calls.tsv` and `pairs.png` (§9). Each has `fit.tsv`, `rootogram.tsv`, `stability.tsv`, `subsets.tsv`, `depth.tsv`, `form.tsv`, `fit.png` and `fit_summary.txt` (§8); [bundled/](model_audit/bundled/) the bundled folders' fits; human_rmats440/ `nmd*.tsv` and `nmd.png` (§10). [ipsc_diff_rmats440/](model_audit/ipsc_diff_rmats440/) has all of these but §10's (§14). The three 4.4.0 folders have `dropped.tsv`, `dropped_bins.tsv`, `dropped_genes.tsv`, `dropped_model.txt`, `dropped_known.tsv` and `dropped_r1_logfile.log` (the `-r 1` run on the dropped events) (§15); ipsc_diff_rmats440/ also `novel_only_logfile.log` (§16.1). [verify_24/](model_audit/verify_24/) has PR 24's verification (§17) and the maintainer's reruns (`reruns.txt`, §17.4). Scripts: [cutoff_recovery.py](model_audit/cutoff_recovery.py), [rmats_versions.py](model_audit/rmats_versions.py), [model_fit.py](model_audit/model_fit.py), [two_cutoffs.py](model_audit/two_cutoffs.py), [nmd_response.py](model_audit/nmd_response.py), [dropped_events.py](model_audit/dropped_events.py), [verify_24.py](model_audit/verify_24.py), [check_reruns.py](model_audit/check_reruns.py), [audit_records.diff](model_audit/audit_records.diff), [novel_only.diff](model_audit/novel_only.diff). |
+| **Evidence** | One folder per run, each with `summary.txt` (the known sets and the check), `recovery.tsv` (per cutoff), `recovery_novel_only.tsv` and `tradeoff.tsv` (the cutoff on novel events only), `bins.tsv` (per read count and splice type), `expression.tsv`, the charts, and `r1_logfile.log` (the `-r 1` run, with its inputs' hashes): [human_rmats410/](model_audit/human_rmats410/) (§3), [human_rmats440/](model_audit/human_rmats440/) (§4) and [mouse_rmats440/](model_audit/mouse_rmats440/) (§5). The last two also have `rmats_versions.tsv` (§4.1), `genes.tsv`, `paxdb.tsv`, `paxdb_by_count.tsv` and `paxdb.png` (§6), and `pairs.tsv`, `frontier.tsv`, `gtf_calls.tsv` and `pairs.png` (§9). Each has `fit.tsv`, `rootogram.tsv`, `stability.tsv`, `subsets.tsv`, `depth.tsv`, `form.tsv`, `fit.png` and `fit_summary.txt` (§8); [bundled/](model_audit/bundled/) the bundled folders' fits; human_rmats440/ `nmd*.tsv` and `nmd.png` (§10). [ipsc_diff_rmats440/](model_audit/ipsc_diff_rmats440/) has all of these but §10's (§14). The three 4.4.0 folders have `dropped.tsv`, `dropped_bins.tsv`, `dropped_genes.tsv`, `dropped_model.txt`, `dropped_known.tsv` and `dropped_r1_logfile.log` (the `-r 1` run on the dropped events) (§15); ipsc_diff_rmats440/ also `novel_only_logfile.log` (§16.1). [verify_24/](model_audit/verify_24/) has PR 24's verification (§17) and the maintainer's reruns (`reruns.txt`, §17.4); [verify_27/](model_audit/verify_27/) has PR 27's (§18). Scripts: [cutoff_recovery.py](model_audit/cutoff_recovery.py), [rmats_versions.py](model_audit/rmats_versions.py), [model_fit.py](model_audit/model_fit.py), [two_cutoffs.py](model_audit/two_cutoffs.py), [nmd_response.py](model_audit/nmd_response.py), [dropped_events.py](model_audit/dropped_events.py), [verify_24.py](model_audit/verify_24.py), [check_reruns.py](model_audit/check_reruns.py), [verify_27.py](model_audit/verify_27.py), [audit_records.diff](model_audit/audit_records.diff), [novel_only.diff](model_audit/novel_only.diff). |
 
 ## 1. Summary
 
@@ -1815,6 +1815,8 @@ left the other three for later decisions (§13).
 | database records by kind at each cutoff | §4.3 | the same | no |
 | by read count, the share giving a known isoform | §4.4, right | the same | no |
 
+The first two are on the Model page since PR 27 (§18).
+
 - **The last three are quick once the records exist.** From the human
   cells' records, every cutoff's Swiss-Prot counts took 2.5 seconds,
   most of it reading the two files. The records themselves need the run
@@ -1964,3 +1966,121 @@ with the runs on the folders made with statistics
   0–2. 74% fail (31% of all junctions above the cutoff), 82% of them for
   want of a canonical: mostly unnamed genes and lncRNAs. Many of the
   rest are cardiac (131 in MYL7, 108 in MYBPC3), as §15.4 found.
+
+## 18. The Model page's charts (PR 27)
+
+### 18.1 Decided (2026-11-18)
+
+§13, answer 4, as narrowed by §16.2: the Model page shows, for now, the
+two charts that need no run:
+- the junctions kept at each cutoff, annotated and novel (§12, §9.3);
+- by read count, the share of annotated and novel events whose
+  alternative region keeps the frame (§4.4, left).
+
+Those that need a run's records wait for later decisions.
+
+### 18.2 What PR 27 changes
+
+[model.py](../jcast/model.py),
+[model_page.py](../jcast/gui/model_page.py). The run does not change:
+none of this is on its path.
+- **Each event, as the page reads the folder** (`model.preview`, now
+  `model.events`). The table of junctions gains three columns:
+  - its rMATS ID;
+  - whether its alternative region is a multiple of 3 nt
+    (`alternative_length`): the skipped exon (SE), the retained intron
+    (RI), or the difference between the two forms' exons (MXE, A5SS,
+    A3SS), as the audit's `cutoff_recovery.frame_kept` measures it;
+  - whether rMATS calls it novel (`novel_events`): in
+    `fromGTF.novelJunction.<type>.txt` or, with `--novelSS`,
+    `fromGTF.novelSpliceSite.<type>.txt`. `NA` for a splice type whose
+    files are not in the folder; the charts then show all events,
+    unsplit.
+- **rMATS's call, not the GTF's (§9.3).** The page needs no GTF, so it
+  draws as soon as the model is fitted; the novel-only switch
+  (`novel_only.diff`, §16.1) uses the same call, so the chart shows the
+  split that the search's second database is built on. rMATS before
+  4.1.1 calls some annotated events novel (§4.1); the README says so.
+  If the pair of cutoffs is adopted, how JCAST tells novel events is
+  part of that decision.
+- **The junctions translated at each cutoff** (`kept_at_cutoffs`,
+  `draw_kept`): for the splice types selected and `-q`, as
+  `fates.filtered` decides, about 200 cutoffs from 1 to the read count
+  that 0.1% of the junctions reach, on a log axis; a line each for the
+  annotated and the novel events. Its label gives the junctions
+  translated at the cutoff, each group's, which add up to the table's
+  total.
+- **The frame by read count** (`frame_by_count`, `draw_frame`): §4.4's
+  bins, the share for each group against one in three. A group's bin of
+  fewer than 20 events is not drawn. §4.4 counted the junctions a run
+  translated; before a run, the chart counts every event of the splice
+  types selected.
+- **On the page:** the model's plot and the two charts are three tabs
+  above the cutoff. The cutoff's line is on each and moves with it; a
+  click or a drag on the junctions translated sets `-r`, as one on the
+  model does. Other splice types or `-q` draw the charts again. Each
+  chart's help line says what it shows. The colours are the audit's
+  (dataviz palette, slots 1 and 2, validated on a light surface), with
+  markers on the frame chart so that colour is not the only cue.
+
+### 18.3 Verification
+
+[verify_27.py](model_audit/verify_27.py), against the code before
+(`622dd76`) ([verify_27.txt](model_audit/verify_27/verify_27.txt)):
+- **No run changes.** The chr15 runs, default and `-m`, give
+  byte-identical output files and identical logs.
+- **Each event as the audit read it.** On the six whole-genome folders,
+  made with statistics and with `--statoff`, every event the page reads
+  has the frame and the novel call that the audit's
+  `cutoff_recovery.frame_kept` gives it. The novel share is 64.6–64.9%
+  (NMDI14 cells), 52.8–53.3% (mouse) and 80.2–80.7% (iPSC). 35.6–38.5%
+  of events have an alternative region of a multiple of 3.
+- **§4.4's table, from the chart's code.** Restricted to the junctions
+  that the audit's `-r 1` runs translated, `frame_by_count` gives each
+  bin's junctions and both groups' shares as the audit's `bins.tsv`, to
+  four decimals, in all three data sets. Before a run, the chart counts
+  every event, so its shares differ a little from §4.4's: in the NMDI14
+  cells' `--statoff` folder, annotated events 39.9–50.0% (§4.4:
+  43.3–51.2%), novel 33.5–40.4% (31.9–40.6%).
+- **The junctions translated at a run's cutoff,** as the chart counts
+  them, equal the run's junctions that were neither `skipped_low_count`
+  nor `skipped_fdr`, in all five runs checked:
+
+  | run | cutoff | the chart: annotated + novel | the run |
+  |---|---|---|---|
+  | NMDI14 cells, `--statoff` | 37 | 75,566 + 70,634 = 146,200 | 146,200 |
+  | mouse, `--statoff` | 22 | 46,795 + 33,751 = 80,546 | 80,546 |
+  | iPSC, `--statoff` | 34 | 124,549 + 215,663 = 340,212 | 340,212 |
+  | NMDI14 cells, statistics | 42 | 71,203 + 65,615 = 136,818 | 136,818 |
+  | iPSC, statistics | 39 | 117,071 + 197,325 = 314,396 | 314,396 |
+
+- **The Model page is no slower.** `model.preview`, before and after,
+  twice each: 7.0–7.4 s (NMDI14 cells), 3.2–3.9 s (mouse), 18.6–20.4 s
+  (iPSC), with at most 0.4 s between before and after.
+- **Screenshots** on the iPSC `--statoff` folder at `-m` (34):
+  [the junctions translated](model_audit/verify_27/kept.png) and
+  [the frame by read count](model_audit/verify_27/frame.png). At 34
+  reads, a run translates 124,549 annotated and 215,663 novel junctions;
+  novel events stay at one in three at every read count.
+
+### 18.4 Tests
+
+Six new tests (11 cases), five of them in `tests/test_model.py`, all on the bundled chr15 folder
+with rMATS's novel-event files written at test time (every third event
+novel, in both files):
+- each event's frame against rMATS's own columns, per splice type, and
+  its ID; no call without the files;
+- the call from the files; the split only when every splice type
+  selected has it;
+- the junctions translated at each cutoff against `filter_counts`, for
+  three `-q` ranges and two sets of splice types, with an FDR and
+  without one (`--statoff`), each group's too (6 cases, each on both
+  folders);
+- the frame by read count against a direct count;
+- the two charts on a caller's Axes: their lines, the cutoff, which
+  moves, and its label, which turns to the left of the line in the
+  chart's right half.
+
+And `tests/test_gui.py::test_the_charts_of_what_a_cutoff_keeps`: the
+tabs; the label against the table at `-r 1`, at `-m` and after a click
+on the chart; the charts drawn again for other splice types and `-q`.
