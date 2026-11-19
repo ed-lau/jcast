@@ -35,8 +35,13 @@ cutoffs.
     items, with this handoff (`3bfb12a`, `da06619`), and row 23's audit
     §§3–7 (`f368783`) and §§8–16 (`5a1c425`);
   - `36f0fb6`: PR 24, JCAST reads rMATS folders made with `--statoff` or
-    from one sample (report §17), and the commit recording its hash. Not
-    pushed.
+    from one sample (report §17), and the commit recording its hash;
+  - `82698c4`: the check of the maintainer's `--statoff` reruns (report
+    §17.4), and the decisions of 2026-11-19;
+  - `24bee2a`: PR 25, the offline tests never connect to the internet,
+    and the commit recording its hash.
+
+  Not pushed since `0986558`.
 - **Tests:** 250, all passing; 247 offline
   (`python -m pytest -q -m 'not network'`, about 2 minutes). Since PR 25,
   a test not marked `network` fails if it connects to the internet. Run only
@@ -180,7 +185,7 @@ cutoffs.
   their retries: 7 and 2 minutes for the last two, which passed; the
   first was stopped and passed on its own with canonicals from the GTF.
   A small fix to propose: give them `--uniprot` with the bundled chr15
-  Swiss-Prot, as the other run tests do. Done in PR 25 (2026-11-19), with
+  Swiss-Prot, as the other run tests do. Done in PR 25 (`24bee2a`), with
   a check in `tests/conftest.py` that fails any test not marked `network`
   that connects to the internet.
 

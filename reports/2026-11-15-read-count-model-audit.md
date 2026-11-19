@@ -1917,7 +1917,7 @@ old count (0). The suite: 247 offline tests pass. Three of them run
 without `--uniprot` and call the EBI Proteins API, which returned HTTP
 500 on 2026-11-18; two passed after their retries (7 and 2 min), and
 `test_the_model_cutoff_with_fewer_splice_types` was run on its own with
-canonicals from the GTF. Since PR 25 (2026-11-19) the three use the
+canonicals from the GTF. Since PR 25 (`24bee2a`) the three use the
 bundled chr15 Swiss-Prot, and a test not marked `network` that connects
 to the internet fails ([REVIEW.md §9](../REVIEW.md#v050-the-gui-and-the-command-line),
 row 25).
