@@ -141,6 +141,11 @@ def _run(args, logger, removed=(), progress=_no_progress) -> bool:
     for splice_type in rmats_results.tables:
         unselected = '' if splice_type in args.splice_type else ' (not selected by -s; read for the -m model)'
         logger.info(f'rMATS {splice_type}{unselected}: {_describe(rmats_path(args.rmats_folder, splice_type))}')
+        if rmats_results.left_out[splice_type]:
+            logger.info(f'rMATS {splice_type}: {rmats_results.left_out[splice_type]} events left out, with no '
+                        f'inclusion or no skipping read in any sample, as rMATS leaves them out when it runs its '
+                        f'statistics.')
+    _log_no_fdr(rmats_results, args, logger)
     logger.info(f'GTF: {_describe(args.gtf_file, checksum=False)}')
     logger.info(f'Genome: {_describe(args.genome, checksum=False)}')
 
@@ -239,6 +244,21 @@ def _run(args, logger, removed=(), progress=_no_progress) -> bool:
 
     progress({'stage': 'done'})
     return True
+
+
+def _log_no_fdr(rmats_results, args, logger) -> None:
+    """ Say how many junctions of the -s splice types have no rMATS FDR (rMATS --statoff, or one sample), and what -q
+    does with them: 0 1 keeps them, any other range skips them (fates.filtered) """
+    no_fdr = sum(int(table.fdr.isna().sum()) for t, table in rmats_results.tables.items() if t in args.splice_type)
+    if not no_fdr:
+        return
+    q_lo, q_hi = args.qvalue
+    if (q_lo, q_hi) == fates.ALL_FDRS:
+        logger.info(f'{no_fdr} junctions have no rMATS FDR (rMATS was run with --statoff, or one sample); -q 0 1 keeps '
+                    f'them.')
+    else:
+        logger.warning(f'{no_fdr} junctions have no rMATS FDR (rMATS was run with --statoff, or one sample); '
+                       f'-q {q_lo:g} {q_hi:g} skips them (skipped_fdr). -q 0 1 keeps them.')
 
 
 def _duration(seconds: float) -> str:
@@ -711,7 +731,8 @@ def run(ctx: typer.Context,
                                                  'out), instead of -r (used only if the fit fails)')] = False,
         qvalue: Annotated[tuple[float, float], typer.Option('-q', '--qvalue', rich_help_panel='Filters',
                                                             metavar='Q_LO Q_HI',
-                                                            help="keep junctions whose rMATS FDR is in this range"
+                                                            help="keep junctions whose rMATS FDR is in this range; "
+                                                                 "those without one (rMATS --statoff) only with 0 1"
                                                             )] = (0, 1),
         splice_type: Annotated[Optional[list[SpliceType]], typer.Option('-s', '--splice_type', rich_help_panel='Filters',
                                                                         metavar='MXE|SE|RI|A5SS|A3SS',

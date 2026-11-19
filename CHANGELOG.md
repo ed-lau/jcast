@@ -40,6 +40,28 @@ For the code review and the roadmap (v0.4.0 and v0.5.0), see
 
 ### Fixed
 
+- **JCAST reads rMATS folders made without the statistics (`--statoff`)
+  or from one sample** (PR 24;
+  [read-count model audit §§15, 17](reports/2026-11-15-read-count-model-audit.md#17-implementation-and-verification-pr-24)).
+  Such a folder used to give an empty database. Folders made with rMATS's
+  statistics give the same output as before.
+  - **A junction without an FDR** (`NA`) is kept by the default `-q 0 1`,
+    and skipped (`skipped_fdr`) by any other range, with a warning. It was
+    always skipped. `junctions.tsv` writes its FDR as `NA`.
+  - **An empty count field,** as rMATS writes for the second sample when
+    given one, counts 0 for that sample only. It made the other sample's
+    count 0 too, so every read count was 0.
+  - **Events with no inclusion read or no skipping read in any sample**
+    (read count 0), or a form of no length, are left out as the folder is
+    read, and the log says how many. rMATS leaves them out too when it
+    runs its statistics, so folders made that way have none. They are not
+    in `junctions.tsv`, and `-m` does not fit their counts of 0, which
+    would have put its cutoff at 1–5 reads.
+  - **Unlike rMATS's statistics,** JCAST keeps the events whose reads all
+    come from one sample: a gene that one condition does not express at
+    all. In the audit's three data sets they are 1.9–4.8% of events. On a
+    `--statoff` folder, `-m` fits them too, and its cutoff is 3–5 reads
+    lower than on the same samples with statistics.
 - **`-m` falls back to `-r` whenever its model has no fit** (PR 20;
   [scope report §11](reports/2026-11-13-gui-cli-scope.md#11--m-without-a-fit-falls-back-to--r-pr-20)).
   The run warns and continues with `-r` (1 by default). rMATS files holding

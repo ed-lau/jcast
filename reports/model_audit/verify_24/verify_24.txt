@@ -1,0 +1,51 @@
+before: /private/tmp/claude-501/-Users-edwardlau-projects-jcast/1eb63304-8df1-46c6-8502-5bbacb5416ca/scratchpad/wt_before/jcast/__init__.py
+after: <repo>/jcast/__init__.py
+
+== chr15 runs: before and after
+chr15, default: exit 0 / 0; 14 output files, identical: yes
+chr15, -m: exit 0 / 0; 11 output files, identical: yes
+
+== rMATS folders read (model.preview): before / after
+bundled rmats: identical: events 1105, kept 1105, -m cutoff 26; left out (after) 0
+bundled encode_human_adrenalgland: identical: events 32821, kept 32821, -m cutoff 12; left out (after) 0
+bundled encode_human_heart: identical: events 31776, kept 31776, -m cutoff 14; left out (after) 0
+bundled encode_human_lung: identical: events 28404, kept 28404, -m cutoff 7; left out (after) 0
+bundled encode_human_spleen: identical: events 33828, kept 33828, -m cutoff 5; left out (after) 0
+bundled encode_human_stomach: identical: events 11152, kept 11152, -m cutoff None; left out (after) 0
+bundled encode_human_testis: identical: events 64997, kept 64997, -m cutoff 8; left out (after) 0
+bundled encode_human_uterus: identical: events 8553, kept 8553, -m cutoff 5; left out (after) 0
+bundled encode_mouse_fetalheart: identical: events 0, kept 0, -m cutoff None; left out (after) 0
+bundled encode_mouse_heart: identical: events 20291, kept 20291, -m cutoff 6; left out (after) 0
+bundled heart_mouse_old: identical: events 88879, kept 88879, -m cutoff 29; left out (after) 0
+bundled ipsc_human_d0: identical: events 99220, kept 99220, -m cutoff 14; left out (after) 0
+bundled ipsc_human_d14: identical: events 116887, kept 116887, -m cutoff 15; left out (after) 0
+bundled kidney_old_totalRNA_gencodeM26: identical: events 35854, kept 35854, -m cutoff 4; left out (after) 0
+NMDI14 cells, statistics: identical: events 623738, kept 623738, -m cutoff 42; left out (after) 0
+NMDI14 cells, --statoff: events 848342 / 635424; no FDR 848342 / 635424; read count 0 212918 / 0; kept by -r 1 -q 0 1 0 / 635424; -m cutoff 1 / 37; left out (after) 212918
+mouse ventricles, statistics: identical: events 294320, kept 294320, -m cutoff 25; left out (after) 0
+mouse ventricles, --statoff: events 448231 / 302055; no FDR 448231 / 302055; read count 0 146176 / 0; kept by -r 1 -q 0 1 0 / 302055; -m cutoff 1 / 22; left out (after) 146176
+mouse ventricles, E17 and P1 only: events 369999 / 203168; no FDR 369999 / 203168; read count 0 369999 / 0; kept by -r 1 -q 0 1 0 / 203168; -m cutoff None / 19; no fit was degenerate / None; left out (after) 166831
+iPSC differentiation, statistics: identical: events 1436384, kept 1436384, -m cutoff 39; left out (after) 0
+iPSC differentiation, --statoff: events 1685464 / 1504997; no FDR 1685464 / 1504997; read count 0 180467 / 0; kept by -r 1 -q 0 1 0 / 1504997; -m cutoff 5 / 34; left out (after) 180467
+
+== A run on a --statoff folder, against the runs on its two parts
+statoff run: /private/tmp/claude-501/-Users-edwardlau-projects-jcast/1eb63304-8df1-46c6-8502-5bbacb5416ca/scratchpad/verify24/statoff_mouse_r1
+statistics run: /private/tmp/claude-501/-Users-edwardlau-projects-jcast/1eb63304-8df1-46c6-8502-5bbacb5416ca/scratchpad/model_audit/m440/out
+dropped events run: /private/tmp/claude-501/-Users-edwardlau-projects-jcast/1eb63304-8df1-46c6-8502-5bbacb5416ca/scratchpad/model_audit/dm/out
+junctions: statoff run 302055; statistics run 294320 + dropped events run 7735 = 302055; the same junctions: True
+FDR NA in the statoff run: True
+every other column but new_records identical (gene_id, gene_symbol, chr, strand, min_jc, fate, fate_detail, slice1_phase, slice2_phase, cds_start, cds_end, canonical_source, canonical_accession, files): yes
+fates: T4 110240, fail 81050, T1 58801, skipped_outside_cds 34015, T2 14375, T1_alt_terminus 3574
+jcast_uniprot_merged.fasta: 66615 sequences; the union of the other two: True
+psq_T1.fasta: 42522 sequences; the union of the other two: True
+psq_T1_alt_both.fasta: 26 sequences; the union of the other two: True
+psq_T1_alt_cterm.fasta: 1863 sequences; the union of the other two: True
+psq_T1_alt_cterm_orphan.fasta: 385 sequences; the union of the other two: True
+psq_T1_alt_nterm.fasta: 251 sequences; the union of the other two: True
+psq_T1_alt_nterm_orphan.fasta: 14 sequences; the union of the other two: True
+psq_T1_orphan.fasta: 8610 sequences; the union of the other two: True
+psq_T2.fasta: 14328 sequences; the union of the other two: True
+psq_T2_orphan.fasta: 726 sequences; the union of the other two: True
+psq_T4.fasta: 84696 sequences; the union of the other two: True
+psq_T4_orphan.fasta: 20154 sequences; the union of the other two: True
+psq_canonical.fasta: 13133 sequences; the union of the other two: True

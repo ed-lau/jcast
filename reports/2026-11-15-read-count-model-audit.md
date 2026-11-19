@@ -2,12 +2,12 @@
 
 | | |
 |---|---|
-| **Date** | 2026-11-15; §§4–13 added 2026-11-16; §§14–16 and the answers to §13 on 2026-11-18 |
-| **Status** | Measured on three data sets. The maintainer answered §13 on 2026-11-18: the model is kept, and the pair of cutoffs waits for a search against spectra (§16.1). The third data set, iPSC differentiation (§14), changes no conclusion. rMATS's statistics drop the events that one condition does not express (§15); decisions requested in §15.7. Before 2026-11-18: measured; decisions requested (§13). Which known protein-coding isoforms a cutoff loses (§3), the same on rMATS 4.4.0 (§4) and on a second data set, mouse heart (§5); genes against the proteins PaxDb finds in heart (§6); the model's fit to the counts (§8); two cutoffs, for annotated and novel events (§9); the NMDI14 test (§10). The maintainer's steer of 2026-11-16: the annotated and novel rule over a cutoff per splice type (§11), and a Model page that shows what a cutoff keeps (§12). A third data set is to come. |
+| **Date** | 2026-11-15; §§4–13 added 2026-11-16; §§14–17 and the answers to §§13 and 15.7 on 2026-11-18 |
+| **Status** | Measured on three data sets. The maintainer answered §13 on 2026-11-18: the model is kept, and the pair of cutoffs waits for a search against spectra (§16.1). The third data set, iPSC differentiation (§14), changes no conclusion. rMATS's statistics drop the events that one condition does not express (§15); the maintainer adopted §15.7, and JCAST reads folders made with `--statoff` or from one sample since PR 24 (§17). Before 2026-11-18: measured; decisions requested (§13). Which known protein-coding isoforms a cutoff loses (§3), the same on rMATS 4.4.0 (§4) and on a second data set, mouse heart (§5); genes against the proteins PaxDb finds in heart (§6); the model's fit to the counts (§8); two cutoffs, for annotated and novel events (§9); the NMDI14 test (§10). The maintainer's steer of 2026-11-16: the annotated and novel rule over a cutoff per splice type (§11), and a Model page that shows what a cutoff keeps (§12). A third data set is to come. |
 | **Question** | Does the `-m` model fit junction read counts? Should each splice type have its own cutoff? Does a cutoff lose bona fide protein-coding isoforms? ([REVIEW.md §5.6](../REVIEW.md#56--the-modeled-read-cutoff-is-a-weakly-identified-heuristic--new), roadmap row 23, asked for on 2026-11-14.) Mass spectrometry, the decisive test, was deferred by the maintainer on 2026-11-15 as a future research item: no RNA-seq here has spectra from the same samples, and the result would depend on the spectra's depth. On 2026-11-16 the maintainer re-ran rMATS, added the mouse data set, and asked for the PaxDb comparison. |
-| **Reproduce** | Run JCAST at `-r 1` with [audit_records.diff](model_audit/audit_records.diff) applied and `JCAST_AUDIT_RECORDS=<records.tsv>` set (8–11 min with `-p 10` to `-p 16`), then `python reports/model_audit/cutoff_recovery.py --records <records.tsv> --run <output dir> --rmats <dir> --uniprot <FASTA> --gencode <pc_translations.fa.gz> --gtf <gtf> [--cache_dir <dir>] [--salmon <dir>] [--paxdb <file>] [--check <output dir>:<cutoff> …] [--model_cutoff <n>] --out <dir>` (about 1 min with the GTF cache). §4.1: `python reports/model_audit/rmats_versions.py --old <rMATS 4.1.0 dir> --new <rMATS 4.4.0 dir> --out <dir>`. §8: `python reports/model_audit/model_fit.py --rmats <dir> --out <dir>` (3–8 min), and `--bundled tests/data/model` (offline, 10 min). §9: `python reports/model_audit/two_cutoffs.py` with `cutoff_recovery.py`'s inputs (5 min). §14: §§4, 8 and 9's steps on the third folder. §15: rMATS's post step again with `--statoff` and the folder's options (`rmats.py --task post --statoff`, `--tmp` a folder of links to its `.rmats` files), then `python reports/model_audit/dropped_events.py --rmats <dir> --statoff <dir> --dropped <dir> --out <dir>`, a `-r 1` run with the audit switch on the `--dropped` folder, and `dropped_events.py` again with `--records <records.tsv> --dropped_records <records.tsv> --dropped_run <dir>` and `cutoff_recovery.py`'s known sets (1 min). §16.1: [novel_only.diff](model_audit/novel_only.diff), `JCAST_AUDIT_ANNOTATED_CUTOFF=1` with `-m`, checked with `cutoff_recovery.py --check_novel_only <dir>:<cutoff>`. §10: `python reports/model_audit/nmd_response.py --rmats <dir> --run <-r 1 output dir> --targets <DTE_significant_NMD_targets.csv> --dte <DTE_results_NMD_vs_DMSO.csv> --gtf <gtf> [--cache_dir <dir>] --out <dir>` (1 min). |
+| **Reproduce** | Run JCAST at `-r 1` with [audit_records.diff](model_audit/audit_records.diff) applied and `JCAST_AUDIT_RECORDS=<records.tsv>` set (8–11 min with `-p 10` to `-p 16`), then `python reports/model_audit/cutoff_recovery.py --records <records.tsv> --run <output dir> --rmats <dir> --uniprot <FASTA> --gencode <pc_translations.fa.gz> --gtf <gtf> [--cache_dir <dir>] [--salmon <dir>] [--paxdb <file>] [--check <output dir>:<cutoff> …] [--model_cutoff <n>] --out <dir>` (about 1 min with the GTF cache). §4.1: `python reports/model_audit/rmats_versions.py --old <rMATS 4.1.0 dir> --new <rMATS 4.4.0 dir> --out <dir>`. §8: `python reports/model_audit/model_fit.py --rmats <dir> --out <dir>` (3–8 min), and `--bundled tests/data/model` (offline, 10 min). §9: `python reports/model_audit/two_cutoffs.py` with `cutoff_recovery.py`'s inputs (5 min). §14: §§4, 8 and 9's steps on the third folder. §15: rMATS's post step again with `--statoff` and the folder's options (`rmats.py --task post --statoff`, `--tmp` a folder of links to its `.rmats` files), then `python reports/model_audit/dropped_events.py --rmats <dir> --statoff <dir> --dropped <dir> --out <dir>`, a `-r 1` run with the audit switch on the `--dropped` folder, and `dropped_events.py` again with `--records <records.tsv> --dropped_records <records.tsv> --dropped_run <dir>` and `cutoff_recovery.py`'s known sets (1 min). §16.1: [novel_only.diff](model_audit/novel_only.diff), `JCAST_AUDIT_ANNOTATED_CUTOFF=1` with `-m`, checked with `cutoff_recovery.py --check_novel_only <dir>:<cutoff>`. §17: `python reports/model_audit/verify_24.py --before <checkout> --after <checkout> [--folder <label>=<dir> …] [--union <statoff run>,<statistics run>,<dropped run>]` (4 min with three whole-genome data sets). §10: `python reports/model_audit/nmd_response.py --rmats <dir> --run <-r 1 output dir> --targets <DTE_significant_NMD_targets.csv> --dte <DTE_results_NMD_vs_DMSO.csv> --gtf <gtf> [--cache_dir <dir>] --out <dir>` (1 min). |
 | **Inputs** | Not bundled. **Human** (`20240514_Boomi_NMDI_RNASeq`): iPSC-derived cardiomyocytes, 3 DMSO and 3 NMDI14, 2 × 150 nt; GENCODE v50, GRCh38; Swiss-Prot human with isoforms of 2026-11-11 (42,545 entries); GENCODE v50 translations (`gencode.v50.pc_translations.fa.gz`, sha256 `5d6408c3…`); the folder's Salmon quantifications. rMATS 4.1.0 (§3: `rmats_4_1_0/`, 599,644 events; run at `3bfb12a`) and 4.4.0 (§4: `rmats/`, 623,738 events; run at `da06619`). **Mouse** (§5, `GSE49906_MouseHeart_RNASeq`): ventricles of FVB mice at E17, P1, P10, P28 and P90, one each, 2 × 100 nt ([Giudice et al. 2014](https://doi.org/10.1038/ncomms4603)); rMATS 4.4.0 (294,320 events); GENCODE vM39, GRCm39; Swiss-Prot mouse with isoforms of 2026-11-15 (25,764 entries); GENCODE vM39 translations (sha256 `bb90bb10…`); Salmon. All runs `-r 1 -c --uniprot`. **PaxDb** 6.1 (§6), downloaded 2026-11-16: `10090-HEART-integrated.txt` (sha256 `e7c4694b…`) and `9606-HEART-integrated.txt` (`835d4ca5…`). **§10:** the human folder's DESeq2 transcript results, `R/01_out/DTE_results_NMD_vs_DMSO.csv` and `DTE_significant_NMD_targets.csv`. **iPSC differentiation** (§14, `2019_iPSC_Diff_RNA`): 12 samples, three at each of four stages, 2 × 150 nt; rMATS 4.4.0 (1,436,384 events), days 0 and 2 against days 7 and 14; the human references above; Salmon. **§15:** rMATS 4.4.0 from bioconda (osx-arm64, Python 3.11), the post step with `--statoff` on each folder's prep files. |
-| **Evidence** | One folder per run, each with `summary.txt` (the known sets and the check), `recovery.tsv` (per cutoff), `recovery_novel_only.tsv` and `tradeoff.tsv` (the cutoff on novel events only), `bins.tsv` (per read count and splice type), `expression.tsv`, the charts, and `r1_logfile.log` (the `-r 1` run, with its inputs' hashes): [human_rmats410/](model_audit/human_rmats410/) (§3), [human_rmats440/](model_audit/human_rmats440/) (§4) and [mouse_rmats440/](model_audit/mouse_rmats440/) (§5). The last two also have `rmats_versions.tsv` (§4.1), `genes.tsv`, `paxdb.tsv`, `paxdb_by_count.tsv` and `paxdb.png` (§6), and `pairs.tsv`, `frontier.tsv`, `gtf_calls.tsv` and `pairs.png` (§9). Each has `fit.tsv`, `rootogram.tsv`, `stability.tsv`, `subsets.tsv`, `depth.tsv`, `form.tsv`, `fit.png` and `fit_summary.txt` (§8); [bundled/](model_audit/bundled/) the bundled folders' fits; human_rmats440/ `nmd*.tsv` and `nmd.png` (§10). [ipsc_diff_rmats440/](model_audit/ipsc_diff_rmats440/) has all of these but §10's (§14). The three 4.4.0 folders have `dropped.tsv`, `dropped_bins.tsv`, `dropped_genes.tsv`, `dropped_model.txt`, `dropped_known.tsv` and `dropped_r1_logfile.log` (the `-r 1` run on the dropped events) (§15); ipsc_diff_rmats440/ also `novel_only_logfile.log` (§16.1). Scripts: [cutoff_recovery.py](model_audit/cutoff_recovery.py), [rmats_versions.py](model_audit/rmats_versions.py), [model_fit.py](model_audit/model_fit.py), [two_cutoffs.py](model_audit/two_cutoffs.py), [nmd_response.py](model_audit/nmd_response.py), [dropped_events.py](model_audit/dropped_events.py), [audit_records.diff](model_audit/audit_records.diff), [novel_only.diff](model_audit/novel_only.diff). |
+| **Evidence** | One folder per run, each with `summary.txt` (the known sets and the check), `recovery.tsv` (per cutoff), `recovery_novel_only.tsv` and `tradeoff.tsv` (the cutoff on novel events only), `bins.tsv` (per read count and splice type), `expression.tsv`, the charts, and `r1_logfile.log` (the `-r 1` run, with its inputs' hashes): [human_rmats410/](model_audit/human_rmats410/) (§3), [human_rmats440/](model_audit/human_rmats440/) (§4) and [mouse_rmats440/](model_audit/mouse_rmats440/) (§5). The last two also have `rmats_versions.tsv` (§4.1), `genes.tsv`, `paxdb.tsv`, `paxdb_by_count.tsv` and `paxdb.png` (§6), and `pairs.tsv`, `frontier.tsv`, `gtf_calls.tsv` and `pairs.png` (§9). Each has `fit.tsv`, `rootogram.tsv`, `stability.tsv`, `subsets.tsv`, `depth.tsv`, `form.tsv`, `fit.png` and `fit_summary.txt` (§8); [bundled/](model_audit/bundled/) the bundled folders' fits; human_rmats440/ `nmd*.tsv` and `nmd.png` (§10). [ipsc_diff_rmats440/](model_audit/ipsc_diff_rmats440/) has all of these but §10's (§14). The three 4.4.0 folders have `dropped.tsv`, `dropped_bins.tsv`, `dropped_genes.tsv`, `dropped_model.txt`, `dropped_known.tsv` and `dropped_r1_logfile.log` (the `-r 1` run on the dropped events) (§15); ipsc_diff_rmats440/ also `novel_only_logfile.log` (§16.1). [verify_24/](model_audit/verify_24/) has PR 24's verification (§17). Scripts: [cutoff_recovery.py](model_audit/cutoff_recovery.py), [rmats_versions.py](model_audit/rmats_versions.py), [model_fit.py](model_audit/model_fit.py), [two_cutoffs.py](model_audit/two_cutoffs.py), [nmd_response.py](model_audit/nmd_response.py), [dropped_events.py](model_audit/dropped_events.py), [verify_24.py](model_audit/verify_24.py), [audit_records.diff](model_audit/audit_records.diff), [novel_only.diff](model_audit/novel_only.diff). |
 
 ## 1. Summary
 
@@ -119,8 +119,9 @@ through 4.4.0 (§14).
     cardiac genes that days 0–2 do not express (MYBPC3, MYL7, MYH6,
     TECRL, MYL2). They would add 148 Swiss-Prot isoforms at `-r 1`
     (+1.9%), among them NCX1 isoform 5, and 12 at `-m`.
-  - rMATS's `--statoff` keeps them, but JCAST cannot yet read its output.
-    The maintainer adopted the fix and the advice on 2026-11-18 (§15.7).
+  - rMATS's `--statoff` keeps them. JCAST could not read its output; the
+    maintainer adopted the fix and the advice on 2026-11-18 (§15.7), done
+    in PR 24 (§17).
   - With the fix, fitted on counts ≥ 1, `-m` falls 3–5 reads (37, 22
     and 34), and the database grows 4.5–4.8% (§15.8). Fitted as today,
     with the counts of 0, it would be 1–5 reads: no cutoff.
@@ -1543,6 +1544,20 @@ adds.
 
 With `--statoff`, rMATS skips the filter and writes every event it found,
 with PValue and FDR `NA`. It does the same when only one group is given.
+It still reads both groups: each sample's counts, PSI (`IncLevel1`,
+`IncLevel2`) and `IncLevelDifference` are written as before. Only the
+test is skipped.
+
+The events without a read in one form are not made by `--statoff`.
+rMATS lists every event the GTF and the novel junctions allow, then
+counts junction reads; the filter is what removes those with no
+inclusion or no skipping read. An SE event with no skipping read is an
+exon always included in these samples; for MXE, rMATS counts the first
+exon's junctions as inclusion and the second's as skipping. In the
+NMDI14 `--statoff` folder, of 392,749 SE events, 54,860 have inclusion
+reads only, 19,327 skipping reads only, and 45,190 none. JCAST skips
+them at any cutoff (a count of 0); they matter only to `-m`'s fit
+(§15.8).
 
 ### 15.3 How many
 
@@ -1685,6 +1700,19 @@ maintainer will make the three folders again with `--statoff` and run
 JCAST on them once the fix is in. Asked first how far the zero counts
 move `-m`: see §15.8.
 
+Then, refined: only the events with reads in both forms, all from one
+group, are to be recovered. **JCAST leaves out, as it reads the folder,
+the events with no inclusion read or no skipping read** over all
+samples (a read count of 0), and those with a form of no length. These
+are rMATS's second and third conditions, without the first. So:
+- on a folder made with statistics, nothing is left out, and nothing
+  changes;
+- on a `--statoff` folder, JCAST reads the statistics run's events and
+  the one-group events, the set §15.8 measured, in the fit, the GUI's
+  preview, `junctions.tsv` and the log alike;
+- `-r 0`, which JCAST accepts, cannot translate a form without reads;
+- the log says how many events were left out, per splice type.
+
 ### 15.8 How far `--statoff` moves `-m`
 
 The maintainer's question, before the fix. The same `--statoff` folders,
@@ -1796,3 +1824,94 @@ left the other three for later decisions (§13).
   for the human cells and 375 MB for the iPSC series. From them the page
   could also write the FASTA at another cutoff, or pair, without
   translating again.
+
+## 17. Implementation and verification (PR 24)
+
+§15.7's decisions 1 and 2, as the maintainer refined them on 2026-11-18:
+JCAST reads folders made with `--statoff` or from one sample, and the
+documentation recommends `--statoff`.
+
+### 17.1 What changed
+
+- **The read count** (`junctions.read_count`): an empty count field
+  counts 0 for its own sample. rMATS leaves the second sample's fields
+  empty when given one (checked on a post step with `--b1` only on the
+  mouse ventricles' prep files). Before, the other sample's count of that
+  form was taken as 0 too, so every read count was 0. A field that does
+  not parse otherwise still makes both samples' count of that form 0.
+- **The events left out** (`RmatsResults`, `_with_reads`): as each file
+  is read, events with no inclusion read or no skipping read in any
+  sample (a read count of 0), or a form of no length, are dropped.
+  These are rMATS's second and third conditions (§15.2), not its first:
+  an event with reads in one sample only is kept. `left_out` counts them
+  per splice type. Each event's read count is now a column of its table,
+  which the `-m` model's counts use, so it is computed once.
+- **An `NA` FDR** (`fates.filtered`): kept by `-q 0 1`
+  (`fates.ALL_FDRS`), skipped (`skipped_fdr`) by any other range. Before,
+  it was always skipped. `junctions.tsv` writes it as `NA` (before:
+  `nan`).
+- **The log:** per splice type, the events left out, if any; and the
+  junctions without an FDR, as a warning on the console when `-q` skips
+  them. `-q`'s help says what it does with them.
+- **The documentation:** an FAQ, "Should rMATS run its statistics for
+  JCAST?" (no: `--statoff`), the filter step, the `fdr` column, and
+  `--statoff` in the example pipeline; in the README and the website's
+  source (`jcast_website/`, not yet rendered).
+
+### 17.2 Verification
+
+[verify_24.py](model_audit/verify_24.py) compares the code before
+(`5a1c425`) and after, each in its own checkout
+([verify_24.txt](model_audit/verify_24/verify_24.txt)):
+- **Folders made with statistics are read as before.** The chr15 runs,
+  default and `-m`, give byte-identical output files and identical logs.
+  Every bundled folder (65 rMATS files) and the three whole-genome
+  folders give the same events, the same junctions kept and the same
+  `-m` cutoff, and nothing is left out.
+- **Folders made without them:**
+
+  | folder | events read: before / after | kept by `-r 1 -q 0 1` | `-m` cutoff |
+  |---|---|---|---|
+  | NMDI14 cells, `--statoff` | 848,342 / 635,424 | 0 / 635,424 | 1 / 37 |
+  | mouse ventricles, `--statoff` | 448,231 / 302,055 | 0 / 302,055 | 1 / 22 |
+  | iPSC differentiation, `--statoff` | 1,685,464 / 1,504,997 | 0 / 1,504,997 | 5 / 34 |
+  | mouse ventricles, E17 and P1 only (one sample) | 369,999 / 203,168 | 0 / 203,168 | no fit / 19 |
+
+  Before, every junction was skipped: for its FDR, or in the one-sample
+  folder for its read count of 0. After, each `--statoff` folder gives
+  the events of the folder made with statistics plus those rMATS's
+  statistics left out with a read in both forms (§15.3: 623,738 +
+  11,686; 294,320 + 7,735; 1,436,384 + 68,613), and `-m` gives §15.8's
+  cutoffs.
+- **A whole run.** The code after, at `-r 1` with `-c` and `--uniprot`,
+  on the mouse `--statoff` folder (4 min 35 s with `-p 10`), against
+  §15.4's two runs at the same settings: on the folder made with
+  statistics, and on the events it left out. Its `junctions.tsv` holds
+  the 302,055 junctions of the two, every column identical but the FDR
+  (`NA`) and `new_records` (which junction writes a shared sequence
+  first depends on the order). Each output FASTA's sequences are the
+  union of theirs. The log says how many events each splice type left
+  out (146,176 in all) and that `-q 0 1` keeps the 302,055 junctions
+  without an FDR.
+
+### 17.3 Tests
+
+20 new tests, in [tests/test_statoff.py](../tests/test_statoff.py). Their
+folders are the bundled chr15 folder rewritten as rMATS 4.4.0 writes
+without its statistics and from one sample, with events added that the
+statistics would leave out:
+- the read count of one sample (4);
+- every bundled folder loses nothing; the events without a form, or a
+  form of no length, are left out; the model does not see them;
+- `fates.filtered` without an FDR (7 cases), and the GUI's preview;
+- four runs: `--statoff` (the bundled folder's output, FDR `NA`, the
+  log's lines); a narrower `-q` (all `skipped_fdr`, with the warning);
+  one sample; one sample with `-m`.
+
+On the code before, 14 fail; the 6 that pass pin cases that do not
+change. `test_read_count`'s case of an empty field changes: it pinned the
+old count (0). The suite: 247 offline tests pass. Three of them run
+without `--uniprot` and call the EBI Proteins API, which returned HTTP
+500 on 2026-11-18; two passed after their retries (7 and 2 min), and
+`test_the_model_cutoff_with_fewer_splice_types` was run on its own with
+canonicals from the GTF.

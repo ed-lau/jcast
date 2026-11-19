@@ -5,6 +5,7 @@
 import collections
 import csv
 import glob
+import math
 import os
 
 from Bio import SeqIO
@@ -22,7 +23,7 @@ COLUMNS = ['junction_type',         # MXE, SE, RI, A5SS or A3SS
            'chr',
            'strand',
            'min_jc',                # the read count: the smaller of the summed inclusion and skipping junction counts
-           'fdr',                   # the rMATS FDR
+           'fdr',                   # the rMATS FDR; NA without rMATS's statistics
            'fate',                  # the fate's short name (fates.NAMES)
            'fate_detail',           # T4: the slice that hit a premature stop; exception: the exception
            'slice1_phase',          # each slice's annotated frame (0, 1 or 2), empty if none or not looked up
@@ -66,9 +67,10 @@ class JunctionTable(object):
         phases = found.get('slice_phases', (None, None))
         cds = found.get('cds', (None, None))
         canonical = found.get('canonical') or (None, None)
+        fdr = 'NA' if math.isnan(junction.fdr) else junction.fdr        # as rMATS writes it without its statistics
         self._writer.writerow(['' if v is None else v for v in [
             junction.junction_type, junction.name, junction.gene_id, junction.gene_symbol, junction.chr,
-            junction.strand, junction.min_jc, junction.fdr, short, detail, *phases, *cds, *canonical,
+            junction.strand, junction.min_jc, fdr, short, detail, *phases, *cds, *canonical,
             ';'.join(dict.fromkeys(suffixes)), new_records]])
 
     def close(self) -> None:

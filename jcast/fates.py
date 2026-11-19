@@ -2,6 +2,11 @@
 
 """ Junction callback messages for different tiers """
 
+import math
+
+# -q that keeps every junction, also those without an FDR
+ALL_FDRS = (0, 1)
+
 SKIPPED_LOW_COUNT = 'SKIPPED. Sequence discarded due to low coverage. \n\n'
 SKIPPED_P_VALUE = 'SKIPPED. Sequence discarded due to difference across replicates. \n\n'
 SKIPPED_MASKED = 'SKIPPED. Sequence discarded due to masked or ambiguous bases. \n\n'
@@ -40,14 +45,17 @@ def filtered(min_jc, fdr, cutoff: int, qvalue) -> str:
     (reports/2026-11-13-gui-cli-scope.md §4)
 
     :param min_jc: the junction's read count (Junction.min_jc)
-    :param fdr: its rMATS FDR
+    :param fdr: its rMATS FDR; NaN (NA) if rMATS ran without its statistics (--statoff, or one sample)
     :param cutoff: the read count cutoff (-r, or the -m model's): a junction with fewer reads is skipped
-    :param qvalue: (q_lo, q_hi) (-q): a junction whose FDR is outside is skipped
+    :param qvalue: (q_lo, q_hi) (-q): a junction whose FDR is outside is skipped. One without an FDR is kept by 0 1
+        only. 2026-11-18 it was always skipped (reports/2026-11-15-read-count-model-audit.md §15.7)
     :return: SKIPPED_LOW_COUNT, SKIPPED_P_VALUE or None
     """
     q_lo, q_hi = qvalue
     if min_jc < cutoff:
         return SKIPPED_LOW_COUNT
+    if math.isnan(fdr):
+        return None if (q_lo, q_hi) == ALL_FDRS else SKIPPED_P_VALUE
     if not q_lo <= fdr <= q_hi:
         return SKIPPED_P_VALUE
     return None

@@ -70,8 +70,12 @@ How a junction is processed (v0.4.0):
 0. **Filters.** A junction whose read count (header field 11) is below the
    cutoff, or whose rMATS FDR is outside `-q`, is skipped before anything
    else. The cutoff is `-r`, or the `-m` model's boundary in reads; a
-   junction with exactly that many reads is kept. With `-c`, a skipped
-   junction's gene still gets its canonical written.
+   junction with exactly that many reads is kept. A junction without an
+   FDR (rMATS run with `--statoff`) is kept by the default `-q 0 1` only.
+   With `-c`, a skipped junction's gene still gets its canonical written.
+   Before that, as the rMATS files are read, events with no inclusion read
+   or no skipping read in any sample are left out, as rMATS's statistics
+   leave them out (see the FAQ).
 1. **Trimming.** Every exon is trimmed to the gene's annotated coding region.
    This runs from the most upstream start codon to the most distal stop
    codon of protein-coding transcripts with transcript support level ≤
@@ -103,7 +107,7 @@ tab-separated. It reads directly into R (`read.delim`) or pandas
 | `junction_type`, `junction_id` | The rMATS splice type and row id. |
 | `gene_id`, `gene_symbol`, `chr`, `strand` | As in the rMATS row. |
 | `min_jc` | The read count that `-r` and `-m` filter on (header field 11). |
-| `fdr` | The rMATS FDR, which `-q` filters on. |
+| `fdr` | The rMATS FDR, which `-q` filters on; `NA` if rMATS ran without its statistics. |
 | `fate` | `T1`, `T1_alt_terminus`, `T2`, `T4`, `fail` (no slice translates), `exception` (the junction raised an error; see the log), `skipped_low_count`, `skipped_fdr`, `skipped_masked` or `skipped_outside_cds`. |
 | `fate_detail` | For `T4`, the slice that hit the premature stop; for `exception`, the error. |
 | `slice1_phase`, `slice2_phase` | Each slice's annotated frame (0, 1 or 2). Empty if it has none, or if the junction was skipped before it was looked up. |
@@ -199,7 +203,8 @@ $ jcast run -h
 │                                             (also those -s leaves out), instead of   │
 │                                             -r (used only if the fit fails)          │
 │ --qvalue       -q      Q_LO Q_HI            keep junctions whose rMATS FDR is in     │
-│                                             this range                               │
+│                                             this range; those without one (rMATS     │
+│                                             --statoff) only with 0 1                 │
 │                                             [default: 0, 1]                          │
 │ --splice_type  -s      MXE|SE|RI|A5SS|A3SS  splice types to translate (-s SE MXE, or │
 │                                             -s SE -s MXE); only their rMATS files    │

@@ -153,7 +153,8 @@ $ jcast run -h
 │                                             (also those -s leaves out), instead of   │
 │                                             -r (used only if the fit fails)          │
 │ --qvalue       -q      Q_LO Q_HI            keep junctions whose rMATS FDR is in     │
-│                                             this range                               │
+│                                             this range; those without one (rMATS     │
+│                                             --statoff) only with 0 1                 │
 │                                             [default: 0, 1]                          │
 │ --splice_type  -s      MXE|SE|RI|A5SS|A3SS  splice types to translate (-s SE MXE, or │
 │                                             -s SE -s MXE); only their rMATS files    │
@@ -352,8 +353,12 @@ How a junction is processed (v0.4.0):
 0. **Filters.** A junction whose read count (header field 11) is below the
    cutoff, or whose rMATS FDR is outside `-q`, is skipped before anything
    else. The cutoff is `-r`, or the `-m` model's boundary in reads; a
-   junction with exactly that many reads is kept. With `-c`, a skipped
-   junction's gene still gets its canonical written.
+   junction with exactly that many reads is kept. A junction without an
+   FDR (rMATS run with `--statoff`) is kept by the default `-q 0 1` only.
+   With `-c`, a skipped junction's gene still gets its canonical written.
+   Before that, as the rMATS files are read, events with no inclusion read
+   or no skipping read in any sample are left out, as rMATS's statistics
+   leave them out (see the FAQ).
 1. **Trimming.** Every exon is trimmed to the gene's annotated coding region.
    This runs from the most upstream start codon to the most distal stop
    codon of protein-coding transcripts with transcript support level ≤
@@ -385,7 +390,7 @@ tab-separated. It reads directly into R (`read.delim`) or pandas
 | `junction_type`, `junction_id` | The rMATS splice type and row id. |
 | `gene_id`, `gene_symbol`, `chr`, `strand` | As in the rMATS row. |
 | `min_jc` | The read count that `-r` and `-m` filter on (header field 11). |
-| `fdr` | The rMATS FDR, which `-q` filters on. |
+| `fdr` | The rMATS FDR, which `-q` filters on; `NA` if rMATS ran without its statistics. |
 | `fate` | `T1`, `T1_alt_terminus`, `T2`, `T4`, `fail` (no slice translates), `exception` (the junction raised an error; see the log), `skipped_low_count`, `skipped_fdr`, `skipped_masked` or `skipped_outside_cds`. |
 | `fate_detail` | For `T4`, the slice that hit the premature stop; for `exception`, the error. |
 | `slice1_phase`, `slice2_phase` | Each slice's annotated frame (0, 1 or 2). Empty if it has none, or if the junction was skipped before it was looked up. |
@@ -440,11 +445,12 @@ STAR --runThreadN 10 \
      --outSAMtype BAM SortedByCoordinate \
      --outFileNamePrefix /work/star/b1t1/
 
-# 2. Identify splice junctions with rMATS-turbo (in Docker, as one example)
+# 2. Identify splice junctions with rMATS-turbo (in Docker, as one example),
+#    without its statistics: see the FAQ
 sudo docker run -v /work:/data rmats:turbo01 \
      --b1 /data/b1.txt --b2 /data/b2.txt \
      --gtf /data/GRCh38.gtf --od /data/output \
-     -t paired --nthread 4 --readLength 101 --anchorLength 1
+     -t paired --nthread 4 --readLength 101 --anchorLength 1 --statoff
 
 # 3. Translate splice events with JCAST
 python -m jcast /work/output \
@@ -506,6 +512,27 @@ named exactly `MXE.MATS.JC.txt`, `SE.MATS.JC.txt`, `RI.MATS.JC.txt`,
 `A3SS.MATS.JC.txt` and `A5SS.MATS.JC.txt`. Only the files of the splice
 types selected with `-s` must be there. With `-m`, the cutoff is fitted on
 every one of these files that is present.
+
+**Should rMATS run its statistics for JCAST?**
+No: give JCAST a folder made with `--statoff`. With its statistics on
+(the default), rMATS leaves out of these files every event that one group
+of samples has no reads for. Those are often the events of genes that one
+condition switches on, such as cardiac genes in a differentiation series.
+JCAST sums the reads of both groups, so it can translate them, but only if
+rMATS writes them. In three data sets, these events were 1.9–4.8% as many
+as the files held
+([audit §15](https://github.com/ed-lau/jcast/blob/main/reports/2026-11-15-read-count-model-audit.md#15-events-rmats-drops-before-jcast-reads-them)).
+- With `--statoff`, every FDR is `NA`, and the default `-q 0 1` keeps
+  them. JCAST leaves out what rMATS's statistics would have left out
+  apart from these events: those with no inclusion read or no skipping
+  read in any sample.
+- `-m` fits these events too, so its cutoff is a few reads lower than on
+  the same samples with statistics (3–5 reads in the audit).
+- To keep rMATS's differential splicing results as well, run its post
+  step a second time into another output folder (`--task post --statoff`,
+  the same options and `--tmp`). It reuses the prep step's files and takes
+  minutes.
+- A folder from one group of samples (`--b1` only) works too.
 
 **Can I use a Gencode GTF?**
 Yes. JCAST silently aliases `transcript_type` to `transcript_biotype` when

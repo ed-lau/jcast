@@ -777,8 +777,9 @@ Since PR 20, a fit that fails for any reason falls back to `-r` too.
   - JCAST cannot read rMATS's `--statoff` output (every FDR is `NA`) or
     one-group output (the empty count fields make every count 0). The
     maintainer adopted the fix and the advice to use `--statoff`
-    (§15.7). With the fix, `-m` is fitted on counts ≥ 1 and falls 3–5
-    reads; with the counts of 0 it would leave no cutoff (§15.8);
+    (§15.7); done in PR 24 (§17). With the fix, `-m` is fitted on counts ≥ 1
+    and falls 3–5 reads; with the counts of 0 it would leave no cutoff
+    (§15.8);
   - the Model page shows, for now, only the charts that need no run
     (§16.2).
 
@@ -955,7 +956,7 @@ currently can't be installed and run from scratch.
 Scoped and decided on 2026-11-13
 ([GUI and command-line scope](reports/2026-11-13-gui-cli-scope.md) §7).
 Rows 22 and 23 were added on 2026-11-14, before the release; each starts
-with an audit. In this order:
+with an audit. Row 24 came from row 23's audit, on 2026-11-18. In this order:
 
 | # | PR | Theme | Gate |
 |---|---|---|---|
@@ -966,6 +967,7 @@ with an audit. In this order:
 | 21 | ✅ The GUI after its first run on a Mac (requested 2026-11-14): a help line at the bottom of the window (each setting's help from `jcast run -h`); each splice type's count beside its progress bar and the last junction done, with its gene (`--progress` names it, and reports at least every 0.5 s); the fish logo as the icon. No output change ([scope report §13](reports/2026-11-13-gui-cli-scope.md#13-the-gui-after-its-first-run-on-a-mac-pr-21); `4cc72c2`) | GUI | Done 2026-11-14 |
 | 22 | **A view of each junction and its peptides** in the GUI's results: a junction's translated slices beside the canonical protein, where the event lies, its tier, and the tryptic peptides that tell the isoform apart. Moved from v0.5.x. Feasibility first: a junction's records cannot all be found by their headers, since a sequence already written by an earlier junction is not written again ([scope report §4](reports/2026-11-13-gui-cli-scope.md#4-what-the-gui-shows)); the view may need a new output file, or the GTF and the genome to translate again; whole-genome scale (599,644 junctions) | GUI | Feasibility report, then the maintainer's decisions |
 | 23 | **The `-m` read-count model, assessed** (§5.6): its fit to junction read counts, against models of counts; a cutoff per splice type; which protein-coding isoforms a cutoff loses, measured without mass spectrometry (Swiss-Prot and GENCODE isoforms reproduced, annotated transcripts, transcript expression, frame preservation); with it, deferred as a future research item (2026-11-15) | Sci-integrity | Audit, then the maintainer's decisions; an output change if `-m` changes |
+| 24 | ✅ **rMATS folders made without the statistics (`--statoff`) or from one sample** (decided 2026-11-18, [read-count audit §15.7](reports/2026-11-15-read-count-model-audit.md#157-decisions-requested)): they gave an empty database. An `NA` FDR is kept by `-q 0 1` only; an empty count field counts 0 for its sample only; events with no inclusion or no skipping read in any sample are left out as the folder is read, and logged, so `-m` does not fit their counts of 0. The events whose reads all come from one sample, which rMATS's statistics leave out, are kept. No output change for folders made with statistics ([audit §17](reports/2026-11-15-read-count-model-audit.md#17-implementation-and-verification-pr-24)) | Correctness | Done 2026-11-18 |
 
 ### Deferred to v0.5.x
 

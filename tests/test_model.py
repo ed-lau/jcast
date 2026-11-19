@@ -91,8 +91,9 @@ def test_read_counts_as_from_each_junction(logger, folder):
 @pytest.mark.parametrize('counts, expected', [
     ((3, 5, 4, 1), 6),                          # min(ijc 3 + 4, sjc 5 + 1)
     (('1,2,3', '4,5', '0,0,1', '6'), 7),        # replicates, comma-separated
-    ((float('nan'), 5, 4, 1), 0),               # an inclusion count that does not parse: both samples' count 0
-    (('5.0', 5, 4, 1), 0),                      # a float, from a column with a missing value, does not parse either
+    ((float('nan'), 5, 4, 1), 4),               # an empty field counts 0 for its sample only; 0 before PR 24
+    (('5.0', 5, 4, 1), 0),                      # a float, from a column with a missing value, does not parse: both
+                                                # samples' inclusion count 0
 ])
 def test_read_count(counts, expected):
     assert read_count(*counts) == expected

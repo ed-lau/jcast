@@ -30,8 +30,10 @@ remembers its settings) on 2026-11-18.
   - `0986558`: a fix to the tests for CI (report §9.4);
   - then the CHANGELOG and roadmaps updated for the GUI and the two new
     items, with this handoff (`3bfb12a`, `da06619`), and row 23's audit
-    §§3–7 (`f368783`). Not pushed.
-- **Tests:** 230, all passing; 227 offline
+    §§3–7 (`f368783`) and §§8–16 (`5a1c425`);
+  - PR 24, JCAST reads rMATS folders made with `--statoff` or from one
+    sample (report §17). Not pushed.
+- **Tests:** 250, all passing; 247 offline
   (`python -m pytest -q -m 'not network'`, about 2.5 minutes). Run only
   the fast ones with `-m 'not slow'`. The GUI's 17 (`tests/test_gui.py`)
   need PySide6 and pytest-qt (`pip install -e '.[test-gui]'`; `.conda`
@@ -50,7 +52,7 @@ remembers its settings) on 2026-11-18.
   (`--uniprot`). Unchanged by PR 18.
 - **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18, 19, 20, 13 and 21
   ([REVIEW.md §9](REVIEW.md#v050-the-gui-and-the-command-line)): the
-  v0.5.0 plan of 2026-11-13.
+  v0.5.0 plan of 2026-11-13. And PR 24, from row 23's audit.
 - **Open before the release:** rows 22 and 23, added on 2026-11-14, and
   the GUI's settings, added on 2026-11-18:
   - a view of each junction and its peptides;
@@ -58,7 +60,7 @@ remembers its settings) on 2026-11-18.
     ([report](reports/2026-11-15-read-count-model-audit.md)) is measured
     on three data sets (§§3–10, 14, 15). The maintainer answered §13 on
     2026-11-18; the pair of cutoffs waits for a search against spectra
-    (§16.1); JCAST is to read `--statoff` folders (§15.7, adopted);
+    (§16.1); JCAST reads `--statoff` folders since PR 24 (§17);
   - the GUI remembers its settings between sessions.
 
 ## The session of 2026-11-18
@@ -137,9 +139,40 @@ remembers its settings) on 2026-11-18.
     3–5 reads (42 → 37, 25 → 22, 39 → 34), and the database at `-m`
     grows 4.5–4.8%, mostly from events already in the folder.
     `dropped_events.py` now measures at that cutoff too;
-- **Committed** with the maintainer's approval: everything since
+- **Committed** as `5a1c425` with the maintainer's approval: everything since
   `f368783` (report §§8–16, the scripts, the evidence, these notes), and
   `.gitignore`'s `runs/` in place of `out/` and `mzml/`.
+- **PR 24 (report §17),** at the maintainer's request: JCAST reads rMATS
+  folders made with `--statoff` or from one sample.
+  - An `NA` FDR is kept by `-q 0 1` only; an empty count field counts 0
+    for its sample only; events with no inclusion or no skipping read in
+    any sample are left out as the folder is read, and logged.
+  - Verified with `reports/model_audit/verify_24.py` against `5a1c425`:
+    folders made with statistics (chr15, the 65 bundled files, the three
+    whole-genome folders) read and run as before; the `--statoff`
+    folders give the statistics run's events plus the one-group events,
+    with `-m` 37, 22 and 34; a mouse `--statoff` run at `-r 1` is exactly
+    the union of §15.4's two runs.
+  - For the check, rMATS's post step was run on one group of the mouse
+    samples (`--b1` only): it leaves the second sample's count fields
+    empty.
+  - 20 new tests (`tests/test_statoff.py`), 14 failing on the code
+    before.
+- **The maintainer renamed the rMATS folders** while this ran:
+  `rmats/` is now `rmats_4_4_0_stat/` (and `jcast/` →
+  `jcast_rmats_4_4_0_stat/`, `jcast_4_4_0_stat/` for the iPSC series), to
+  make the `--statoff` folders next. The report's commands name the old
+  paths.
+- **Three tests call the UniProt API without the `network` mark,** as
+  they run without `--uniprot`:
+  `test_command_line.py::test_the_model_cutoff_with_fewer_splice_types`,
+  `test_model.py::test_filter_counts_are_the_runs` and
+  `test_model.py::test_the_cutoff_names_its_option` (its `-m` case). On
+  2026-11-18 the EBI Proteins API returned HTTP 500, and they sat in
+  their retries: 7 and 2 minutes for the last two, which passed; the
+  first was stopped and passed on its own with canonicals from the GTF.
+  A small fix to propose: give them `--uniprot` with the bundled chr15
+  Swiss-Prot, as the other run tests do.
 
 ## The session of 2026-11-16
 
@@ -503,11 +536,10 @@ Measured on three data sets (§§3–10, 14):
 - the events rMATS's statistics drop (§15).
 
 The maintainer answered §13 on 2026-11-18. Next:
-- **§15.7's fix (adopted 2026-11-18):** JCAST to read `--statoff` and
-  one-group folders (NA FDR, empty count fields, `-m` fitted on counts
-  ≥ 1, §15.8), and the documentation to recommend `--statoff`. Then the
-  maintainer remakes the three folders with `--statoff` and reruns
-  JCAST;
+- **§15.7's fix: done in PR 24 (2026-11-18, report §17).** JCAST reads
+  `--statoff` and one-sample folders, and the README recommends
+  `--statoff`. Next, the maintainer remakes the three folders with
+  `--statoff` and reruns JCAST;
 - **the search against spectra (§16.1):** when the maintainer's heart
   folder is ready, two runs from it: `-m`, and `-m` with
   `novel_only.diff` and `JCAST_AUDIT_ANNOTATED_CUTOFF=1`. The folder is
@@ -652,6 +684,8 @@ asks. Open a
 pull request to `main`, as #29 was for v0.4.0. Then:
 - `__version__` (still 0.4.0), the CHANGELOG's date;
 - the website: `_quarto.yml`'s title, `change.qmd`, and the GUI's pages;
+  PR 24 changed `about.qmd` and `faqs.qmd` (not rendered), and
+  `install.qmd`'s rMATS section still describes rMATS turbo 0.1;
 - before or with the release:
   - PyPI's trusted publishing: a workflow that uploads when a GitHub
     release is published;

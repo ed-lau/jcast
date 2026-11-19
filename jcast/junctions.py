@@ -27,26 +27,49 @@ def read_count(ijc_s1, sjc_s1, ijc_s2, sjc_s2) -> int:
     2022-05-21: This now returns the min of SJC and IJC sums (it was the sum of SJC). 2026-11-12 renamed from
     sum_sjc, which described the old count; see reports/2026-11-12-thresholds-runs-canonical-audit.md §2.1
 
-    :return: the read count. If an inclusion (or skipping) count does not parse, both samples' inclusion (or
+    :return: the read count. An empty count field, as rMATS writes for the second sample when given one, counts 0
+        for its sample only. If an inclusion (or skipping) count does not parse otherwise, both samples' inclusion (or
         skipping) counts are taken as 0, so the read count is 0
     """
     try:
-        sum_sjc_count_sample1 = int(sum([int(x) for x in (str(sjc_s1).split(sep=','))]))
-        sum_sjc_count_sample2 = int(sum([int(x) for x in (str(sjc_s2).split(sep=','))]))
-
+        sjc = _summed(sjc_s1) + _summed(sjc_s2)
     except ValueError:
-        sum_sjc_count_sample1 = 0
-        sum_sjc_count_sample2 = 0
+        sjc = 0
 
     try:
-        sum_ijc_count_sample1 = int(sum([int(x) for x in (str(ijc_s1).split(sep=','))]))
-        sum_ijc_count_sample2 = int(sum([int(x) for x in (str(ijc_s2).split(sep=','))]))
-
+        ijc = _summed(ijc_s1) + _summed(ijc_s2)
     except ValueError:
-        sum_ijc_count_sample1 = 0
-        sum_ijc_count_sample2 = 0
+        ijc = 0
 
-    return min(sum_sjc_count_sample1 + sum_sjc_count_sample2, sum_ijc_count_sample1 + sum_ijc_count_sample2)
+    return min(sjc, ijc)
+
+
+def _summed(field) -> int:
+    """
+    A count field summed over its replicates. 2026-11-18 an empty field (NaN, as pandas reads it) counts 0; it made
+    the other sample's count 0 too, so a folder from one sample had no reads
+    (reports/2026-11-15-read-count-model-audit.md §15.5)
+
+    :raise ValueError: if the field is not empty and does not parse
+    """
+    text = str(field)
+    if text in ('nan', ''):
+        return 0
+    return sum(int(x) for x in text.split(sep=','))
+
+
+def _with_reads(table) -> tuple:
+    """
+    An rMATS table without the events that have no inclusion read or no skipping read over all samples (read count 0),
+    or a form of no length, with each event's read count as min_jc. rMATS leaves these events out when it runs its
+    statistics (filter_countfile, rMATS 4.4.0), but not with --statoff or one sample. Unlike rMATS, an event with
+    reads in one sample only is kept. 2026-11-18, reports/2026-11-15-read-count-model-audit.md §15.7
+
+    :return: the table, and the number of events left out
+    """
+    table = table.assign(min_jc=[read_count(*c) for c in zip(table.ijc_s1, table.sjc_s1, table.ijc_s2, table.sjc_s2)])
+    kept = (table.min_jc > 0) & (table.inc_len != 0) & (table.skp_len != 0)
+    return table[kept].reset_index(drop=True), int((~kept).sum())
 
 
 class RmatsResults(object):
@@ -84,6 +107,11 @@ class RmatsResults(object):
         # splice type -> its table, for the files read, in the order of SPLICE_TYPES
         self.tables = {t: readers[t]() for t in SPLICE_TYPES
                        if t in splice_types or (others_if_present and os.path.isfile(rmats_path(rmats_dir, t)))}
+
+        # splice type -> the events left out of its table (_with_reads)
+        self.left_out = {}
+        for t, table in self.tables.items():
+            self.tables[t], self.left_out[t] = _with_reads(table)
         self.rmats_mxe, self.rmats_se, self.rmats_ri, self.rmats_a5ss, self.rmats_a3ss = (
             self.tables.get(t) for t in SPLICE_TYPES)
 
@@ -207,7 +235,7 @@ class RmatsResults(object):
         """
         tot = pd.concat(self.rmats_list, ignore_index=True)
         return pd.DataFrame({'junction_type': tot.jxn_type,
-                             'min_jc': [read_count(*c) for c in zip(tot.ijc_s1, tot.sjc_s1, tot.ijc_s2, tot.sjc_s2)],
+                             'min_jc': tot.min_jc,
                              'fdr': tot.fdr,
                              })
 

@@ -28,6 +28,22 @@ A: JCAST reads an unaltered rMATS output folder: one file per splice type, named
 `SE.MATS.JC.txt`, `RI.MATS.JC.txt`, `A3SS.MATS.JC.txt` and `A5SS.MATS.JC.txt`. Only the files of the splice types
 selected with `-s` must be there. With `-m`, the cutoff is fitted on every one of these files that is present.
 
+#### Q: Should rMATS run its statistics for JCAST?
+
+A: No: give JCAST a folder made with `--statoff`. With its statistics on (the default), rMATS leaves out of these files
+every event that one group of samples has no reads for. Those are often the events of genes that one condition
+switches on, such as cardiac genes in a differentiation series. JCAST sums the reads of both groups, so it can
+translate them, but only if rMATS writes them. In three data sets, these events were 1.9–4.8% as many as the files
+held ([audit §15](https://github.com/ed-lau/jcast/blob/main/reports/2026-11-15-read-count-model-audit.md#15-events-rmats-drops-before-jcast-reads-them)).
+
+- With `--statoff`, every FDR is `NA`, and the default `-q 0 1` keeps them. JCAST leaves out what rMATS's statistics
+  would have left out apart from these events: those with no inclusion read or no skipping read in any sample.
+- `-m` fits these events too, so its cutoff is a few reads lower than on the same samples with statistics (3–5 reads
+  in the audit).
+- To keep rMATS's differential splicing results as well, run its post step a second time into another output folder
+  (`--task post --statoff`, the same options and `--tmp`). It reuses the prep step's files and takes minutes.
+- A folder from one group of samples (`--b1` only) works too.
+
 #### Q: Can I use a GENCODE GTF?
 
 A: Yes. JCAST reads GENCODE's `transcript_type` as `transcript_biotype`. When no transcript of a gene passes the
