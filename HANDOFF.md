@@ -1,10 +1,13 @@
-# Handoff — v0.5.0: three items before the release (2026-11-18)
+# Handoff — v0.5.0: what remains before the release (2026-11-19)
 
 For the next working session. It covers where things stand, how the work
 has been run, and what to do next. **Start with
 [Next priorities](#next-priorities)**: the maintainer added two items to
 v0.5.0 on 2026-11-14, each to begin with an audit, and a third (the GUI
-remembers its settings) on 2026-11-18.
+remembers its settings) on 2026-11-18. On 2026-11-19 the first, a view of
+each junction and its peptides (row 22), moved to v0.6.0, and the release
+waits for the search against spectra that settles row 23's pair of
+cutoffs.
 
 ## State
 
@@ -54,15 +57,18 @@ remembers its settings) on 2026-11-18.
 - **Done:** roadmap PRs 0–12 and 14–17 (v0.4.0), and 18, 19, 20, 13 and 21
   ([REVIEW.md §9](REVIEW.md#v050-the-gui-and-the-command-line)): the
   v0.5.0 plan of 2026-11-13. And PR 24, from row 23's audit.
-- **Open before the release:** rows 22 and 23, added on 2026-11-14, and
-  the GUI's settings, added on 2026-11-18:
-  - a view of each junction and its peptides;
+- **Open before the release:** row 23, added on 2026-11-14, the GUI's
+  settings, added on 2026-11-18, and two small PRs chosen on 2026-11-19
+  (row 22, a view of each junction and its peptides, moved to v0.6.0):
   - the `-m` read-count model, assessed. Its audit
     ([report](reports/2026-11-15-read-count-model-audit.md)) is measured
     on three data sets (§§3–10, 14, 15). The maintainer answered §13 on
     2026-11-18; the pair of cutoffs waits for a search against spectra
-    (§16.1); JCAST reads `--statoff` folders since PR 24 (§17);
-  - the GUI remembers its settings between sessions.
+    (§16.1); JCAST reads `--statoff` folders since PR 24 (§17), and the
+    maintainer's reruns on `--statoff` folders give its numbers (§17.4);
+  - the GUI remembers its settings between sessions;
+  - the Model page's two charts that need no run (report §16.2);
+  - the three tests that call the UniProt API without `--uniprot`.
 
 ## The session of 2026-11-18
 
@@ -423,10 +429,28 @@ remembers its settings) on 2026-11-18.
 
 ## Next priorities
 
-Rows 22 and 23 are independent and can run in either order. Each follows
+**The order, decided 2026-11-19:**
+1. Three small PRs: the tests that call the UniProt API get `--uniprot`;
+   the GUI remembers its settings (item 3); the Model page's two charts
+   that need no run (report §16.2).
+2. The search against spectra (row 23, report §16.1): the maintainer's
+   human heart folder (ENCODE, `ENCODE_HumanHeart_RNASeq`, downloading
+   on 2026-11-19) is expected within a day. Two databases from it: `-m`
+   as JCAST runs it, and `-m` on novel events only
+   (`novel_only.diff`, not in JCAST), for the maintainer's quantms
+   search.
+3. The maintainer decides from the search whether the pair of cutoffs
+   (`-m` on novel events, every annotated event kept) goes into v0.5.0.
+4. Then the release (item 4).
+
+Row 22 moved to v0.6.0: it needs a feasibility audit and some thought.
+v0.5.0 is to make its results solid, and to answer the questions the
+read-count audit raised.
+
+Each item follows
 [the agreed workflow](#how-the-work-is-run-agreed-with-the-maintainer):
 an audit report with an evidence script, then the maintainer's decisions,
-then a PR. The release comes after both.
+then a PR.
 
 **The maintainer's answers (2026-11-15):**
 - **Mass spectrometry: deferred**, as a future research item. No RNA-seq
@@ -456,7 +480,7 @@ come.
 - the Model page charts are chosen;
 - the GUI remembers its settings in v0.5.0.
 
-### 1. Row 22: a view of each junction and its peptides (feasibility first)
+### 1. Row 22: a view of each junction and its peptides (moved to v0.6.0)
 
 **The goal.** In the GUI's results, pick a junction by gene, splice type,
 fate or read count. See its two slices, translated, beside the canonical
@@ -539,8 +563,11 @@ Measured on three data sets (§§3–10, 14):
 The maintainer answered §13 on 2026-11-18. Next:
 - **§15.7's fix: done in PR 24 (2026-11-18, report §17).** JCAST reads
   `--statoff` and one-sample folders, and the README recommends
-  `--statoff`. Next, the maintainer remakes the three folders with
-  `--statoff` and reruns JCAST;
+  `--statoff`. The maintainer remade the three folders with `--statoff`
+  and reran JCAST on 2026-11-18, checked on 2026-11-19 (§17.4,
+  `check_reruns.py`): the cutoffs (37, 22, 34), database records and
+  Swiss-Prot isoforms are §15.8's, and every junction and sequence of
+  the earlier runs is kept;
 - **the search against spectra (§16.1):** when the maintainer's heart
   folder is ready, two runs from it: `-m`, and `-m` with
   `novel_only.diff` and `JCAST_AUDIT_ANNOTATED_CUTOFF=1`. The folder is
@@ -548,7 +575,7 @@ The maintainer answered §13 on 2026-11-18. Next:
 - **the ENCODE fetal and adult heart folder:** §15's measurement, run
   both ways;
 - **then the PRs:**
-  - the §15.7 fixes;
+  - the §15.7 fixes (done, PR 24);
   - the Model page charts that need no run (§16.2); those from a run's
     records wait for later decisions;
   - the pair of cutoffs, if the search supports it.
@@ -581,8 +608,13 @@ and PaxDb files are downloaded as its Inputs row says.
   chr15 (`tests/data/rmats`).
 - **The maintainer's whole genome,** at
   `/Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/`:
-  - `rmats/`: JC and JCEC files, rMATS 4.4.0 (2026-11-16); 4.1.0's are
-    in `rmats_4_1_0/`;
+  - `rmats/`: rMATS 4.4.0 with `--statoff` (2026-11-18), and `jcast/`
+    the `-m` run on it; the folders made with statistics (2026-11-16)
+    are `rmats_4_4_0_stat/` and `jcast_rmats_4_4_0_stat/`, and 4.1.0's
+    `rmats_4_1_0/`. The mouse folder is laid out the same way; the iPSC
+    series' earlier run is `jcast_4_4_0_stat/`. In the repository,
+    `runs/<name>/` (ignored by git) links to each folder's `rmats/`,
+    `jcast/`, `genome/` and `multiqc/`;
   - `salmon/`: `CM_DMSO1–3` and `CM_NMD1–3`, each with `quant.sf` (TPM
     per GENCODE transcript) and `quant.genes.sf`;
   - `genome/`: GENCODE v50 GTF, GRCh38, and the Swiss-Prot isoform FASTA
@@ -680,8 +712,8 @@ should use a temporary settings file, never the user's.
 
 ### 4. Release v0.5.0
 
-Once rows 22 and 23 and item 3 are done, CI passes, and the maintainer
-asks. Open a
+Once row 23 (with the decision on the pair of cutoffs) and the small
+PRs are done, CI passes, and the maintainer asks. Open a
 pull request to `main`, as #29 was for v0.4.0. Then:
 - `__version__` (still 0.4.0), the CHANGELOG's date;
 - the website: `_quarto.yml`'s title, `change.qmd`, and the GUI's pages;

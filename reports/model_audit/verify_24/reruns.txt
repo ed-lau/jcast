@@ -1,0 +1,89 @@
+== NMDI14 cells
+--statoff: /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats, /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/jcast
+statistics: /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/rmats_4_4_0_stat, /Volumes/Omics-Shared-2/Edward/20240514_Boomi_NMDI_RNASeq/jcast_rmats_4_4_0_stat
+b1.txt and b2.txt as before: True
+SE: 392749 events, 268836 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+MXE: 136523 events, 109778 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+RI: 50217 events, 39818 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+A5SS: 102271 events, 79447 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+A3SS: 166582 events, 125859 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+-m: 42 -> 37; junctions: 623738 -> 635424 (+11686); FDR all NA: True; left out (log) 212918, the folder's events less its junctions 212918; database records (log): 22464 -> 23464
+every earlier junction in the new run: True; with the same read count: True
+  at or above 42: 136818 junctions, every column but fdr and new_records equal: yes
+  below 37: 477559 junctions, every column but fdr and new_records equal: yes
+  37 to 41: 9361 junctions, all skipped_low_count before: True; now T4 3238, fail 2742, T1 1470, skipped_outside_cds 1281, T2 467, T1_alt_terminus 163
+  new to the folder: 11686 junctions; at or above 37: 21 (T1 9, fail 7, T4 5)
+Swiss-Prot isoforms in the psq_ files: 4016 -> 4128, all earlier ones kept: True
+  jcast_uniprot_merged.fasta: 64927 -> 65927 sequences, all earlier ones kept: True
+  psq_T1.fasta: 23375 -> 24380 sequences, all earlier ones kept: True
+  psq_T1_alt_both.fasta: 24 -> 26 sequences, all earlier ones kept: True
+  psq_T1_alt_cterm.fasta: 2087 -> 2157 sequences, all earlier ones kept: True
+  psq_T1_alt_cterm_orphan.fasta: 283 -> 299 sequences, all earlier ones kept: True
+  psq_T1_alt_nterm.fasta: 290 -> 304 sequences, all earlier ones kept: True
+  psq_T1_alt_nterm_orphan.fasta: 23 -> 24 sequences, all earlier ones kept: True
+  psq_T1_orphan.fasta: 3831 -> 4085 sequences, all earlier ones kept: True
+  psq_T2.fasta: 6826 -> 7268 sequences, all earlier ones kept: True
+  psq_T2_orphan.fasta: 431 -> 465 sequences, all earlier ones kept: True
+  psq_T4.fasta: 44951 -> 47307 sequences, all earlier ones kept: True
+  psq_T4_orphan.fasta: 10063 -> 10663 sequences, all earlier ones kept: True
+  psq_canonical.fasta: 13523 -> 13669 sequences, all earlier ones kept: True
+
+== mouse ventricles
+--statoff: /Volumes/Omics-Shared-2/Edward/GSE49906_MouseHeart_RNASeq/rmats, /Volumes/Omics-Shared-2/Edward/GSE49906_MouseHeart_RNASeq/jcast
+statistics: /Volumes/Omics-Shared-2/Edward/GSE49906_MouseHeart_RNASeq/rmats_4_4_0_stat, /Volumes/Omics-Shared-2/Edward/GSE49906_MouseHeart_RNASeq/jcast_rmats_4_4_0_stat
+b1.txt and b2.txt as before: True
+SE: 203686 events, 123315 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+MXE: 44751 events, 35586 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+RI: 31232 events, 21558 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+A5SS: 65171 events, 45480 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+A3SS: 103391 events, 68381 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+-m: 25 -> 22; junctions: 294320 -> 302055 (+7735); FDR all NA: True; left out (log) 146176, the folder's events less its junctions 146176; database records (log): 14099 -> 14762
+every earlier junction in the new run: True; with the same read count: True
+  at or above 25: 75331 junctions, every column but fdr and new_records equal: yes
+  below 22: 213910 junctions, every column but fdr and new_records equal: yes
+  22 to 24: 5079 junctions, all skipped_low_count before: True; now T4 2040, fail 1215, T1 935, skipped_outside_cds 609, T2 210, T1_alt_terminus 70
+  new to the folder: 7735 junctions; at or above 22: 136 (fail 83, T1 30, T4 16, skipped_outside_cds 6, T1_alt_terminus 1)
+Swiss-Prot isoforms in the psq_ files: 1444 -> 1482, all earlier ones kept: True
+  jcast_uniprot_merged.fasta: 39842 -> 40505 sequences, all earlier ones kept: True
+  psq_T1.fasta: 14984 -> 15675 sequences, all earlier ones kept: True
+  psq_T1_alt_both.fasta: 13 -> 13 sequences, all earlier ones kept: True
+  psq_T1_alt_cterm.fasta: 831 -> 868 sequences, all earlier ones kept: True
+  psq_T1_alt_cterm_orphan.fasta: 128 -> 133 sequences, all earlier ones kept: True
+  psq_T1_alt_nterm.fasta: 108 -> 113 sequences, all earlier ones kept: True
+  psq_T1_alt_nterm_orphan.fasta: 7 -> 7 sequences, all earlier ones kept: True
+  psq_T1_orphan.fasta: 2447 -> 2623 sequences, all earlier ones kept: True
+  psq_T2.fasta: 3291 -> 3495 sequences, all earlier ones kept: True
+  psq_T2_orphan.fasta: 154 -> 166 sequences, all earlier ones kept: True
+  psq_T4.fasta: 27376 -> 28995 sequences, all earlier ones kept: True
+  psq_T4_orphan.fasta: 5141 -> 5484 sequences, all earlier ones kept: True
+  psq_canonical.fasta: 12851 -> 13133 sequences, all earlier ones kept: True
+
+== iPSC differentiation
+--statoff: /Volumes/Omics-Shared-2/Edward/2019_iPSC_Diff_RNA/rmats, /Volumes/Omics-Shared-2/Edward/2019_iPSC_Diff_RNA/jcast
+statistics: /Volumes/Omics-Shared-2/Edward/2019_iPSC_Diff_RNA/rmats_4_4_0_stat, /Volumes/Omics-Shared-2/Edward/2019_iPSC_Diff_RNA/jcast_4_4_0_stat
+b1.txt and b2.txt as before: True
+SE: 729746 events, 608435 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+MXE: 379740 events, 323743 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+RI: 80996 events, 73049 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+A5SS: 198830 events, 174043 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+A3SS: 296152 events, 257114 with statistics; all of those in the --statoff folder: True, every column but PValue and FDR equal: True; FDR all NA: True
+-m: 39 -> 34; junctions: 1436384 -> 1504997 (+68613); FDR all NA: True; left out (log) 180467, the folder's events less its junctions 180467; database records (log): 39167 -> 41040
+every earlier junction in the new run: True; with the same read count: True
+  at or above 39: 314396 junctions, every column but fdr and new_records equal: yes
+  below 34: 1099253 junctions, every column but fdr and new_records equal: yes
+  34 to 38: 22735 junctions, all skipped_low_count before: True; now fail 8342, T4 7364, skipped_outside_cds 2874, T1 2836, T2 1015, T1_alt_terminus 304
+  new to the folder: 68613 junctions; at or above 34: 3081 (fail 2280, T4 375, skipped_outside_cds 192, T1 182, T2 41, T1_alt_terminus 11)
+Swiss-Prot isoforms in the psq_ files: 5556 -> 5679, all earlier ones kept: True
+  jcast_uniprot_merged.fasta: 81630 -> 83503 sequences, all earlier ones kept: True
+  psq_T1.fasta: 39890 -> 41726 sequences, all earlier ones kept: True
+  psq_T1_alt_both.fasta: 56 -> 57 sequences, all earlier ones kept: True
+  psq_T1_alt_cterm.fasta: 3291 -> 3406 sequences, all earlier ones kept: True
+  psq_T1_alt_cterm_orphan.fasta: 493 -> 516 sequences, all earlier ones kept: True
+  psq_T1_alt_nterm.fasta: 484 -> 507 sequences, all earlier ones kept: True
+  psq_T1_alt_nterm_orphan.fasta: 38 -> 42 sequences, all earlier ones kept: True
+  psq_T1_orphan.fasta: 7237 -> 7803 sequences, all earlier ones kept: True
+  psq_T2.fasta: 15368 -> 16410 sequences, all earlier ones kept: True
+  psq_T2_orphan.fasta: 895 -> 966 sequences, all earlier ones kept: True
+  psq_T4.fasta: 93110 -> 98182 sequences, all earlier ones kept: True
+  psq_T4_orphan.fasta: 22550 -> 24071 sequences, all earlier ones kept: True
+  psq_canonical.fasta: 15762 -> 16127 sequences, all earlier ones kept: True

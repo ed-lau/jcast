@@ -26,7 +26,7 @@ uncommitted `jcast/gui/` skeleton). Supersedes the 2026-05-23 review.*
 >   The branch `v0.5.0-gui` was pushed on 2026-11-14, and CI passes.
 > - **Added to v0.5.0 on 2026-11-14, before its release:**
 >   - a view of each junction and its peptides (row 22), after a
->     feasibility analysis;
+>     feasibility analysis; moved to v0.6.0 on 2026-11-19;
 >   - an assessment of the `-m` read-count model (row 23, from
 >     [§5.6](#56--the-modeled-read-cutoff-is-a-weakly-identified-heuristic--new)).
 >
@@ -965,7 +965,7 @@ with an audit. Row 24 came from row 23's audit, on 2026-11-18. In this order:
 | 20 | ✅ `-m` without a fit, for any reason, warns and falls back to `-r` (decided 2026-11-13): rMATS files without junctions raised `ZeroDivisionError`; the cutoff's log line names `-r` when it falls back ([scope report §11](reports/2026-11-13-gui-cli-scope.md#11--m-without-a-fit-falls-back-to--r-pr-20); `2f0e54c`) | Robustness | Done 2026-11-13 |
 | 13 | ✅ The GUI: Setup (the command line's checks under each field), Model (the `-m` model before the run; the cutoff set there), Run (the command line in a child process, `python -P -m jcast run …`, `-p` kept; Stop; deleting a stopped run's output), Results (the summary of any output folder); 15 pytest-qt tests and a CI job on macOS; the `gui` extra on `PySide6-Essentials>=6.7`. No output change ([scope report §12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui-12e0576); `12e0576`). Not in v0.5.0: a junction browser (v0.5.x), standalone bundles | New surface | Done 2026-11-14 |
 | 21 | ✅ The GUI after its first run on a Mac (requested 2026-11-14): a help line at the bottom of the window (each setting's help from `jcast run -h`); each splice type's count beside its progress bar and the last junction done, with its gene (`--progress` names it, and reports at least every 0.5 s); the fish logo as the icon. No output change ([scope report §13](reports/2026-11-13-gui-cli-scope.md#13-the-gui-after-its-first-run-on-a-mac-pr-21); `4cc72c2`) | GUI | Done 2026-11-14 |
-| 22 | **A view of each junction and its peptides** in the GUI's results: a junction's translated slices beside the canonical protein, where the event lies, its tier, and the tryptic peptides that tell the isoform apart. Moved from v0.5.x. Feasibility first: a junction's records cannot all be found by their headers, since a sequence already written by an earlier junction is not written again ([scope report §4](reports/2026-11-13-gui-cli-scope.md#4-what-the-gui-shows)); the view may need a new output file, or the GTF and the genome to translate again; whole-genome scale (599,644 junctions) | GUI | Feasibility report, then the maintainer's decisions |
+| 22 | **A view of each junction and its peptides** in the GUI's results: a junction's translated slices beside the canonical protein, where the event lies, its tier, and the tryptic peptides that tell the isoform apart. Moved from v0.5.x. Feasibility first: a junction's records cannot all be found by their headers, since a sequence already written by an earlier junction is not written again ([scope report §4](reports/2026-11-13-gui-cli-scope.md#4-what-the-gui-shows)); the view may need a new output file, or the GTF and the genome to translate again; whole-genome scale (599,644 junctions) | GUI | **Moved to v0.6.0** (2026-11-19). Feasibility report, then the maintainer's decisions |
 | 23 | **The `-m` read-count model, assessed** (§5.6): its fit to junction read counts, against models of counts; a cutoff per splice type; which protein-coding isoforms a cutoff loses, measured without mass spectrometry (Swiss-Prot and GENCODE isoforms reproduced, annotated transcripts, transcript expression, frame preservation); with it, deferred as a future research item (2026-11-15) | Sci-integrity | Audit, then the maintainer's decisions; an output change if `-m` changes |
 | 24 | ✅ **rMATS folders made without the statistics (`--statoff`) or from one sample** (decided 2026-11-18, [read-count audit §15.7](reports/2026-11-15-read-count-model-audit.md#157-decisions-requested)): they gave an empty database. An `NA` FDR is kept by `-q 0 1` only; an empty count field counts 0 for its sample only; events with no inclusion or no skipping read in any sample are left out as the folder is read, and logged, so `-m` does not fit their counts of 0. The events whose reads all come from one sample, which rMATS's statistics leave out, are kept. No output change for folders made with statistics ([audit §17](reports/2026-11-15-read-count-model-audit.md#17-implementation-and-verification-pr-24); `36f0fb6`) | Correctness | Done 2026-11-18 |
 
@@ -986,6 +986,12 @@ with an audit. Row 24 came from row 23's audit, on 2026-11-18. In this order:
   searching the same spectra with databases built at several cutoffs
   (deferred from row 23 on 2026-11-15; needs spectra from the samples of
   the RNA-seq, and depends on their depth).
+
+### Deferred to v0.6.0
+
+- Row 22, a view of each junction and its peptides (moved on 2026-11-19):
+  a feasibility audit first. v0.5.0 is to make its results solid and to
+  answer the read-count audit's questions.
 
 ### Deferred to v1.0
 
@@ -1020,7 +1026,8 @@ replacing the plan below where they differ:
   run's summary, for any JCAST output folder).
 - Not in v0.5.0: a junction browser (v0.5.x); standalone bundles.
   *2026-11-14: the junction browser moved into v0.5.0, as a view of each
-  junction and its peptides, after a feasibility analysis (§9, row 22).*
+  junction and its peptides, after a feasibility analysis (§9, row 22).
+  2026-11-19: moved to v0.6.0.*
 
 The notes as they stood before (2026-11-12):
 

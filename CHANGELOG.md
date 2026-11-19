@@ -123,15 +123,17 @@ v0.5.0 plan, and the
 decisions.
 
 Before the v0.5.0 release (added to its scope on 2026-11-14):
-- **A view of each junction and its peptides** in the GUI's results: the
-  translated slices beside the canonical protein. It was planned for
-  v0.5.x. A feasibility analysis comes first.
 - **An assessment of the `-m` read-count model:**
   - does it fit RNA-seq junction counts?
   - should each splice type have its own cutoff?
   - which protein-coding isoforms does a cutoff lose?
 
   Its outcome may change how `-m` sets the cutoff.
+
+In v0.6.0 (moved from v0.5.0 on 2026-11-19):
+- **A view of each junction and its peptides** in the GUI's results: the
+  translated slices beside the canonical protein. A feasibility analysis
+  comes first.
 
 Later:
 - An option to add T2 and T4 records to `jcast_uniprot_merged.fasta`.
