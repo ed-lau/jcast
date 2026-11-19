@@ -33,6 +33,12 @@ For the code review and the roadmap (v0.4.0 and v0.5.0), see
 - **`-m` computes the read counts for its model from the rMATS tables'
   columns** (PR 19): 1.7 s instead of 20.6 s on a whole genome (599,644
   junctions). The counts and the cutoff are the same.
+- **The offline tests never connect to the internet** (PR 25). Three
+  run tests without `--uniprot` called the EBI Proteins API, though not
+  marked `network`, and waited out its retries while it failed: 7 minutes
+  for one of them. They now use the bundled chr15 Swiss-Prot. A test not
+  marked `network` that connects to the internet fails, naming the
+  address. The offline suite takes about 2 minutes.
 - **SIGTERM stops a run cleanly** (PR 19): the worker processes end, the
   log and the console say that the output is incomplete, and the exit
   status is 143. Before, the process ended at once, and nothing said the

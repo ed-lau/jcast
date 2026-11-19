@@ -3,6 +3,7 @@
 """ Shared fixtures. Test data is loaded once per session; caches are kept in a temporary directory. """
 
 import logging
+import socket
 from pathlib import Path
 
 import pytest
@@ -58,6 +59,34 @@ def _wide_console(monkeypatch):
     GITHUB_ACTIONS (on CI), FORCE_COLOR or PY_COLORS is set; the tests' console is not one """
     monkeypatch.setenv('COLUMNS', '1000')
     monkeypatch.setattr('typer.rich_utils.FORCE_TERMINAL', False)
+
+
+class InternetBlocked(RuntimeError):
+    """ a connection refused by _no_internet: not an OSError, which the UniProt API's client would retry """
+
+
+@pytest.fixture(autouse=True)
+def _no_internet(request, monkeypatch):
+    """ A test not marked network fails if it connects to the internet. 2026-11-18 three tests ran without --uniprot,
+    so called the EBI Proteins API, and sat in its retries while it returned HTTP 500; they passed, since a run goes
+    on without the API """
+    if request.node.get_closest_marker('network'):
+        yield
+        return
+    tried = []
+    connect = socket.socket.connect
+
+    def refused(sock, address):
+        if sock.family in (socket.AF_INET, socket.AF_INET6) and address[0] not in ('127.0.0.1', '::1', 'localhost'):
+            tried.append(address)
+            raise InternetBlocked(f'a test not marked network connected to {address}')
+        return connect(sock, address)
+
+    monkeypatch.setattr(socket.socket, 'connect', refused)
+    yield
+    if tried:
+        pytest.fail(f'connected to the internet without the network mark: {", ".join(map(str, sorted(set(tried))))}',
+                    pytrace=False)
 
 
 @pytest.fixture(autouse=True)

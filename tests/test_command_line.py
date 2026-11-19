@@ -70,9 +70,11 @@ def test_a_run_with_only_the_selected_file(tmp_path, monkeypatch, cache_dir):
 @pytest.mark.slow
 def test_the_model_cutoff_with_fewer_splice_types(tmp_path, monkeypatch, cache_dir):
     """ -m -s SE fits on the five files, as before PR 12, and the log names the files read only for the model; on SE
-    alone, the cutoff would be 6 (reports/2026-11-13-command-line-checks.md §2) """
+    alone, the cutoff would be 6 (reports/2026-11-13-command-line-checks.md §2). With --uniprot, so that no canonical
+    comes from the UniProt API (PR 25) """
     out = tmp_path / 'out'
-    _cli(monkeypatch, RMATS, HUMAN_GTF, HUMAN_GENOME, '-s', 'SE', '-m', '-o', out, '--cache_dir', cache_dir)
+    _cli(monkeypatch, RMATS, HUMAN_GTF, HUMAN_GENOME, '-s', 'SE', '-m', '-o', out, '--cache_dir', cache_dir,
+         '--uniprot', UNIPROT)
 
     log = (out / 'logfile.log').read_text()
     assert 'modeled read count cutoff 26.' in log

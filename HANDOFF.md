@@ -38,7 +38,8 @@ cutoffs.
     from one sample (report §17), and the commit recording its hash. Not
     pushed.
 - **Tests:** 250, all passing; 247 offline
-  (`python -m pytest -q -m 'not network'`, about 2.5 minutes). Run only
+  (`python -m pytest -q -m 'not network'`, about 2 minutes). Since PR 25,
+  a test not marked `network` fails if it connects to the internet. Run only
   the fast ones with `-m 'not slow'`. The GUI's 17 (`tests/test_gui.py`)
   need PySide6 and pytest-qt (`pip install -e '.[test-gui]'`; `.conda`
   has both) and are skipped without them.
@@ -179,7 +180,9 @@ cutoffs.
   their retries: 7 and 2 minutes for the last two, which passed; the
   first was stopped and passed on its own with canonicals from the GTF.
   A small fix to propose: give them `--uniprot` with the bundled chr15
-  Swiss-Prot, as the other run tests do.
+  Swiss-Prot, as the other run tests do. Done in PR 25 (2026-11-19), with
+  a check in `tests/conftest.py` that fails any test not marked `network`
+  that connects to the internet.
 
 ## The session of 2026-11-16
 

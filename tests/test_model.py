@@ -14,6 +14,7 @@ from jcast import main, model
 from jcast.junctions import Junction, RmatsResults, read_count
 
 from tests.conftest import DATA, HUMAN_GENOME, HUMAN_GTF, RMATS
+from tests.test_uniprot import UNIPROT
 
 DATASETS = sorted(p.name for p in (DATA / 'model').iterdir() if p.is_dir())
 
@@ -114,10 +115,11 @@ def test_preview_is_the_runs_model(tmp_path):
 
 @pytest.mark.slow
 def test_filter_counts_are_the_runs(tmp_path, cache_dir):
-    """ what the preview says the filters keep and skip, per splice type, is what a run's junctions.tsv records """
+    """ what the preview says the filters keep and skip, per splice type, is what a run's junctions.tsv records. With
+    --uniprot, so that no canonical comes from the UniProt API (PR 25) """
     out = tmp_path / 'out'
     main.main([str(a) for a in [RMATS, HUMAN_GTF, HUMAN_GENOME, '-s', 'RI', 'A5SS', '-r', 5, '-q', 0, 0.05, '-o', out,
-                                '--cache_dir', cache_dir]])
+                                '--cache_dir', cache_dir, '--uniprot', UNIPROT]])
     with open(out / 'junctions.tsv') as fh:
         rows = list(csv.DictReader(fh, delimiter='\t'))
 
@@ -227,8 +229,9 @@ def test_a_run_whose_fit_fails_falls_back_to_r(tmp_path, cache_dir, capsys, monk
 ])
 def test_the_cutoff_names_its_option(tmp_path, cache_dir, folder, extra, expected):
     """ the log names the option the cutoff came from: -m when fitted; -r without -m, or when -m has no fit.
-    2026-11-13 it said -m whenever -m was given """
+    2026-11-13 it said -m whenever -m was given. With --uniprot, so that no canonical comes from the UniProt API
+    (PR 25) """
     out = tmp_path / 'out'
-    main.main([str(a) for a in [folder, HUMAN_GTF, HUMAN_GENOME, '-s', 'RI', '-o', out, '--cache_dir', cache_dir]
-               + extra])
+    main.main([str(a) for a in [folder, HUMAN_GTF, HUMAN_GENOME, '-s', 'RI', '-o', out, '--cache_dir', cache_dir,
+                                '--uniprot', UNIPROT] + extra])
     assert f'Translating junctions with a read count of {expected}:' in (out / 'logfile.log').read_text()
