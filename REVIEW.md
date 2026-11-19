@@ -970,6 +970,7 @@ small, were chosen on 2026-11-19. In this order:
 | 23 | **The `-m` read-count model, assessed** (§5.6): its fit to junction read counts, against models of counts; a cutoff per splice type; which protein-coding isoforms a cutoff loses, measured without mass spectrometry (Swiss-Prot and GENCODE isoforms reproduced, annotated transcripts, transcript expression, frame preservation); with it, deferred as a future research item (2026-11-15) | Sci-integrity | Audit, then the maintainer's decisions; an output change if `-m` changes |
 | 24 | ✅ **rMATS folders made without the statistics (`--statoff`) or from one sample** (decided 2026-11-18, [read-count audit §15.7](reports/2026-11-15-read-count-model-audit.md#157-decisions-requested)): they gave an empty database. An `NA` FDR is kept by `-q 0 1` only; an empty count field counts 0 for its sample only; events with no inclusion or no skipping read in any sample are left out as the folder is read, and logged, so `-m` does not fit their counts of 0. The events whose reads all come from one sample, which rMATS's statistics leave out, are kept. No output change for folders made with statistics ([audit §17](reports/2026-11-15-read-count-model-audit.md#17-implementation-and-verification-pr-24); `36f0fb6`) | Correctness | Done 2026-11-18 |
 | 25 | ✅ **The offline tests never connect to the internet** (decided 2026-11-19): three run tests without `--uniprot` called the EBI Proteins API, unmarked, and sat in its retries while it returned HTTP 500 (2026-11-18); they now use the bundled chr15 Swiss-Prot. A test not marked `network` that connects to the internet fails, naming the address (`tests/conftest.py`). Before the fix, that check fails exactly those three tests. No output change ([audit §17.3](reports/2026-11-15-read-count-model-audit.md#173-tests); `24bee2a`) | Tests | Done 2026-11-19 |
+| 26 | ✅ **The GUI keeps the Setup page's settings between sessions** (decided 2026-11-18; was v0.5.x): the paths and options, in Qt's `QSettings`, kept as each change is checked and when the window closes, restored and checked at start; **Restore the defaults**. The cutoff is not kept (chosen per rMATS folder on the Model page). The tests use a settings file of their own. No output change ([scope report §14](reports/2026-11-13-gui-cli-scope.md#14-the-gui-keeps-its-settings-pr-26)) | GUI | Done 2026-11-19 |
 
 ### Deferred to v0.5.x
 
@@ -982,8 +983,9 @@ small, were chosen on 2026-11-19. In this order:
   UniProt fails.
 - ~~Optional concurrency.~~ Done in PR 15 (`-p`, with `--uniprot`).
 - StringTie input support.
-- GUI: remembering the settings between sessions; its tests on Linux
-  (Qt's offscreen platform needs system libraries there).
+- GUI: ~~remembering the settings between sessions~~ (moved into v0.5.0
+  on 2026-11-18, done in PR 26); its tests on Linux (Qt's offscreen
+  platform needs system libraries there).
 - Research: test the read-count cutoff against mass spectrometry, by
   searching the same spectra with databases built at several cutoffs
   (deferred from row 23 on 2026-11-15; needs spectra from the samples of

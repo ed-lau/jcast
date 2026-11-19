@@ -2,8 +2,8 @@
 
 | | |
 |---|---|
-| **Date** | 2026-11-13 |
-| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. **PR 13 implemented in `12e0576`** (§12): the GUI runs JCAST; no output change. **PR 21 in `4cc72c2`** (§13): a help line, progress counts and the last junction done, the logo. CI's first run (2026-11-14) failed 7 command-line tests: fixed in the tests (§9.4). **2026-11-14: v0.5.0 widened** before its release: §4's junction browser moves into it, as a view of each junction and its peptides, after a feasibility analysis; and the `-m` model is assessed ([REVIEW.md §9](../REVIEW.md#v050-the-gui-and-the-command-line), rows 22 and 23). |
+| **Date** | 2026-11-13; §14 on 2026-11-19 |
+| **Status** | Decisions taken 2026-11-13 (§7). To be implemented in PRs 18, 19 and 13, in that order (§8). **PR 18 implemented in `5479ee3`** (§9); **PR 19 implemented in `ec1068a`** (§10). No output change. **PR 20 in `2f0e54c`** (§11): `-m` without a fit falls back to `-r`. **PR 13 implemented in `12e0576`** (§12): the GUI runs JCAST; no output change. **PR 21 in `4cc72c2`** (§13): a help line, progress counts and the last junction done, the logo. CI's first run (2026-11-14) failed 7 command-line tests: fixed in the tests (§9.4). **2026-11-14: v0.5.0 widened** before its release: §4's junction browser moves into it, as a view of each junction and its peptides, after a feasibility analysis; and the `-m` model is assessed ([REVIEW.md §9](../REVIEW.md#v050-the-gui-and-the-command-line), rows 22 and 23). 2026-11-19: the view moves to v0.6.0. **PR 26** (§14): the GUI keeps the Setup page's settings between sessions; no output change. |
 | **Question** | What should the v0.5.0 GUI do: start a run only, or also show results, and which? How is it launched? What does moving the command line to Typer change for users? |
 | **Reproduce** | `python reports/gui_scope/scope_evidence.py --work <scratch> [--python <interpreter for the venvs>] [--rmats <whole-genome rMATS folder>]` (≈ 2 min; needs PyPI) |
 | **Evidence** (code at `f37faf9`) | [gui_scope/scope_evidence/scope_evidence.txt](gui_scope/scope_evidence/scope_evidence.txt) |
@@ -12,6 +12,7 @@
 | **PR 20 verification** | `python reports/gui_scope/verify_20.py --before <checkout> --after <checkout> [--earlier <checkout before PR 19>]` (≈ 1 min); [gui_scope/verify_20/verify_20.txt](gui_scope/verify_20/verify_20.txt) |
 | **PR 13 verification** | `python reports/gui_scope/verify_13.py --before <checkout> --after <checkout> [--rmats <whole-genome rMATS folder>] [--output <whole-genome output folder>]` (≈ 3 min; needs PySide6); [gui_scope/verify_13/verify_13.txt](gui_scope/verify_13/verify_13.txt) |
 | **PR 21 verification** | `python reports/gui_scope/verify_21.py --before <checkout> --after <checkout> [--build-python <Python with build>]` (≈ 1.5 min; needs PySide6); [gui_scope/verify_21/verify_21.txt](gui_scope/verify_21/verify_21.txt) |
+| **PR 26 verification** | `python reports/gui_scope/verify_26.py --before <commit> --after <checkout>` (≈ 5 s; needs PySide6); [gui_scope/verify_26/verify_26.txt](gui_scope/verify_26/verify_26.txt) |
 
 ## 1. Summary
 
@@ -863,3 +864,71 @@ On a Mac the bars have no text of their own, so the counts beside them
 are what shows; neither screenshot shows the macOS style.
 
 **Tests:** 230 pass (227 offline).
+
+## 14. The GUI keeps its settings (PR 26)
+
+### 14.1 Decided (2026-11-18)
+
+The maintainer moved "remembering the settings between sessions" from
+v0.5.x into v0.5.0 (read-count audit §13). The handoff's brief: the
+Setup page's paths and options, restored at start, with a way back to
+the defaults; the tests on a settings file of their own, never the
+user's.
+
+### 14.2 What PR 26 changes
+
+[setup_page.py](../jcast/gui/setup_page.py),
+[main_window.py](../jcast/gui/main_window.py).
+- **What is kept:** every field of the Setup page. These are the six
+  paths (rMATS folder, GTF, genome, output folder, cache folder,
+  `--uniprot`), the splice types checked, `-q`, `-c`, `-p` and `-v`.
+  `SetupPage.values()` gives them, and `DEFAULTS` names them, as a new
+  page has them.
+- **When:** each time the page checks a change (300 ms after the typing
+  stops), and when the window closes, so that a change not yet checked
+  is kept too.
+- **Where:** Qt's `QSettings`, under the group `setup`: on macOS
+  `~/Library/Preferences/com.jcast.JCAST.plist`, on Linux
+  `~/.config/JCAST/JCAST.conf`, on Windows the registry
+  (`main_window.user_settings`). A value that cannot be read is replaced
+  by its default.
+- **At start,** the window sets the page from the kept settings and
+  checks them at once. A path that has gone since shows its problem
+  under its field, as a typed one would. Empty fields are not marked
+  "required" until a run is started, as before.
+- **Restore the defaults,** a button at the bottom of the page, asks
+  first, then clears every path and sets every option to its default;
+  the fields marked "required" are no longer marked.
+- **Not kept:** the read count cutoff. It is chosen for each rMATS folder
+  on the Model page, which starts at `-r 1` (PR 13's choice, kept on
+  2026-11-15: another folder resets the cutoff). The Results page's
+  folder is not kept either.
+
+**Tests** (`tests/test_gui.py`, 5 new). Every GUI test now has a settings
+file of its own (the fixture `settings_file`, replacing
+`main_window.user_settings`). The new tests check:
+- a first session has the defaults;
+- the settings come back as each change is checked, and as the window
+  closes; the cutoff does not;
+- a kept folder that has gone shows its problem;
+- Restore the defaults, answered yes and no.
+
+### 14.3 Verification
+
+`verify_26.py`
+([verify_26.txt](gui_scope/verify_26/verify_26.txt)):
+- **No run changes.** The PR changes no file outside `jcast/gui/`, the
+  tests and the documents.
+- **Qt's native format.** On a Mac the settings are a property list, not
+  the INI file the tests use. In a `.plist` of the scratch directory, never
+  the user's (whose file was not created):
+  - a first session has the defaults;
+  - a second has the settings the first filled in, with no problem, and
+    `-r 1`;
+  - after Restore the defaults, a third has the defaults again;
+  - the file keeps each value with its type: a boolean, an integer, a
+    float, a string.
+- **Screenshot:** [the second session's Setup page](gui_scope/verify_26/setup_kept.png),
+  with the help line over Restore the defaults.
+
+**Tests:** 255 pass (252 offline).

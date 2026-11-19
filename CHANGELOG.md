@@ -79,6 +79,11 @@ For the code review and the roadmap (v0.4.0 and v0.5.0), see
 
 ### Added
 
+- **The GUI keeps the Setup page's settings between sessions** (PR 26;
+  [scope report §14](reports/2026-11-13-gui-cli-scope.md#14-the-gui-keeps-its-settings-pr-26)):
+  the paths and options, kept as they change and restored at start, with
+  **Restore the defaults** to clear them. The read count cutoff is not
+  kept: it is chosen for each rMATS folder on the Model page.
 - **The GUI runs JCAST** (PRs 13 and 21; scope report
   [§12](reports/2026-11-13-gui-cli-scope.md#12-implementation-and-verification-pr-13-the-gui-12e0576)
   and [§13](reports/2026-11-13-gui-cli-scope.md#13-the-gui-after-its-first-run-on-a-mac-pr-21)).

@@ -2,10 +2,11 @@
 
 """
 The main window: four pages, as tabs, since a rerun with another cutoff means going back: Setup, Model, Run and
-Results (reports/2026-11-13-gui-cli-scope.md §4); and under them, the help of what the mouse is over
+Results (reports/2026-11-13-gui-cli-scope.md §4); and under them, the help of what the mouse is over. It keeps the
+Setup page's settings between sessions (PR 26)
 """
 
-from PySide6.QtCore import QEvent, Qt
+from PySide6.QtCore import QEvent, QSettings, Qt
 from PySide6.QtWidgets import QFrame, QLabel, QMainWindow, QMessageBox, QTabWidget, QVBoxLayout, QWidget
 
 from jcast import __version__
@@ -13,11 +14,28 @@ from jcast.gui.app import icon
 from jcast.gui.model_page import ModelPage
 from jcast.gui.results_page import ResultsPage
 from jcast.gui.run_page import RunPage
-from jcast.gui.setup_page import SetupPage
+from jcast.gui.setup_page import DEFAULTS, SetupPage
 from jcast.outcomes import SPLICE_TYPES
 
 
 HELP = 'Point at a setting, a button or a table to see what it does.'
+
+
+def user_settings() -> QSettings:
+    """ The user's settings of the GUI: on macOS ~/Library/Preferences/com.jcast.JCAST.plist, on Linux
+    ~/.config/JCAST/JCAST.conf, on Windows the registry. The tests give a file of their own """
+    return QSettings('JCAST', 'JCAST')
+
+
+def kept_setup(settings: QSettings) -> dict:
+    """ The Setup page's settings kept from an earlier session: DEFAULTS' for those not kept, or not readable """
+    values = {}
+    for name, default in DEFAULTS.items():
+        try:
+            values[name] = settings.value(f'setup/{name}', default, type=type(default))
+        except (TypeError, ValueError):
+            values[name] = default
+    return values
 
 
 class MainWindow(QMainWindow):
@@ -51,6 +69,11 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.help)
         self.setCentralWidget(central)
 
+        # the Setup page as the last session left it, kept as it changes
+        self.settings = user_settings()
+        self.setup.set_values(kept_setup(self.settings))
+        self.setup.changed.connect(self._keep_settings)
+
         self.setup.changed.connect(self._settings_changed)
         self.model.changed.connect(self._settings_changed)
         self.run.setup_needed.connect(self._show_setup)
@@ -69,6 +92,10 @@ class MainWindow(QMainWindow):
         args = self.setup.arguments()
         args.model, args.read = self.model.options()
         return args
+
+    def _keep_settings(self) -> None:
+        for name, value in self.setup.values().items():
+            self.settings.setValue(f'setup/{name}', value)
 
     def _settings_changed(self) -> None:
         args, problems = self.arguments(), self.setup.problems
@@ -95,4 +122,6 @@ class MainWindow(QMainWindow):
                 return
             self.run.stop_run(ask=False)
             self.run.wait()
+        self._keep_settings()       # also a change not yet checked
+        self.settings.sync()
         event.accept()

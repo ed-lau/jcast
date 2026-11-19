@@ -317,6 +317,12 @@ setting, that is its help from `jcast run -h`.
 An output folder that holds JCAST output is replaced only once you agree
 (`--overwrite`).
 
+The GUI keeps the Setup page's settings between sessions (on macOS in
+`~/Library/Preferences/com.jcast.JCAST.plist`, on Linux in
+`~/.config/JCAST/JCAST.conf`). **Restore the defaults**, at the bottom
+of the page, clears them. The read count cutoff is not kept: it is
+chosen for each rMATS folder on the Model page.
+
 ## Output files
 
 JCAST writes a small number of FASTA files into the output directory. Each

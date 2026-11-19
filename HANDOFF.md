@@ -713,8 +713,8 @@ Output changes only after a decision.
 
 ### 3. The GUI remembers its settings
 
-Decided 2026-11-18 (it was under Later): the GUI keeps its settings
-between sessions. A small PR: `QSettings` for the Setup page's paths and
+**Done in PR 26 (2026-11-19, scope report §14).** Decided 2026-11-18 (it
+was under Later): the GUI keeps its settings between sessions. A small PR: `QSettings` for the Setup page's paths and
 options, restored at start, with a way back to the defaults. Its test
 should use a temporary settings file, never the user's.
 

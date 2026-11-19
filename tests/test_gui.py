@@ -9,6 +9,7 @@ import argparse
 import csv
 import math
 import os
+import shutil
 from types import SimpleNamespace
 
 import pytest
@@ -17,16 +18,17 @@ os.environ.setdefault('QT_QPA_PLATFORM', 'offscreen')
 pytest.importorskip('PySide6.QtWidgets')
 pytest.importorskip('pytestqt')
 
-from PySide6.QtCore import QEvent, QPointF                          # noqa: E402
+from PySide6.QtCore import QEvent, QPointF, QSettings               # noqa: E402
 from PySide6.QtGui import QDesktopServices, QEnterEvent             # noqa: E402
 from PySide6.QtWidgets import QApplication, QMessageBox             # noqa: E402
 
 from jcast import main, model, outcomes                             # noqa: E402
-from jcast.gui import command                                       # noqa: E402
+from jcast.gui import command, main_window                         # noqa: E402
 from jcast.gui.app import icon                                      # noqa: E402
 from jcast.gui.main_window import HELP, MainWindow                  # noqa: E402
 from jcast.gui.results_page import SEARCH_MERGED, SEARCH_PSQ, read_output     # noqa: E402
 from jcast.gui.run_page import RunPage                              # noqa: E402
+from jcast.gui.setup_page import DEFAULTS                           # noqa: E402
 from jcast.outcomes import COLUMNS, SPLICE_TYPES                    # noqa: E402
 
 from tests.conftest import DATA, HUMAN_GENOME, HUMAN_GTF, RMATS     # noqa: E402
@@ -36,8 +38,16 @@ STOMACH = DATA / 'model' / 'encode_human_stomach'       # a degenerate fit
 EMPTY = DATA / 'model' / 'encode_mouse_fetalheart'      # header-only rMATS files
 
 
+@pytest.fixture(autouse=True)
+def settings_file(tmp_path_factory, monkeypatch):
+    """ the GUI keeps its settings in a file of the test's, never the user's (PR 26) """
+    path = tmp_path_factory.mktemp('settings') / 'jcast.ini'
+    monkeypatch.setattr(main_window, 'user_settings', lambda: QSettings(str(path), QSettings.IniFormat))
+    return path
+
+
 @pytest.fixture
-def window(qtbot):
+def window(qtbot, settings_file):
     w = MainWindow()
     qtbot.addWidget(w)
     w.show()
@@ -175,6 +185,68 @@ def test_an_output_folder_holding_output(window, tmp_path):
 
     assert window.setup.problems == []
     assert _errors(window)['out'].startswith('This folder holds the output of an earlier run: starting the run asks')
+
+
+# ---- Settings kept between sessions (PR 26) ----
+
+def _another_session(qtbot) -> MainWindow:
+    w = MainWindow()
+    qtbot.addWidget(w)
+    return w
+
+
+def test_a_first_session_has_the_defaults(window, settings_file):
+    assert window.settings.fileName() == str(settings_file)
+    assert window.setup.values() == DEFAULTS and window.model.options() == (False, 1)
+    assert _errors(window) == {}
+
+
+def test_the_settings_are_kept_between_sessions(window, qtbot, tmp_path, cache_dir):
+    """ the Setup page's settings, as each change is checked, and when the window closes; not the cutoff, which is
+    chosen for each rMATS folder on the Model page """
+    _fill(window, tmp_path / 'out', uniprot=UNIPROT, processes=2, splice_types=['RI', 'A5SS'], q_hi=0.05,
+          canonical=True, verbose=True, cache_dir=cache_dir)
+    window.model.read.setValue(7)
+    kept, args = window.setup.values(), window.arguments()
+    assert kept != DEFAULTS and args.read == 7
+
+    assert _another_session(qtbot).setup.values() == kept        # kept as checked
+
+    window.setup.out.setText(str(tmp_path / 'other'))              # not yet checked
+    window.close()
+    again = _another_session(qtbot)
+    assert again.setup.values() == {**kept, 'out': str(tmp_path / 'other')} and again.setup.problems == []
+    assert again.arguments() == argparse.Namespace(**{**vars(args), 'out': str(tmp_path / 'other'), 'read': 1})
+
+
+def test_a_kept_folder_that_is_gone(window, qtbot, tmp_path):
+    """ is shown with its problem, as one typed would be; the fields left empty are not marked until a run starts """
+    folder = _folder_with(tmp_path, 'SE')
+    window.setup.rmats_folder.setText(str(folder))
+    window.close()
+    shutil.rmtree(folder)
+
+    again = _another_session(qtbot)
+    assert again.setup.rmats_folder.text() == str(folder)
+    assert _errors(again) == {'rmats_folder': f'rMATS folder not found: {folder}'}
+
+
+@pytest.mark.parametrize('answer', [QMessageBox.Yes, QMessageBox.No])
+def test_restore_the_defaults(window, qtbot, tmp_path, monkeypatch, answer):
+    """ asks first; the fields marked as required are no longer marked """
+    _fill(window, tmp_path / 'out', uniprot=UNIPROT, processes=2, splice_types=['SE'], q_lo=0.01, canonical=True)
+    filled = window.setup.values()
+    window.setup.gtf_file.setText('')
+    window.setup.show_required()
+    asked = _answer(monkeypatch, answer)
+    window.setup.restore.click()
+
+    assert asked == ['Clear every path and set every option to its default?']
+    if answer == QMessageBox.Yes:
+        assert window.setup.values() == DEFAULTS and _errors(window) == {}
+        assert _another_session(qtbot).setup.values() == DEFAULTS
+    else:
+        assert window.setup.values() == {**filled, 'gtf_file': ''} and _errors(window) == {'gtf_file': 'required'}
 
 
 # ---- Model ----

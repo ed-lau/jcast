@@ -1,0 +1,27 @@
+before: 24bae08
+after: . (the working tree)
+
+== code: 9 files changed; outside jcast/gui/, the tests and the documents: none
+
+== sessions, the settings in Qt's native format, in <work>/settings.plist
+user settings (not written): ~/Library/Preferences/com.jcast.JCAST.plist
+first session: the defaults: True
+second session: the settings filled in: True
+second session: problems: []
+second session: the cutoff: [False, 1]
+second session: the run: {'rmats_folder': 'data/rmats', 'gtf_file': 'data/genome/Homo_sapiens.GRCh38.89.chromosome.15.gtf', 'genome': 'data/genome/Homo_sapiens.GRCh38.dna.chromosome.15.fa.gz', 'out': 'screenshots out', 'overwrite': False, 'cache_dir': 'cache', 'read': 1, 'model': False, 'canonical': True, 'uniprot': 'data/uniprot/uniprot_sprot_human_isoforms_chr15_2026_04.fasta.gz', 'processes': 2, 'verbose': True, 'splice_type': ['RI', 'A5SS'], 'qvalue': [0.0, 0.05]}
+third session, after Restore the defaults: the defaults: True
+
+== <work>/settings.plist after the third session
+setup.cache_dir: ''
+setup.canonical: False
+setup.genome: ''
+setup.gtf_file: ''
+setup.out: ''
+setup.processes: 1
+setup.q_hi: 1.0
+setup.q_lo: 0.0
+setup.rmats_folder: ''
+setup.splice_types: 'MXE,SE,RI,A5SS,A3SS'
+setup.uniprot: ''
+setup.verbose: False

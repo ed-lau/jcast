@@ -2,7 +2,8 @@
 
 """
 The Setup page: the run's inputs, output and options, with the command line's checks (main.validate) shown next to the
-fields. The read count cutoff is set on the Model page (reports/2026-11-13-gui-cli-scope.md §4)
+fields. The read count cutoff is set on the Model page (reports/2026-11-13-gui-cli-scope.md §4). The main window keeps
+the page's settings between sessions (PR 26)
 """
 
 import argparse
@@ -10,7 +11,7 @@ import os
 
 from PySide6.QtCore import QTimer, Signal
 from PySide6.QtWidgets import (QCheckBox, QDoubleSpinBox, QFileDialog, QFormLayout, QGroupBox, QHBoxLayout, QLabel,
-                               QLineEdit, QPushButton, QScrollArea, QSpinBox, QVBoxLayout, QWidget)
+                               QLineEdit, QMessageBox, QPushButton, QScrollArea, QSpinBox, QVBoxLayout, QWidget)
 
 from jcast import main
 from jcast.gui.command import option_tip
@@ -19,6 +20,11 @@ from jcast.outcomes import SPLICE_TYPES
 
 # the fields a run needs
 REQUIRED = ['rmats_folder', 'gtf_file', 'genome', 'out']
+
+# the page's settings (SetupPage.values), as a new page has them; the main window keeps them between sessions
+PATHS = ['rmats_folder', 'gtf_file', 'genome', 'out', 'cache_dir', 'uniprot']
+DEFAULTS = {**{name: '' for name in PATHS}, 'splice_types': ','.join(SPLICE_TYPES), 'q_lo': 0.0, 'q_hi': 1.0,
+            'canonical': False, 'processes': 1, 'verbose': False}
 
 FASTA = 'FASTA (*.fa *.fa.gz *.fasta *.fasta.gz *.fna *.fna.gz);;All files (*)'
 GTF = 'GTF (*.gtf);;All files (*)'
@@ -126,6 +132,14 @@ class SetupPage(QWidget):
         the_run.addRow('', self.verbose)
         self.verbose.setStatusTip(option_tip('verbose'))
 
+        self.restore = QPushButton('Restore the defaults')
+        self.restore.setStatusTip('Clear every path and set every option to its default. The settings of this page '
+                                  'are kept between sessions; the read count cutoff is not.')
+        self.restore.clicked.connect(self._restore_defaults)
+        restore = QHBoxLayout()
+        restore.addStretch()
+        restore.addWidget(self.restore)
+
         page = QWidget()
         column = QVBoxLayout(page)
         for title, form in (('Inputs', inputs), ('Output', output), ('Filters', filters), ('Canonicals', canonicals),
@@ -133,6 +147,7 @@ class SetupPage(QWidget):
             box = QGroupBox(title)
             box.setLayout(form)
             column.addWidget(box)
+        column.addLayout(restore)
         column.addStretch()
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -185,6 +200,34 @@ class SetupPage(QWidget):
                                   splice_type=set(SPLICE_TYPES) if types == SPLICE_TYPES else types,
                                   qvalue=[self.q_lo.value(), self.q_hi.value()],
                                   )
+
+    def values(self) -> dict:
+        """ The page's settings, as DEFAULTS names them: what the main window keeps between sessions """
+        return {**{name: getattr(self, name).text() for name in PATHS},
+                'splice_types': ','.join(t for t, box in self.splice_types.items() if box.isChecked()),
+                'q_lo': self.q_lo.value(), 'q_hi': self.q_hi.value(), 'canonical': self.canonical.isChecked(),
+                'processes': self.processes.value(), 'verbose': self.verbose.isChecked()}
+
+    def set_values(self, values: dict) -> None:
+        """ Set the page's settings, as values gives them, and check them now """
+        for name in PATHS:
+            getattr(self, name).setText(values[name])
+        chosen = values['splice_types'].split(',')
+        for t, box in self.splice_types.items():
+            box.setChecked(t in chosen)
+        self.q_lo.setValue(values['q_lo'])
+        self.q_hi.setValue(values['q_hi'])
+        self.canonical.setChecked(values['canonical'])
+        self.processes.setValue(values['processes'])      # after --uniprot, which -p needs
+        self.verbose.setChecked(values['verbose'])
+        self.refresh()
+
+    def _restore_defaults(self) -> None:
+        if QMessageBox.question(self, 'Restore the defaults?', 'Clear every path and set every option to its '
+                                'default?') != QMessageBox.Yes:
+            return
+        self._show_required = False
+        self.set_values(DEFAULTS)
 
     def show_required(self) -> None:
         """ Show the fields a run needs that are empty: a run was started without them """
