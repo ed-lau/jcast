@@ -39,10 +39,12 @@ cutoffs.
   - `82698c4`: the check of the maintainer's `--statoff` reruns (report
     §17.4), and the decisions of 2026-11-19;
   - `24bee2a`: PR 25, the offline tests never connect to the internet,
-    and the commit recording its hash.
+    and the commit recording its hash;
+  - `4fef85b`: PR 26, the GUI keeps the Setup page's settings between
+    sessions, and the commit recording its hash.
 
   Not pushed since `0986558`.
-- **Tests:** 250, all passing; 247 offline
+- **Tests:** 255, all passing; 252 offline
   (`python -m pytest -q -m 'not network'`, about 2 minutes). Since PR 25,
   a test not marked `network` fails if it connects to the internet. Run only
   the fast ones with `-m 'not slow'`. The GUI's 17 (`tests/test_gui.py`)
@@ -713,7 +715,7 @@ Output changes only after a decision.
 
 ### 3. The GUI remembers its settings
 
-**Done in PR 26 (2026-11-19, scope report §14).** Decided 2026-11-18 (it
+**Done in PR 26 (`4fef85b`, scope report §14).** Decided 2026-11-18 (it
 was under Later): the GUI keeps its settings between sessions. A small PR: `QSettings` for the Setup page's paths and
 options, restored at start, with a way back to the defaults. Its test
 should use a temporary settings file, never the user's.
