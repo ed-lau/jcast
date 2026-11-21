@@ -99,7 +99,9 @@ def read_events(rmats_dir) -> pd.DataFrame:
                                  'I': list(ijc), 'S': list(sjc)}))
     ev = pd.concat(out, ignore_index=True)
     ev['min_jc'] = np.minimum(ev['ijc'], ev['sjc'])
-    return ev
+    # as JCAST reads the folder since PR 24 (junctions._with_reads): without the events of read count 0 or a form of
+    # no length, which a folder made with statistics does not have and one made with --statoff does (§15.8)
+    return ev[(ev['min_jc'] > 0) & (ev['inc_len'] != 0) & (ev['skip_len'] != 0)].reset_index(drop=True)
 
 
 def distinct(counts) -> tuple:

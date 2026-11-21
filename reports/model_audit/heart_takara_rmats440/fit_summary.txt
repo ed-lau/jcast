@@ -1,0 +1,5 @@
+/Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/rmats: 346082 events, 2855 distinct counts
+general_mixture_model: cutoff 16, parameters (np.float64(4.757553132203782), np.float64(3.154669425292555), np.float64(3.7994287014927632), 1.4785189252869126, np.float64(0.689225720262676), np.float64(0.310774279737324))
+em (weighted, distinct counts): cutoff 16, parameters (np.float64(4.75755313220377), np.float64(3.1546694252925462), np.float64(3.7994287014927646), 1.4785189252869129, np.float64(0.6892257202626767), np.float64(0.3107742797373234)); same: True
+junctions with a count of 1: 54408 (15.7%); kept at the cutoff: 0.2731
+bootstrap (100): cutoffs 15 to 17, 2.5-97.5%: 16.0 to 16.52499999999999

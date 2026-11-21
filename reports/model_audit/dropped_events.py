@@ -8,6 +8,10 @@ have a length (rmats.py, filter_countfile, rMATS 4.4.0). An event whose reads al
 is not given an NA p-value. With --statoff nothing is dropped, and every PValue and FDR is NA. This compares a folder
 made with statistics against a post step with --statoff on the same prep files (the same events and IDs).
 
+Without --rmats (§19, the heart folders, made with --statoff only), the events the statistics would keep are those
+that pass filter_countfile's conditions, from the --statoff folder's counts and form lengths. With --rmats, the
+conditions are checked against it: they keep exactly its events.
+
 The read count is JCAST's (Junction.min_jc): the smaller of the inclusion and skipping counts, each summed over both
 groups and their replicates.
 
@@ -32,6 +36,9 @@ Usage (from the repository root):
     python reports/model_audit/dropped_events.py --rmats <dir> --statoff <dir> --out <dir>
         --records <records.tsv> --dropped_records <records.tsv> --dropped_run <-r 1 output dir of --dropped>
         --uniprot <FASTA> --gencode <pc_translations.fa.gz> --gtf <gtf> [--cache_dir <dir>] [--salmon <dir>]
+    python reports/model_audit/dropped_events.py --statoff <dir> --out <dir>
+        --records <records.tsv of a -r 1 run on --statoff> --dropped_run <that run's output dir>
+        --uniprot <FASTA> --gencode <pc_translations.fa.gz> --gtf <gtf> [--cache_dir <dir>] [--salmon <dir>]
 """
 
 import argparse
@@ -50,24 +57,30 @@ REASONS = ['no reads', 'one form only', 'no reads in group 1', 'no reads in grou
 
 
 def events(rmats_dir, statoff_dir) -> pd.DataFrame:
-    """ every event of the --statoff folder: its counts, whether rMATS kept it with statistics on, why not, and
-    whether rMATS calls it novel """
+    """ every event of the --statoff folder: its counts, whether rMATS kept it with statistics on (in --rmats, or
+    without it by filter_countfile's conditions), whether those conditions keep it, why not, and whether rMATS calls
+    it novel """
     out = []
     for st in cr.SPLICE_TYPES:
-        kept = set(pd.read_csv(Path(rmats_dir) / f'{st}.MATS.JC.txt', sep='\t', usecols=['ID'])['ID'])
         m = pd.read_csv(Path(statoff_dir) / f'{st}.MATS.JC.txt', sep='\t',
                         usecols=['ID', 'GeneID', 'geneSymbol', *COUNTS, 'IncFormLen', 'SkipFormLen'])
-        missing = kept - set(m['ID'])
-        if missing:
-            raise ValueError(f'{st}: {len(missing)} events kept with statistics are not in the --statoff folder')
         i1, s1, i2, s2 = (summed(m[c]) for c in COUNTS)
+        passes = ((i1 + s1 > 0) & (i2 + s2 > 0) & (i1 + i2 > 0) & (s1 + s2 > 0) & (m['IncFormLen'] > 0)
+                  & (m['SkipFormLen'] > 0))
+        if rmats_dir is None:
+            kept = set(m.loc[passes, 'ID'])
+        else:
+            kept = set(pd.read_csv(Path(rmats_dir) / f'{st}.MATS.JC.txt', sep='\t', usecols=['ID'])['ID'])
+            missing = kept - set(m['ID'])
+            if missing:
+                raise ValueError(f'{st}: {len(missing)} events kept with statistics are not in the --statoff folder')
         novel = set()
         for kind in ['novelJunction', 'novelSpliceSite']:
             novel |= set(pd.read_csv(Path(statoff_dir) / f'fromGTF.{kind}.{st}.txt', sep='\t', usecols=['ID'])['ID'])
         e = pd.DataFrame({'splice_type': st, 'ID': m['ID'], 'gene_id': m['GeneID'], 'gene': m['geneSymbol'],
                           'group1': (i1 + s1).astype(int), 'group2': (i2 + s2).astype(int),
                           'min_jc': np.minimum(i1 + i2, s1 + s2).astype(int), 'kept': m['ID'].isin(kept),
-                          'novel': m['ID'].isin(novel)})
+                          'passes': passes.to_numpy(), 'novel': m['ID'].isin(novel)})
         e['reason'] = np.select([e['kept'], e['group1'] + e['group2'] == 0, e['min_jc'] == 0, e['group1'] == 0,
                                  e['group2'] == 0],
                                 ['', 'no reads', 'one form only', 'no reads in group 1', 'no reads in group 2'],
@@ -137,10 +150,17 @@ def write_dropped(ev, statoff_dir, dropped_dir):
         m.to_csv(Path(dropped_dir) / f'{st}.MATS.JC.txt', sep='\t', index=False)
 
 
-def measure(a, cutoffs) -> pd.DataFrame:
-    kept = cr.read_records(a.records)
-    drop = cr.read_records(a.dropped_records)
+def measure(a, cutoffs, ev) -> pd.DataFrame:
     jx = pd.read_csv(Path(a.dropped_run) / 'junctions.tsv', sep='\t', dtype={'junction_id': str})
+    if a.dropped_records:
+        kept = cr.read_records(a.records)
+        drop = cr.read_records(a.dropped_records)
+    else:                       # one -r 1 run on --statoff: its records and junctions, split by event
+        dropped = set(ev.loc[~ev['kept'], 'splice_type'] + ':' + ev.loc[~ev['kept'], 'ID'].astype(str))
+        rec = cr.read_records(a.records)
+        of_dropped = (rec['splice_type'] + ':' + rec['junction_id']).isin(dropped)
+        kept, drop = rec[~of_dropped], rec[of_dropped]
+        jx = jx[(jx['junction_type'] + ':' + jx['junction_id']).isin(dropped)]
     sp_iso, sp_can, sp_all = cr.swissprot(a.uniprot)
     gc, translations = cr.gencode(a.gencode, a.gtf, a.cache_dir, sp_can)
     known = {'Swiss-Prot isoforms': sp_iso, 'GENCODE alternative proteins': gc['GENCODE']}
@@ -174,12 +194,15 @@ def measure(a, cutoffs) -> pd.DataFrame:
 
 def main():
     p = argparse.ArgumentParser(description=__doc__.split('\n\n')[0])
-    p.add_argument('--rmats', required=True, help='the rMATS folder, statistics on, as JCAST reads it')
+    p.add_argument('--rmats', default=None, help='the rMATS folder, statistics on, as JCAST reads it; without it, '
+                                                 "filter_countfile's conditions on --statoff")
     p.add_argument('--statoff', required=True, help="a post step with --statoff on the same samples' prep files")
     p.add_argument('--dropped', default=None, help='prepare: write the dropped events here, as an rMATS folder')
-    p.add_argument('--records', default=None, help='measure: the audit records of the -r 1 run on --rmats')
+    p.add_argument('--records', default=None, help='measure: the audit records of the -r 1 run on --rmats (without '
+                                                   '--dropped_records: on --statoff)')
     p.add_argument('--dropped_records', default=None, help='measure: the audit records of the -r 1 run on --dropped')
-    p.add_argument('--dropped_run', default=None, help='measure: that run\'s output dir')
+    p.add_argument('--dropped_run', default=None, help='measure: that run\'s output dir (without --dropped_records: '
+                                                       'the run on --statoff)')
     p.add_argument('--uniprot')
     p.add_argument('--gencode')
     p.add_argument('--gtf')
@@ -192,6 +215,9 @@ def main():
 
     ev = events(a.rmats, a.statoff)
     lines = model_cutoffs(ev)
+    if a.rmats:
+        lines.append(f"filter_countfile's conditions on the --statoff counts keep exactly the events of --rmats: "
+                     f"{bool((ev['kept'] == ev['passes']).all())} ({int(ev['passes'].sum())} events pass)")
     cutoff, statoff_cutoff = (int(line.split(': ')[1].split(' ')[0]) for line in lines[:2])
     bt = by_type(ev, cutoff)
     bt.to_csv(out / 'dropped.tsv', sep='\t', index=False)
@@ -208,7 +234,7 @@ def main():
     if a.dropped:
         write_dropped(ev, a.statoff, a.dropped)
     if a.records:
-        kn = measure(a, [cutoff, statoff_cutoff])
+        kn = measure(a, [cutoff, statoff_cutoff], ev)
         kn.to_csv(out / 'dropped_known.tsv', sep='\t', index=False)
         print(kn.to_string(index=False))
 

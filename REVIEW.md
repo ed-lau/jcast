@@ -782,6 +782,22 @@ Since PR 20, a fit that fails for any reason falls back to `-r` too.
     (§15.8);
   - the Model page shows, for now, only the charts that need no run
     (§16.2).
+- Two human heart folders and the search databases, 2026-11-21
+  ([§19](reports/2026-11-15-read-count-model-audit.md#19-human-heart-two-data-sets-and-the-databases-for-the-search)):
+  - ENCODE (2 fetal, 5 adult) and Takara (1 fetal, 1 adult), made with
+    `--statoff`, change no principal conclusion. `-m` is 16 reads in
+    both, a share again (26–27% of junctions) at a fraction of the
+    other data sets' depth;
+  - the novel-only rule keeps more Swiss-Prot isoforms at every size,
+    but on the Takara folder 1–50 fewer expressed GENCODE isoforms: the
+    first data set where it does not win on every measure. At `-m`'s
+    size the best pair keeps no novel event;
+  - the maintainer's `-m` runs equal the `-r 1` records cut at 16; the
+    novel-only databases (`jcast_novel_only/`) are built and checked,
+    each containing its `-m` database, for the quantms search;
+  - a fetal against adult design under rMATS's statistics would drop
+    5.4–5.6% of events, mostly with few reads, and raise `-m` by 2–3
+    reads.
 
 ---
 

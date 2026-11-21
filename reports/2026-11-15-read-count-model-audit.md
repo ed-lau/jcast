@@ -2,18 +2,19 @@
 
 | | |
 |---|---|
-| **Date** | 2026-11-15; §§4–13 added 2026-11-16; §§14–17 and the answers to §§13 and 15.7 on 2026-11-18; §17.4 and §18 on 2026-11-19 |
-| **Status** | Measured on three data sets. The maintainer answered §13 on 2026-11-18: the model is kept, and the pair of cutoffs waits for a search against spectra (§16.1). The third data set, iPSC differentiation (§14), changes no conclusion. rMATS's statistics drop the events that one condition does not express (§15); the maintainer adopted §15.7, and JCAST reads folders made with `--statoff` or from one sample since PR 24 (§17). The maintainer remade the three folders with `--statoff` and reran JCAST; the runs give §15.8's numbers (§17.4). The Model page's two charts that need no run are in PR 27 (§18, `8e0d747`). Before 2026-11-18: measured; decisions requested (§13). Which known protein-coding isoforms a cutoff loses (§3), the same on rMATS 4.4.0 (§4) and on a second data set, mouse heart (§5); genes against the proteins PaxDb finds in heart (§6); the model's fit to the counts (§8); two cutoffs, for annotated and novel events (§9); the NMDI14 test (§10). The maintainer's steer of 2026-11-16: the annotated and novel rule over a cutoff per splice type (§11), and a Model page that shows what a cutoff keeps (§12). A third data set is to come. |
+| **Date** | 2026-11-15; §§4–13 added 2026-11-16; §§14–17 and the answers to §§13 and 15.7 on 2026-11-18; §17.4 and §18 on 2026-11-19; §19 on 2026-11-21 |
+| **Status** | Measured on five data sets. Two human heart folders, fetal against adult, change no principal conclusion, but on one of them the novel-only rule loses a little on expressed GENCODE isoforms; the maintainer's `-m` runs on them check out, and the two databases for the search are built (§19, 2026-11-21). Before 2026-11-21: measured on three data sets. The maintainer answered §13 on 2026-11-18: the model is kept, and the pair of cutoffs waits for a search against spectra (§16.1). The third data set, iPSC differentiation (§14), changes no conclusion. rMATS's statistics drop the events that one condition does not express (§15); the maintainer adopted §15.7, and JCAST reads folders made with `--statoff` or from one sample since PR 24 (§17). The maintainer remade the three folders with `--statoff` and reran JCAST; the runs give §15.8's numbers (§17.4). The Model page's two charts that need no run are in PR 27 (§18, `8e0d747`). Before 2026-11-18: measured; decisions requested (§13). Which known protein-coding isoforms a cutoff loses (§3), the same on rMATS 4.4.0 (§4) and on a second data set, mouse heart (§5); genes against the proteins PaxDb finds in heart (§6); the model's fit to the counts (§8); two cutoffs, for annotated and novel events (§9); the NMDI14 test (§10). The maintainer's steer of 2026-11-16: the annotated and novel rule over a cutoff per splice type (§11), and a Model page that shows what a cutoff keeps (§12). A third data set is to come. |
 | **Question** | Does the `-m` model fit junction read counts? Should each splice type have its own cutoff? Does a cutoff lose bona fide protein-coding isoforms? ([REVIEW.md §5.6](../REVIEW.md#56--the-modeled-read-cutoff-is-a-weakly-identified-heuristic--new), roadmap row 23, asked for on 2026-11-14.) Mass spectrometry, the decisive test, was deferred by the maintainer on 2026-11-15 as a future research item: no RNA-seq here has spectra from the same samples, and the result would depend on the spectra's depth. On 2026-11-16 the maintainer re-ran rMATS, added the mouse data set, and asked for the PaxDb comparison. |
-| **Reproduce** | Run JCAST at `-r 1` with [audit_records.diff](model_audit/audit_records.diff) applied and `JCAST_AUDIT_RECORDS=<records.tsv>` set (8–11 min with `-p 10` to `-p 16`), then `python reports/model_audit/cutoff_recovery.py --records <records.tsv> --run <output dir> --rmats <dir> --uniprot <FASTA> --gencode <pc_translations.fa.gz> --gtf <gtf> [--cache_dir <dir>] [--salmon <dir>] [--paxdb <file>] [--check <output dir>:<cutoff> …] [--model_cutoff <n>] --out <dir>` (about 1 min with the GTF cache). §4.1: `python reports/model_audit/rmats_versions.py --old <rMATS 4.1.0 dir> --new <rMATS 4.4.0 dir> --out <dir>`. §8: `python reports/model_audit/model_fit.py --rmats <dir> --out <dir>` (3–8 min), and `--bundled tests/data/model` (offline, 10 min). §9: `python reports/model_audit/two_cutoffs.py` with `cutoff_recovery.py`'s inputs (5 min). §14: §§4, 8 and 9's steps on the third folder. §15: rMATS's post step again with `--statoff` and the folder's options (`rmats.py --task post --statoff`, `--tmp` a folder of links to its `.rmats` files), then `python reports/model_audit/dropped_events.py --rmats <dir> --statoff <dir> --dropped <dir> --out <dir>`, a `-r 1` run with the audit switch on the `--dropped` folder, and `dropped_events.py` again with `--records <records.tsv> --dropped_records <records.tsv> --dropped_run <dir>` and `cutoff_recovery.py`'s known sets (1 min). §16.1: [novel_only.diff](model_audit/novel_only.diff), `JCAST_AUDIT_ANNOTATED_CUTOFF=1` with `-m`, checked with `cutoff_recovery.py --check_novel_only <dir>:<cutoff>`. §17: `python reports/model_audit/verify_24.py --before <checkout> --after <checkout> [--folder <label>=<dir> …] [--union <statoff run>,<statistics run>,<dropped run>]` (4 min with three whole-genome data sets). §17.4: `python reports/model_audit/check_reruns.py --set <label>=<rMATS --statoff>,<JCAST on it>,<rMATS with statistics>,<JCAST on it>,<Swiss-Prot FASTA> …` (1 min). §18: `python reports/model_audit/verify_27.py --before <checkout> --after <checkout> [--folder <label>=<rMATS> …] [--bins <label>=<rMATS>,<-r 1 output dir>,<bins.tsv> …] [--run <label>=<rMATS>,<output dir> …] [--screenshot <rMATS>]`. §10: `python reports/model_audit/nmd_response.py --rmats <dir> --run <-r 1 output dir> --targets <DTE_significant_NMD_targets.csv> --dte <DTE_results_NMD_vs_DMSO.csv> --gtf <gtf> [--cache_dir <dir>] --out <dir>` (1 min). |
-| **Inputs** | Not bundled. **Human** (`20240514_Boomi_NMDI_RNASeq`): iPSC-derived cardiomyocytes, 3 DMSO and 3 NMDI14, 2 × 150 nt; GENCODE v50, GRCh38; Swiss-Prot human with isoforms of 2026-11-11 (42,545 entries); GENCODE v50 translations (`gencode.v50.pc_translations.fa.gz`, sha256 `5d6408c3…`); the folder's Salmon quantifications. rMATS 4.1.0 (§3: `rmats_4_1_0/`, 599,644 events; run at `3bfb12a`) and 4.4.0 (§4: `rmats_4_4_0_stat/`, `rmats/` until 2026-11-18, 623,738 events; run at `da06619`). **Mouse** (§5, `GSE49906_MouseHeart_RNASeq`): ventricles of FVB mice at E17, P1, P10, P28 and P90, one each, 2 × 100 nt ([Giudice et al. 2014](https://doi.org/10.1038/ncomms4603)); rMATS 4.4.0 (294,320 events); GENCODE vM39, GRCm39; Swiss-Prot mouse with isoforms of 2026-11-15 (25,764 entries); GENCODE vM39 translations (sha256 `bb90bb10…`); Salmon. All runs `-r 1 -c --uniprot`. **PaxDb** 6.1 (§6), downloaded 2026-11-16: `10090-HEART-integrated.txt` (sha256 `e7c4694b…`) and `9606-HEART-integrated.txt` (`835d4ca5…`). **§10:** the human folder's DESeq2 transcript results, `R/01_out/DTE_results_NMD_vs_DMSO.csv` and `DTE_significant_NMD_targets.csv`. **iPSC differentiation** (§14, `2019_iPSC_Diff_RNA`): 12 samples, three at each of four stages, 2 × 150 nt; rMATS 4.4.0 (1,436,384 events), days 0 and 2 against days 7 and 14; the human references above; Salmon. **§15:** rMATS 4.4.0 from bioconda (osx-arm64, Python 3.11), the post step with `--statoff` on each folder's prep files. |
-| **Evidence** | One folder per run, each with `summary.txt` (the known sets and the check), `recovery.tsv` (per cutoff), `recovery_novel_only.tsv` and `tradeoff.tsv` (the cutoff on novel events only), `bins.tsv` (per read count and splice type), `expression.tsv`, the charts, and `r1_logfile.log` (the `-r 1` run, with its inputs' hashes): [human_rmats410/](model_audit/human_rmats410/) (§3), [human_rmats440/](model_audit/human_rmats440/) (§4) and [mouse_rmats440/](model_audit/mouse_rmats440/) (§5). The last two also have `rmats_versions.tsv` (§4.1), `genes.tsv`, `paxdb.tsv`, `paxdb_by_count.tsv` and `paxdb.png` (§6), and `pairs.tsv`, `frontier.tsv`, `gtf_calls.tsv` and `pairs.png` (§9). Each has `fit.tsv`, `rootogram.tsv`, `stability.tsv`, `subsets.tsv`, `depth.tsv`, `form.tsv`, `fit.png` and `fit_summary.txt` (§8); [bundled/](model_audit/bundled/) the bundled folders' fits; human_rmats440/ `nmd*.tsv` and `nmd.png` (§10). [ipsc_diff_rmats440/](model_audit/ipsc_diff_rmats440/) has all of these but §10's (§14). The three 4.4.0 folders have `dropped.tsv`, `dropped_bins.tsv`, `dropped_genes.tsv`, `dropped_model.txt`, `dropped_known.tsv` and `dropped_r1_logfile.log` (the `-r 1` run on the dropped events) (§15); ipsc_diff_rmats440/ also `novel_only_logfile.log` (§16.1). [verify_24/](model_audit/verify_24/) has PR 24's verification (§17) and the maintainer's reruns (`reruns.txt`, §17.4); [verify_27/](model_audit/verify_27/) has PR 27's (§18). Scripts: [cutoff_recovery.py](model_audit/cutoff_recovery.py), [rmats_versions.py](model_audit/rmats_versions.py), [model_fit.py](model_audit/model_fit.py), [two_cutoffs.py](model_audit/two_cutoffs.py), [nmd_response.py](model_audit/nmd_response.py), [dropped_events.py](model_audit/dropped_events.py), [verify_24.py](model_audit/verify_24.py), [check_reruns.py](model_audit/check_reruns.py), [verify_27.py](model_audit/verify_27.py), [audit_records.diff](model_audit/audit_records.diff), [novel_only.diff](model_audit/novel_only.diff). |
+| **Reproduce** | Run JCAST at `-r 1` with [audit_records.diff](model_audit/audit_records.diff) applied and `JCAST_AUDIT_RECORDS=<records.tsv>` set (8–11 min with `-p 10` to `-p 16`), then `python reports/model_audit/cutoff_recovery.py --records <records.tsv> --run <output dir> --rmats <dir> --uniprot <FASTA> --gencode <pc_translations.fa.gz> --gtf <gtf> [--cache_dir <dir>] [--salmon <dir>] [--paxdb <file>] [--check <output dir>:<cutoff> …] [--model_cutoff <n>] --out <dir>` (about 1 min with the GTF cache). §4.1: `python reports/model_audit/rmats_versions.py --old <rMATS 4.1.0 dir> --new <rMATS 4.4.0 dir> --out <dir>`. §8: `python reports/model_audit/model_fit.py --rmats <dir> --out <dir>` (3–8 min), and `--bundled tests/data/model` (offline, 10 min). §9: `python reports/model_audit/two_cutoffs.py` with `cutoff_recovery.py`'s inputs (5 min). §14: §§4, 8 and 9's steps on the third folder. §15: rMATS's post step again with `--statoff` and the folder's options (`rmats.py --task post --statoff`, `--tmp` a folder of links to its `.rmats` files), then `python reports/model_audit/dropped_events.py --rmats <dir> --statoff <dir> --dropped <dir> --out <dir>`, a `-r 1` run with the audit switch on the `--dropped` folder, and `dropped_events.py` again with `--records <records.tsv> --dropped_records <records.tsv> --dropped_run <dir>` and `cutoff_recovery.py`'s known sets (1 min). §16.1: [novel_only.diff](model_audit/novel_only.diff), `JCAST_AUDIT_ANNOTATED_CUTOFF=1` with `-m`, checked with `cutoff_recovery.py --check_novel_only <dir>:<cutoff>`. §17: `python reports/model_audit/verify_24.py --before <checkout> --after <checkout> [--folder <label>=<dir> …] [--union <statoff run>,<statistics run>,<dropped run>]` (4 min with three whole-genome data sets). §17.4: `python reports/model_audit/check_reruns.py --set <label>=<rMATS --statoff>,<JCAST on it>,<rMATS with statistics>,<JCAST on it>,<Swiss-Prot FASTA> …` (1 min). §18: `python reports/model_audit/verify_27.py --before <checkout> --after <checkout> [--folder <label>=<rMATS> …] [--bins <label>=<rMATS>,<-r 1 output dir>,<bins.tsv> …] [--run <label>=<rMATS>,<output dir> …] [--screenshot <rMATS>]`. §19: §§4, 8, 9 and 16.1's steps on each heart folder (`--check <jcast/>:16 --check_novel_only <jcast_novel_only/>:16`), `dropped_events.py --statoff <dir> --records <records.tsv> --dropped_run <-r 1 output dir> …` without `--rmats` (the statistics' filter from the counts), and `python reports/model_audit/check_databases.py --db <label>=<output dir> … --uniprot <FASTA> [--pair <label>,<label> …] --out <file>` (15 s). §10: `python reports/model_audit/nmd_response.py --rmats <dir> --run <-r 1 output dir> --targets <DTE_significant_NMD_targets.csv> --dte <DTE_results_NMD_vs_DMSO.csv> --gtf <gtf> [--cache_dir <dir>] --out <dir>` (1 min). |
+| **Inputs** | Not bundled. **Human** (`20240514_Boomi_NMDI_RNASeq`): iPSC-derived cardiomyocytes, 3 DMSO and 3 NMDI14, 2 × 150 nt; GENCODE v50, GRCh38; Swiss-Prot human with isoforms of 2026-11-11 (42,545 entries); GENCODE v50 translations (`gencode.v50.pc_translations.fa.gz`, sha256 `5d6408c3…`); the folder's Salmon quantifications. rMATS 4.1.0 (§3: `rmats_4_1_0/`, 599,644 events; run at `3bfb12a`) and 4.4.0 (§4: `rmats_4_4_0_stat/`, `rmats/` until 2026-11-18, 623,738 events; run at `da06619`). **Mouse** (§5, `GSE49906_MouseHeart_RNASeq`): ventricles of FVB mice at E17, P1, P10, P28 and P90, one each, 2 × 100 nt ([Giudice et al. 2014](https://doi.org/10.1038/ncomms4603)); rMATS 4.4.0 (294,320 events); GENCODE vM39, GRCm39; Swiss-Prot mouse with isoforms of 2026-11-15 (25,764 entries); GENCODE vM39 translations (sha256 `bb90bb10…`); Salmon. All runs `-r 1 -c --uniprot`. **PaxDb** 6.1 (§6), downloaded 2026-11-16: `10090-HEART-integrated.txt` (sha256 `e7c4694b…`) and `9606-HEART-integrated.txt` (`835d4ca5…`). **§10:** the human folder's DESeq2 transcript results, `R/01_out/DTE_results_NMD_vs_DMSO.csv` and `DTE_significant_NMD_targets.csv`. **iPSC differentiation** (§14, `2019_iPSC_Diff_RNA`): 12 samples, three at each of four stages, 2 × 150 nt; rMATS 4.4.0 (1,436,384 events), days 0 and 2 against days 7 and 14; the human references above; Salmon. **§15:** rMATS 4.4.0 from bioconda (osx-arm64, Python 3.11), the post step with `--statoff` on each folder's prep files. **Human heart** (§19): `ENCODE_HumanHeart_RNASeq`, 2 fetal and 5 adult samples, 2 × 101 nt, and `GSE256519_Takara_Heart_RNASeq`, 1 fetal and 1 adult, 2 × 150 nt; both stranded, rMATS 4.4.0 with `--statoff` and `--novelSS`; the human references above (the ENCODE folder's copies have the same sha256); Salmon. |
+| **Evidence** | One folder per run, each with `summary.txt` (the known sets and the check), `recovery.tsv` (per cutoff), `recovery_novel_only.tsv` and `tradeoff.tsv` (the cutoff on novel events only), `bins.tsv` (per read count and splice type), `expression.tsv`, the charts, and `r1_logfile.log` (the `-r 1` run, with its inputs' hashes): [human_rmats410/](model_audit/human_rmats410/) (§3), [human_rmats440/](model_audit/human_rmats440/) (§4) and [mouse_rmats440/](model_audit/mouse_rmats440/) (§5). The last two also have `rmats_versions.tsv` (§4.1), `genes.tsv`, `paxdb.tsv`, `paxdb_by_count.tsv` and `paxdb.png` (§6), and `pairs.tsv`, `frontier.tsv`, `gtf_calls.tsv` and `pairs.png` (§9). Each has `fit.tsv`, `rootogram.tsv`, `stability.tsv`, `subsets.tsv`, `depth.tsv`, `form.tsv`, `fit.png` and `fit_summary.txt` (§8); [bundled/](model_audit/bundled/) the bundled folders' fits; human_rmats440/ `nmd*.tsv` and `nmd.png` (§10). [ipsc_diff_rmats440/](model_audit/ipsc_diff_rmats440/) has all of these but §10's (§14). The three 4.4.0 folders have `dropped.tsv`, `dropped_bins.tsv`, `dropped_genes.tsv`, `dropped_model.txt`, `dropped_known.tsv` and `dropped_r1_logfile.log` (the `-r 1` run on the dropped events) (§15); ipsc_diff_rmats440/ also `novel_only_logfile.log` (§16.1). [verify_24/](model_audit/verify_24/) has PR 24's verification (§17) and the maintainer's reruns (`reruns.txt`, §17.4); [verify_27/](model_audit/verify_27/) has PR 27's (§18). [heart_encode_rmats440/](model_audit/heart_encode_rmats440/) and [heart_takara_rmats440/](model_audit/heart_takara_rmats440/) have the files of §14's folder, §15's (the filter from the counts) and `novel_only_logfile.log` (§19); [heart_databases.txt](model_audit/heart_databases.txt) the four search databases' checks, and [filter_check.txt](model_audit/filter_check.txt) the filter from the counts against the folders made with statistics. Scripts: [cutoff_recovery.py](model_audit/cutoff_recovery.py), [rmats_versions.py](model_audit/rmats_versions.py), [model_fit.py](model_audit/model_fit.py), [two_cutoffs.py](model_audit/two_cutoffs.py), [nmd_response.py](model_audit/nmd_response.py), [dropped_events.py](model_audit/dropped_events.py), [verify_24.py](model_audit/verify_24.py), [check_reruns.py](model_audit/check_reruns.py), [verify_27.py](model_audit/verify_27.py), [check_databases.py](model_audit/check_databases.py), [audit_records.diff](model_audit/audit_records.diff), [novel_only.diff](model_audit/novel_only.diff). |
 
 ## 1. Summary
 
-Four runs: the human cells through rMATS 4.1.0 (§3) and 4.4.0 (§4),
-mouse ventricles through 4.4.0 (§5), and an iPSC differentiation series
-through 4.4.0 (§14).
+Six runs: the human cells through rMATS 4.1.0 (§3) and 4.4.0 (§4),
+mouse ventricles through 4.4.0 (§5), an iPSC differentiation series
+through 4.4.0 (§14), and two human heart folders, fetal against adult,
+through 4.4.0 with `--statoff` (§19).
 
 - **One run at `-r 1` gives every cutoff.** An audit-only switch records
   each junction's records, even those JCAST does not write again, with
@@ -128,6 +129,30 @@ through 4.4.0 (§14).
   - The maintainer's own `--statoff` runs, after the fix, give exactly
     these numbers, and keep every junction and sequence of the earlier
     runs (§17.4).
+- **Two human heart folders change no principal conclusion** (§19):
+  ENCODE (2 fetal, 5 adult samples) and Takara (1 and 1).
+  - **Shallower:** 0.56–1.26 billion junction reads, against 3.3–19.2.
+    `-m` is 16 reads in both and keeps 26–27% of the junctions: a share,
+    as §8 found. It keeps 39% of the database records and 60–62% of the
+    Swiss-Prot isoforms.
+  - **The maintainer's `-m` runs check out:** the `-r 1` records cut at
+    16 equal them exactly, and their databases are fit for a search.
+  - **The novel-only rule** keeps 99–395 more Swiss-Prot isoforms at
+    equal size. In ENCODE it also wins on expressed GENCODE isoforms; in
+    Takara it keeps 1–50 fewer, the first data set where it does not win
+    on every measure.
+  - **Novel events gain the frame with reads** in heart (31% at 1 read,
+    36–40% from 16), as in the mouse ventricles, unlike the cultured
+    cells.
+  - **At `-m`'s size, the best pair keeps no novel event:** every
+    annotated event with 8 or 10 reads. Known isoforms cannot credit
+    a novel event; the search can.
+  - **Fetal against adult under rMATS's statistics** would drop 5.4–5.6%
+    of the events, mostly with few reads, and raise `-m` to 18–19.
+    `--statoff` avoided it.
+  - **The two databases for the search:** `-m` (1.44–1.45 times
+    Swiss-Prot's size) and `-m` on novel events only (1.92–1.93), each
+    containing the first.
 
 ## 2. The model now
 
@@ -1801,6 +1826,10 @@ What the search could compare between the two databases:
 `--statoff` for JCAST's folder is adopted (§15.7), so the heart folder
 should be made that way, and both runs made after the fix.
 
+**Built for both heart folders on 2026-11-21** (§19.10): the
+maintainer's `-m` runs (`jcast/`) and the novel-only runs
+(`jcast_novel_only/`).
+
 ### 16.2 The Model page
 
 The maintainer's choice (§13, answer 4), and what each chart needs. The
@@ -2084,3 +2113,404 @@ novel, in both files):
 And `tests/test_gui.py::test_the_charts_of_what_a_cutoff_keeps`: the
 tabs; the label against the table at `-r 1`, at `-m` and after a click
 on the chart; the charts drawn again for other splice types and `-q`.
+
+## 19. Human heart: two data sets, and the databases for the search
+
+### 19.1 The data
+
+The maintainer added two human heart folders on 2026-11-20 and
+2026-11-21. Both compare fetal with adult hearts, and both were made
+with rMATS 4.4.0 and `--statoff`, as §15.7 recommends:
+
+| | ENCODE heart | Takara heart |
+|---|---|---|
+| folder | `ENCODE_HumanHeart_RNASeq` | `GSE256519_Takara_Heart_RNASeq` |
+| samples, as their names have it | fetal hearts at 19 and 28 weeks; an adult heart (a 34-year-old man); the left ventricle and right atrial appendage of two women (51, 53) | one fetal heart, one adult heart |
+| groups (`b1` / `b2`) | 2 fetal / 5 adult | 1 fetal / 1 adult |
+| reads | 2 × 101 nt | 2 × 150 nt |
+| reads rMATS used (all BAMs) | 862 million | 566 million |
+| junction reads (summed counts, every event) | 1.26 billion | 0.56 billion |
+| events rMATS found / JCAST reads | 607,277 / 377,950 | 561,185 / 346,082 |
+| novel (rMATS), of the events JCAST reads | 49.0% | 41.6% |
+| the maintainer's `-m` run (`jcast/`) | 16 reads | 16 reads |
+
+- **Shallower than the other three data sets.** Those have 6.05 (NMDI14
+  cells), 3.32 (mouse) and 19.2 billion (iPSC) junction reads. Fewer of
+  the heart events are novel, too: 65%, 53% and 81% there (§18.3).
+- **The other inputs are §4's.** GENCODE v50 and GRCh38: the ENCODE
+  folder's own copies of the GTF and the genome have the NMDI14
+  folder's sha256. Swiss-Prot of 2026-11-11 (sha256 `d0100c8d…`, as in
+  the NMDI14 and iPSC runs), and each folder's Salmon quantifications.
+- **The pipelines' rMATS options:** `-t paired --readLength <101 | 150>
+  --variable-read-length --libType fr-firststrand --novelSS
+  --allow-clipping --statoff`. All nine samples are stranded as rMATS
+  is told: Salmon detected `ISR` (fr-firststrand) in each, and RSeQC
+  agrees on the sample it checked.
+- **The samples look as named.** In Salmon's TPMs, in both folders,
+  fetal troponin I (TNNI1) is higher in the fetal hearts and adult
+  troponin I (TNNI3) in the adult ones. ENCODE's fetal hearts have fetal
+  haemoglobin (HBG2), and its atrial appendages are rich in NPPA and
+  MYL7. TTN is expressed in every sample (258–5,367 TPM). ENCODE's only
+  male sample (Y-linked UTY, no XIST) is its adult heart.
+
+The `-r 1` runs with the audit switch took 11 min each with `-p 8`
+([r1_logfile.log](model_audit/heart_encode_rmats440/r1_logfile.log),
+[and Takara's](model_audit/heart_takara_rmats440/r1_logfile.log)).
+Evidence: [heart_encode_rmats440/](model_audit/heart_encode_rmats440/)
+and [heart_takara_rmats440/](model_audit/heart_takara_rmats440/), with
+the files of §14's folder.
+
+### 19.2 The maintainer's `-m` runs, checked
+
+Both runs used the repository's code (`.conda/bin/jcast` imports its
+working tree; `2fc17cf` since 2026-11-19), with `-m -c --uniprot` and
+`-p 8`.
+- **Cut at 16 reads, the `-r 1` records equal each run exactly**
+  ([summary.txt](model_audit/heart_encode_rmats440/summary.txt),
+  [and Takara's](model_audit/heart_takara_rmats440/summary.txt)):
+  - the same 98,350 (ENCODE) and 94,506 (Takara) junctions, with the
+    same fates;
+  - every `psq_*.fasta`, sequence for sequence;
+  - the same 3,700 and 3,929 Swiss-Prot isoforms.
+- **The cutoff is the model's.** `model_fit.py` refits the counts as
+  JCAST reads them and gets the same parameters and 16 in both, as the
+  Model page would. Each run left out the events of read count 0 or a
+  form of no length (229,327 and 215,103) and kept every event without
+  an FDR (`-q 0 1`), as PR 24 does.
+- **The databases are ready for a search**
+  ([heart_databases.txt](model_audit/heart_databases.txt),
+  [check_databases.py](model_audit/check_databases.py)):
+  - each `jcast_uniprot_merged.fasta` begins with the 42,545 entries of
+    the Swiss-Prot FASTA, headers and sequences unchanged and in order;
+  - then 19,109 (ENCODE) and 18,695 (Takara) JCAST records, the logs'
+    counts. Each is named `sp|<accession>-J<n>|` after a Swiss-Prot
+    canonical of the FASTA;
+  - no accession is repeated, and none begins with a decoy prefix
+    (`DECOY_`, `rev_`);
+  - no JCAST sequence is repeated or equal to a Swiss-Prot entry, and
+    none has a stop or a letter other than the 20 amino acids, U and X.
+    The shortest is 12 residues; 13 and 12 are under 30.
+
+### 19.3 By cutoff
+
+| | `-r 1` | `-r 3` | `-r 7` | `-m` (16) | `-r 20` |
+|---|---|---|---|---|---|
+| junctions kept | 377,950 / 346,082 | 64% / 67% | 41% / 44% | 26% / 27% | 23% / 24% |
+| Swiss-Prot isoforms | 6,186 / 6,379 | 87% / 88% | 74% / 75% | 60% / 62% | 56% / 59% |
+| GENCODE alternative proteins | 42,941 / 44,824 | 79% / 80% | 62% / 62% | 47% / 47% | 43% / 43% |
+| the same, ≥ 1 TPM | 2,871 / 4,644 | 90% / 92% | 81% / 84% | 73% / 75% | 71% / 72% |
+| database records in neither | 21,480 / 18,363 | 66% / 69% | 47% / 48% | 34% / 34% | 31% / 31% |
+| search database, × Swiss-Prot's size | 2.16 / 2.12 | 1.83 / 1.82 | 1.61 / 1.61 | 1.45 / 1.44 | 1.41 / 1.40 |
+
+(ENCODE / Takara; [recovery.tsv](model_audit/heart_encode_rmats440/recovery.tsv),
+[and Takara's](model_audit/heart_takara_rmats440/recovery.tsv))
+- **The two folders agree closely,** though they share no sample, read
+  length or depth.
+- **`-m` keeps 39% of the database records** (19,109 of 49,207; 18,695
+  of 47,544) and 60–62% of the Swiss-Prot isoforms. The other four runs
+  keep 35–37% and 63–70% (§§7, 14.3).
+- **The databases are smaller at every cutoff:** 2.1 times Swiss-Prot's
+  size at `-r 1`, against 2.5–3.5 in the other data sets.
+- **Fewer expressed GENCODE isoforms in ENCODE** (2,871, against 4,644).
+  Its TPMs are averaged over seven samples of ventricles, atria and fetal
+  hearts, which may dilute an isoform that only some of them express.
+
+### 19.4 Novel and annotated events
+
+![Annotated and novel events by read count, ENCODE heart](model_audit/heart_encode_rmats440/novel.png)
+
+As §4.4 (ENCODE / Takara;
+[bins.tsv](model_audit/heart_encode_rmats440/bins.tsv),
+[and Takara's](model_audit/heart_takara_rmats440/bins.tsv)):
+
+| reads | junctions | novel | frame kept: annotated | frame kept: novel | known: annotated | known: novel |
+|---|---|---|---|---|---|---|
+| 1 | 46,256 / 29,446 | 59% / 46% | 45.8% / 46.5% | 31.2% / 31.2% | 53.0% / 55.5% | 13.4% / 16.0% |
+| 2 | 26,972 / 31,637 | 56% / 51% | 44.8% / 45.6% | 32.1% / 31.9% | 51.9% / 53.3% | 14.5% / 15.7% |
+| 3–4 | 29,654 / 28,617 | 50% / 44% | 45.0% / 44.3% | 32.3% / 32.6% | 50.6% / 52.2% | 14.3% / 16.3% |
+| 5–7 | 22,816 / 22,822 | 45% / 39% | 44.2% / 43.9% | 33.7% / 32.6% | 48.8% / 49.9% | 14.6% / 15.8% |
+| 8–15 | 27,237 / 26,923 | 40% / 35% | 44.2% / 44.3% | 35.2% / 34.1% | 46.9% / 48.7% | 14.8% / 15.8% |
+| 16–31 | 20,409 / 20,039 | 35% / 30% | 44.7% / 44.7% | 36.2% / 36.2% | 44.7% / 48.0% | 15.1% / 16.8% |
+| 32–63 | 14,944 / 14,862 | 32% / 27% | 45.9% / 45.6% | 38.9% / 37.7% | 44.6% / 46.3% | 15.1% / 17.1% |
+| 64–127 | 10,788 / 11,174 | 31% / 25% | 47.2% / 46.9% | 39.6% / 37.7% | 48.0% / 47.3% | 17.6% / 19.3% |
+| 128–255 | 7,392 / 7,895 | 33% / 25% | 49.5% / 47.9% | 37.4% / 36.3% | 57.8% / 53.9% | 22.0% / 27.2% |
+| 256–511 | 4,800 / 4,746 | 35% / 28% | 51.2% / 51.0% | 39.0% / 38.1% | 67.4% / 62.1% | 26.4% / 31.5% |
+| 512–1023 | 3,089 / 2,662 | 40% / 30% | 52.1% / 50.3% | 39.1% / 36.6% | 71.6% / 71.2% | 28.6% / 31.9% |
+| 1024–4095 | 2,594 / 1,885 | 45% / 34% | 54.0% / 53.2% | 41.1% / 49.1% | 78.9% / 74.6% | 21.8% / 27.0% |
+| ≥ 4096 | 1,241 / 525 | 64% / 29% | 54.2% / 54.7% | 57.6% / 49.3% | 84.2% / 85.3% | 17.5% / 30.9% |
+
+- **Annotated events with 1 read beat those with 16–127:** 53% and 56%
+  give a known isoform, against 45–48%. Only from 128 reads (ENCODE)
+  or 256 (Takara) do annotated events do better.
+- **Novel events keep the frame at chance at 1–7 reads** (31–34%), then
+  rise: 36% at 16–31 reads, and 36–40% from 32 to 1,023. This is new for
+  human data. The mouse ventricles rose as much (34% at 1 read, 40% at
+  16–31); the NMDI14 cells less (32% to 33–35%); the iPSC series not at
+  all (32–34%). The two tissues rise and the cultured cells barely do,
+  but two of each are too few to say why.
+- **Half the junctions with 1–2 reads are novel** (46–59%), against 90%
+  in the iPSC series.
+
+### 19.5 A cutoff on novel events only
+
+![Known isoforms kept for the database size, two rules, Takara heart](model_audit/heart_takara_rmats440/tradeoff.png)
+
+([tradeoff.tsv](model_audit/heart_encode_rmats440/tradeoff.tsv),
+[and Takara's](model_audit/heart_takara_rmats440/tradeoff.tsv))
+
+| novel-only cutoff | database records (×) | Swiss-Prot isoforms: novel-only / now | GENCODE, ≥ 1 TPM: novel-only / now | in neither: novel-only / now |
+|---|---|---|---|---|
+| ENCODE 3 | 43,357 (2.02) | 6,061 / 5,851 (+210) | 2,801 / 2,752 (+49) | 15,956 / 18,331 (−2,375) |
+| ENCODE 7 | 40,612 (1.95) | 5,965 / 5,694 (+271) | 2,762 / 2,697 (+65) | 13,344 / 16,853 (−3,509) |
+| ENCODE 20 | 38,638 (1.91) | 5,912 / 5,573 (+339) | 2,735 / 2,653 (+82) | 11,458 / 15,854 (−4,396) |
+| ENCODE 100 | 36,922 (1.87) | 5,861 / 5,466 (+395) | 2,683 / 2,614 (+69) | 9,821 / 14,992 (−5,171) |
+| Takara 3 | 43,462 (2.02) | 6,251 / 6,152 (+99) | 4,547 / 4,548 (−1) | 14,542 / 16,588 (−2,046) |
+| Takara 7 | 41,052 (1.96) | 6,166 / 6,012 (+154) | 4,473 / 4,488 (−15) | 12,262 / 15,527 (−3,265) |
+| Takara 20 | 39,401 (1.93) | 6,104 / 5,896 (+208) | 4,410 / 4,435 (−25) | 10,675 / 14,750 (−4,075) |
+| Takara 100 | 38,004 (1.89) | 6,036 / 5,798 (+238) | 4,340 / 4,390 (−50) | 9,368 / 14,092 (−4,724) |
+
+- **ENCODE: better on all three measures at every size,** as in §§4.5,
+  5.6 and 14.5.
+- **Takara: the first data set where it is not.** It keeps more
+  Swiss-Prot isoforms and fewer records in neither at every size, but
+  1–50 fewer expressed GENCODE isoforms (up to 1.1%).
+- **Its floor is 1.8–1.9 times Swiss-Prot** (35,565 and 36,958 records
+  at a cutoff of 1,000), against 1.96–2.24 in the other data sets.
+- **At `-m`'s 16, applied to novel events only,** the database has
+  38,991 and 39,657 JCAST records (1.92 and 1.93 times Swiss-Prot), with
+  5,920 and 6,113 Swiss-Prot isoforms. Applied to every event: 19,109
+  and 18,695 (1.45, 1.44), with 3,700 and 3,929. The search compares
+  these two databases (§19.9).
+
+### 19.6 The model's fit
+
+As §8 ([fit_summary.txt](model_audit/heart_encode_rmats440/fit_summary.txt),
+[fit.tsv](model_audit/heart_encode_rmats440/fit.tsv),
+[stability.tsv](model_audit/heart_encode_rmats440/stability.tsv),
+[depth.tsv](model_audit/heart_encode_rmats440/depth.tsv),
+[subsets.tsv](model_audit/heart_encode_rmats440/subsets.tsv), and the
+same in [heart_takara_rmats440/](model_audit/heart_takara_rmats440/)).
+`model_fit.py` now reads a folder as JCAST has since PR 24: without the
+events of read count 0 or a form of no length. A folder made with
+statistics has none (§17.2), so §§8 and 14.6 do not change.
+
+![Junction read counts and the models fitted to them, Takara heart](model_audit/heart_takara_rmats440/fit.png)
+
+- **The same misfit.** At 1 read, `-m` expects 62,864 junctions against
+  86,390 observed (ENCODE, 27% too few) and 46,296 against 54,408
+  (Takara, 15%). Both expect too many at 3–7 reads and too few at 8–47,
+  around the cutoff: in ENCODE by 19–22% at 12–31 reads. ΔBIC 22,804 and
+  7,770. Takara's counts peak at 2 reads, as §8.1's do; ENCODE's fall
+  from 1.
+- **Fitted to the counts, the family does not split:** no cutoff in
+  ENCODE, 2 reads in Takara.
+- **The cutoff:**
+  - 16 as run, 15–17 by bootstrap, in both;
+  - 17 with the EM run to convergence;
+  - 24–25 (ENCODE) and 21 (Takara) with each count spread over its
+    interval.
+- **It keeps a share again:** 26.0% and 27.3% of junctions, against
+  22–26% in the other data sets, with 9–38% of the NMDI14 and mouse
+  folders' junction reads.
+  With fewer replicates summed it keeps a little more: ENCODE 6 reads
+  and 31% with one replicate; Takara 9 and 32%.
+- **By subset:** SE 12 and 14, MXE 28 and 22, A5SS and A3SS 4 and 8, RI
+  5 and 8; annotated events 19 and 18, novel 17 and 17. Unlike the iPSC
+  series (§14.6), the model finds a cutoff on annotated events alone.
+
+### 19.7 Two cutoffs
+
+As §9 ([pairs.tsv](model_audit/heart_encode_rmats440/pairs.tsv),
+[frontier.tsv](model_audit/heart_encode_rmats440/frontier.tsv),
+[gtf_calls.tsv](model_audit/heart_encode_rmats440/gtf_calls.tsv), and
+Takara's). Each cell gives database records, Swiss-Prot isoforms,
+GENCODE isoforms with ≥ 1 TPM, and records in neither:
+
+| size of | current rule | pair (annotated / novel) | pair's values |
+|---|---|---|---|
+| ENCODE `-r 7` | 26,087 / 4,564 / 2,328 / 10,100 | 4 / 200 | 26,054 / 4,876 / 2,366 / 7,069 |
+| ENCODE `-m` (16) | 19,109 / 3,700 / 2,087 / 7,284 | 8 / none | 19,016 / 4,241 / 2,132 / 4,241 |
+| | | 10 / 300 | 19,091 / 4,055 / 2,109 / 5,331 |
+| Takara `-r 7` | 25,800 / 4,805 / 3,922 / 8,887 | 5 / 50 | 25,800 / 4,963 / 3,927 / 7,018 |
+| Takara `-m` (16) | 18,695 / 3,929 / 3,477 / 6,307 | 10 / none | 18,590 / 4,255 / 3,543 / 4,170 |
+| | | 12 / 150 | 18,522 / 4,133 / 3,518 / 4,947 |
+
+![Two cutoffs, ENCODE heart](model_audit/heart_encode_rmats440/pairs.png)
+
+- **A pair beats one cutoff on all three measures at every size but
+  one.** At `-r 3`'s size in Takara, no pair keeps more expressed
+  GENCODE isoforms than `-r 3` itself (4,294).
+- **At `-m`'s size, the best pair keeps no novel event:** every
+  annotated event with 8 (ENCODE) or 10 reads (Takara). That gives
+  326–541 more Swiss-Prot isoforms than `-m` and about 2,100–3,000
+  fewer records in neither. Keeping the novel events with 150–300 reads
+  as well costs about a third of that gain.
+- **These measures cannot credit a novel event.** A known isoform is an
+  annotated sequence, so the sequences that only novel events give
+  count only against them, as records in neither. Whether any of them
+  is made is what the spectra can tell (§19.9).
+- **The call from the GTF agrees with rMATS's for 98.4% and 98.3% of
+  events.** Most disagreements are events rMATS calls novel and the GTF
+  annotated (8,444 and 8,254), against 1,398 the other way in each.
+
+### 19.8 PaxDb's heart proteins
+
+As §6, now in heart tissue
+([paxdb.tsv](model_audit/heart_encode_rmats440/paxdb.tsv),
+[genes.tsv](model_audit/heart_encode_rmats440/genes.tsv),
+[paxdb_by_count.tsv](model_audit/heart_encode_rmats440/paxdb_by_count.tsv),
+and Takara's):
+- **Few heart proteins have so few reads.** Of the heart proteins PaxDb
+  lists whose gene has an rMATS event (11,045 and 11,112), the best
+  junction is below 7 reads for 2.7% and 2.3%. It is below `-m`'s 16
+  for 5.5% (612) and 4.8% (530), and for 10.6% and 8.4% of the least
+  abundant quarter. §6.3 found 2.7% (mouse) and 6.7% (human cells)
+  below `-m`.
+- **At `-m`, about a quarter of them get no alternative sequence:**
+  2,988 (27%) and 2,835 (26%); 40% and 38% of the least abundant
+  quarter. §6.2 found 1,846 and 2,712, 34% and 39%.
+- **A gene's count says little below about 128 reads** about whether
+  PaxDb finds its protein: 50–64% in each bin. Then 66–71% at 128–255,
+  86% at 512–1,023, and 94–95% at ≥ 4,096.
+
+### 19.9 What a fetal against adult design would cost (§15.7, 3)
+
+Both folders were made with `--statoff` only, so nothing was dropped.
+What rMATS's statistics would have dropped, with fetal and adult as the
+two groups, follows from the counts: its filter
+(`filter_countfile`, §15.2) depends on nothing else.
+`dropped_events.py` without `--rmats` applies the filter's conditions to
+the `--statoff` folder. On the three folders that have both, the
+conditions keep exactly the events of the folder made with statistics:
+623,738, 294,320 and 1,436,384
+([filter_check.txt](model_audit/filter_check.txt)).
+
+| | ENCODE heart | Takara heart |
+|---|---|---|
+| groups | fetal (2) / adult (5) | fetal / adult |
+| events rMATS found | 607,277 | 561,185 |
+| that the statistics would keep | 357,805 | 328,402 |
+| dropped | 249,472 | 232,783 |
+| of those, no reads at all / reads in one form only | 62,001 / 167,326 | 63,366 / 151,737 |
+| **a read in both forms, none in one group** | **20,145** | **17,680** |
+| the same, as a share of the events kept | 5.6% | 5.4% |
+| no reads in the fetal group / the adult | 17,388 / 2,757 | 11,297 / 6,383 |
+| at or above `-m`'s cutoff with statistics (19, 18) | 414 | 461 |
+| novel (rMATS): dropped / kept | 64% / 48% | 56% / 41% |
+| `-m`: with statistics / with `--statoff`, as run | 19 / 16 | 18 / 16 |
+| database records: with statistics / as run | 17,823 / 19,109 (+7.2%) | 17,771 / 18,695 (+5.2%) |
+| Swiss-Prot isoforms: with statistics / as run | 3,518 / 3,700 (+5.2%) | 3,799 / 3,929 (+3.4%) |
+| of those, from the events statistics would drop | 13 | 22 |
+| at `-r 1`: Swiss-Prot isoforms, kept + added | 6,028 + 158 | 6,199 + 180 |
+
+([dropped.tsv](model_audit/heart_encode_rmats440/dropped.tsv),
+[dropped_bins.tsv](model_audit/heart_encode_rmats440/dropped_bins.tsv),
+[dropped_genes.tsv](model_audit/heart_encode_rmats440/dropped_genes.tsv),
+[dropped_model.txt](model_audit/heart_encode_rmats440/dropped_model.txt),
+[dropped_known.tsv](model_audit/heart_encode_rmats440/dropped_known.tsv),
+and Takara's)
+
+- **The heart falls between the two kinds §15 found.** At low counts the
+  loss is like the iPSC series': 11.5% and 11.7% of the events with 1
+  read, against 10.8% (iPSC) and 6.7–7.2% (NMDI14, mouse). It fades
+  faster: about 1% at 16–31 reads and 0.2% or less from 128. The share
+  of the events above the cutoff that would be dropped is 0.5%, against
+  0.9% (iPSC) and 0.01% (NMDI14).
+- **The genes are those that one age expresses:**
+  - ENCODE, no fetal reads: TTN (944 events, up to 763 reads), MYH7
+    (476; 762), DES (388; 199), MYH6 (145; 198), PDLIM3, PERM1, LDB3;
+  - ENCODE, no adult reads: HBG2 (13; 385);
+  - Takara, no fetal reads: HMGCS2 (24; 2,052), CES1, CIDEC, DES (42);
+  - Takara, no adult reads: XIST (16; 310), CDH18 (56; 574), PRAME
+    (18; 361).
+- **And genes of one sex.** ENCODE's only male sample is an adult, so
+  the Y-linked genes have no fetal reads: UTY (76 events), USP9Y (63),
+  KDM5D (30), EIF1AY (19) and DDX3Y (8). The filter would drop them as
+  if age switched them on.
+- **`--statoff`, as the maintainer ran it, avoids all of this.** With
+  statistics, `-m` would rise to 19 and 18 reads, and the databases
+  would lose 5–7% of their JCAST records and 3–5% of their Swiss-Prot
+  isoforms. As in §15.8, almost all of that comes from the higher
+  cutoff, not from the events dropped.
+
+### 19.10 The two databases for the search (§16.1)
+
+The maintainer's runs are the `-m` databases (`jcast/`). The novel-only
+databases are in `jcast_novel_only/` in each folder, made on 2026-11-21
+with [novel_only.diff](model_audit/novel_only.diff) applied to
+`2fc17cf` in a worktree, `JCAST_AUDIT_ANNOTATED_CUTOFF=1`, and the
+maintainer's paths and options (`-m -c --uniprot`, `-p 8`). Each run
+took 8 minutes
+([novel_only_logfile.log](model_audit/heart_encode_rmats440/novel_only_logfile.log),
+[and Takara's](model_audit/heart_takara_rmats440/novel_only_logfile.log)).
+
+| | ENCODE: `-m` / novel-only | Takara: `-m` / novel-only |
+|---|---|---|
+| junctions translated | 98,350 / 228,512 | 94,506 / 230,132 |
+| JCAST records in `jcast_uniprot_merged.fasta` | 19,109 / 38,991 | 18,695 / 39,657 |
+| entries in all (with Swiss-Prot's 42,545) | 61,654 / 81,536 | 61,240 / 82,202 |
+| × Swiss-Prot's size | 1.45 / 1.92 | 1.44 / 1.93 |
+| Swiss-Prot isoforms reproduced | 3,700 / 5,920 | 3,929 / 6,113 |
+| GENCODE alternative proteins, ≥ 1 TPM | 2,087 / 2,739 | 3,477 / 4,421 |
+| database records in neither | 7,284 / 11,791 | 6,307 / 10,921 |
+
+- **Each novel-only run equals the `-r 1` records cut by the novel-only
+  rule** (`cutoff_recovery.py --check_novel_only`): the same junctions
+  with the same fates, every `psq_*.fasta` sequence for sequence, the
+  same Swiss-Prot isoforms.
+- **Each `-m` database is inside its novel-only one.** Every JCAST
+  sequence of `-m` is in the novel-only database, which adds 19,882
+  (ENCODE) and 20,962 (Takara). The `-J<n>` numbers differ between the
+  two, as they depend on what the run writes before. The novel-only
+  databases pass §19.2's checks
+  ([heart_databases.txt](model_audit/heart_databases.txt)).
+- **The two folders share most sequences:** 13,948 of the `-m` JCAST
+  sequences (73–75%), and 31,362 of the novel-only ones (79–80%).
+- **The log says "a read count of at least 16 (-m)",** which holds for
+  novel events only, as in §16.1.
+- **The runs were made in a local folder and copied** (every file
+  byte-identical on the share); each log names the local folder. Written
+  to the share directly, a run slowed tenfold on 2026-11-21. JCAST opens
+  and closes the FASTA for each record it writes, and on the share that
+  day each open and close was slow (`sample`: nearly all the main
+  process's time in `open` and `close`). The maintainer's own runs into
+  the share were not slowed.
+
+What the search can compare, as §16.1 has it: the peptides that support
+JCAST sequences at the same FDR, above all those of the 19,882 and
+20,962 sequences only the novel-only databases have; and what each
+database costs in canonical identifications, the novel-only one being a
+third larger.
+
+### 19.11 Reading: do the conclusions change?
+
+Most hold on both heart folders:
+- **no read count is a boundary** (§§3–5);
+- **`-m` misfits the counts, and its cutoff is a depth-scaled share:**
+  16 reads in both, keeping 26–27% of the junctions, with 9–38% of the
+  NMDI14 and mouse folders' junction reads (§8);
+- **annotated events with 1 read are as good as those with 16–127**
+  (§§4.4, 5.4);
+- **the novel-only rule keeps more Swiss-Prot isoforms and fewer
+  unannotated records at equal size** (§§4.5, 5.6);
+- **a pair of cutoffs beats one,** and the GTF can tell novel events
+  (§9);
+- **few heart proteins have so few reads** (§6), now measured in heart.
+
+What is new:
+- **The novel-only rule no longer wins on every measure.** In the
+  Takara folder it keeps 1–50 fewer expressed GENCODE isoforms than one
+  cutoff at the same size. In ENCODE it still wins on all three.
+- **Novel events gain the frame with reads in heart:** from chance at
+  1–7 reads to 36–40% at 16–1,023, as in the mouse ventricles. A cutoff
+  on novel events buys more here than in the cultured cells.
+- **At `-m`'s size, the best pair keeps no novel event.** By the known
+  isoforms, novel events below a few hundred reads add nothing that a
+  lower cutoff on annotated events would not. This measure cannot
+  credit a novel event; the search can.
+- **A fetal against adult design would cost 5.4–5.6% of events** under
+  rMATS's statistics, and raise `-m` by 2–3 reads. The heart falls
+  between the cultured cells and the iPSC series. `--statoff` avoids it.
+- **The databases are smaller,** 1.4–2.2 times Swiss-Prot's size from
+  `-m` to `-r 1`, so the novel-only database is the larger by about a
+  third (1.92 against 1.45).

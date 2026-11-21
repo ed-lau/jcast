@@ -1,0 +1,41 @@
+--uniprot: 20261111_human_uniprot_swissprot_isoform.fasta, 42,545 entries
+
+== ENCODE -m: /Volumes/Omics-Shared-2/Edward/ENCODE_HumanHeart_RNASeq/jcast
+entries: 61,654; UniProt: 42,545, the --uniprot FASTA's in order: True; JCAST: 19,109
+log: 42,545 UniProt entries and 19,109 JCAST records; equal: True
+JCAST accessions sp|<accession>-J<n>|: 19,109 of 19,109; joined to a Swiss-Prot canonical of the FASTA: 19,109
+accessions: 61,654 distinct, 0 repeated; beginning with a decoy prefix: 0
+JCAST sequences: 19,109 distinct, 0 repeated; identical to a UniProt entry: 0; with letters other than the 20 amino acids, U and X: 0; with a stop: 0
+JCAST lengths: 12 to 34542, median 602; under 30: 13
+
+== ENCODE novel-only: /Volumes/Omics-Shared-2/Edward/ENCODE_HumanHeart_RNASeq/jcast_novel_only
+entries: 81,536; UniProt: 42,545, the --uniprot FASTA's in order: True; JCAST: 38,991
+log: 42,545 UniProt entries and 38,991 JCAST records; equal: True
+JCAST accessions sp|<accession>-J<n>|: 38,991 of 38,991; joined to a Swiss-Prot canonical of the FASTA: 38,991
+accessions: 81,536 distinct, 0 repeated; beginning with a decoy prefix: 0
+JCAST sequences: 38,991 distinct, 0 repeated; identical to a UniProt entry: 0; with letters other than the 20 amino acids, U and X: 0; with a stop: 0
+JCAST lengths: 12 to 34542, median 556; under 30: 25
+
+== Takara -m: /Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/jcast
+entries: 61,240; UniProt: 42,545, the --uniprot FASTA's in order: True; JCAST: 18,695
+log: 42,545 UniProt entries and 18,695 JCAST records; equal: True
+JCAST accessions sp|<accession>-J<n>|: 18,695 of 18,695; joined to a Swiss-Prot canonical of the FASTA: 18,695
+accessions: 61,240 distinct, 0 repeated; beginning with a decoy prefix: 0
+JCAST sequences: 18,695 distinct, 0 repeated; identical to a UniProt entry: 0; with letters other than the 20 amino acids, U and X: 0; with a stop: 0
+JCAST lengths: 12 to 34542, median 557; under 30: 12
+
+== Takara novel-only: /Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/jcast_novel_only
+entries: 82,202; UniProt: 42,545, the --uniprot FASTA's in order: True; JCAST: 39,657
+log: 42,545 UniProt entries and 39,657 JCAST records; equal: True
+JCAST accessions sp|<accession>-J<n>|: 39,657 of 39,657; joined to a Swiss-Prot canonical of the FASTA: 39,657
+accessions: 82,202 distinct, 0 repeated; beginning with a decoy prefix: 0
+JCAST sequences: 39,657 distinct, 0 repeated; identical to a UniProt entry: 0; with letters other than the 20 amino acids, U and X: 0; with a stop: 0
+JCAST lengths: 11 to 34542, median 536; under 30: 31
+
+== ENCODE -m and ENCODE novel-only, JCAST sequences: 19,109 in both; 0 only in ENCODE -m; 19,882 only in ENCODE novel-only
+
+== Takara -m and Takara novel-only, JCAST sequences: 18,695 in both; 0 only in Takara -m; 20,962 only in Takara novel-only
+
+== ENCODE -m and Takara -m, JCAST sequences: 13,948 in both; 5,161 only in ENCODE -m; 4,747 only in Takara -m
+
+== ENCODE novel-only and Takara novel-only, JCAST sequences: 31,362 in both; 7,629 only in ENCODE novel-only; 8,295 only in Takara novel-only

@@ -1,4 +1,4 @@
-# Handoff — v0.5.0: what remains before the release (2026-11-19)
+# Handoff — v0.5.0: what remains before the release (2026-11-21)
 
 For the next working session. It covers where things stand, how the work
 has been run, and what to do next. **Start with
@@ -7,7 +7,8 @@ v0.5.0 on 2026-11-14, each to begin with an audit, and a third (the GUI
 remembers its settings) on 2026-11-18. On 2026-11-19 the first, a view of
 each junction and its peptides (row 22), moved to v0.6.0, and the release
 waits for the search against spectra that settles row 23's pair of
-cutoffs.
+cutoffs. On 2026-11-21 the two databases for that search were built
+from the maintainer's two human heart folders (report §19).
 
 ## State
 
@@ -78,9 +79,13 @@ cutoffs.
     2026-11-18; the pair of cutoffs waits for a search against spectra
     (§16.1); JCAST reads `--statoff` folders since PR 24 (§17), and the
     maintainer's reruns on `--statoff` folders give its numbers (§17.4).
-    Next: the two heart databases for the maintainer's quantms search,
-    when the ENCODE heart folder is ready (made with `--statoff` and
-    `--novelSS`); then the decision on the pair of cutoffs.
+    On 2026-11-21, two human heart folders (ENCODE and Takara, fetal
+    against adult, `--statoff`) were added to the audit (§19), the
+    maintainer's `-m` runs on them were checked, and the novel-only
+    databases were built into each folder's `jcast_novel_only/`.
+    Next: the maintainer's quantms search with the two databases per
+    folder (`jcast/` and `jcast_novel_only/`); then the decision on the
+    pair of cutoffs.
 
 ## The session of 2026-11-18
 
@@ -448,12 +453,12 @@ cutoffs.
    UniProt API get `--uniprot` (PR 25); the GUI remembers its settings
    (item 3, PR 26); the Model page's two charts that need no run (report
    §§16.2, 18; PR 27).
-2. The search against spectra (row 23, report §16.1): the maintainer's
-   human heart folder (ENCODE, `ENCODE_HumanHeart_RNASeq`, downloading
-   on 2026-11-19) is expected within a day. Two databases from it: `-m`
-   as JCAST runs it, and `-m` on novel events only
-   (`novel_only.diff`, not in JCAST), for the maintainer's quantms
-   search.
+2. The search against spectra (row 23, report §16.1): **the databases
+   are built (2026-11-21, report §19.10).** Two human heart folders,
+   `ENCODE_HumanHeart_RNASeq` and `GSE256519_Takara_Heart_RNASeq`, each
+   with `jcast/` (the maintainer's `-m` run, checked) and
+   `jcast_novel_only/` (`-m` on novel events only, `novel_only.diff`,
+   not in JCAST). The maintainer runs the quantms search.
 3. The maintainer decides from the search whether the pair of cutoffs
    (`-m` on novel events, every annotated event kept) goes into v0.5.0.
 4. Then the release (item 4).
@@ -583,19 +588,19 @@ The maintainer answered §13 on 2026-11-18. Next:
   `check_reruns.py`): the cutoffs (37, 22, 34), database records and
   Swiss-Prot isoforms are §15.8's, and every junction and sequence of
   the earlier runs is kept;
-- **the search against spectra (§16.1):** when the maintainer's heart
-  folder is ready, two runs from it: `-m`, and `-m` with
-  `novel_only.diff` and `JCAST_AUDIT_ANNOTATED_CUTOFF=1`. The folder is
-  to be made with `--statoff`, and both runs made after §15.7's fix;
-- **the ENCODE fetal and adult heart folder:** §15's measurement, run
-  both ways;
+- **the search against spectra (§16.1):** the databases are built for
+  both heart folders (§19.10, 2026-11-21); the search is the
+  maintainer's;
+- **the fetal and adult heart folders:** §15's measurement, done from
+  the `--statoff` counts (§19.9): 5.4–5.6% of events would be dropped
+  under rMATS's statistics;
 - **then the PRs:**
   - the §15.7 fixes (done, PR 24);
   - the Model page charts that need no run (§16.2): done in PR 27
     (§18); those from a run's records wait for later decisions;
   - the pair of cutoffs, if the search supports it.
 
-The `-r 1` runs' records (166, 174, 93 and 375 MB) were in a scratch folder.
+The `-r 1` runs' records (166, 174, 93 and 375 MB; the heart folders' 109 and 101 MB) were in a scratch folder.
 To regenerate them, apply `reports/model_audit/audit_records.diff` in a
 worktree and run as the report's Reproduce row says. GENCODE translations
 and PaxDb files are downloaded as its Inputs row says.
@@ -634,6 +639,14 @@ and PaxDb files are downloaded as its Inputs row says.
     per GENCODE transcript) and `quant.genes.sf`;
   - `genome/`: GENCODE v50 GTF, GRCh38, and the Swiss-Prot isoform FASTA
     of 2026-11-11.
+- **The two human heart folders** (report §19, 2026-11-21):
+  `ENCODE_HumanHeart_RNASeq/` (its own `genome/`, files identical to the
+  above) and `GSE256519_Takara_Heart_RNASeq/` (`genome/` links to the
+  folder above). Each has `rmats/` (rMATS 4.4.0, `--statoff`,
+  `--novelSS`; `b1` fetal, `b2` adult), `jcast/` (the maintainer's `-m`
+  run, 16 reads) and `jcast_novel_only/` (the novel-only run, made in a
+  local folder and copied). `runs/human_heart_encode/` and
+  `runs/human_heart_takara/` link to them.
 - **Two runs on the rMATS 4.1.0 inputs, both with `--uniprot`** (the
   first now in `jcast_rmats_4_1_0/`, the second removed; `jcast/` holds
   the maintainer's `-m` run on 4.4.0, cutoff 42):

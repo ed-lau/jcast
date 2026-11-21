@@ -1,0 +1,38 @@
+2026-11-21 11:30:56,415~INFO~JCAST 0.4.0
+2026-11-21 11:30:56,415~INFO~Arguments: Namespace(rmats_folder='/Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/rmats', gtf_file='/Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/genome/gencode.v50.primary_assembly.annotation.gtf', genome='/Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/genome/GRCh38.primary_assembly.genome.fa', out='/private/tmp/claude-501/-Users-edwardlau-projects-jcast/1eb63304-8df1-46c6-8502-5bbacb5416ca/scratchpad/model_audit/ht/out', overwrite=False, cache_dir=None, read=1, model=False, canonical=True, uniprot='/Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/genome/20261111_human_uniprot_swissprot_isoform.fasta', processes=8, verbose=False, splice_type={'A5SS', 'MXE', 'A3SS', 'RI', 'SE'}, qvalue=[0.0, 1.0])
+2026-11-21 11:31:02,585~INFO~rMATS MXE: /Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/rmats/MXE.MATS.JC.txt (10,759,630 bytes, sha256 9e71611942ce367ef669f358c6e3387c9c62c73d2354f1db0420068a21c9dea0)
+2026-11-21 11:31:02,585~INFO~rMATS MXE: 18712 events left out, with no inclusion or no skipping read in any sample, as rMATS leaves them out when it runs its statistics.
+2026-11-21 11:31:02,610~INFO~rMATS SE: /Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/rmats/SE.MATS.JC.txt (40,705,533 bytes, sha256 23ab533205ba6651031fa2d197c6a3d7388fc2fdf9690f740840a273d9999da9)
+2026-11-21 11:31:02,610~INFO~rMATS SE: 122676 events left out, with no inclusion or no skipping read in any sample, as rMATS leaves them out when it runs its statistics.
+2026-11-21 11:31:02,618~INFO~rMATS RI: /Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/rmats/RI.MATS.JC.txt (5,137,136 bytes, sha256 77314f035a47fba44e603353475f2217d3c3b48809aad44bdffebea1d0299e0e)
+2026-11-21 11:31:02,618~INFO~rMATS RI: 10817 events left out, with no inclusion or no skipping read in any sample, as rMATS leaves them out when it runs its statistics.
+2026-11-21 11:31:02,629~INFO~rMATS A5SS: /Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/rmats/A5SS.MATS.JC.txt (9,440,973 bytes, sha256 b4eba28a41e09ff1e0358271966c8022bfb91cd99293ef31796473934058292c)
+2026-11-21 11:31:02,629~INFO~rMATS A5SS: 22125 events left out, with no inclusion or no skipping read in any sample, as rMATS leaves them out when it runs its statistics.
+2026-11-21 11:31:02,649~INFO~rMATS A3SS: /Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/rmats/A3SS.MATS.JC.txt (16,149,668 bytes, sha256 25ba613d795fc853326ab4e23a547646d9470864be787d263827ce86583ce835)
+2026-11-21 11:31:02,649~INFO~rMATS A3SS: 40773 events left out, with no inclusion or no skipping read in any sample, as rMATS leaves them out when it runs its statistics.
+2026-11-21 11:31:02,650~INFO~346082 junctions have no rMATS FDR (rMATS was run with --statoff, or one sample); -q 0 1 keeps them.
+2026-11-21 11:31:02,650~INFO~GTF: /Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/genome/gencode.v50.primary_assembly.annotation.gtf (4,688,772,094 bytes, modified 2026-06-29 14:00:24)
+2026-11-21 11:31:02,650~INFO~Genome: /Volumes/Omics-Shared-2/Edward/GSE256519_Takara_Heart_RNASeq/genome/GRCh38.primary_assembly.genome.fa (3,151,417,447 bytes, modified 2026-06-29 14:02:40)
+2026-11-21 11:31:02,650~INFO~Reading GTF file. This could take a minute.
+2026-11-21 11:31:07,465~INFO~Read the GTF from the cache /Users/edwardlau/Library/Caches/jcast/gtf/gencode.v50.primary_assembly.annotation.gtf.6e9448e33648.7118b3232c7a.pkl.
+2026-11-21 11:33:38,456~INFO~Read from genome.
+2026-11-21 11:33:40,280~INFO~UniProt FASTA 20261111_human_uniprot_swissprot_isoform.fasta (sha256 d0100c8da86ebcb4d0d05417c34c14d835f87ea87bdf1eaf18003af366ef9b33): 42545 entries, 20414 canonical.
+2026-11-21 11:33:40,280~INFO~Translating junctions with a read count of at least 1 (-r): the smaller of the summed inclusion and skipping junction counts. Others are skipped.
+2026-11-21 11:33:40,369~INFO~Translating junctions in 8 worker processes.
+2026-11-21 11:41:54,640~INFO~Canonicals by source: {'gtf': 115, 'none': 3135, 'sp by gene name': 387, 'sp by sequence': 13687}. JCAST records identical to a UniProt entry: 8326 (see psq_isoforms.tsv). jcast_uniprot_merged.fasta: 42545 UniProt entries and 47544 JCAST records from T1, T1_alt_cterm, T1_alt_nterm, T1_alt_both.
+2026-11-21 11:41:55,111~INFO~Summary.
+Junctions by fate and splice type (each junction is a row of junctions.tsv):
+fate                    MXE       SE      RI    A5SS    A3SS    total
+T1                    8,526   30,151     949   7,279  19,312   66,217
+T1_alt_terminus         711    3,527     704     814     901    6,657
+T2                    1,502    7,213     583   2,465   5,721   17,484
+T4                   12,320   51,956   9,944  14,957  23,698  112,875
+fail                 14,087   43,520  10,052  11,720  14,011   93,390
+exception                 0        0       0       0       0        0
+skipped_low_count         0        0       0       0       0        0
+skipped_fdr               0        0       0       0       0        0
+skipped_masked            0        0       0       0       0        0
+skipped_outside_cds  10,317   22,394   2,565   6,364   7,819   49,459
+total                47,463  158,761  24,797  43,599  71,462  346,082
+Records per file: psq_T1.fasta 48,818, psq_T1_alt_both.fasta 52, psq_T1_alt_cterm.fasta 3,427, psq_T1_alt_cterm_orphan.fasta 621, psq_T1_alt_nterm.fasta 532, psq_T1_alt_nterm_orphan.fasta 41, psq_T1_orphan.fasta 9,971, psq_T2.fasta 17,625, psq_T2_orphan.fasta 1,171, psq_T4.fasta 88,373, psq_T4_orphan.fasta 23,023, psq_canonical.fasta 14,123
+2026-11-21 11:41:55,112~INFO~Time: 10 min 59 s in all, of which 8 min 13 s translating junctions.

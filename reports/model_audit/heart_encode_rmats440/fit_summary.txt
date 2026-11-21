@@ -1,0 +1,5 @@
+/Volumes/Omics-Shared-2/Edward/ENCODE_HumanHeart_RNASeq/rmats: 377950 events, 3707 distinct counts
+general_mixture_model: cutoff 16, parameters (np.float64(4.175200180355048), np.float64(2.9207331706707444), np.float64(3.8321634000852214), 1.6261352804977063, np.float64(0.7003639892094058), np.float64(0.29963601079059415))
+em (weighted, distinct counts): cutoff 16, parameters (np.float64(4.175200180355054), np.float64(2.9207331706707507), np.float64(3.8321634000852214), 1.6261352804977056, np.float64(0.7003639892094055), np.float64(0.29963601079059443)); same: True
+junctions with a count of 1: 86390 (22.9%); kept at the cutoff: 0.2602
+bootstrap (100): cutoffs 15 to 17, 2.5-97.5%: 15.0 to 17.0

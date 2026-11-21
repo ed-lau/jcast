@@ -1,0 +1,22 @@
+dropped_events.py with --rmats (the folder made with statistics, rmats_4_4_0_stat/) and --statoff (rmats/), 2026-11-21:
+filter_countfile's conditions (rMATS 4.4.0), applied to the --statoff folder's counts and form lengths, against the
+events rMATS's statistics kept. The heart folders (§19.7) have no folder made with statistics; there the conditions alone
+say which events it would keep.
+
+== NMDI14 cells
+-m cutoff, kept events (as JCAST reads the folder): 42 (623738 events)
+-m cutoff, kept, and dropped with a read in both forms: 37 (635424 events)
+-m cutoff, every event (as JCAST would read the --statoff folder): 1 (848342 events)
+filter_countfile's conditions on the --statoff counts keep exactly the events of --rmats: True (623738 events pass)
+
+== mouse ventricles
+-m cutoff, kept events (as JCAST reads the folder): 25 (294320 events)
+-m cutoff, kept, and dropped with a read in both forms: 22 (302055 events)
+-m cutoff, every event (as JCAST would read the --statoff folder): 1 (448231 events)
+filter_countfile's conditions on the --statoff counts keep exactly the events of --rmats: True (294320 events pass)
+
+== iPSC differentiation
+-m cutoff, kept events (as JCAST reads the folder): 39 (1436384 events)
+-m cutoff, kept, and dropped with a read in both forms: 34 (1504997 events)
+-m cutoff, every event (as JCAST would read the --statoff folder): 5 (1685464 events)
+filter_countfile's conditions on the --statoff counts keep exactly the events of --rmats: True (1436384 events pass)

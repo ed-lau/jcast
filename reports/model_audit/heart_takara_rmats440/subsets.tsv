@@ -1,0 +1,9 @@
+subset	junctions	median count	cutoff	junctions kept	gamma weight	cutoff, converged
+all	346082	5.0	16	0.2731	0.6892	17
+SE	158761	4.0	14	0.22	0.7414	15
+MXE	47463	10.0	22	0.3962	0.5738	22
+A5SS	43599	4.0	8	0.3871	0.5629	8
+A3SS	71462	5.0	8	0.3989	0.5649	8
+RI	24797	13.0	8	0.5764	0.4058	8
+annotated events	202254	7.0	18	0.3087	0.6538	19
+novel events	143828	4.0	17	0.1866	0.7732	17
