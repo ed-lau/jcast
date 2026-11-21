@@ -44,9 +44,12 @@ from the maintainer's two human heart folders (report §19).
   - `4fef85b`: PR 26, the GUI keeps the Setup page's settings between
     sessions, and the commit recording its hash;
   - `8e0d747`: PR 27, the Model page's two charts of what a cutoff keeps
-    (report §18), and the commit recording its hash.
+    (report §18), and the commit recording its hash;
+  - `6b44ee8`: two human heart folders in the read-count audit, and the
+    two search databases built from them (report §19).
 
-  Not pushed since `0986558`.
+  **Pushed** on 2026-11-21 at `6b44ee8`, when the maintainer asked; CI
+  run 44945937436 passed all 13 jobs.
 - **Tests:** 266, all passing; 263 offline
   (`python -m pytest -q -m 'not network'`, about 2 minutes). Since PR 25,
   a test not marked `network` fails if it connects to the internet. Run only
